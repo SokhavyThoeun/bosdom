@@ -65,10 +65,9 @@ class AppButton extends StatelessWidget {
 
   Widget _buildChild(BuildContext context) {
     if (isLoading) {
-      final spinnerColor =
-          variant == AppButtonVariant.primary
-              ? AppColors.petalWhite
-              : AppColors.brandCrimson;
+      final spinnerColor = variant == AppButtonVariant.primary
+          ? AppColors.petalWhite
+          : AppColors.brandCrimson;
       return SizedBox(
         height: 20,
         width: 20,
@@ -83,11 +82,7 @@ class AppButton extends StatelessWidget {
 
     return Row(
       mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 18),
-        const SizedBox(width: 8),
-        Text(label),
-      ],
+      children: [Icon(icon, size: 18), const SizedBox(width: 8), Text(label)],
     );
   }
 }

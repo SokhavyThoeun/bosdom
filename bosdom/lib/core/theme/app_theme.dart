@@ -40,25 +40,25 @@ abstract final class AppTheme {
         thickness: 1,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.brandCrimson,
-          foregroundColor: AppColors.petalWhite,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ).copyWith(
-          overlayColor: WidgetStateProperty.resolveWith(
-            (states) =>
-                states.contains(WidgetState.pressed)
+        style:
+            ElevatedButton.styleFrom(
+              backgroundColor: AppColors.brandCrimson,
+              foregroundColor: AppColors.petalWhite,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              textStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ).copyWith(
+              overlayColor: WidgetStateProperty.resolveWith(
+                (states) => states.contains(WidgetState.pressed)
                     ? AppColors.deepBurgundy
                     : null,
-          ),
-        ),
+              ),
+            ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,

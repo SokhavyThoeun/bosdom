@@ -14,7 +14,7 @@ Payment/Escrow is built **last** in both frontend and backend since it's the hig
 - [x] 1.2 Add core dependencies (Riverpod, go_router, http/dio) to `pubspec.yaml`
 - [x] 1.3 Set up theming (colors, typography, `ThemeData`) and app shell (`MaterialApp`, root navigation)
 - [x] 1.4 Build reusable UI kit (buttons, input fields, cards, loading/error states)
-- [ ] 1.5 Set up routing skeleton (go_router) with placeholder screens for all main flows
+- [x] 1.5 Set up routing skeleton (go_router) with placeholder screens for all main flows
 
 ## Phase 2 — Frontend: Auth & Onboarding
 - [ ] 2.1 Splash / onboarding screens
@@ -114,7 +114,7 @@ Payment/Escrow is built **last** in both frontend and backend since it's the hig
 ---
 
 ## Current status
-**Next task:** 1.5 — Set up routing skeleton (go_router) with placeholder screens for all main flows
+**Next task:** 2.1 — Splash / onboarding screens
 
 ### Notes
 - Flutter project lives at `bosdom/` (root of this git repo).
@@ -124,3 +124,4 @@ Payment/Escrow is built **last** in both frontend and backend since it's the hig
 - 1.2 added `flutter_riverpod`, `go_router`, `dio`, `http` via `flutter pub add` (versions resolved by pub, see `pubspec.lock`).
 - 1.3 added `lib/core/theme/` (`app_colors.dart`, `app_text_theme.dart`, `app_theme.dart`) from the Bosdom brand color system (muted crimson `#9B2C2C`). `main.dart` now wraps the app in `ProviderScope` + `MaterialApp` using `AppTheme.light`, with a placeholder `RootScreen` standing in until routing lands in 1.5.
 - 1.4 added `lib/shared/widgets/` UI kit: `AppButton` (primary/secondary/outlined/text variants, loading spinner state), `AppTextField` (label + error/helper text wrapper over `TextFormField`), `AppCard` (themed `Card` with optional tap ripple), `AppLoadingIndicator`, `AppErrorView` (message + optional retry button). All pull colors from `AppColors`/`ThemeData` rather than hardcoding. Barrel export at `lib/shared/widgets/widgets.dart`.
+- 1.5 added `lib/core/router/app_router.dart` (`GoRouter` config) and `app_shell.dart` (`StatefulShellRoute.indexedStack` bottom-nav shell for the marketplace/chat/profile tabs). Standalone routes (splash, login, signup, sample-gate, co-buying, escrow) sit outside the shell; `/marketplace/:id` nests under the marketplace branch. Each feature folder got one placeholder screen using a new shared `AppPlaceholderScreen` widget (title/subtitle/action buttons) so the flow is click-through-able. `main.dart` now uses `MaterialApp.router`; the temporary `RootScreen` is gone.

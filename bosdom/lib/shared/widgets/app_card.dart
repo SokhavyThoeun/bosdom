@@ -29,10 +29,9 @@ class AppCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius:
-            shape is RoundedRectangleBorder
-                ? shape.borderRadius.resolve(Directionality.of(context))
-                : null,
+        borderRadius: shape is RoundedRectangleBorder
+            ? shape.borderRadius.resolve(Directionality.of(context))
+            : null,
         child: card,
       ),
     );
