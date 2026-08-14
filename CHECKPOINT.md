@@ -13,7 +13,7 @@ Payment/Escrow is built **last** in both frontend and backend since it's the hig
 - [x] 1.1 Set up project structure (`lib/features/`, `lib/core/`, `lib/shared/`) and folder conventions
 - [x] 1.2 Add core dependencies (Riverpod, go_router, http/dio) to `pubspec.yaml`
 - [x] 1.3 Set up theming (colors, typography, `ThemeData`) and app shell (`MaterialApp`, root navigation)
-- [ ] 1.4 Build reusable UI kit (buttons, input fields, cards, loading/error states)
+- [x] 1.4 Build reusable UI kit (buttons, input fields, cards, loading/error states)
 - [ ] 1.5 Set up routing skeleton (go_router) with placeholder screens for all main flows
 
 ## Phase 2 — Frontend: Auth & Onboarding
@@ -114,12 +114,13 @@ Payment/Escrow is built **last** in both frontend and backend since it's the hig
 ---
 
 ## Current status
-**Next task:** 1.4 — Build reusable UI kit (buttons, input fields, cards, loading/error states)
+**Next task:** 1.5 — Set up routing skeleton (go_router) with placeholder screens for all main flows
 
 ### Notes
 - Flutter project lives at `bosdom/` (root of this git repo).
 - Folder conventions documented in `bosdom/lib/ARCHITECTURE.md`. Each `features/<name>/` has `screens/` and `widgets/` subfolders; empty dirs hold a `.gitkeep` until populated.
 - `bosdom-backend/` and `supabase/` are separate git-tracked/config dirs, intentionally left out of frontend commits until their own phase (9+).
-- `flutter analyze` clean after 1.1, 1.2, and 1.3.
+- `flutter analyze` clean after 1.1, 1.2, 1.3, and 1.4.
 - 1.2 added `flutter_riverpod`, `go_router`, `dio`, `http` via `flutter pub add` (versions resolved by pub, see `pubspec.lock`).
 - 1.3 added `lib/core/theme/` (`app_colors.dart`, `app_text_theme.dart`, `app_theme.dart`) from the Bosdom brand color system (muted crimson `#9B2C2C`). `main.dart` now wraps the app in `ProviderScope` + `MaterialApp` using `AppTheme.light`, with a placeholder `RootScreen` standing in until routing lands in 1.5.
+- 1.4 added `lib/shared/widgets/` UI kit: `AppButton` (primary/secondary/outlined/text variants, loading spinner state), `AppTextField` (label + error/helper text wrapper over `TextFormField`), `AppCard` (themed `Card` with optional tap ripple), `AppLoadingIndicator`, `AppErrorView` (message + optional retry button). All pull colors from `AppColors`/`ThemeData` rather than hardcoding. Barrel export at `lib/shared/widgets/widgets.dart`.
