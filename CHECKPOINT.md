@@ -12,7 +12,7 @@ Payment/Escrow is built **last** in both frontend and backend since it's the hig
 ## Phase 1 — Frontend Foundation
 - [x] 1.1 Set up project structure (`lib/features/`, `lib/core/`, `lib/shared/`) and folder conventions
 - [x] 1.2 Add core dependencies (Riverpod, go_router, http/dio) to `pubspec.yaml`
-- [ ] 1.3 Set up theming (colors, typography, `ThemeData`) and app shell (`MaterialApp`, root navigation)
+- [x] 1.3 Set up theming (colors, typography, `ThemeData`) and app shell (`MaterialApp`, root navigation)
 - [ ] 1.4 Build reusable UI kit (buttons, input fields, cards, loading/error states)
 - [ ] 1.5 Set up routing skeleton (go_router) with placeholder screens for all main flows
 
@@ -114,11 +114,12 @@ Payment/Escrow is built **last** in both frontend and backend since it's the hig
 ---
 
 ## Current status
-**Next task:** 1.3 — Set up theming (colors, typography, `ThemeData`) and app shell (`MaterialApp`, root navigation)
+**Next task:** 1.4 — Build reusable UI kit (buttons, input fields, cards, loading/error states)
 
 ### Notes
 - Flutter project lives at `bosdom/` (root of this git repo).
 - Folder conventions documented in `bosdom/lib/ARCHITECTURE.md`. Each `features/<name>/` has `screens/` and `widgets/` subfolders; empty dirs hold a `.gitkeep` until populated.
 - `bosdom-backend/` and `supabase/` are separate git-tracked/config dirs, intentionally left out of frontend commits until their own phase (9+).
-- `flutter analyze` clean after 1.1 and 1.2.
+- `flutter analyze` clean after 1.1, 1.2, and 1.3.
 - 1.2 added `flutter_riverpod`, `go_router`, `dio`, `http` via `flutter pub add` (versions resolved by pub, see `pubspec.lock`).
+- 1.3 added `lib/core/theme/` (`app_colors.dart`, `app_text_theme.dart`, `app_theme.dart`) from the Bosdom brand color system (muted crimson `#9B2C2C`). `main.dart` now wraps the app in `ProviderScope` + `MaterialApp` using `AppTheme.light`, with a placeholder `RootScreen` standing in until routing lands in 1.5.
