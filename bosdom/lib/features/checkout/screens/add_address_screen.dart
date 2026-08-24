@@ -95,10 +95,16 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
           Expanded(
             child: SafeArea(
               top: false,
+              bottom: false,
               child: Form(
                 key: _formKey,
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    24,
+                    20,
+                    8 + MediaQuery.of(context).padding.bottom,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [

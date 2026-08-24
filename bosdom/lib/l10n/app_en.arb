@@ -1,0 +1,1260 @@
+{
+  "@@locale": "en",
+  "appTitle": "BosDom",
+  "commonBack": "Back",
+  "commonSave": "Save",
+  "commonSaveChanges": "Save Changes",
+  "commonSaved": "Saved",
+  "commonCancel": "Cancel",
+  "commonContinue": "Continue",
+  "commonDone": "Done",
+  "commonEdit": "Edit",
+  "commonDelete": "Delete",
+  "commonRemove": "Remove",
+  "commonConfirm": "Confirm",
+  "commonRetry": "Retry",
+  "commonSeeAll": "See All",
+  "commonComingSoon": "{label} coming soon",
+  "@commonComingSoon": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "navHome": "Home",
+  "navSearch": "Search",
+  "navWishlist": "Wishlist",
+  "navCart": "Cart",
+  "navAccount": "Account",
+  "languageScreenTitle": "Language",
+  "languageScreenIntro": "Choose your preferred language for the Bosdom app.",
+  "languageSectionLabel": "SELECT LANGUAGE",
+  "languageEnglishLabel": "English",
+  "languageEnglishSublabel": "Default language",
+  "languageKhmerLabel": "ភាសាខ្មែរ (Khmer)",
+  "languageKhmerSublabel": "Cambodian language",
+  "languageNoteTitle": "Please Note",
+  "languageNoteBody": "Changing the language will restart the app interface. Some supplier content may remain in its original language.",
+  "languageSavedSnackbar": "Language set to {language}",
+  "@languageSavedSnackbar": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "authLoginPhoneLabel": "PHONE NUMBER",
+  "authLoginPhoneHint": "012 345 678",
+  "authLoginPasswordLabel": "PASSWORD",
+  "authLoginPasswordHint": "Enter password",
+  "authLoginForgotPassword": "Forgot Password?",
+  "authLoginPasswordResetComingSoon": "Password reset coming soon",
+  "authLoginSignInButton": "Sign In",
+  "authLoginOrSignUpWith": "Or Sign Up with",
+  "authLoginGoogleButton": "Google",
+  "authLoginNewMerchantPrompt": "New merchant? ",
+  "authLoginCreateAccount": "Create Account",
+  "authLoginWelcomeTitle": "Welcome back\nMerchant",
+  "authLoginSubtitle": "Sign in to your wholesale account",
+  "authSignupJoiningPrompt": "I am joining BosDom as a...",
+  "authSignupChooseRoleTitle": "Choose Your Role",
+  "authSignupStepLabel": "Step 1 of {total}",
+  "@authSignupStepLabel": {
+    "placeholders": {
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "authBusinessInfoTitle": "Business Info",
+  "authBusinessInfoStepLabel": "Step {current} of {total}",
+  "@authBusinessInfoStepLabel": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "authBusinessInfoShopNameLabel": "SHOP / BUSINESS NAME",
+  "authBusinessInfoShopNameHint": "e.g. Angkor Wholesale Co.",
+  "authBusinessInfoStoreTypeLabel": "TYPE OF STORE",
+  "authBusinessInfoStoreTypeHint": "Select a type",
+  "authBusinessInfoStoreTypePhysical": "Physical Store",
+  "authBusinessInfoStoreTypeOnline": "Online Store",
+  "authBusinessInfoStoreTypeBoth": "Both Physical & Online",
+  "authBusinessInfoStorePhotosLabel": "STORE PHOTOS",
+  "authBusinessInfoPhotosUploadTitle": "Tap to upload store photos",
+  "authBusinessInfoPhotosUploadSubtitle": "(Physical store or online store screenshots)",
+  "authBusinessInfoStoreUrlLabel": "ONLINE STORE URL (OPTIONAL)",
+  "authBusinessInfoStoreUrlHint": "e.g. facebook.com/yourshop",
+  "authBusinessInfoProvinceLabel": "PROVINCE / CITY",
+  "authBusinessInfoProvinceHint": "Select province...",
+  "authBusinessInfoProvincePhnomPenh": "Phnom Penh",
+  "authBusinessInfoProvinceKandal": "Kandal",
+  "authBusinessInfoProvinceSiemReap": "Siem Reap",
+  "authBusinessInfoProvinceBattambang": "Battambang",
+  "authBusinessInfoProvinceKampongCham": "Kampong Cham",
+  "authBusinessInfoProvincePreahSihanouk": "Preah Sihanouk",
+  "authBusinessInfoDistrictLabel": "DISTRICT / SANGKAT",
+  "authBusinessInfoDistrictHint": "Select district...",
+  "authBusinessInfoDistrictChamkarmon": "Khan Chamkarmon",
+  "authBusinessInfoDistrictToulKork": "Khan Toul Kork",
+  "authBusinessInfoDistrictSenSok": "Khan Sen Sok",
+  "authBusinessInfoDistrictBoengKengKang": "Khan Boeng Keng Kang",
+  "authBusinessInfoDistrictOther": "Other",
+  "authBusinessInfoStreetAddressLabel": "STREET ADDRESS",
+  "authBusinessInfoStreetAddressHint": "e.g. Street 271, Phnom Penh",
+  "authBusinessInfoAgreementPrefix": "I agree to BosDom's ",
+  "authBusinessInfoAgreementTermsLink": "Terms of Service",
+  "authBusinessInfoAgreementSuffix": " and confirm I am a registered business merchant in Cambodia.",
+  "authBusinessInfoSellerBadgePrefix": "Your ",
+  "authBusinessInfoSellerBadgeLink": "Seller badge",
+  "authBusinessInfoSellerBadgeSuffix": " activates immediately. You can start listing products right away!",
+  "authBusinessInfoCreateAccountButton": "Create my Account",
+  "authDeliveryAddressStepTitle": "Personal Details",
+  "authDeliveryAddressStepLabel": "Step {current} of {total}",
+  "@authDeliveryAddressStepLabel": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "authDeliveryAddressIntroTitle": "Your Delivery Address",
+  "authDeliveryAddressIntroBody": "Enter your delivery address below.",
+  "authDeliveryAddressHouseLabel": "HOUSE / STREET NUMBER",
+  "authDeliveryAddressHouseHint": "e.g. #12, Street 271",
+  "authDeliveryAddressSangkatLabel": "SANGKAT / DISTRICT",
+  "authDeliveryAddressSangkatHint": "e.g. Sangkat Tomnob Tuek",
+  "authDeliveryAddressProvinceLabel": "PROVINCE / CITY",
+  "authDeliveryAddressProvinceHint": "Select province...",
+  "authDeliveryAddressProvincePhnomPenh": "Phnom Penh",
+  "authDeliveryAddressProvinceKandal": "Kandal",
+  "authDeliveryAddressProvinceSiemReap": "Siem Reap",
+  "authDeliveryAddressProvinceBattambang": "Battambang",
+  "authDeliveryAddressProvinceKampongCham": "Kampong Cham",
+  "authDeliveryAddressProvincePreahSihanouk": "Preah Sihanouk",
+  "authDeliveryAddressLandmarkLabel": "NEAREST LANDMARK (OPTIONAL)",
+  "authDeliveryAddressLandmarkHint": "e.g. Near Lucky Mall",
+  "authDeliveryAddressAgreementPrefix": "I agree to BosDom's ",
+  "authDeliveryAddressAgreementTermsLink": "Terms of Service",
+  "authDeliveryAddressAgreementSuffix": " and confirm I am a merchant in Cambodia.",
+  "authDeliveryAddressVerificationPrefix": "You can start browsing and buying immediately. Optionally upload your business ID later in ",
+  "authDeliveryAddressVerificationProfileLink": "Profile → Verification",
+  "authDeliveryAddressVerificationMiddle": " to unlock the ",
+  "authDeliveryAddressVerificationBadgeLink": "Verified Buyer",
+  "authDeliveryAddressVerificationSuffix": " badge.",
+  "authDeliveryAddressCreateAccountButton": "Create My Account",
+  "authPersonalDetailsTitle": "Personal Details",
+  "authPersonalDetailsStepLabel": "Step {current} of {total}",
+  "@authPersonalDetailsStepLabel": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "authPersonalDetailsFullNameLabel": "FULL NAME",
+  "authPersonalDetailsFullNameHint": "Your full name",
+  "authPersonalDetailsPhoneLabel": "PHONE NUMBER (+855)",
+  "authPersonalDetailsPhoneHint": "012 345 678",
+  "authPersonalDetailsEmailLabel": "EMAIL (OPTIONAL)",
+  "authPersonalDetailsEmailHint": "you@example.com",
+  "authPersonalDetailsPasswordLabel": "PASSWORD",
+  "authPersonalDetailsPasswordHint": "Create a password",
+  "authPersonalDetailsConfirmPasswordLabel": "CONFIRM PASSWORD",
+  "authPersonalDetailsConfirmPasswordHint": "Re-enter your password",
+  "authUploadDocumentsTitle": "Upload Documents",
+  "authUploadDocumentsStepLabel": "Step {current} of {total}",
+  "@authUploadDocumentsStepLabel": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "authUploadDocumentsIdentityBannerTitle": "Identity Verification",
+  "authUploadDocumentsIdentityBannerBody": "Upload your ID for identity on file. Your Seller badge activates immediately no admin confirmation needed.",
+  "authUploadDocumentsNationalIdTitle": "National ID Card",
+  "authUploadDocumentsNationalIdSubtitle": "Front and back of your Cambodian National ID",
+  "authUploadDocumentsPassportTitle": "Passport",
+  "authUploadDocumentsPassportSubtitle": "Alternative to National ID (optional)",
+  "authUploadDocumentsBusinessCertTitle": "Business Certificate",
+  "authUploadDocumentsBusinessCertSubtitle": "MOC registration certificate (optional but speeds up verification)",
+  "authUploadDocumentsRequiredMarker": " *",
+  "authUploadDocumentsOptionalMarker": " (optional)",
+  "authUploadDocumentsUploadedLabel": "Uploaded",
+  "authUploadDocumentsTapToUploadLabel": "Tap to Upload",
+  "splashTagline": "Cambodia's Trusted\nWholesale Network",
+  "splashBadgeVerified": "Verified",
+  "splashBadgeSecure": "Secure",
+  "splashBadgeWholesale": "Wholesale",
+  "splashGetStartedButton": "Get Started",
+  "splashLoginPrompt": "Already have an account? Log in",
+  "splashFooterNote": "For registered Cambodian merchants only",
+  "sampleGateTitle": "Buy sample",
+  "sampleGateBody": "1-per-account sample purchase flow — UI comes in phase 4",
+  "cartMovedToWishlistSnackbar": "{productName} moved to wishlist",
+  "@cartMovedToWishlistSnackbar": {
+    "placeholders": {
+      "productName": {
+        "type": "String"
+      }
+    }
+  },
+  "cartProceedToCheckout": "Proceed to Checkout",
+  "cartScreenTitle": "My Cart",
+  "cartSelectAll": "Select All",
+  "cartItemsCount": "{count} items",
+  "@cartItemsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cartWishlistAction": "Wishlist",
+  "cartUnitPrice": "Unit: {price}",
+  "@cartUnitPrice": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "cartSubtotal": "Subtotal",
+  "cartEstimatedShipping": "Estimated Shipping",
+  "cartEscrowFee": "Escrow Fee (2%)",
+  "cartTotalAmount": "Total Amount",
+  "cartEmptyState": "Your cart is empty",
+  "checkoutDeliveryAddressLabel": "Delivery Address",
+  "checkoutOrderItemsLabel": "Order Items",
+  "checkoutItemsCount": "{count} Items",
+  "@checkoutItemsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "checkoutShippingMethodLabel": "Shipping Method",
+  "checkoutEscrowNotice": "Funds held in escrow until delivery confirmed.",
+  "checkoutContinueToPayment": "Continue to Payment",
+  "checkoutScreenTitle": "Checkout",
+  "checkoutNoAddressYet": "No delivery address yet",
+  "checkoutChangeAddress": "Change",
+  "checkoutOrderSummaryTitle": "Order Summary",
+  "checkoutSubtotal": "Subtotal",
+  "checkoutShippingLabel": "Shipping",
+  "checkoutEscrowFeeLabel": "Escrow Fee (2%)",
+  "checkoutTotalAmount": "Total Amount",
+  "checkoutStepCart": "Cart",
+  "checkoutStepCheckout": "Checkout",
+  "checkoutStepPayment": "Payment",
+  "addressLabelFieldLabel": "ADDRESS LABEL",
+  "addressLabelFieldHint": "e.g. Home, Warehouse, Shop",
+  "addressHouseFieldLabel": "HOUSE / STREET NUMBER",
+  "addressHouseFieldHint": "e.g. Building B, Zone 3, Veng Sreng Blvd",
+  "addressSangkatFieldLabel": "SANGKAT / DISTRICT",
+  "addressSangkatFieldHint": "e.g. Sangkat Choam Chao",
+  "addressLandmarkFieldLabel": "NEAREST LANDMARK (OPTIONAL)",
+  "addressLandmarkFieldHint": "e.g. Next to Veng Sreng Canopy",
+  "addressPhoneFieldLabel": "CONTACT PHONE NUMBER",
+  "addressPhoneFieldHint": "e.g. +855 76 227 5858",
+  "addressProvinceFieldLabel": "PROVINCE / CITY",
+  "addressProvinceFieldHint": "Select province...",
+  "addressFieldRequiredError": "Required",
+  "addressSetDefaultTitle": "Set as Default Address",
+  "addressSetDefaultSubtitle": "Deliver all primary orders here",
+  "addressSaveButton": "Save Address",
+  "addressAddScreenTitle": "Add Address",
+  "addressBookSelectionSubtitle": "Tap an address to deliver here",
+  "addressAddNewButton": "Add New Address",
+  "addressBookScreenTitle": "Address Book",
+  "addressDefaultBadge": "Default",
+  "chatScreenTitle": "Chat",
+  "chatSearchHint": "Search conversations...",
+  "chatEmptyTitle": "No conversations yet",
+  "chatEmptyQuery": "No conversations match \"{query}\"",
+  "@chatEmptyQuery": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "chatLoadError": "Couldn't load conversations",
+  "chatDetailLoadError": "Couldn't load this conversation",
+  "chatStatusOnline": "Online",
+  "chatStatusOffline": "Offline",
+  "chatPolicySecurePayTitle": "Pay only through Bosdom Secure Pay",
+  "chatPolicyBannerBody": "Direct payments to the seller outside the app aren't covered by Bosdom's buyer protection. Keep transactions in Secure Pay to stay protected.",
+  "chatFlaggedBadge": "Off-platform contact flagged",
+  "chatOffPlatformWarning": "This message may share contact info or arrange a deal outside Bosdom — you won't be covered by buyer protection.",
+  "chatPhotoAttachmentComingSoon": "Photo attachment coming soon",
+  "chatComposerHint": "Type a message...",
+  "liveChatTitle": "Live Chat",
+  "liveChatStatusOnline": "Online • Usually replies instantly",
+  "liveChatStatusOffline": "Offline • We'll reply as soon as we're back",
+  "liveChatSecurityNoticeTitle": "Security Notice",
+  "liveChatSecurityNoticeBody": "Only make payments via Bosdom's official secure portal. Support will never ask for direct bank transfers in chat.",
+  "liveChatSuggestedTopicsLabel": "Suggested topics",
+  "liveChatTopicOrderStatus": "Order Status",
+  "liveChatTopicOrderStatusMessage": "Hi, I'd like an update on my order status.",
+  "liveChatTopicPaymentIssue": "Payment Issue",
+  "liveChatTopicPaymentIssueMessage": "Hi, I'm having an issue with a payment.",
+  "liveChatTopicRefundReturn": "Refund / Return",
+  "liveChatTopicRefundReturnMessage": "Hi, I'd like to request a refund or return.",
+  "liveChatTopicShippingRates": "Shipping Rates",
+  "liveChatTopicShippingRatesMessage": "Hi, can you tell me more about your shipping rates?",
+  "chatPolicyLoadError": "Couldn't load chat settings: {error}",
+  "@chatPolicyLoadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "chatPolicyIntro": "Before you start chatting with buyers and sellers on Bosdom, please read and accept the terms below.",
+  "chatPolicySecurePayBody": "Payments made outside the app are not covered by Bosdom's buyer protection or dispute resolution.",
+  "chatPolicyFlaggedTitle": "Off-platform deals are flagged",
+  "chatPolicyFlaggedBody": "Messages sharing phone numbers or third-party contact apps are automatically flagged for review.",
+  "chatPolicyLiableTitle": "You are liable for what you send",
+  "chatPolicyLiableBody": "Bosdom is not responsible for losses from deals arranged outside the platform or against these terms.",
+  "chatPolicyHeaderTitle": "Chat & Trading Policy",
+  "chatPolicyAgreementText": "I have read and agree to the Bosdom Chat Policy and Terms of Service.",
+  "chatPolicyContinueButton": "Continue to Chat",
+  "notificationsMarkAllRead": "Mark all read",
+  "notificationsScreenTitle": "Notifications",
+  "notificationsEmptyTitle": "You're all caught up",
+  "notificationsLoadError": "Couldn't load notifications",
+  "notificationsPushTitle": "Push notification",
+  "notificationsPushBody": "Be the first to hear about: weekly sales, exclusive offers, hot promotions and more",
+  "dataPrivacyContactBanner": "Get in touch to manage your data",
+  "dataPrivacyBody": "Request access, correction, or deletion of your personal data. Contact our privacy team for any data-related inquiries.",
+  "dataPrivacyContactButton": "Contact Privacy Team",
+  "dataPrivacyLaunchError": "Couldn't open your email app — copied {email} to your clipboard instead",
+  "@dataPrivacyLaunchError": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "marketingEmailsToggleTitle": "Receive marketing emails",
+  "marketingEmailsBody": "I give Bosdom consent to send marketing emails including promotions, new supplier announcements, co-buy deals, and product recommendations tailored to my business needs.",
+  "marketingEmailsFinePrint": "You can withdraw your consent at anytime. If you withdraw your consent, it will not affect the legality of data processed before. We process your data in line with our Privacy Policy.",
+  "marketingEmailsSaveError": "Couldn't save your marketing email preference. Please try again.",
+  "personalizedAdsAllowTitle": "Allow personalized ads",
+  "personalizedAdsBody": "We use your browsing data and purchase history to show you relevant product recommendations and ads. You can opt out anytime — you will still see ads, but they won't be tailored to your interests.",
+  "personalizedAdsBrowsingTitle": "Browsing data",
+  "personalizedAdsBrowsingBody": "Pages and products you view in the app",
+  "personalizedAdsPurchaseTitle": "Purchase history",
+  "personalizedAdsPurchaseBody": "Items you have bought or added to cart",
+  "personalizedAdsAcceptAll": "Accept All",
+  "personalizedAdsAdjustPreferences": "Adjust Preferences",
+  "personalizedAdsHidePreferences": "Hide Preferences",
+  "personalizedAdsSavePreferences": "Save Preferences",
+  "personalizedAdsSaveError": "Couldn't save your ad preferences. Please try again.",
+  "coBuyingScreenTitle": "Co-Buy",
+  "coBuyingInfoBanner": "Pool orders with nearby retailers to unlock bulk wholesale discounts. Share invite links to grow your group!",
+  "coBuyingSectionTitle": "Active Co-Buy Sessions",
+  "coBuyingMomentumReady": "Target reached, ready for checkout",
+  "coBuyingMomentumAlmost": "Almost unlocked, grab it soon",
+  "coBuyingMomentumFilling": "Filling up fast",
+  "coBuyingMomentumNew": "Newly opened, be an early buyer",
+  "coBuyingPooledProgress": "{currentQty}/{targetQty} {unitLabel} pooled",
+  "@coBuyingPooledProgress": {
+    "placeholders": {
+      "currentQty": {
+        "type": "int"
+      },
+      "targetQty": {
+        "type": "int"
+      },
+      "unitLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "coBuyingRemainingToUnlock": "Just {remainingQty} {unitLabel} left to unlock the group price",
+  "@coBuyingRemainingToUnlock": {
+    "placeholders": {
+      "remainingQty": {
+        "type": "int"
+      },
+      "unitLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "coBuyingGroupPriceLabel": "GROUP PRICE",
+  "coBuyingYouSave": "You save {amount}",
+  "@coBuyingYouSave": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "coBuyingJoinedPillLabel": "You're in this group buy · tap to leave",
+  "coBuyingCheckoutReadyLabel": "Ready for checkout",
+  "coBuyingFullLabel": "Co-Buy Full",
+  "coBuyingJoinButtonLabel": "Join This Co-Buy",
+  "coBuyingShareText": "Join me on this Co-Buy for {productName} on BosDom! Get it for {price} ({savingsPct}% off) — {url}",
+  "@coBuyingShareText": {
+    "placeholders": {
+      "productName": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      },
+      "savingsPct": {
+        "type": "String"
+      },
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "coBuyingShareSubject": "Co-Buy: {productName}",
+  "@coBuyingShareSubject": {
+    "placeholders": {
+      "productName": {
+        "type": "String"
+      }
+    }
+  },
+  "coBuyDetailActiveDealLabel": "Active Deal",
+  "coBuyDetailVisitShopLabel": "Visit Shop",
+  "coBuyDetailJoinedSnackbar": "Joined {productName} Co-Buy · {amount}",
+  "@coBuyDetailJoinedSnackbar": {
+    "placeholders": {
+      "productName": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "coBuyDetailLeftSnackbar": "Left {productName} Co-Buy",
+  "@coBuyDetailLeftSnackbar": {
+    "placeholders": {
+      "productName": {
+        "type": "String"
+      }
+    }
+  },
+  "coBuyDetailQtyLabel": "Qty: {quantity} {unitLabel}",
+  "@coBuyDetailQtyLabel": {
+    "placeholders": {
+      "quantity": {
+        "type": "int"
+      },
+      "unitLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "coBuyDetailProgressTitle": "Co-Buy Progress",
+  "coBuyDetailProgressLine": "Progress: {currentQty}/{targetQty} {unitLabel}",
+  "@coBuyDetailProgressLine": {
+    "placeholders": {
+      "currentQty": {
+        "type": "int"
+      },
+      "targetQty": {
+        "type": "int"
+      },
+      "unitLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "coBuyDetailRetailersJoined": "{count} retailers joined",
+  "@coBuyDetailRetailersJoined": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "coBuyDetailYouSaveLine": "You save {savingsPct}% {perUnitLabel} on this deal",
+  "@coBuyDetailYouSaveLine": {
+    "placeholders": {
+      "savingsPct": {
+        "type": "int"
+      },
+      "perUnitLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "coBuyDetailYourOrderTitle": "Your Order",
+  "coBuyDetailQuantityLabel": "Quantity",
+  "coBuyDetailMinOrderLabel": "Min order: {minOrderQty} {unitLabel}",
+  "@coBuyDetailMinOrderLabel": {
+    "placeholders": {
+      "minOrderQty": {
+        "type": "int"
+      },
+      "unitLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "coBuyDetailSubtotalLabel": "Subtotal",
+  "coBuyDetailCheckoutLabel": "Checkout · {amount}",
+  "@coBuyDetailCheckoutLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "coBuyDetailFullLabel": "Co-Buy Full",
+  "coBuyDetailJoinedLabel": "You're in · tap to leave",
+  "coBuyDetailJoinLabel": "Join Co-Buy · {amount}",
+  "@coBuyDetailJoinLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "wishlistScreenTitle": "Wishlist",
+  "wishlistEmptyStateMessage": "No items in your wishlist yet",
+  "wishlistAddedToCartSnackbar": "{productName} added to cart",
+  "@wishlistAddedToCartSnackbar": {
+    "placeholders": {
+      "productName": {
+        "type": "String"
+      }
+    }
+  },
+  "wishlistAddToCartButton": "Add to Cart",
+  "marketplaceCategoriesTitle": "Product Categories",
+  "marketplaceCoBuyDealsTitle": "Co-Buy Deals",
+  "marketplacePopularProductsTitle": "Popular wholesale products",
+  "marketplaceSearchHint": "Search products...",
+  "marketplaceCoBuyJoinButton": "Join Co-Buy",
+  "marketplaceCoBuyProgressToTarget": "{percent}% to target",
+  "@marketplaceCoBuyProgressToTarget": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "marketplaceCoBuyRetailersJoined": "{count} joined",
+  "@marketplaceCoBuyRetailersJoined": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "productDetailPerUnit": "per unit",
+  "productDetailMoqLabel": "Minimum Order Quantity: {moq} Bags",
+  "@productDetailMoqLabel": {
+    "placeholders": {
+      "moq": {
+        "type": "String"
+      }
+    }
+  },
+  "productDetailSpecsTitle": "Wholesale Specifications",
+  "productDetailSpecWeight": "Weight",
+  "productDetailSpecOrigin": "Origin",
+  "productDetailSpecGrade": "Grade",
+  "productDetailSpecPackaging": "Packaging",
+  "productDetailModeWholesale": "Wholesale",
+  "productDetailModeSample": "Sample",
+  "productDetailVisitShop": "Visit Shop",
+  "productDetailInStock": "In Stock",
+  "productDetailOutOfStock": "Out of Stock",
+  "productDetailWholesaleBuyTitle": "Wholesale Buy",
+  "productDetailSampleBuyTitle": "Sample Buy",
+  "productDetailUnitBag": "/ bag",
+  "productDetailUnitPiece": "/ unit",
+  "productDetailQuantityLabel": "Quantity",
+  "productDetailAddedToCartSnackbar": "Added to cart · {price}",
+  "@productDetailAddedToCartSnackbar": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "productDetailSampleRequestedSnackbar": "Sample requested",
+  "productDetailAddToCartButton": "Add to Cart · {price}",
+  "@productDetailAddToCartButton": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "productDetailSampleAlreadyRequested": "Sample Already Requested",
+  "productDetailSampleLimitReached": "Sample Limit Reached",
+  "productDetailRequestSample": "Request Sample",
+  "productDetailSampleUsedNote": "You've already used your 1 free sample on {productName}.",
+  "@productDetailSampleUsedNote": {
+    "placeholders": {
+      "productName": {
+        "type": "String"
+      }
+    }
+  },
+  "productDetailSampleLimitNote": "Limited to 1 sample per account",
+  "storeProfileStatProducts": "Products",
+  "storeProfileStatOrders": "Orders",
+  "storeProfileStatRating": "Rating",
+  "storeProfileTabProducts": "Products",
+  "storeProfileTabAbout": "About",
+  "storeProfileTabReviews": "Reviews",
+  "storeProfileNoProducts": "No products yet",
+  "storeProfileAboutSectionTitle": "About",
+  "storeProfileBusinessDetailsTitle": "Business Details",
+  "storeProfileLabelBusinessType": "Business Type",
+  "storeProfileLabelYearEstablished": "Year Established",
+  "storeProfileLabelLocation": "Location",
+  "storeProfileLabelMinimumOrder": "Minimum Order",
+  "storeProfileLabelResponseTime": "Response Time",
+  "storeProfileLabelShipping": "Shipping",
+  "storeProfileCertificationsTitle": "Certifications & Standards",
+  "storeProfileWhyChooseUsTitle": "Why Choose Us",
+  "storeProfileContactSupplierButton": "Contact Supplier",
+  "storeProfileNoReviewsTitle": "No reviews yet",
+  "storeProfileNoReviewsBody": "Be the first to review {sellerName} after your order.",
+  "@storeProfileNoReviewsBody": {
+    "placeholders": {
+      "sellerName": {
+        "type": "String"
+      }
+    }
+  },
+  "storeProfileReviewsCount": "{count} reviews",
+  "@storeProfileReviewsCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "storeProfileRecommendPercent": "{percent}% Recommend",
+  "@storeProfileRecommendPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "storeProfileResponseTimeChip": "{time} Response",
+  "@storeProfileResponseTimeChip": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "storeProfileTopSellerChip": "Top Seller",
+  "storeProfileRatingBreakdownTitle": "Rating breakdown",
+  "storeProfileRecentReviewsTitle": "Recent Reviews",
+  "categoryResultsSearchHint": "Search products...",
+  "categoryResultsFiltersButton": "Filters",
+  "categoryResultsItemsCount": "{count} Items",
+  "@categoryResultsItemsCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "categoryResultsNoProducts": "No products found",
+  "categoryResultsFilterSheetTitle": "Filter by Category",
+  "categoryResultsClearAll": "Clear All",
+  "categoryResultsApplyFilters": "Apply Filters",
+  "searchScreenTitle": "Search",
+  "searchHint": "Search products or sellers...",
+  "searchRecentSearchesTitle": "Recent Searches",
+  "searchClearAll": "Clear All",
+  "searchTrendingSearchesTitle": "Trending Searches",
+  "searchSuggestedCategoriesTitle": "Suggested Categories",
+  "searchRecommendedForYouTitle": "Recommended For You",
+  "searchNoResults": "No products found for \"{query}\"",
+  "@searchNoResults": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "ordersScreenTitle": "View Orders",
+  "ordersEmptyStateMessage": "No orders in this category",
+  "ordersFilterAllLabel": "All ({count})",
+  "@ordersFilterAllLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ordersItemCountLabel": "{count} items",
+  "@ordersItemCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ordersOrderNumberLabel": "Order #{orderId}",
+  "@ordersOrderNumberLabel": {
+    "placeholders": {
+      "orderId": {
+        "type": "String"
+      }
+    }
+  },
+  "ordersRateReviewButton": "Rate & Review",
+  "ordersReportButton": "Report",
+  "ordersReportLabel": "Report order",
+  "ordersReportSheetTitle": "Report Order",
+  "ordersReportReasonLabel": "What's the issue?",
+  "ordersReportReasonWrongItem": "Wrong item received",
+  "ordersReportReasonDamaged": "Item damaged",
+  "ordersReportReasonMissing": "Item missing",
+  "ordersReportReasonLateDelivery": "Late delivery",
+  "ordersReportReasonOther": "Other",
+  "ordersReportNoteLabel": "Additional details (optional)",
+  "ordersReportNoteHint": "Tell us more about the issue...",
+  "ordersReportSubmitButton": "Submit Report",
+  "ordersReportSubmittedSnackbar": "Your report has been submitted",
+  "ordersReportFailedSnackbar": "Failed to submit report: {error}",
+  "@ordersReportFailedSnackbar": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "ordersViewDetailsButton": "View Details",
+  "orderDetailScreenTitle": "Order Details",
+  "orderDetailItemsAddedSnackbar": "Items added to your cart",
+  "orderDetailItemsOrderedSection": "Items Ordered",
+  "orderDetailOrderNumberLabel": "Order #{orderId}",
+  "@orderDetailOrderNumberLabel": {
+    "placeholders": {
+      "orderId": {
+        "type": "String"
+      }
+    }
+  },
+  "orderDetailPaymentSummarySection": "Payment Summary",
+  "orderDetailPhoneLabel": "Phone: {phone}",
+  "@orderDetailPhoneLabel": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
+  "orderDetailPlacedOnLabel": "Placed on {date}",
+  "@orderDetailPlacedOnLabel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "orderDetailReceiptSaveFailedSnackbar": "Failed to save receipt: {error}",
+  "@orderDetailReceiptSaveFailedSnackbar": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "orderDetailReceiptSavedSnackbar": "Receipt saved to your device",
+  "orderDetailReorderButton": "Reorder Wholesale Items",
+  "orderDetailSaveReceiptButton": "Save Receipt as PDF",
+  "orderDetailSavingLabel": "Saving...",
+  "orderDetailShippingFeeLabel": "Shipping Fee",
+  "orderDetailShippingSection": "Shipping & Delivery",
+  "orderDetailSubtotalLabel": "Subtotal",
+  "orderDetailTotalAmountLabel": "Total Amount",
+  "orderDetailTrackDeliveryButton": "Track Delivery",
+  "orderDetailWholesaleDiscountLabel": "Wholesale Discount",
+  "deliveryScreenTitle": "Delivery Tracking",
+  "deliveryCurrentStatusLabel": "Current status",
+  "deliveryEscrowNoteText": "Funds held securely in escrow until you confirm receipt.",
+  "deliveryInProgressLabel": "In progress",
+  "deliveryPendingLabel": "Pending",
+  "deliveryPlacedOnLabel": "Placed on {date}",
+  "@deliveryPlacedOnLabel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "deliveryStatusSectionTitle": "Delivery Status",
+  "deliveryStepDelivered": "Delivered",
+  "deliveryStepOrderCancelled": "Order cancelled",
+  "deliveryStepOrderPlaced": "Order placed",
+  "deliveryStepOutForDelivery": "Out for delivery",
+  "deliveryStepPackedAtWarehouse": "Packed at warehouse",
+  "reviewSheetTitle": "Rate & Review",
+  "reviewAddPhotosButton": "Add Photos",
+  "reviewAddPhotosLabel": "ADD PHOTOS OF RECEIVED ITEMS",
+  "reviewHintText": "Share your experience with this order...",
+  "reviewMaxPhotosSnackbar": "You can add up to {count} photos",
+  "@reviewMaxPhotosSnackbar": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewOfficialBadge": "OFFICIAL",
+  "reviewPhotoLibraryErrorSnackbar": "Could not open photo library: {error}",
+  "@reviewPhotoLibraryErrorSnackbar": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewRateProductLabel": "RATE PRODUCT",
+  "reviewRateStoreLabel": "RATE STORE",
+  "reviewSubmitButton": "Submit Review",
+  "reviewSubmittedSnackbar": "Thanks! Your review has been submitted.",
+  "reviewWriteReviewLabel": "WRITE A REVIEW",
+  "paymentScreenTitle": "Payment Method",
+  "paymentAbaMethodTitle": "ABA Pay",
+  "paymentAbaNotAvailableSnackbar": "ABA Pay is not available yet",
+  "paymentAmountToPayLabel": "Amount to Pay",
+  "paymentCardDetailsSubtitle": "Securely enter your card details",
+  "paymentCardMethodTitle": "Credit/Debit Card",
+  "paymentCardNumberLabel": "CARD NUMBER",
+  "paymentConfirmedSubtitle": "Your order has been placed and paid.",
+  "paymentConfirmedTitle": "You're confirmed!",
+  "paymentConfirmingSubtitle": "Confirming your order...",
+  "paymentConfirmingTitle": "Just a moment",
+  "paymentContinueShoppingButton": "Continue Shopping",
+  "paymentCvvLabel": "CVV",
+  "paymentExpiryDateLabel": "EXPIRY DATE",
+  "paymentFailedSnackbar": "Payment failed: {error}",
+  "@paymentFailedSnackbar": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentItemsPurchasedLabel": "{count} items purchased",
+  "@paymentItemsPurchasedLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "paymentMethodSubtitleVisaMastercard": "Visa, Mastercard, etc.",
+  "paymentPayAmountLabel": "Pay {amount}",
+  "@paymentPayAmountLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentPayNowButton": "Pay Now",
+  "paymentSecureEncryptionNote": "Your payment credentials are securely encrypted",
+  "paymentSelectMethodLabel": "Select Payment Method",
+  "paymentTotalPaidLabel": "Total Paid",
+  "paymentViewOrdersButton": "View Orders",
+  "paymentWholesaleItemsFallbackLabel": "Wholesale Items",
+  "escrowScreenTitle": "Escrow & checkout",
+  "escrowPlaceholderText": "Payment, QR confirm, dispute evidence — UI comes in phase 8",
+  "profileMenuMyOrders": "My Orders",
+  "profileMenuCoBuyInvites": "Co-Buy Invites",
+  "profileMenuAddressBook": "Address Book",
+  "profileMenuChat": "Chat",
+  "profileMenuNotifications": "Notifications",
+  "profileMenuPaymentCurrency": "Payment Currency",
+  "profileMenuLanguage": "Language",
+  "profileMenuDataPrivacy": "Data Privacy",
+  "profileMenuMarketingEmails": "Marketing Emails",
+  "profileMenuPersonalizedAds": "Personalized Ads",
+  "profileMenuHelpSupport": "Help & Support",
+  "profileMenuTermsConditions": "Terms & Conditions",
+  "profileMenuPrivacyPolicy": "Privacy Policy",
+  "profileMenuAbout": "About",
+  "profileSectionShopping": "SHOPPING",
+  "profileSectionAccount": "ACCOUNT",
+  "profileSectionSettings": "SETTINGS",
+  "profileSectionSupport": "SUPPORT",
+  "profileSectionAbout": "ABOUT",
+  "profileStatTotalOrders": "Total Orders",
+  "profileStatActiveOrders": "Active Orders",
+  "profileStatSavedItems": "Saved Items",
+  "profileSellerProgramBadge": "SELLER PROGRAM",
+  "profileSellerTitle": "Start Selling on Bosdom",
+  "profileSellerSubtitle": "Join thousands of wholesalers and reach more retailers across Cambodia",
+  "profileSellerCta": "Become a Seller",
+  "profileSellerOnboardingLabel": "Seller Onboarding",
+  "profileEditProfileLabel": "Edit Profile",
+  "profileLogout": "Logout",
+  "currencyScreenTitle": "Payment Currency",
+  "currencyScreenIntro": "Choose your preferred currency for all transactions on Bosdom. Prices will be displayed in your selected currency.",
+  "currencySectionSelect": "SELECT CURRENCY",
+  "currencySectionDisplaySettings": "CURRENCY DISPLAY SETTINGS",
+  "currencyUsdName": "US Dollar (USD)",
+  "currencyKhrName": "Khmer Riel (KHR)",
+  "currencyExchangeRateLabel": "Exchange Rate",
+  "currencyRateDisclaimer": "Exchange rates are updated daily. Final conversion rates are applied at the time of payment.",
+  "currencyLastUpdatedLabel": "Last updated: {date}",
+  "@currencyLastUpdatedLabel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "currencyActiveStatus": "Active",
+  "currencyDailyUpdateChip": "Daily Update",
+  "currencyShowBothToggleLabel": "Show prices in both currencies",
+  "currencySavedSnackbar": "Currency preferences saved",
+  "helpSupportScreenTitle": "Help & Support",
+  "helpSupportSearchHint": "Search FAQs or articles...",
+  "helpSupportCategoriesLabel": "FAQ Categories",
+  "helpSupportCategoryGettingStarted": "Getting Started",
+  "helpSupportCategoryOrdersPayments": "Orders & Payments",
+  "helpSupportCategoryShippingDelivery": "Shipping & Delivery",
+  "helpSupportCategoryAccountVerification": "Account & Verification",
+  "helpSupportCategoryReturnsDisputes": "Returns & Disputes",
+  "helpSupportAssistanceTitle": "Need Personal Assistance?",
+  "helpSupportAssistanceBody": "Our B2B support team is available Mon-Fri, 8 AM - 6 PM (Cambodia Time) to resolve order disputes or platform inquiries.",
+  "helpSupportLiveChat": "Live Chat",
+  "helpSupportCallUs": "Call Us",
+  "helpSupportReportIssue": "Report an Issue / Bug",
+  "reportIssueScreenTitle": "Report an Issue",
+  "reportIssueTypeLabel": "Issue Type",
+  "reportIssueTypeOrderProblem": "Order Problem",
+  "reportIssueTypePaymentIssue": "Payment Issue",
+  "reportIssueTypeAppBug": "App Bug",
+  "reportIssueTypeDeliveryIssue": "Delivery Issue",
+  "reportIssueTypeAccountProblem": "Account Problem",
+  "reportIssueTypeOther": "Other",
+  "reportIssueSubjectLabel": "Subject",
+  "reportIssueSubjectHint": "Briefly describe the issue",
+  "reportIssueSubjectRequired": "Please enter a subject",
+  "reportIssueDescriptionLabel": "Description",
+  "reportIssueDescriptionHint": "Describe the issue in detail...",
+  "reportIssueDescriptionRequired": "Please describe the issue",
+  "reportIssueAttachLabel": "Attach Screenshots",
+  "reportIssueAttachTapToUpload": "Tap to upload images",
+  "reportIssueAttachSupports": "Supports PNG, JPG up to 5MB (Max {max} files)",
+  "@reportIssueAttachSupports": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "reportIssueMaxFilesSnackbar": "You can attach up to {max} files",
+  "@reportIssueMaxFilesSnackbar": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "reportIssuePhotoLibraryErrorSnackbar": "Could not open photo library: {error}",
+  "@reportIssuePhotoLibraryErrorSnackbar": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "reportIssueOrderRefLabel": "Order Reference",
+  "reportIssueOrderRefOptional": "(Optional)",
+  "reportIssueOrderRefHint": "e.g., #B2B-98741",
+  "reportIssueResponseNote": "Our wholesale support team typically responds to app bugs and order technical inquiries within 2 hours.",
+  "reportIssueSubmitButton": "Submit Report",
+  "reportIssueSubmittedSnackbar": "Your report has been submitted. We'll get back to you soon.",
+  "callUsPopupBody": "Our specialized B2B customer assistance hotline is available for order resolutions, disputes, and urgent support.",
+  "callUsPopupHours": "Mon-Fri, 8 AM - 6 PM (Cambodia Time)",
+  "callUsPopupSupportLabel": "B2B Wholesale Support",
+  "callUsPopupPhoneNumber": "+855 23 456 789",
+  "callUsPopupCallNow": "Call Now",
+  "callUsPopupLaunchError": "Couldn't open the phone dialer",
+
+  "termsConditionsScreenTitle": "Terms & Conditions",
+  "termsConditionsLastUpdated": "Last updated: August 2026",
+
+  "termsConditionsSection1Title": "1. Platform Overview & Acceptance",
+  "termsConditionsSection1Point1": "Bosdom is a localized B2B wholesale marketplace built for verified Cambodian retailers and suppliers. The Platform connects independent retail merchants with trusted wholesalers through a secure escrow payment system, featuring sample verification, group co-buying, and automated escrow protections.",
+  "termsConditionsSection1Point2": "By creating an account, you confirm that:",
+  "termsConditionsSection1Point3": "You are at least 18 years of age.",
+  "termsConditionsSection1Point4": "You are operating a legitimate business in Cambodia.",
+  "termsConditionsSection1Point5": "All information provided during registration is accurate, current, and complete.",
+  "termsConditionsSection1Point6": "You agree to comply with these Terms and all applicable local laws and regulations.",
+
+  "termsConditionsSection2Title": "2. Account Registration & Verification",
+  "termsConditionsSection2Point1": "All users must register with valid business and identity information before completing any transaction on the Platform.",
+  "termsConditionsSection2Point2": "Bosdom reserves the right to reject or suspend account registrations that fail identity verification or contain false information.",
+  "termsConditionsSection2Point3": "Each user is limited to one verified merchant profile per business.",
+  "termsConditionsSection2Point4": "Suppliers are required to provide accurate product listings, pricing, and inventory information at all times.",
+  "termsConditionsSection2Point5": "Buyers are responsible for keeping their account and business information up to date.",
+
+  "termsConditionsSection3Title": "3. Try-Before-You-Bulk Sample Gate",
+  "termsConditionsSection3Point1": "Bosdom's Sample Gate lets buyers order a single unit of a product at consumer price before committing to a bulk wholesale purchase.",
+  "termsConditionsSection3Point2": "Each buyer is limited to one sample order per product to prevent misuse of the feature.",
+  "termsConditionsSection3Point3": "Sample orders do not carry wholesale pricing and are subject to standard shipping and handling fees.",
+  "termsConditionsSection3Point4": "Suppliers must fulfill sample orders with the same product quality advertised in the listing. Misrepresenting sample quality is a violation of these Terms.",
+
+  "termsConditionsSection4Title": "4. Collaborative Social Co-Buying",
+  "termsConditionsSection4Point1": "Bosdom's Co-Buy feature lets buyers combine orders with other merchants to unlock wholesale bulk pricing.",
+  "termsConditionsSection4Point2": "Any registered buyer may start a co-buy pool by selecting \"Invite to Co-Buy\" on an eligible product and sharing the generated invite link.",
+  "termsConditionsSection4Point3": "Once a pool reaches its target quantity, the supplier fulfills the order under the applicable bulk pricing tier.",
+  "termsConditionsSection4Point4": "Participants share shipping costs proportionally to their share of the order.",
+  "termsConditionsSection4Point5": "If a co-buy pool does not reach its required threshold within the specified timeframe, all funds are automatically refunded to participants.",
+
+  "termsConditionsSection5Title": "5. Escrow Payment & QR Verification System",
+  "termsConditionsSection5Point1": "All financial transactions on Bosdom are processed through the Platform's escrow system.",
+  "termsConditionsSection5Point2": "Supported payment methods include Bakong (National Bank of Cambodia) and other approved payment gateways.",
+  "termsConditionsSection5Point3": "Funds are held in escrow until delivery is confirmed.",
+  "termsConditionsSection5Point4": "Upon delivery, the receiving party must scan the QR code presented by the supplier or courier to confirm receipt.",
+  "termsConditionsSection5Point5": "Once delivery is confirmed via QR scan, escrow funds are released to the supplier. Delivery issues may be escalated through the dispute resolution process described in Section 8.",
+
+  "termsConditionsSection6Title": "6. Chat Policy & Communication Rules",
+  "termsConditionsSection6Point1": "Bosdom provides in-app chat for direct communication between buyers and suppliers.",
+  "termsConditionsSection6Point2": "Before accessing chat, users must review and accept the Chat & Trading Policy and Liability Disclosure.",
+  "termsConditionsSection6Point3": "The following are prohibited in Platform communications:",
+  "termsConditionsSection6Point4": "Arranging payments outside the Platform.",
+  "termsConditionsSection6Point5": "Sharing personal bank details for off-platform payment.",
+  "termsConditionsSection6Point6": "Sending abusive, fraudulent, or otherwise inappropriate content.",
+  "termsConditionsSection6Point7": "Bosdom holds no liability for losses arising from off-platform payments or trades arranged in violation of this policy. Violations may result in a warning, account suspension, or permanent ban, depending on severity, at Bosdom's sole discretion.",
+
+  "termsConditionsSection7Title": "7. Pricing & Volume Tiers",
+  "termsConditionsSection7Point1": "Suppliers set their own pricing for both sample and bulk purchase tiers.",
+  "termsConditionsSection7Point2": "Bulk pricing is structured in volume tiers that unlock as a co-buy pool or bulk order grows.",
+  "termsConditionsSection7Point3": "Applicable pricing tiers are shown on each product listing and update automatically as order volume changes.",
+  "termsConditionsSection7Point4": "Bosdom does not own, store, or handle physical inventory. Suppliers are solely responsible for product quality, packaging, and inventory accuracy. Prices may be listed in Khmer Riel (KHR) or US Dollars (USD).",
+
+  "termsConditionsSection8Title": "8. Dispute Resolution",
+  "termsConditionsSection8Point1": "In the event of a dispute, such as damaged goods, non-delivery, or a quality mismatch, Bosdom provides a structured dispute resolution process.",
+  "termsConditionsSection8Point2": "Escrow funds related to a disputed order remain locked until the dispute is resolved.",
+  "termsConditionsSection8Point3": "Buyers have a 5-day window after delivery confirmation to file a dispute and submit supporting evidence.",
+  "termsConditionsSection8Point4": "Bosdom reserves the right to review evidence and adjust escrow disbursement in cases of fraud, non-delivery, or breach of these Terms.",
+
+  "termsConditionsSection9Title": "9. Prohibited Activities",
+  "termsConditionsSection9Point1": "Users of the Platform must not:",
+  "termsConditionsSection9Point2": "Sell counterfeit, illegal, or hazardous goods.",
+  "termsConditionsSection9Point3": "Create multiple accounts to bypass sample-gate limits.",
+  "termsConditionsSection9Point4": "Manipulate co-buy pools through fake participants or false pricing.",
+  "termsConditionsSection9Point5": "Engage in price fixing, deceptive advertising, or false product listings.",
+  "termsConditionsSection9Point6": "Use automated bots or scripts to interact with the Platform.",
+  "termsConditionsSection9Point7": "Violating any of the above may result in immediate account suspension, forfeiture of pending escrow funds, and, where applicable, referral to relevant authorities.",
+
+  "termsConditionsSection10Title": "10. Limitation of Liability",
+  "termsConditionsSection10Point1": "Bosdom acts solely as a marketplace facilitator connecting buyers and suppliers. To the maximum extent permitted by law, Bosdom is not liable for:",
+  "termsConditionsSection10Point2": "Product quality, accuracy of descriptions, or supplier claims.",
+  "termsConditionsSection10Point3": "Delivery timelines or courier performance beyond the Platform's control.",
+  "termsConditionsSection10Point4": "Losses resulting from a user's violation of these Terms or applicable Cambodian law.",
+  "termsConditionsSection10Point5": "Bosdom is not liable for indirect, incidental, or consequential damages arising from use of the Platform.",
+
+  "termsConditionsSection11Title": "11. Privacy & Data Protection",
+  "termsConditionsSection11Point1": "Bosdom collects and processes personal data in accordance with our Privacy Policy and applicable Cambodian data protection laws.",
+  "termsConditionsSection11Point2": "This includes business registration details, name, phone number, and email address, collected solely for identity verification and Platform operation.",
+
+  "termsConditionsSection12Title": "12. Modifications to Terms",
+  "termsConditionsSection12Point1": "Bosdom reserves the right to update or modify these Terms at any time. Continued use of the Platform after changes take effect constitutes acceptance of the updated Terms.",
+  "termsConditionsSection12Point2": "Users who do not agree with updated Terms should discontinue use of the Platform.",
+
+  "termsConditionsContactTitle": "Contact Us",
+  "termsConditionsContactIntro": "If you have questions about these Terms & Conditions, please contact us:",
+  "termsConditionsContactEmail": "support@bosdom.com",
+  "termsConditionsContactInApp": "In-app: Help & Support",
+
+  "privacyPolicyScreenTitle": "Privacy Policy",
+  "privacyPolicyEffectiveDate": "Effective Date: August 2026",
+
+  "privacyPolicySection1Title": "1. Information We Collect",
+  "privacyPolicySection1Point1": "a) Account Information",
+  "privacyPolicySection1Point2": "Full name, phone number, and email",
+  "privacyPolicySection1Point3": "Business name, type, and registration number",
+  "privacyPolicySection1Point4": "Business location and delivery address",
+  "privacyPolicySection1Point5": "Profile photo (optional)",
+  "privacyPolicySection1Point6": "b) Identity Verification Info",
+  "privacyPolicySection1Point7": "Government-issued ID (for buyer verification)",
+  "privacyPolicySection1Point8": "Business registration certificate (for supplier verification)",
+  "privacyPolicySection1Point9": "Bank account/e-wallet details (Bakong QR) for payments",
+  "privacyPolicySection1Point10": "c) Transaction Data",
+  "privacyPolicySection1Point11": "Order history, purchase amounts, and payment methods",
+  "privacyPolicySection1Point12": "Sample order and co-buy pool participation",
+  "privacyPolicySection1Point13": "d) Communication Data",
+  "privacyPolicySection1Point14": "In-app chat messages and conversation history",
+  "privacyPolicySection1Point15": "Chat attachments shared between participants",
+  "privacyPolicySection1Point16": "e) Verification & Fraud Detection",
+  "privacyPolicySection1Point17": "QR code scans used for delivery confirmation",
+  "privacyPolicySection1Point18": "Video evidence submitted with dispute resolution",
+  "privacyPolicySection1Point19": "f) Device & Usage Data",
+  "privacyPolicySection1Point20": "Device type, operating system, and app version",
+  "privacyPolicySection1Point21": "Location data used for delivery and courier matching",
+  "privacyPolicySection1Point22": "IP address and general session/log information",
+  "privacyPolicySection1Point23": "g) Co-Buy & Social Data",
+  "privacyPolicySection1Point24": "Co-buy invitation creation and participation",
+  "privacyPolicySection1Point25": "Invite link clicks and pool-joining activity",
+
+  "privacyPolicySection2Title": "2. How We Use Your Information",
+  "privacyPolicySection2Point1": "We use your personal data for the following purposes:",
+  "privacyPolicySection2Point2": "a) Platform Operations",
+  "privacyPolicySection2Point3": "To create and manage your buyer or seller account",
+  "privacyPolicySection2Point4": "To process orders, payments, and shipment tracking",
+  "privacyPolicySection2Point5": "To facilitate the Try-Before-You-Bulk sample gate feature",
+  "privacyPolicySection2Point6": "To enable Co-Buy session creation and order pooling",
+  "privacyPolicySection2Point7": "b) Trust & Safety",
+  "privacyPolicySection2Point8": "To verify identity for suppliers and buyers",
+  "privacyPolicySection2Point9": "To confirm order delivery via QR code scan",
+  "privacyPolicySection2Point10": "To detect and prevent off-platform payment or contact violations",
+  "privacyPolicySection2Point11": "To process disputes, evidence submissions, and refund requests",
+  "privacyPolicySection2Point12": "c) Payment Processing & Analytics",
+  "privacyPolicySection2Point13": "To securely process payments through Bakong and other integrated payment providers",
+  "privacyPolicySection2Point14": "To hold funds in escrow until delivery is confirmed",
+  "privacyPolicySection2Point15": "To analyze usage patterns and improve app features and performance",
+  "privacyPolicySection2Point16": "To personalize product recommendations and search suggestions",
+  "privacyPolicySection2Point17": "d) Push Notifications",
+  "privacyPolicySection2Point18": "To notify you about order status updates, chat messages, co-buy progress, and important account activity",
+  "privacyPolicySection2Point19": "e) Legal Compliance",
+  "privacyPolicySection2Point20": "To comply with applicable legal requirements",
+  "privacyPolicySection2Point21": "To respond to lawful requests from authorities",
+  "privacyPolicySection2Point22": "f) Business Transfers",
+  "privacyPolicySection2Point23": "In the event of a merger, acquisition, or asset sale, information may be transferred as part of the business assets, subject to equivalent privacy protection",
+
+  "privacyPolicySection3Title": "3. How We Share Your Information",
+  "privacyPolicySection3Point1": "We do not sell your personal data. We only share information in the following circumstances:",
+  "privacyPolicySection3Point2": "a) Between Buyers & Sellers",
+  "privacyPolicySection3Point3": "Business name, rating, and product listings shared to enable trading",
+  "privacyPolicySection3Point4": "Chat messages shared strictly between chat participants",
+  "privacyPolicySection3Point5": "b) Payment Providers",
+  "privacyPolicySection3Point6": "Transaction data shared with Bakong and other approved gateways to complete payments",
+  "privacyPolicySection3Point7": "c) Service Providers",
+  "privacyPolicySection3Point8": "Cloud hosting and data storage (Supabase infrastructure)",
+  "privacyPolicySection3Point9": "Analytics services to improve app performance and user experience",
+  "privacyPolicySection3Point10": "d) Legal Requirements",
+  "privacyPolicySection3Point11": "When required by applicable legal requirements",
+  "privacyPolicySection3Point12": "To protect Bosdom's legal rights or investigate fraud",
+  "privacyPolicySection3Point13": "e) Business Transfers",
+  "privacyPolicySection3Point14": "In the event of a merger, acquisition, or reorganization of Bosdom, user data may be transferred with equivalent privacy protection commitments",
+
+  "privacyPolicySection4Title": "4. Data Storage & Security",
+  "privacyPolicySection4Point1": "Your data is stored securely using Supabase infrastructure, which provides:",
+  "privacyPolicySection4Point2": "Encryption of data in transit (TLS/SSL) and at rest",
+  "privacyPolicySection4Point3": "Secure authentication and session management",
+  "privacyPolicySection4Point4": "Access controls and regular security audits with vulnerability assessments",
+  "privacyPolicySection4Point5": "Escrow payment information is protected using PCI-compliant payment gateway standards.",
+  "privacyPolicySection4Point6": "Chat conversations and dispute evidence are encrypted and access-restricted to relevant parties.",
+  "privacyPolicySection4Point7": "While we implement industry-standard security measures, no method of electronic transmission or storage is 100% secure.",
+
+  "privacyPolicySection5Title": "5. Data Retention",
+  "privacyPolicySection5Point1": "We retain your personal data only for as long as necessary to fulfill the purposes outlined in this policy:",
+  "privacyPolicySection5Point2": "Account Data — retained while your account is active and for up to 12 months after deletion",
+  "privacyPolicySection5Point3": "Transaction Records — retained for 5 years for accounting and legal compliance",
+  "privacyPolicySection5Point4": "Chat Messages — retained for 12 months",
+  "privacyPolicySection5Point5": "Dispute Evidence — retained for 12 months after resolution",
+  "privacyPolicySection5Point6": "You may request account deletion at any time by contacting support or using the in-app support feature.",
+
+  "privacyPolicySection6Title": "6. Your Privacy Rights",
+  "privacyPolicySection6Point1": "As a Bosdom user, you have the right to:",
+  "privacyPolicySection6Point2": "Access — request a copy of the personal data we hold about you",
+  "privacyPolicySection6Point3": "Correction — update inaccurate or outdated information",
+  "privacyPolicySection6Point4": "Deletion — request deletion of your personal data, subject to legal retention requirements",
+  "privacyPolicySection6Point5": "Data Portability — request your data in a machine-readable format",
+  "privacyPolicySection6Point6": "Notification Preferences — manage notification settings within the app",
+  "privacyPolicySection6Point7": "Opt-Out — opt out of marketing communications at any time",
+  "privacyPolicySection6Point8": "To exercise these rights, contact us at privacy@bosdom.com or via the in-app Support section.",
+
+  "privacyPolicySection7Title": "7. Chat & Communication Privacy",
+  "privacyPolicySection7Point1": "All in-app chat messages are stored securely and only accessible to conversation participants.",
+  "privacyPolicySection7Point2": "Bosdom automatically monitors chat content for off-platform contact detection and scam prevention purposes only.",
+  "privacyPolicySection7Point3": "Flagged messages may be reviewed manually by our Trust & Safety team.",
+  "privacyPolicySection7Point4": "Soliciting direct contact information through chat may result in account restrictions or bans as outlined in our Terms & Conditions.",
+
+  "privacyPolicySection8Title": "8. Children's Privacy",
+  "privacyPolicySection8Point1": "Bosdom is a B2B wholesale marketplace intended for use by verified business users aged 18 and above. We do not knowingly collect data from minors.",
+
+  "privacyPolicySection9Title": "9. Changes to This Policy",
+  "privacyPolicySection9Point1": "We may update this Privacy Policy periodically to reflect changes in our practices, legal requirements, or platform features. Material changes will be communicated via:",
+  "privacyPolicySection9Point2": "A prominent notice within the app",
+  "privacyPolicySection9Point3": "Email notification to registered users",
+  "privacyPolicySection9Point4": "An updated \"Last Modified\" date",
+
+  "privacyPolicyContactTitle": "Contact Us",
+  "privacyPolicyContactIntro": "For privacy-related questions or concerns, please contact:",
+  "privacyPolicyContactEmail": "privacy@bosdom.com",
+  "privacyPolicyContactInApp": "In-app: Support & Report an Issue",
+  "privacyPolicyContactLocation": "Cambodia",
+
+  "aboutScreenTitle": "About Bosdom",
+  "aboutAppTagline": "The Automated B2B Wholesale Trust Market & Social Co-Buying Network",
+  "aboutVersionLabel": "Version {version}",
+  "@aboutVersionLabel": {
+    "placeholders": {
+      "version": { "type": "String" }
+    }
+  },
+  "aboutMissionTitle": "Our Mission",
+  "aboutMissionBody": "Bosdom connects verified Cambodian retailers with trusted wholesalers through a secure digital procurement ecosystem featuring sample testing, social co-buying, automated escrow, and real-time chat.",
+  "aboutWhyChooseTitle": "Why Choose Bosdom?",
+  "aboutFeatureSampleTestingTitle": "Sample Testing",
+  "aboutFeatureSampleTestingBody": "Try before you bulk buy to ensure quality.",
+  "aboutFeatureCoBuyTitle": "Co-Buy Network",
+  "aboutFeatureCoBuyBody": "Pool orders for direct volume discount prices.",
+  "aboutFeatureEscrowTitle": "Escrow Protection",
+  "aboutFeatureEscrowBody": "Secure automated payments on delivery.",
+  "aboutFeatureChatTitle": "Real-Time Chat",
+  "aboutFeatureChatBody": "Direct instant supplier communication channel.",
+  "aboutOfferTitle": "What We Offer",
+  "aboutOfferItem1": "Wholesale Marketplace",
+  "aboutOfferItem2": "Volume-tiered pricing models",
+  "aboutOfferItem3": "Secure QR verification system",
+  "aboutOfferItem4": "Anti-scam media evidence lockers",
+  "aboutOfferItem5": "Social invite links",
+  "aboutOfferItem6": "Instant push notifications",
+  "aboutCompanyInfoTitle": "Company Information",
+  "aboutCompanyHeadquartersLabel": "HEADQUARTERS",
+  "aboutCompanyHeadquartersValue": "Phnom Penh, Cambodia",
+  "aboutCompanyEmailLabel": "CONTACT EMAIL",
+  "aboutCompanyEmailValue": "support@bosdom.com",
+  "aboutCompanyWebsiteLabel": "WEBSITE",
+  "aboutCompanyWebsiteValue": "www.bosdom.com",
+  "aboutStoryTitle": "Our Story",
+  "aboutStoryBody": "Founded to solve trust deficiencies in Cambodia's B2B retail supply chain, Bosdom deploys an independent secure digital procurement ecosystem to empower small-to-medium retail owners.",
+  "aboutStatRetailers": "Retailers",
+  "aboutStatSuppliers": "Suppliers",
+  "aboutStatSuccessRate": "Success Rate",
+  "aboutValuesTitle": "Our Values",
+  "aboutValueTrustTitle": "Trust & Transparency",
+  "aboutValueRetailerFirstTitle": "Retailer First",
+  "aboutValueInnovationTitle": "Innovation",
+  "aboutFooterCopyright": "© 2024-2026 Bosdom. All rights reserved."
+}

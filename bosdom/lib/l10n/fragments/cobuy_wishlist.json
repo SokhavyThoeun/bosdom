@@ -1,0 +1,211 @@
+{
+  "coBuyingScreenTitle": {
+    "en": "Co-Buy",
+    "km": "ទិញរួម"
+  },
+  "coBuyingInfoBanner": {
+    "en": "Pool orders with nearby retailers to unlock bulk wholesale discounts. Share invite links to grow your group!",
+    "km": "រួមបញ្ចូលការបញ្ជាទិញជាមួយអ្នកលក់រាយនៅជិតៗ ដើម្បីទទួលបានការបញ្ចុះតម្លៃលក់ដុំចំនួនច្រើន។ ចែករំលែកតំណអញ្ជើញដើម្បីពង្រីកក្រុមរបស់អ្នក!"
+  },
+  "coBuyingSectionTitle": {
+    "en": "Active Co-Buy Sessions",
+    "km": "សម័យទិញរួមកំពុងដំណើរការ"
+  },
+  "coBuyingMomentumReady": {
+    "en": "Target reached, ready for checkout",
+    "km": "សម្រេចគោលដៅហើយ ត្រៀមរួចរាល់សម្រាប់ការទូទាត់"
+  },
+  "coBuyingMomentumAlmost": {
+    "en": "Almost unlocked, grab it soon",
+    "km": "ជិតដោះសោហើយ សូមប្រញាប់ទិញ"
+  },
+  "coBuyingMomentumFilling": {
+    "en": "Filling up fast",
+    "km": "កំពុងពេញយ៉ាងឆាប់រហ័ស"
+  },
+  "coBuyingMomentumNew": {
+    "en": "Newly opened, be an early buyer",
+    "km": "ទើបបើកថ្មី សូមធ្វើជាអ្នកទិញមុនគេ"
+  },
+  "coBuyingPooledProgress": {
+    "en": "{currentQty}/{targetQty} {unitLabel} pooled",
+    "km": "{currentQty}/{targetQty} {unitLabel} បានប្រមូលផ្តុំ",
+    "placeholders": {
+      "currentQty": { "type": "int" },
+      "targetQty": { "type": "int" },
+      "unitLabel": { "type": "String" }
+    }
+  },
+  "coBuyingRemainingToUnlock": {
+    "en": "Just {remainingQty} {unitLabel} left to unlock the group price",
+    "km": "នៅសល់តែ {remainingQty} {unitLabel} ទៀតដើម្បីដោះសោតម្លៃជាក្រុម",
+    "placeholders": {
+      "remainingQty": { "type": "int" },
+      "unitLabel": { "type": "String" }
+    }
+  },
+  "coBuyingGroupPriceLabel": {
+    "en": "GROUP PRICE",
+    "km": "តម្លៃជាក្រុម"
+  },
+  "coBuyingYouSave": {
+    "en": "You save {amount}",
+    "km": "អ្នកសន្សំបាន {amount}",
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "coBuyingJoinedPillLabel": {
+    "en": "You're in this group buy · tap to leave",
+    "km": "អ្នកបានចូលរួមក្នុងការទិញជាក្រុមនេះ · ចុចដើម្បីចាកចេញ"
+  },
+  "coBuyingCheckoutReadyLabel": {
+    "en": "Ready for checkout",
+    "km": "ត្រៀមរួចរាល់សម្រាប់ការទូទាត់"
+  },
+  "coBuyingFullLabel": {
+    "en": "Co-Buy Full",
+    "km": "ការទិញរួមពេញ"
+  },
+  "coBuyingJoinButtonLabel": {
+    "en": "Join This Co-Buy",
+    "km": "ចូលរួមការទិញរួមនេះ"
+  },
+  "coBuyingShareText": {
+    "en": "Join me on this Co-Buy for {productName} on BosDom! Get it for {price} ({savingsPct}% off) — {url}",
+    "km": "ចូលរួមជាមួយខ្ញុំក្នុងការទិញរួមសម្រាប់ {productName} នៅលើ BosDom! ទទួលបានក្នុងតម្លៃ {price} (បញ្ចុះតម្លៃ {savingsPct}%) — {url}",
+    "placeholders": {
+      "productName": { "type": "String" },
+      "price": { "type": "String" },
+      "savingsPct": { "type": "String" },
+      "url": { "type": "String" }
+    }
+  },
+  "coBuyingShareSubject": {
+    "en": "Co-Buy: {productName}",
+    "km": "ការទិញរួម៖ {productName}",
+    "placeholders": {
+      "productName": { "type": "String" }
+    }
+  },
+  "coBuyDetailActiveDealLabel": {
+    "en": "Active Deal",
+    "km": "ការផ្តល់ជូនកំពុងដំណើរការ"
+  },
+  "coBuyDetailVisitShopLabel": {
+    "en": "Visit Shop",
+    "km": "មើលហាង"
+  },
+  "coBuyDetailJoinedSnackbar": {
+    "en": "Joined {productName} Co-Buy · {amount}",
+    "km": "បានចូលរួមទិញរួម {productName} · {amount}",
+    "placeholders": {
+      "productName": { "type": "String" },
+      "amount": { "type": "String" }
+    }
+  },
+  "coBuyDetailLeftSnackbar": {
+    "en": "Left {productName} Co-Buy",
+    "km": "បានចាកចេញពីការទិញរួម {productName}",
+    "placeholders": {
+      "productName": { "type": "String" }
+    }
+  },
+  "coBuyDetailQtyLabel": {
+    "en": "Qty: {quantity} {unitLabel}",
+    "km": "ចំនួន៖ {quantity} {unitLabel}",
+    "placeholders": {
+      "quantity": { "type": "int" },
+      "unitLabel": { "type": "String" }
+    }
+  },
+  "coBuyDetailProgressTitle": {
+    "en": "Co-Buy Progress",
+    "km": "វឌ្ឍនភាពការទិញរួម"
+  },
+  "coBuyDetailProgressLine": {
+    "en": "Progress: {currentQty}/{targetQty} {unitLabel}",
+    "km": "វឌ្ឍនភាព៖ {currentQty}/{targetQty} {unitLabel}",
+    "placeholders": {
+      "currentQty": { "type": "int" },
+      "targetQty": { "type": "int" },
+      "unitLabel": { "type": "String" }
+    }
+  },
+  "coBuyDetailRetailersJoined": {
+    "en": "{count} retailers joined",
+    "km": "{count} អ្នកលក់រាយបានចូលរួម",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "coBuyDetailYouSaveLine": {
+    "en": "You save {savingsPct}% {perUnitLabel} on this deal",
+    "km": "អ្នកសន្សំបាន {savingsPct}% {perUnitLabel} ក្នុងកិច្ចព្រមព្រៀងនេះ",
+    "placeholders": {
+      "savingsPct": { "type": "int" },
+      "perUnitLabel": { "type": "String" }
+    }
+  },
+  "coBuyDetailYourOrderTitle": {
+    "en": "Your Order",
+    "km": "ការបញ្ជាទិញរបស់អ្នក"
+  },
+  "coBuyDetailQuantityLabel": {
+    "en": "Quantity",
+    "km": "បរិមាណ"
+  },
+  "coBuyDetailMinOrderLabel": {
+    "en": "Min order: {minOrderQty} {unitLabel}",
+    "km": "បញ្ជាទិញអប្បបរមា៖ {minOrderQty} {unitLabel}",
+    "placeholders": {
+      "minOrderQty": { "type": "int" },
+      "unitLabel": { "type": "String" }
+    }
+  },
+  "coBuyDetailSubtotalLabel": {
+    "en": "Subtotal",
+    "km": "សរុបរង"
+  },
+  "coBuyDetailCheckoutLabel": {
+    "en": "Checkout · {amount}",
+    "km": "ការទូទាត់ · {amount}",
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "coBuyDetailFullLabel": {
+    "en": "Co-Buy Full",
+    "km": "ការទិញរួមពេញ"
+  },
+  "coBuyDetailJoinedLabel": {
+    "en": "You're in · tap to leave",
+    "km": "អ្នកបានចូលរួម · ចុចដើម្បីចាកចេញ"
+  },
+  "coBuyDetailJoinLabel": {
+    "en": "Join Co-Buy · {amount}",
+    "km": "ចូលរួមទិញរួម · {amount}",
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "wishlistScreenTitle": {
+    "en": "Wishlist",
+    "km": "បញ្ជីចង់បាន"
+  },
+  "wishlistEmptyStateMessage": {
+    "en": "No items in your wishlist yet",
+    "km": "មិនទាន់មានទំនិញនៅក្នុងបញ្ជីចង់បានរបស់អ្នកទេ"
+  },
+  "wishlistAddedToCartSnackbar": {
+    "en": "{productName} added to cart",
+    "km": "{productName} ត្រូវបានបញ្ចូលទៅកន្ត្រក",
+    "placeholders": {
+      "productName": { "type": "String" }
+    }
+  },
+  "wishlistAddToCartButton": {
+    "en": "Add to Cart",
+    "km": "បញ្ចូលទៅកន្ត្រក"
+  }
+}

@@ -34,8 +34,14 @@ class AddressBookScreen extends ConsumerWidget {
           Expanded(
             child: SafeArea(
               top: false,
+              bottom: false,
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  20,
+                  20,
+                  8 + MediaQuery.of(context).padding.bottom,
+                ),
                 children: [
                   for (final address in addresses) ...[
                     _AddressCard(

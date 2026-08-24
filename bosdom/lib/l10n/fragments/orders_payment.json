@@ -1,0 +1,323 @@
+{
+  "ordersScreenTitle": {
+    "en": "View Orders",
+    "km": "មើលការបញ្ជាទិញ"
+  },
+  "ordersEmptyStateMessage": {
+    "en": "No orders in this category",
+    "km": "មិនមានការបញ្ជាទិញនៅក្នុងប្រភេទនេះទេ"
+  },
+  "ordersFilterAllLabel": {
+    "en": "All ({count})",
+    "km": "ទាំងអស់ ({count})",
+    "placeholders": ["count"]
+  },
+  "ordersItemCountLabel": {
+    "en": "{count} items",
+    "km": "{count} ធាតុ",
+    "placeholders": ["count"]
+  },
+  "ordersOrderNumberLabel": {
+    "en": "Order #{orderId}",
+    "km": "លេខបញ្ជាទិញ #{orderId}",
+    "placeholders": ["orderId"]
+  },
+  "ordersRateReviewButton": {
+    "en": "Rate & Review",
+    "km": "វាយតម្លៃ និងផ្តល់មតិ"
+  },
+  "ordersReportButton": {
+    "en": "Report",
+    "km": "រាយការណ៍"
+  },
+  "ordersReportLabel": {
+    "en": "Report order",
+    "km": "រាយការណ៍បញ្ជាទិញ"
+  },
+  "ordersViewDetailsButton": {
+    "en": "View Details",
+    "km": "មើលព័ត៌មានលម្អិត"
+  },
+  "orderDetailScreenTitle": {
+    "en": "Order Details",
+    "km": "ព័ត៌មានលម្អិតបញ្ជាទិញ"
+  },
+  "orderDetailItemsAddedSnackbar": {
+    "en": "Items added to your cart",
+    "km": "បានបន្ថែមទំនិញទៅកន្ត្រករបស់អ្នក"
+  },
+  "orderDetailItemsOrderedSection": {
+    "en": "Items Ordered",
+    "km": "ទំនិញដែលបានបញ្ជាទិញ"
+  },
+  "orderDetailOrderNumberLabel": {
+    "en": "Order #{orderId}",
+    "km": "លេខបញ្ជាទិញ #{orderId}",
+    "placeholders": ["orderId"]
+  },
+  "orderDetailPaymentSummarySection": {
+    "en": "Payment Summary",
+    "km": "សេចក្តីសង្ខេបការទូទាត់"
+  },
+  "orderDetailPhoneLabel": {
+    "en": "Phone: {phone}",
+    "km": "ទូរស័ព្ទ៖ {phone}",
+    "placeholders": ["phone"]
+  },
+  "orderDetailPlacedOnLabel": {
+    "en": "Placed on {date}",
+    "km": "បានបញ្ជាទិញនៅថ្ងៃទី {date}",
+    "placeholders": ["date"]
+  },
+  "orderDetailReceiptSaveFailedSnackbar": {
+    "en": "Failed to save receipt: {error}",
+    "km": "រក្សាទុកបង្កាន់ដៃមិនបានសម្រេច៖ {error}",
+    "placeholders": ["error"]
+  },
+  "orderDetailReceiptSavedSnackbar": {
+    "en": "Receipt saved to your device",
+    "km": "បានរក្សាទុកបង្កាន់ដៃទៅឧបករណ៍របស់អ្នក"
+  },
+  "orderDetailReorderButton": {
+    "en": "Reorder Wholesale Items",
+    "km": "បញ្ជាទិញឡើងវិញនូវទំនិញលក់ដុំ"
+  },
+  "orderDetailSaveReceiptButton": {
+    "en": "Save Receipt as PDF",
+    "km": "រក្សាទុកបង្កាន់ដៃជា PDF"
+  },
+  "orderDetailSavingLabel": {
+    "en": "Saving...",
+    "km": "កំពុងរក្សាទុក..."
+  },
+  "orderDetailShippingFeeLabel": {
+    "en": "Shipping Fee",
+    "km": "ថ្លៃដឹកជញ្ជូន"
+  },
+  "orderDetailShippingSection": {
+    "en": "Shipping & Delivery",
+    "km": "ការដឹកជញ្ជូន និងការចែកចាយ"
+  },
+  "orderDetailSubtotalLabel": {
+    "en": "Subtotal",
+    "km": "សរុបរង"
+  },
+  "orderDetailTotalAmountLabel": {
+    "en": "Total Amount",
+    "km": "ចំនួនទឹកប្រាក់សរុប"
+  },
+  "orderDetailTrackDeliveryButton": {
+    "en": "Track Delivery",
+    "km": "តាមដានការដឹកជញ្ជូន"
+  },
+  "orderDetailWholesaleDiscountLabel": {
+    "en": "Wholesale Discount",
+    "km": "បញ្ចុះតម្លៃលក់ដុំ"
+  },
+  "deliveryScreenTitle": {
+    "en": "Delivery Tracking",
+    "km": "តាមដានការដឹកជញ្ជូន"
+  },
+  "deliveryCurrentStatusLabel": {
+    "en": "Current status",
+    "km": "ស្ថានភាពបច្ចុប្បន្ន"
+  },
+  "deliveryEscrowNoteText": {
+    "en": "Funds held securely in escrow until you confirm receipt.",
+    "km": "ថវិកាត្រូវបានរក្សាទុកយ៉ាងសុវត្ថិភាពក្នុងគណនីអេស្គ្រូ រហូតដល់អ្នកបញ្ជាក់ការទទួល។"
+  },
+  "deliveryInProgressLabel": {
+    "en": "In progress",
+    "km": "កំពុងដំណើរការ"
+  },
+  "deliveryPendingLabel": {
+    "en": "Pending",
+    "km": "កំពុងរង់ចាំ"
+  },
+  "deliveryPlacedOnLabel": {
+    "en": "Placed on {date}",
+    "km": "បានបញ្ជាទិញនៅថ្ងៃទី {date}",
+    "placeholders": ["date"]
+  },
+  "deliveryStatusSectionTitle": {
+    "en": "Delivery Status",
+    "km": "ស្ថានភាពការដឹកជញ្ជូន"
+  },
+  "deliveryStepDelivered": {
+    "en": "Delivered",
+    "km": "បានដឹកជញ្ជូនរួច"
+  },
+  "deliveryStepOrderCancelled": {
+    "en": "Order cancelled",
+    "km": "បញ្ជាទិញត្រូវបានលុបចោល"
+  },
+  "deliveryStepOrderPlaced": {
+    "en": "Order placed",
+    "km": "បានធ្វើការបញ្ជាទិញ"
+  },
+  "deliveryStepOutForDelivery": {
+    "en": "Out for delivery",
+    "km": "កំពុងដឹកជញ្ជូន"
+  },
+  "deliveryStepPackedAtWarehouse": {
+    "en": "Packed at warehouse",
+    "km": "បានវេចខ្ចប់នៅឃ្លាំង"
+  },
+  "reviewSheetTitle": {
+    "en": "Rate & Review",
+    "km": "វាយតម្លៃ និងផ្តល់មតិ"
+  },
+  "reviewAddPhotosButton": {
+    "en": "Add Photos",
+    "km": "បន្ថែមរូបភាព"
+  },
+  "reviewAddPhotosLabel": {
+    "en": "ADD PHOTOS OF RECEIVED ITEMS",
+    "km": "បន្ថែមរូបភាពទំនិញដែលបានទទួល"
+  },
+  "reviewHintText": {
+    "en": "Share your experience with this order...",
+    "km": "ចែករំលែកបទពិសោធន៍របស់អ្នកអំពីការបញ្ជាទិញនេះ..."
+  },
+  "reviewMaxPhotosSnackbar": {
+    "en": "You can add up to {count} photos",
+    "km": "អ្នកអាចបន្ថែមរូបភាពបានច្រើនបំផុត {count} សន្លឹក",
+    "placeholders": ["count"]
+  },
+  "reviewOfficialBadge": {
+    "en": "OFFICIAL",
+    "km": "ផ្លូវការ"
+  },
+  "reviewPhotoLibraryErrorSnackbar": {
+    "en": "Could not open photo library: {error}",
+    "km": "មិនអាចបើកបណ្ណាល័យរូបភាពបានទេ៖ {error}",
+    "placeholders": ["error"]
+  },
+  "reviewRateProductLabel": {
+    "en": "RATE PRODUCT",
+    "km": "វាយតម្លៃផលិតផល"
+  },
+  "reviewRateStoreLabel": {
+    "en": "RATE STORE",
+    "km": "វាយតម្លៃហាង"
+  },
+  "reviewSubmitButton": {
+    "en": "Submit Review",
+    "km": "ដាក់ស្នើមតិវាយតម្លៃ"
+  },
+  "reviewSubmittedSnackbar": {
+    "en": "Thanks! Your review has been submitted.",
+    "km": "សូមអរគុណ! មតិវាយតម្លៃរបស់អ្នកត្រូវបានដាក់ស្នើ។"
+  },
+  "reviewWriteReviewLabel": {
+    "en": "WRITE A REVIEW",
+    "km": "សរសេរមតិវាយតម្លៃ"
+  },
+  "paymentScreenTitle": {
+    "en": "Payment Method",
+    "km": "វិធីទូទាត់ប្រាក់"
+  },
+  "paymentAbaMethodTitle": {
+    "en": "ABA Pay",
+    "km": "ABA Pay"
+  },
+  "paymentAbaNotAvailableSnackbar": {
+    "en": "ABA Pay is not available yet",
+    "km": "ABA Pay មិនទាន់អាចប្រើប្រាស់បានទេ"
+  },
+  "paymentAmountToPayLabel": {
+    "en": "Amount to Pay",
+    "km": "ចំនួនទឹកប្រាក់ត្រូវទូទាត់"
+  },
+  "paymentCardDetailsSubtitle": {
+    "en": "Securely enter your card details",
+    "km": "បញ្ចូលព័ត៌មានប័ណ្ណរបស់អ្នកយ៉ាងសុវត្ថិភាព"
+  },
+  "paymentCardMethodTitle": {
+    "en": "Credit/Debit Card",
+    "km": "កាតឥណទាន/កាតឥណពន្ធ"
+  },
+  "paymentCardNumberLabel": {
+    "en": "CARD NUMBER",
+    "km": "លេខកាត"
+  },
+  "paymentConfirmedSubtitle": {
+    "en": "Your order has been placed and paid.",
+    "km": "ការបញ្ជាទិញរបស់អ្នកត្រូវបានធ្វើ និងបានទូទាត់ប្រាក់រួចរាល់។"
+  },
+  "paymentConfirmedTitle": {
+    "en": "You're confirmed!",
+    "km": "អ្នកត្រូវបានបញ្ជាក់ហើយ!"
+  },
+  "paymentConfirmingSubtitle": {
+    "en": "Confirming your order...",
+    "km": "កំពុងបញ្ជាក់ការបញ្ជាទិញរបស់អ្នក..."
+  },
+  "paymentConfirmingTitle": {
+    "en": "Just a moment",
+    "km": "សូមរង់ចាំមួយភ្លែត"
+  },
+  "paymentContinueShoppingButton": {
+    "en": "Continue Shopping",
+    "km": "បន្តទិញឥវ៉ាន់"
+  },
+  "paymentCvvLabel": {
+    "en": "CVV",
+    "km": "CVV"
+  },
+  "paymentExpiryDateLabel": {
+    "en": "EXPIRY DATE",
+    "km": "កាលបរិច្ឆេទផុតកំណត់"
+  },
+  "paymentFailedSnackbar": {
+    "en": "Payment failed: {error}",
+    "km": "ការទូទាត់មិនបានសម្រេច៖ {error}",
+    "placeholders": ["error"]
+  },
+  "paymentItemsPurchasedLabel": {
+    "en": "{count} items purchased",
+    "km": "បានទិញ {count} ធាតុ",
+    "placeholders": ["count"]
+  },
+  "paymentMethodSubtitleVisaMastercard": {
+    "en": "Visa, Mastercard, etc.",
+    "km": "Visa, Mastercard ជាដើម"
+  },
+  "paymentPayAmountLabel": {
+    "en": "Pay {amount}",
+    "km": "ទូទាត់ {amount}",
+    "placeholders": ["amount"]
+  },
+  "paymentPayNowButton": {
+    "en": "Pay Now",
+    "km": "ទូទាត់ឥឡូវនេះ"
+  },
+  "paymentSecureEncryptionNote": {
+    "en": "Your payment credentials are securely encrypted",
+    "km": "ព័ត៌មានទូទាត់របស់អ្នកត្រូវបានអ៊ិនគ្រីបយ៉ាងសុវត្ថិភាព"
+  },
+  "paymentSelectMethodLabel": {
+    "en": "Select Payment Method",
+    "km": "ជ្រើសរើសវិធីទូទាត់ប្រាក់"
+  },
+  "paymentTotalPaidLabel": {
+    "en": "Total Paid",
+    "km": "ចំនួនទឹកប្រាក់ដែលបានទូទាត់សរុប"
+  },
+  "paymentViewOrdersButton": {
+    "en": "View Orders",
+    "km": "មើលការបញ្ជាទិញ"
+  },
+  "paymentWholesaleItemsFallbackLabel": {
+    "en": "Wholesale Items",
+    "km": "ទំនិញលក់ដុំ"
+  },
+  "escrowScreenTitle": {
+    "en": "Escrow & checkout",
+    "km": "អេស្គ្រូ និងការទូទាត់"
+  },
+  "escrowPlaceholderText": {
+    "en": "Payment, QR confirm, dispute evidence — UI comes in phase 8",
+    "km": "ការទូទាត់ប្រាក់ ការបញ្ជាក់ QR ភស្តុតាងវិវាទ — UI នឹងមកដល់នៅដំណាក់កាលទី ៨"
+  }
+}

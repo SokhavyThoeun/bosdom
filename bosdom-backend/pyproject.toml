@@ -1,0 +1,25 @@
+[project]
+name = "bosdom-backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "alembic>=1.19.1",
+    "fastapi>=0.141.1",
+    "fpdf2>=2.8.8",
+    "psycopg2-binary>=2.9.12",
+    "pydantic-settings>=2.15.0",
+    "python-dotenv>=1.2.2",
+    "sqlalchemy>=2.0.52",
+    "stripe>=15.5.0",
+    "supabase>=2.31.0",
+    "uvicorn[standard]>=0.52.3",
+]
+
+[project.scripts]
+bosdom-backend = "bosdom_backend:main"
+
+[build-system]
+requires = ["uv_build>=0.12.4,<0.13.0"]
+build-backend = "uv_build"

@@ -114,8 +114,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           Expanded(
             child: SafeArea(
               top: false,
+              bottom: false,
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  20,
+                  16,
+                  8 + MediaQuery.of(context).padding.bottom,
+                ),
                 children: [
                   const CheckoutProgressStepper(
                     currentStep: CheckoutStep.checkout,

@@ -19,4 +19,5 @@ abstract final class AppColors {
   // Status
   static const Color trustGreen = Color(0xFF3B6E50);
   static const Color alertAmber = Color(0xFFB07838);
+  static const Color infoBlue = Color(0xFF2E6BA8);
 }

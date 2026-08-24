@@ -1,0 +1,206 @@
+{
+  "cartMovedToWishlistSnackbar": {
+    "en": "{productName} moved to wishlist",
+    "km": "{productName} ត្រូវបានផ្លាស់ទៅបញ្ជីចង់បាន",
+    "placeholders": ["productName"]
+  },
+  "cartProceedToCheckout": {
+    "en": "Proceed to Checkout",
+    "km": "បន្តទៅការទូទាត់"
+  },
+  "cartScreenTitle": {
+    "en": "My Cart",
+    "km": "កន្ត្រករបស់ខ្ញុំ"
+  },
+  "cartSelectAll": {
+    "en": "Select All",
+    "km": "ជ្រើសរើសទាំងអស់"
+  },
+  "cartItemsCount": {
+    "en": "{count} items",
+    "km": "{count} ធាតុ",
+    "placeholders": ["count"]
+  },
+  "cartWishlistAction": {
+    "en": "Wishlist",
+    "km": "បញ្ជីចង់បាន"
+  },
+  "cartUnitPrice": {
+    "en": "Unit: {price}",
+    "km": "ឯកតា៖ {price}",
+    "placeholders": ["price"]
+  },
+  "cartSubtotal": {
+    "en": "Subtotal",
+    "km": "សរុបរង"
+  },
+  "cartEstimatedShipping": {
+    "en": "Estimated Shipping",
+    "km": "ការដឹកជញ្ជូនប៉ាន់ស្មាន"
+  },
+  "cartEscrowFee": {
+    "en": "Escrow Fee (2%)",
+    "km": "កម្រៃសេវាធានា (២%)"
+  },
+  "cartTotalAmount": {
+    "en": "Total Amount",
+    "km": "ចំនួនទឹកប្រាក់សរុប"
+  },
+  "cartEmptyState": {
+    "en": "Your cart is empty",
+    "km": "កន្ត្រករបស់អ្នកទទេ"
+  },
+  "checkoutDeliveryAddressLabel": {
+    "en": "Delivery Address",
+    "km": "អាសយដ្ឋានដឹកជញ្ជូន"
+  },
+  "checkoutOrderItemsLabel": {
+    "en": "Order Items",
+    "km": "ទំនិញក្នុងការបញ្ជាទិញ"
+  },
+  "checkoutItemsCount": {
+    "en": "{count} Items",
+    "km": "{count} ធាតុ",
+    "placeholders": ["count"]
+  },
+  "checkoutShippingMethodLabel": {
+    "en": "Shipping Method",
+    "km": "វិធីសាស្ត្រដឹកជញ្ជូន"
+  },
+  "checkoutEscrowNotice": {
+    "en": "Funds held in escrow until delivery confirmed.",
+    "km": "ថវិកាត្រូវបានរក្សាទុកក្នុងគណនីធានារហូតដល់ការដឹកជញ្ជូនត្រូវបានបញ្ជាក់។"
+  },
+  "checkoutContinueToPayment": {
+    "en": "Continue to Payment",
+    "km": "បន្តទៅការទូទាត់ប្រាក់"
+  },
+  "checkoutScreenTitle": {
+    "en": "Checkout",
+    "km": "ការទូទាត់"
+  },
+  "checkoutNoAddressYet": {
+    "en": "No delivery address yet",
+    "km": "មិនទាន់មានអាសយដ្ឋានដឹកជញ្ជូននៅឡើយ"
+  },
+  "checkoutChangeAddress": {
+    "en": "Change",
+    "km": "ផ្លាស់ប្ដូរ"
+  },
+  "checkoutOrderSummaryTitle": {
+    "en": "Order Summary",
+    "km": "សេចក្ដីសង្ខេបការបញ្ជាទិញ"
+  },
+  "checkoutSubtotal": {
+    "en": "Subtotal",
+    "km": "សរុបរង"
+  },
+  "checkoutShippingLabel": {
+    "en": "Shipping",
+    "km": "ការដឹកជញ្ជូន"
+  },
+  "checkoutEscrowFeeLabel": {
+    "en": "Escrow Fee (2%)",
+    "km": "កម្រៃសេវាធានា (២%)"
+  },
+  "checkoutTotalAmount": {
+    "en": "Total Amount",
+    "km": "ចំនួនទឹកប្រាក់សរុប"
+  },
+  "checkoutStepCart": {
+    "en": "Cart",
+    "km": "កន្ត្រក"
+  },
+  "checkoutStepCheckout": {
+    "en": "Checkout",
+    "km": "ការទូទាត់"
+  },
+  "checkoutStepPayment": {
+    "en": "Payment",
+    "km": "ការបង់ប្រាក់"
+  },
+  "addressLabelFieldLabel": {
+    "en": "ADDRESS LABEL",
+    "km": "ស្លាកអាសយដ្ឋាន"
+  },
+  "addressLabelFieldHint": {
+    "en": "e.g. Home, Warehouse, Shop",
+    "km": "ឧ. ផ្ទះ, ឃ្លាំង, ហាង"
+  },
+  "addressHouseFieldLabel": {
+    "en": "HOUSE / STREET NUMBER",
+    "km": "ផ្ទះ / លេខផ្លូវ"
+  },
+  "addressHouseFieldHint": {
+    "en": "e.g. Building B, Zone 3, Veng Sreng Blvd",
+    "km": "ឧ. អគារ B, តំបន់ ៣, មហាវិថីវេងស្រេង"
+  },
+  "addressSangkatFieldLabel": {
+    "en": "SANGKAT / DISTRICT",
+    "km": "សង្កាត់ / ស្រុក"
+  },
+  "addressSangkatFieldHint": {
+    "en": "e.g. Sangkat Choam Chao",
+    "km": "ឧ. សង្កាត់ជាំចារ"
+  },
+  "addressLandmarkFieldLabel": {
+    "en": "NEAREST LANDMARK (OPTIONAL)",
+    "km": "ចំណុចសម្គាល់ជិតបំផុត (ស្រេចចិត្ត)"
+  },
+  "addressLandmarkFieldHint": {
+    "en": "e.g. Next to Veng Sreng Canopy",
+    "km": "ឧ. ក្បែរដំបូលវេងស្រេង"
+  },
+  "addressPhoneFieldLabel": {
+    "en": "CONTACT PHONE NUMBER",
+    "km": "លេខទូរស័ព្ទទំនាក់ទំនង"
+  },
+  "addressPhoneFieldHint": {
+    "en": "e.g. +855 76 227 5858",
+    "km": "ឧ. +855 76 227 5858"
+  },
+  "addressProvinceFieldLabel": {
+    "en": "PROVINCE / CITY",
+    "km": "ខេត្ត / ក្រុង"
+  },
+  "addressProvinceFieldHint": {
+    "en": "Select province...",
+    "km": "ជ្រើសរើសខេត្ត..."
+  },
+  "addressFieldRequiredError": {
+    "en": "Required",
+    "km": "ត្រូវការបំពេញ"
+  },
+  "addressSetDefaultTitle": {
+    "en": "Set as Default Address",
+    "km": "កំណត់ជាអាសយដ្ឋានលំនាំដើម"
+  },
+  "addressSetDefaultSubtitle": {
+    "en": "Deliver all primary orders here",
+    "km": "ដឹកជញ្ជូនការបញ្ជាទិញសំខាន់ៗទាំងអស់មកទីនេះ"
+  },
+  "addressSaveButton": {
+    "en": "Save Address",
+    "km": "រក្សាទុកអាសយដ្ឋាន"
+  },
+  "addressAddScreenTitle": {
+    "en": "Add Address",
+    "km": "បន្ថែមអាសយដ្ឋាន"
+  },
+  "addressBookSelectionSubtitle": {
+    "en": "Tap an address to deliver here",
+    "km": "ចុចលើអាសយដ្ឋានមួយដើម្បីដឹកជញ្ជូនមកទីនេះ"
+  },
+  "addressAddNewButton": {
+    "en": "Add New Address",
+    "km": "បន្ថែមអាសយដ្ឋានថ្មី"
+  },
+  "addressBookScreenTitle": {
+    "en": "Address Book",
+    "km": "សៀវភៅអាសយដ្ឋាន"
+  },
+  "addressDefaultBadge": {
+    "en": "Default",
+    "km": "លំនាំដើម"
+  }
+}

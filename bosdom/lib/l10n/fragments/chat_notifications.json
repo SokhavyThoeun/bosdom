@@ -1,0 +1,184 @@
+{
+  "chatScreenTitle": {
+    "en": "Chat",
+    "km": "ជជែក"
+  },
+  "chatSearchHint": {
+    "en": "Search conversations...",
+    "km": "ស្វែងរកការសន្ទនា..."
+  },
+  "chatEmptyTitle": {
+    "en": "No conversations yet",
+    "km": "មិនទាន់មានការសន្ទនាទេ"
+  },
+  "chatEmptyQuery": {
+    "en": "No conversations match \"{query}\"",
+    "km": "រកមិនឃើញការសន្ទនាដែលត្រូវនឹង \"{query}\"",
+    "placeholders": [
+      "query"
+    ]
+  },
+  "chatLoadError": {
+    "en": "Couldn't load conversations",
+    "km": "មិនអាចផ្ទុកការសន្ទនាបានទេ"
+  },
+  "chatDetailLoadError": {
+    "en": "Couldn't load this conversation",
+    "km": "មិនអាចផ្ទុកការសន្ទនានេះបានទេ"
+  },
+  "chatStatusOnline": {
+    "en": "Online",
+    "km": "កំពុងអនឡាញ"
+  },
+  "chatStatusOffline": {
+    "en": "Offline",
+    "km": "គ្មានអនឡាញ"
+  },
+  "chatPolicySecurePayTitle": {
+    "en": "Pay only through Bosdom Secure Pay",
+    "km": "សូមទូទាត់ប្រាក់តាមរយៈ Bosdom Secure Pay តែប៉ុណ្ណោះ"
+  },
+  "chatPolicyBannerBody": {
+    "en": "Direct payments to the seller outside the app aren't covered by Bosdom's buyer protection. Keep transactions in Secure Pay to stay protected.",
+    "km": "ការទូទាត់ប្រាក់ដោយផ្ទាល់ទៅអ្នកលក់ក្រៅកម្មវិធី មិនស្ថិតក្រោមការការពារអ្នកទិញរបស់ Bosdom ទេ។ សូមរក្សាប្រតិបត្តិការក្នុង Secure Pay ដើម្បីទទួលបានការការពារ។"
+  },
+  "chatFlaggedBadge": {
+    "en": "Off-platform contact flagged",
+    "km": "ការទាក់ទងក្រៅវេទិកាត្រូវបានដាក់ទង់"
+  },
+  "chatOffPlatformWarning": {
+    "en": "This message may share contact info or arrange a deal outside Bosdom — you won't be covered by buyer protection.",
+    "km": "សារនេះប្រហែលជាចែករំលែកព័ត៌មានទំនាក់ទំនង ឬរៀបចំកិច្ចព្រមព្រៀងក្រៅ Bosdom — អ្នកនឹងមិនត្រូវបានការពារជាអ្នកទិញនោះទេ។"
+  },
+  "chatPhotoAttachmentComingSoon": {
+    "en": "Photo attachment coming soon",
+    "km": "ការភ្ជាប់រូបថតនឹងមកដល់ឆាប់ៗនេះ"
+  },
+  "chatComposerHint": {
+    "en": "Type a message...",
+    "km": "វាយសារ..."
+  },
+  "liveChatTitle": {
+    "en": "Live Chat",
+    "km": "ជជែកផ្ទាល់"
+  },
+  "liveChatStatusOnline": {
+    "en": "Online • Usually replies instantly",
+    "km": "កំពុងអនឡាញ • ឆ្លើយតបភ្លាមៗ"
+  },
+  "liveChatStatusOffline": {
+    "en": "Offline • We'll reply as soon as we're back",
+    "km": "គ្មានអនឡាញ • យើងនឹងឆ្លើយតបនៅពេលត្រឡប់មកវិញ"
+  },
+  "liveChatSecurityNoticeTitle": {
+    "en": "Security Notice",
+    "km": "សេចក្តីជូនដំណឹងសុវត្ថិភាព"
+  },
+  "liveChatSecurityNoticeBody": {
+    "en": "Only make payments via Bosdom's official secure portal. Support will never ask for direct bank transfers in chat.",
+    "km": "សូមទូទាត់ប្រាក់តាមរយៈវេទិកាសុវត្ថិភាពផ្លូវការរបស់ Bosdom តែប៉ុណ្ណោះ។ ក្រុមគាំទ្រនឹងមិនស្នើសុំការផ្ទេរប្រាក់ចូលធនាគារដោយផ្ទាល់តាមរយៈជជែកទេ។"
+  },
+  "liveChatSuggestedTopicsLabel": {
+    "en": "Suggested topics",
+    "km": "ប្រធានបទណែនាំ"
+  },
+  "liveChatTopicOrderStatus": {
+    "en": "Order Status",
+    "km": "ស្ថានភាពការបញ្ជាទិញ"
+  },
+  "liveChatTopicOrderStatusMessage": {
+    "en": "Hi, I'd like an update on my order status.",
+    "km": "សួស្តី ខ្ញុំចង់ដឹងព័ត៌មានថ្មីអំពីស្ថានភាពការបញ្ជាទិញរបស់ខ្ញុំ។"
+  },
+  "liveChatTopicPaymentIssue": {
+    "en": "Payment Issue",
+    "km": "បញ្ហាការទូទាត់ប្រាក់"
+  },
+  "liveChatTopicPaymentIssueMessage": {
+    "en": "Hi, I'm having an issue with a payment.",
+    "km": "សួស្តី ខ្ញុំកំពុងជួបបញ្ហាទាក់ទងនឹងការទូទាត់ប្រាក់។"
+  },
+  "liveChatTopicRefundReturn": {
+    "en": "Refund / Return",
+    "km": "ការសងប្រាក់ / ការត្រឡប់ទំនិញ"
+  },
+  "liveChatTopicRefundReturnMessage": {
+    "en": "Hi, I'd like to request a refund or return.",
+    "km": "សួស្តី ខ្ញុំចង់ស្នើសុំការសងប្រាក់ឬត្រឡប់ទំនិញ។"
+  },
+  "liveChatTopicShippingRates": {
+    "en": "Shipping Rates",
+    "km": "អត្រាដឹកជញ្ជូន"
+  },
+  "liveChatTopicShippingRatesMessage": {
+    "en": "Hi, can you tell me more about your shipping rates?",
+    "km": "សួស្តី តើអ្នកអាចប្រាប់ខ្ញុំបន្ថែមអំពីអត្រាដឹកជញ្ជូនរបស់អ្នកបានទេ?"
+  },
+  "chatPolicyLoadError": {
+    "en": "Couldn't load chat settings: {error}",
+    "km": "មិនអាចផ្ទុកការកំណត់ជជែកបានទេ៖ {error}",
+    "placeholders": [
+      "error"
+    ]
+  },
+  "chatPolicyIntro": {
+    "en": "Before you start chatting with buyers and sellers on Bosdom, please read and accept the terms below.",
+    "km": "មុននឹងចាប់ផ្តើមជជែកជាមួយអ្នកទិញ និងអ្នកលក់នៅលើ Bosdom សូមអានហើយយល់ព្រមតាមលក្ខខណ្ឌខាងក្រោម។"
+  },
+  "chatPolicySecurePayBody": {
+    "en": "Payments made outside the app are not covered by Bosdom's buyer protection or dispute resolution.",
+    "km": "ការទូទាត់ប្រាក់ដែលធ្វើឡើងក្រៅកម្មវិធី មិនស្ថិតក្រោមការការពារអ្នកទិញ ឬដំណោះស្រាយវិវាទរបស់ Bosdom ទេ។"
+  },
+  "chatPolicyFlaggedTitle": {
+    "en": "Off-platform deals are flagged",
+    "km": "កិច្ចព្រមព្រៀងក្រៅវេទិកាត្រូវបានដាក់ទង់"
+  },
+  "chatPolicyFlaggedBody": {
+    "en": "Messages sharing phone numbers or third-party contact apps are automatically flagged for review.",
+    "km": "សារដែលចែករំលែកលេខទូរស័ព្ទ ឬកម្មវិធីទំនាក់ទំនងភាគីទីបី នឹងត្រូវបានដាក់ទង់ដោយស្វ័យប្រវត្តិសម្រាប់ការត្រួតពិនិត្យ។"
+  },
+  "chatPolicyLiableTitle": {
+    "en": "You are liable for what you send",
+    "km": "អ្នកទទួលខុសត្រូវចំពោះអ្វីដែលអ្នកផ្ញើ"
+  },
+  "chatPolicyLiableBody": {
+    "en": "Bosdom is not responsible for losses from deals arranged outside the platform or against these terms.",
+    "km": "Bosdom មិនទទួលខុសត្រូវចំពោះការខាតបង់ណាមួយ ដែលកើតចេញពីកិច្ចព្រមព្រៀងដែលរៀបចំក្រៅវេទិកា ឬផ្ទុយពីលក្ខខណ្ឌទាំងនេះទេ។"
+  },
+  "chatPolicyHeaderTitle": {
+    "en": "Chat & Trading Policy",
+    "km": "គោលការណ៍ជជែក និងជួញដូរ"
+  },
+  "chatPolicyAgreementText": {
+    "en": "I have read and agree to the Bosdom Chat Policy and Terms of Service.",
+    "km": "ខ្ញុំបានអានហើយយល់ព្រមតាមគោលការណ៍ជជែក និងលក្ខខណ្ឌប្រើប្រាស់របស់ Bosdom។"
+  },
+  "chatPolicyContinueButton": {
+    "en": "Continue to Chat",
+    "km": "បន្តទៅកាន់ការជជែក"
+  },
+  "notificationsMarkAllRead": {
+    "en": "Mark all read",
+    "km": "សម្គាល់ថាបានអានទាំងអស់"
+  },
+  "notificationsScreenTitle": {
+    "en": "Notifications",
+    "km": "ការជូនដំណឹង"
+  },
+  "notificationsEmptyTitle": {
+    "en": "You're all caught up",
+    "km": "អ្នកបានអានការជូនដំណឹងទាំងអស់ហើយ"
+  },
+  "notificationsLoadError": {
+    "en": "Couldn't load notifications",
+    "km": "មិនអាចផ្ទុកការជូនដំណឹងបានទេ"
+  },
+  "notificationsPushTitle": {
+    "en": "Push notification",
+    "km": "ការជូនដំណឹងផុស"
+  },
+  "notificationsPushBody": {
+    "en": "Be the first to hear about: weekly sales, exclusive offers, hot promotions and more",
+    "km": "ក្លាយជាអ្នកដំបូងដែលបានដឹងអំពី៖ ការលក់ប្រចាំសប្តាហ៍ ការផ្តល់ជូនផ្តាច់មុខ ការផ្សព្វផ្សាយពិសេស និងច្រើនទៀត"
+  }
+}

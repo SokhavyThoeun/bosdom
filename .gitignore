@@ -1,0 +1,51 @@
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# ===== Flutter (bosdom/) =====
+bosdom/.dart_tool/
+bosdom/.flutter-plugins-dependencies
+bosdom/.pub-cache/
+bosdom/.pub/
+bosdom/build/
+bosdom/coverage/
+bosdom/.flutter-plugins
+bosdom/**/doc/api/
+bosdom/**/ios/Flutter/.last_build_id
+bosdom/**/ios/Flutter/ephemeral/
+bosdom/**/ios/Pods/
+bosdom/**/android/app/debug
+bosdom/**/android/app/profile
+bosdom/**/android/app/release
+bosdom/**/android/.gradle/
+bosdom/**/android/local.properties
+bosdom/devtools_options.yaml
+*.class
+*.log
+*.pyc
+*.swp
+.history/
+.buildlog/
+migrate_working_dir/
+
+# ===== Python / backend (bosdom-backend/) =====
+bosdom-backend/.venv/
+bosdom-backend/__pycache__/
+**/__pycache__/
+*.pyc
+bosdom-backend/.pytest_cache/
+bosdom-backend/.mypy_cache/
+bosdom-backend/.ruff_cache/
+
+# ===== Supabase =====
+supabase/.temp/
+supabase/.branches/

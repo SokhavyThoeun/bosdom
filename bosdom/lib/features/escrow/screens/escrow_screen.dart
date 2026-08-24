@@ -1,15 +1,24 @@
 import 'package:flutter/material.dart';
 
-import '../../../shared/widgets/widgets.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 class EscrowScreen extends StatelessWidget {
   const EscrowScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const AppPlaceholderScreen(
-      title: 'Escrow & checkout',
-      subtitle: 'Payment, QR confirm, dispute evidence — UI comes in phase 8',
+    final l10n = AppLocalizations.of(context);
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.escrowScreenTitle)),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            l10n.escrowPlaceholderText,
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
     );
   }
 }
