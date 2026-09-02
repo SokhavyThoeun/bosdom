@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/app_snack_bar.dart';
+import '../../../shared/widgets/full_screen_image_viewer.dart';
 import '../../checkout/screens/checkout_screen.dart' show CheckoutLineItem;
 import '../models/co_buy_session.dart';
 import '../providers/co_buy_provider.dart';
@@ -215,6 +216,7 @@ class _CoBuyDetailScreenState extends ConsumerState<CoBuyDetailScreen> {
                                         session.unitLabel,
                                       ),
                                       total: subtotal,
+                                      seller: session.sellerName,
                                     ),
                                   ],
                                 },
@@ -281,10 +283,6 @@ class _Header extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: colorScheme.primary,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
-        ),
       ),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
@@ -383,7 +381,19 @@ class _SellerRow extends StatelessWidget {
           child: CircleAvatar(
             radius: 28,
             backgroundColor: colorScheme.onPrimary,
-            child: Icon(session.icon, color: colorScheme.primary, size: 26),
+            child: ClipOval(
+              child: Image.network(
+                session.sellerLogoUrl,
+                width: 56,
+                height: 56,
+                fit: BoxFit.cover,
+                loadingBuilder: (context, child, progress) => progress == null
+                    ? child
+                    : Icon(session.icon, color: colorScheme.primary, size: 26),
+                errorBuilder: (context, error, stackTrace) =>
+                    Icon(session.icon, color: colorScheme.primary, size: 26),
+              ),
+            ),
           ),
         ),
         const SizedBox(width: 12),
@@ -475,7 +485,7 @@ class _ImageBanner extends StatefulWidget {
 }
 
 class _ImageBannerState extends State<_ImageBanner> {
-  static const _dotCount = 4;
+  static const _dotCount = 5;
   static const _autoScrollInterval = Duration(seconds: 3);
   static const _loopMultiplier = 5000;
 
@@ -528,71 +538,168 @@ class _ImageBannerState extends State<_ImageBanner> {
   Widget build(BuildContext context) {
     final colorScheme = widget.colorScheme;
 
-    return AspectRatio(
-      aspectRatio: 1.15,
-      child: NotificationListener<ScrollNotification>(
-        onNotification: (notification) {
-          if (notification is ScrollStartNotification &&
-              notification.dragDetails != null) {
-            _autoScrollTimer?.cancel();
-          } else if (notification is ScrollEndNotification) {
-            _startAutoScroll();
-          }
-          return false;
-        },
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            PageView.builder(
-              controller: _pageController,
-              itemCount: _dotCount * _loopMultiplier,
-              onPageChanged: (index) => setState(() => _rawPage = index),
-              itemBuilder: (context, index) => Container(
-                color: colorScheme.primaryContainer,
-                alignment: Alignment.center,
-                child: Icon(
-                  widget.session.icon,
-                  size: 96,
-                  color: colorScheme.primary,
-                ),
-              ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 14,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(_dotCount, (index) {
-                  final selected = index == _selected;
-                  return GestureDetector(
-                    onTap: () => _goTo(index),
-                    behavior: HitTestBehavior.opaque,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 4,
-                        vertical: 10,
-                      ),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.easeOut,
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: colorScheme.primary.withValues(
-                            alpha: selected ? 1 : 0.3,
-                          ),
+    return Column(
+      children: [
+        AspectRatio(
+          aspectRatio: 1.15,
+          child: NotificationListener<ScrollNotification>(
+            onNotification: (notification) {
+              if (notification is ScrollStartNotification &&
+                  notification.dragDetails != null) {
+                _autoScrollTimer?.cancel();
+              } else if (notification is ScrollEndNotification) {
+                _startAutoScroll();
+              }
+              return false;
+            },
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                PageView.builder(
+                  controller: _pageController,
+                  itemCount: _dotCount * _loopMultiplier,
+                  onPageChanged: (index) => setState(() => _rawPage = index),
+                  itemBuilder: (context, index) => GestureDetector(
+                    onTap: () => showFullScreenImage(
+                      context,
+                      imageUrl: widget.session.imageUrl,
+                      imageCount: _dotCount,
+                      initialIndex: _selected,
+                      icon: widget.session.icon,
+                    ),
+                    child: Container(
+                      color: colorScheme.primaryContainer,
+                      alignment: Alignment.center,
+                      child: Image.network(
+                        widget.session.imageUrl,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                        loadingBuilder: (context, child, progress) =>
+                            progress == null
+                            ? child
+                            : Icon(
+                                widget.session.icon,
+                                size: 96,
+                                color: colorScheme.primary,
+                              ),
+                        errorBuilder: (context, error, stackTrace) => Icon(
+                          widget.session.icon,
+                          size: 96,
+                          color: colorScheme.primary,
                         ),
                       ),
                     ),
-                  );
-                }),
-              ),
+                  ),
+                ),
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: IgnorePointer(
+                    child: Container(
+                      height: 56,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.black.withValues(alpha: 0),
+                            Colors.black.withValues(alpha: 0.35),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 14,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(_dotCount, (index) {
+                      final selected = index == _selected;
+                      return GestureDetector(
+                        onTap: () => _goTo(index),
+                        behavior: HitTestBehavior.opaque,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 10,
+                          ),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.easeOut,
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withValues(
+                                alpha: selected ? 1 : 0.45,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
+        const SizedBox(height: 12),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: SizedBox(
+            height: 56,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: _dotCount,
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                final selected = index == _selected;
+                return InkWell(
+                  onTap: () => _goTo(index),
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    width: 56,
+                    decoration: BoxDecoration(
+                      color: colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: selected
+                            ? colorScheme.primary
+                            : colorScheme.outline,
+                        width: selected ? 2 : 1,
+                      ),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Image.network(
+                      widget.session.imageUrl,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, progress) =>
+                          progress == null
+                          ? child
+                          : Icon(
+                              widget.session.icon,
+                              size: 22,
+                              color: colorScheme.primary,
+                            ),
+                      errorBuilder: (context, error, stackTrace) => Icon(
+                        widget.session.icon,
+                        size: 22,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

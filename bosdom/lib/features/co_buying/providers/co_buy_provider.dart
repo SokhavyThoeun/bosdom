@@ -9,6 +9,7 @@ class CoBuyNotifier extends Notifier<List<CoBuySession>> {
     CoBuySession(
       id: 'rice-50kg',
       icon: Icons.grass_rounded,
+      imageQuery: 'rice,sack',
       productName: 'Jasmine Rice Premium 50kg Bulk Bag',
       sellerName: 'Mekong Harvest Wholesaler',
       sellerRating: 4.9,
@@ -28,6 +29,7 @@ class CoBuyNotifier extends Notifier<List<CoBuySession>> {
     CoBuySession(
       id: 'coconut-oil-5l',
       icon: Icons.opacity_rounded,
+      imageQuery: 'coconut,oil',
       productName: 'Coconut Oil 5L',
       sellerName: 'Phnom Penh Agri-Trade',
       sellerRating: 4.7,
@@ -47,6 +49,7 @@ class CoBuyNotifier extends Notifier<List<CoBuySession>> {
     CoBuySession(
       id: 'fish-sauce-12pack',
       icon: Icons.set_meal_rounded,
+      imageQuery: 'fish,sauce',
       productName: 'Fish Sauce 12-pack',
       sellerName: 'Battambang Food Co.',
       sellerRating: 4.6,
@@ -66,6 +69,7 @@ class CoBuyNotifier extends Notifier<List<CoBuySession>> {
     CoBuySession(
       id: 'palm-sugar-10kg',
       icon: Icons.icecream_rounded,
+      imageQuery: 'palm,sugar',
       productName: 'Palm Sugar 10kg Bulk Pack',
       sellerName: 'Kampong Speu Palm Farms',
       sellerRating: 4.8,

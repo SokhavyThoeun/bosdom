@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
+import '../../../shared/widgets/full_screen_image_viewer.dart';
 import '../../wishlist/providers/wishlist_provider.dart';
 import '../models/product.dart';
 import '../providers/sample_gate_provider.dart';
@@ -250,10 +251,6 @@ class _Header extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: colorScheme.primary,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
-        ),
       ),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
@@ -412,12 +409,33 @@ class _ImageGalleryState extends State<_ImageGallery> {
                   controller: _pageController,
                   itemCount: _imageCount * _loopMultiplier,
                   onPageChanged: (index) => setState(() => _rawPage = index),
-                  itemBuilder: (context, index) => Container(
-                    color: colorScheme.primaryContainer,
-                    child: Icon(
-                      widget.product.icon,
-                      size: 72,
-                      color: colorScheme.primary,
+                  itemBuilder: (context, index) => GestureDetector(
+                    onTap: () => showFullScreenImage(
+                      context,
+                      imageUrl: widget.product.imageUrl,
+                      imageCount: _imageCount,
+                      initialIndex: _selected,
+                      icon: widget.product.icon,
+                    ),
+                    child: Container(
+                      color: colorScheme.primaryContainer,
+                      child: Image.network(
+                        widget.product.imageUrl,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, progress) =>
+                            progress == null
+                            ? child
+                            : Icon(
+                                widget.product.icon,
+                                size: 72,
+                                color: colorScheme.primary,
+                              ),
+                        errorBuilder: (context, error, stackTrace) => Icon(
+                          widget.product.icon,
+                          size: 72,
+                          color: colorScheme.primary,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -498,10 +516,23 @@ class _ImageGalleryState extends State<_ImageGallery> {
                         width: selected ? 2 : 1,
                       ),
                     ),
-                    child: Icon(
-                      widget.product.icon,
-                      size: 22,
-                      color: colorScheme.primary,
+                    clipBehavior: Clip.antiAlias,
+                    child: Image.network(
+                      widget.product.imageUrl,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, progress) =>
+                          progress == null
+                          ? child
+                          : Icon(
+                              widget.product.icon,
+                              size: 22,
+                              color: colorScheme.primary,
+                            ),
+                      errorBuilder: (context, error, stackTrace) => Icon(
+                        widget.product.icon,
+                        size: 22,
+                        color: colorScheme.primary,
+                      ),
                     ),
                   ),
                 );
@@ -546,7 +577,19 @@ class _SellerRow extends StatelessWidget {
             backgroundColor: light
                 ? colorScheme.onPrimary
                 : colorScheme.primaryContainer,
-            child: Icon(product.icon, color: colorScheme.primary, size: 26),
+            child: ClipOval(
+              child: Image.network(
+                product.sellerLogoUrl,
+                width: 56,
+                height: 56,
+                fit: BoxFit.cover,
+                loadingBuilder: (context, child, progress) => progress == null
+                    ? child
+                    : Icon(product.icon, color: colorScheme.primary, size: 26),
+                errorBuilder: (context, error, stackTrace) =>
+                    Icon(product.icon, color: colorScheme.primary, size: 26),
+              ),
+            ),
           ),
         ),
         const SizedBox(width: 12),

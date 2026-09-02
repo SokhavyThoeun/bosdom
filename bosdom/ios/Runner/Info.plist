@@ -30,6 +30,8 @@
 	<string>Bosdom uses your photo library so you can attach photos of received items to your order reviews.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Bosdom saves photos you choose to your library when needed for order reviews.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Bosdom uses your camera so you can take and share photos in chat and order reviews.</string>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
 	<key>LSApplicationQueriesSchemes</key>

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../../core/theme/app_colors.dart';
 import '../models/category.dart';
 
 class CategoryItem extends StatelessWidget {
@@ -18,22 +18,13 @@ class CategoryItem extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: SizedBox(
-        width: 68,
+        width: 78,
         child: Column(
           children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.blushSurface,
-                border: Border.all(color: colorScheme.primaryContainer, width: 2),
-              ),
-              child: Icon(
-                category.icon,
-                color: AppColors.brandCrimson,
-                size: 24,
-              ),
+            SizedBox(
+              width: 68,
+              height: 68,
+              child: SvgPicture.asset(category.iconAsset),
             ),
             const SizedBox(height: 6),
             Text(
@@ -44,6 +35,8 @@ class CategoryItem extends StatelessWidget {
               style: textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurface,
                 fontWeight: FontWeight.w600,
+                fontSize: 11,
+                height: 1.1,
               ),
             ),
           ],

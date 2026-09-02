@@ -31,6 +31,7 @@ import '../../features/orders/screens/orders_screen.dart';
 import '../../features/payment/screens/payment_screen.dart';
 import '../../features/profile/models/faq_category.dart';
 import '../../features/profile/screens/about_screen.dart';
+import '../../features/profile/screens/edit_profile_screen.dart';
 import '../../features/profile/screens/faq_detail_screen.dart';
 import '../../features/profile/screens/help_support_screen.dart';
 import '../../features/profile/screens/language_screen.dart';
@@ -89,6 +90,22 @@ abstract final class AppRouter {
         name: 'deliveryAddress',
         builder: (context, state) => DeliveryAddressScreen(
           role: state.extra as MerchantRole? ?? MerchantRole.retailer,
+        ),
+      ),
+      GoRoute(
+        path: '/profile/become-seller',
+        name: 'becomeSeller',
+        builder: (context, state) => const UploadDocumentsScreen(
+          role: MerchantRole.supplier,
+          standalone: true,
+        ),
+      ),
+      GoRoute(
+        path: '/profile/become-seller/business-info',
+        name: 'becomeSellerBusinessInfo',
+        builder: (context, state) => const BusinessInfoScreen(
+          role: MerchantRole.supplier,
+          standalone: true,
         ),
       ),
       GoRoute(
@@ -170,6 +187,11 @@ abstract final class AppRouter {
         name: 'addAddress',
         builder: (context, state) =>
             AddAddressScreen(selectionMode: state.extra as bool? ?? false),
+      ),
+      GoRoute(
+        path: '/profile/edit',
+        name: 'editProfile',
+        builder: (context, state) => const EditProfileScreen(),
       ),
       GoRoute(
         path: '/profile/address-book',

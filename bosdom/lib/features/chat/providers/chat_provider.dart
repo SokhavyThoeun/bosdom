@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/device_identity_provider.dart';
@@ -88,6 +90,21 @@ class ChatNotifier extends AsyncNotifier<List<Conversation>> {
     state = AsyncData([...state.value ?? const []]);
 
     ref.read(notificationProvider.notifier).refresh();
+  }
+
+  Future<void> sendImage(String id, File file) async {
+    final conversation = byId(id);
+    if (conversation == null) return;
+
+    conversation.messages.add(
+      ChatMessage(
+        sender: MessageSender.me,
+        time: formatChatTime(DateTime.now()),
+        imageFile: file,
+      ),
+    );
+    _bumpToTop(conversation);
+    state = AsyncData([...state.value ?? const []]);
   }
 
   void _bumpToTop(Conversation conversation) {

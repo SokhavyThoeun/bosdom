@@ -105,10 +105,10 @@ class AppLocalizationsKm extends AppLocalizations {
   }
 
   @override
-  String get authLoginPhoneLabel => 'លេខទូរស័ព្ទ';
+  String get authLoginEmailLabel => 'អ៊ីមែល';
 
   @override
-  String get authLoginPhoneHint => '012 345 678';
+  String get authLoginEmailHint => 'you@example.com';
 
   @override
   String get authLoginPasswordLabel => 'ពាក្យសម្ងាត់';
@@ -687,6 +687,12 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get chatComposerHint => 'វាយសារ...';
+
+  @override
+  String get chatAttachPhotoCamera => 'ថតរូប';
+
+  @override
+  String get chatAttachPhotoGallery => 'ជ្រើសរើសពីវិចិត្រសាល';
 
   @override
   String get liveChatTitle => 'ជជែកផ្ទាល់';
@@ -1653,7 +1659,80 @@ class AppLocalizationsKm extends AppLocalizations {
   String get profileSellerOnboardingLabel => 'ការចុះឈ្មោះជាអ្នកលក់';
 
   @override
+  String get profileSellerActiveBadge => 'អ្នកលក់សកម្ម';
+
+  @override
+  String get profileSellerActiveTitle => 'អ្នកគឺជាអ្នកលក់ម្នាក់';
+
+  @override
+  String get profileSellerActiveSubtitle =>
+      'គ្រប់គ្រងផលិតផល និងការបញ្ជាទិញរបស់អ្នកពីផ្ទាំងទីផ្សារ';
+
+  @override
+  String get profileSellerActivatedSnackbar =>
+      'ឥឡូវនេះអ្នកគឺជាផ្នែកមួយនៃកម្មវិធីអ្នកលក់!';
+
+  @override
+  String get profileSellerGoToMarketplace => 'ទៅកាន់ទីផ្សារ';
+
+  @override
   String get profileEditProfileLabel => 'កែសម្រួលប្រវត្តិរូប';
+
+  @override
+  String get profileEditProfileRoleLabel => 'តួនាទីគណនី';
+
+  @override
+  String get profileEditProfileRoleSheetTitle => 'ជ្រើសរើសតួនាទីគណនី';
+
+  @override
+  String get profileEditProfileChangePhoto => 'ប្តូររូបភាព';
+
+  @override
+  String get profileEditProfileNameLabel => 'ឈ្មោះពេញ';
+
+  @override
+  String get profileEditProfileNameHint => 'បញ្ចូលឈ្មោះពេញរបស់អ្នក';
+
+  @override
+  String get profileEditProfileNameRequired => 'សូមបញ្ចូលឈ្មោះរបស់អ្នក';
+
+  @override
+  String get profileEditProfilePhoneLabel => 'លេខទូរស័ព្ទ';
+
+  @override
+  String get profileEditProfilePhoneHint => 'បញ្ចូលលេខទូរស័ព្ទរបស់អ្នក';
+
+  @override
+  String get profileEditProfilePhoneRequired => 'សូមបញ្ចូលលេខទូរស័ព្ទរបស់អ្នក';
+
+  @override
+  String get profileEditProfileEmailLabel => 'អាសយដ្ឋានអ៊ីមែល';
+
+  @override
+  String get profileEditProfileEmailHint => 'បញ្ចូលអាសយដ្ឋានអ៊ីមែលរបស់អ្នក';
+
+  @override
+  String get profileEditProfileEmailRequired =>
+      'សូមបញ្ចូលអាសយដ្ឋានអ៊ីមែលរបស់អ្នក';
+
+  @override
+  String get profileEditProfileEmailInvalid =>
+      'សូមបញ្ចូលអាសយដ្ឋានអ៊ីមែលដែលត្រឹមត្រូវ';
+
+  @override
+  String get profileEditProfileSaveButton => 'រក្សាទុកការផ្លាស់ប្តូរ';
+
+  @override
+  String get profileEditProfileSavedSnackbar =>
+      'បានធ្វើបច្ចុប្បន្នភាពប្រវត្តិរូបដោយជោគជ័យ';
+
+  @override
+  String get profileEditProfileSaveErrorSnackbar =>
+      'មិនអាចរក្សាទុកប្រវត្តិរូបរបស់អ្នកបានទេ។ សូមព្យាយាមម្តងទៀត។';
+
+  @override
+  String get profileEditProfileLoadErrorSnackbar =>
+      'មិនអាចផ្ទុកប្រវត្តិរូបរបស់អ្នកបានទេ។ សូមព្យាយាមម្តងទៀត។';
 
   @override
   String get profileLogout => 'ចេញពីប្រព័ន្ធ';

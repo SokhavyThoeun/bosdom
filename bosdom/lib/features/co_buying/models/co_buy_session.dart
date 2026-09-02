@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../../../shared/utils/mock_images.dart';
+
 class CoBuySession {
   CoBuySession({
     required this.id,
     required this.icon,
+    required this.imageQuery,
     required this.productName,
     required this.sellerName,
     required this.sellerRating,
@@ -23,6 +26,9 @@ class CoBuySession {
 
   final String id;
   final IconData icon;
+
+  /// Keyword(s) used to fetch a topic-matched mock product photo.
+  final String imageQuery;
   final String productName;
   final String sellerName;
   final double sellerRating;
@@ -45,4 +51,10 @@ class CoBuySession {
   bool get isFull => currentQty >= targetQty;
   int get savingsPct =>
       (((originalPrice - price) / originalPrice) * 100).round();
+
+  /// Topic-matched mock product photo.
+  String get imageUrl => mockPhotoUrl(imageQuery, id);
+
+  /// Clean mock logo for this session's seller/store.
+  String get sellerLogoUrl => mockStoreLogoUrl(sellerName);
 }

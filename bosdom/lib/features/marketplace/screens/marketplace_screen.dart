@@ -38,25 +38,27 @@ class MarketplaceScreen extends ConsumerWidget {
               // rests the last item above it.
               bottom: false,
               child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(
-                  24,
-                  24,
-                  24,
-                  8 + MediaQuery.of(context).padding.bottom,
+                padding: EdgeInsets.only(
+                  top: 24,
+                  bottom: 8 + MediaQuery.of(context).padding.bottom,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      l10n.marketplaceCategoriesTitle,
-                      style: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Text(
+                        l10n.marketplaceCategoriesTitle,
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
                     SizedBox(
-                      height: 80,
+                      height: 88,
                       child: ListView.separated(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
                         scrollDirection: Axis.horizontal,
                         itemCount: kCategories.length,
                         separatorBuilder: (_, _) => const SizedBox(width: 16),
@@ -70,61 +72,73 @@ class MarketplaceScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    Row(
-                      children: [
-                        Text(
-                          l10n.marketplaceCoBuyDealsTitle,
-                          style: textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const Spacer(),
-                        TextButton(
-                          onPressed: () => context.pushNamed('coBuying'),
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          child: Text(
-                            l10n.commonSeeAll,
-                            style: textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.primary,
-                              fontWeight: FontWeight.w600,
-                              decoration: TextDecoration.underline,
-                              decorationColor: colorScheme.primary,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Row(
+                        children: [
+                          Text(
+                            l10n.marketplaceCoBuyDealsTitle,
+                            style: textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    CoBuyCarousel(sessions: coBuySessions),
-                    const SizedBox(height: 24),
-                    Text(
-                      l10n.marketplacePopularProductsTitle,
-                      style: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                          const Spacer(),
+                          TextButton(
+                            onPressed: () => context.pushNamed('coBuying'),
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: Text(
+                              l10n.commonSeeAll,
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.primary,
+                                fontWeight: FontWeight.w600,
+                                decoration: TextDecoration.underline,
+                                decorationColor: colorScheme.primary,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 12),
-                    GridView.builder(
-                      shrinkWrap: true,
-                      padding: EdgeInsets.zero,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: kMockProducts.length,
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            mainAxisSpacing: 16,
-                            crossAxisSpacing: 16,
-                            childAspectRatio: 0.64,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: CoBuyCarousel(sessions: coBuySessions),
+                    ),
+                    const SizedBox(height: 24),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Text(
+                        l10n.marketplacePopularProductsTitle,
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: GridView.builder(
+                        shrinkWrap: true,
+                        padding: EdgeInsets.zero,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: kMockProducts.length,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              mainAxisSpacing: 16,
+                              crossAxisSpacing: 16,
+                              childAspectRatio: 0.64,
+                            ),
+                        itemBuilder: (context, index) => ProductCard(
+                          product: kMockProducts[index],
+                          onTap: () => context.pushNamed(
+                            'productDetail',
+                            pathParameters: {'id': '$index'},
                           ),
-                      itemBuilder: (context, index) => ProductCard(
-                        product: kMockProducts[index],
-                        onTap: () => context.pushNamed(
-                          'productDetail',
-                          pathParameters: {'id': '$index'},
                         ),
                       ),
                     ),
@@ -162,10 +176,6 @@ class _Header extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: colorScheme.primary,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
-        ),
       ),
       child: Padding(
         padding: EdgeInsets.fromLTRB(

@@ -4,6 +4,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
+import '../../../shared/utils/mock_images.dart';
 import '../../../shared/widgets/checkout_progress_stepper.dart';
 import '../providers/cart_provider.dart';
 
@@ -122,10 +123,6 @@ class _Header extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: colorScheme.primary,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
-        ),
       ),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
@@ -251,10 +248,26 @@ class _CartGroupCard extends StatelessWidget {
               CircleAvatar(
                 radius: 11,
                 backgroundColor: colorScheme.primaryContainer,
-                child: Icon(
-                  Icons.storefront_outlined,
-                  size: 13,
-                  color: colorScheme.primary,
+                child: ClipOval(
+                  child: Image.network(
+                    mockStoreLogoUrl(group.seller),
+                    width: 22,
+                    height: 22,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, progress) =>
+                        progress == null
+                        ? child
+                        : Icon(
+                            Icons.storefront_outlined,
+                            size: 13,
+                            color: colorScheme.primary,
+                          ),
+                    errorBuilder: (context, error, stackTrace) => Icon(
+                      Icons.storefront_outlined,
+                      size: 13,
+                      color: colorScheme.primary,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -401,6 +414,7 @@ class _CartLineTile extends StatelessWidget {
                     const Spacer(),
                     _QuantityStepper(
                       quantity: line.quantity,
+                      minQuantity: product.moqValue,
                       onChanged: onQuantityChanged,
                       colorScheme: colorScheme,
                       textTheme: textTheme,
@@ -419,12 +433,14 @@ class _CartLineTile extends StatelessWidget {
 class _QuantityStepper extends StatelessWidget {
   const _QuantityStepper({
     required this.quantity,
+    required this.minQuantity,
     required this.onChanged,
     required this.colorScheme,
     required this.textTheme,
   });
 
   final int quantity;
+  final int minQuantity;
   final ValueChanged<int> onChanged;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
@@ -436,6 +452,7 @@ class _QuantityStepper extends StatelessWidget {
       children: [
         _StepperButton(
           icon: Icons.remove,
+          enabled: quantity > minQuantity,
           onTap: () => onChanged(-1),
           colorScheme: colorScheme,
         ),
@@ -449,6 +466,7 @@ class _QuantityStepper extends StatelessWidget {
         ),
         _StepperButton(
           icon: Icons.add,
+          enabled: true,
           onTap: () => onChanged(1),
           colorScheme: colorScheme,
         ),
@@ -460,20 +478,23 @@ class _QuantityStepper extends StatelessWidget {
 class _StepperButton extends StatelessWidget {
   const _StepperButton({
     required this.icon,
+    required this.enabled,
     required this.onTap,
     required this.colorScheme,
   });
 
   final IconData icon;
+  final bool enabled;
   final VoidCallback onTap;
   final ColorScheme colorScheme;
 
   @override
   Widget build(BuildContext context) {
+    final color = enabled ? colorScheme.primary : colorScheme.outline;
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        onTap: enabled ? onTap : null,
         customBorder: const CircleBorder(),
         child: Container(
           width: 28,
@@ -481,9 +502,9 @@ class _StepperButton extends StatelessWidget {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: colorScheme.primary),
+            border: Border.all(color: color),
           ),
-          child: Icon(icon, size: 14, color: colorScheme.primary),
+          child: Icon(icon, size: 14, color: color),
         ),
       ),
     );

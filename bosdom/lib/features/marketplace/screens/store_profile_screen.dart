@@ -143,10 +143,6 @@ class _StoreHeader extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: colorScheme.primary,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
-        ),
       ),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
@@ -214,10 +210,22 @@ class _StoreHeader extends StatelessWidget {
                   CircleAvatar(
                     radius: 24,
                     backgroundColor: colorScheme.onPrimary,
-                    child: Icon(
-                      seller.icon,
-                      color: colorScheme.primary,
-                      size: 22,
+                    child: ClipOval(
+                      child: Image.network(
+                        seller.logoUrl,
+                        width: 48,
+                        height: 48,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, progress) =>
+                            progress == null
+                            ? child
+                            : Icon(seller.icon, color: colorScheme.primary, size: 22),
+                        errorBuilder: (context, error, stackTrace) => Icon(
+                          seller.icon,
+                          color: colorScheme.primary,
+                          size: 22,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -501,7 +509,7 @@ class _ProductsTab extends StatelessWidget {
   }
 }
 
-class _StoreProductCard extends StatefulWidget {
+class _StoreProductCard extends StatelessWidget {
   const _StoreProductCard({
     required this.product,
     required this.colorScheme,
@@ -515,20 +523,9 @@ class _StoreProductCard extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<_StoreProductCard> createState() => _StoreProductCardState();
-}
-
-class _StoreProductCardState extends State<_StoreProductCard> {
-  bool _isFavorite = false;
-
-  @override
   Widget build(BuildContext context) {
-    final colorScheme = widget.colorScheme;
-    final textTheme = widget.textTheme;
-    final product = widget.product;
-
     return InkWell(
-      onTap: widget.onTap,
+      onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
         decoration: BoxDecoration(
@@ -542,42 +539,21 @@ class _StoreProductCardState extends State<_StoreProductCard> {
           children: [
             AspectRatio(
               aspectRatio: 1.2,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Container(
-                    color: colorScheme.primaryContainer,
-                    child: Icon(
-                      product.icon,
-                      color: colorScheme.primary,
-                      size: 32,
-                    ),
+              child: Container(
+                color: colorScheme.primaryContainer,
+                child: Image.network(
+                  product.imageUrl,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, progress) =>
+                      progress == null
+                      ? child
+                      : Icon(product.icon, color: colorScheme.primary, size: 32),
+                  errorBuilder: (context, error, stackTrace) => Icon(
+                    product.icon,
+                    color: colorScheme.primary,
+                    size: 32,
                   ),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Material(
-                      color: Colors.white,
-                      shape: const CircleBorder(),
-                      child: InkWell(
-                        customBorder: const CircleBorder(),
-                        onTap: () => setState(() => _isFavorite = !_isFavorite),
-                        child: Padding(
-                          padding: const EdgeInsets.all(6),
-                          child: Icon(
-                            _isFavorite
-                                ? Icons.favorite
-                                : Icons.favorite_border,
-                            size: 14,
-                            color: _isFavorite
-                                ? colorScheme.primary
-                                : colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
             Padding(
@@ -964,7 +940,8 @@ class _ReviewsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    if (seller.reviews.isEmpty) {
+
+    if (seller.rating <= 0) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
@@ -1001,6 +978,8 @@ class _ReviewsTab extends StatelessWidget {
       0,
       (a, b) => a + b,
     );
+    final hasStats = seller.recommendPercent > 0 || seller.reviewsCount != '0';
+    final hasReviews = seller.reviews.isNotEmpty;
 
     return ListView(
       padding: EdgeInsets.fromLTRB(
@@ -1020,53 +999,57 @@ class _ReviewsTab extends StatelessWidget {
                 children: [
                   Text(
                     seller.rating.toStringAsFixed(1),
-                    style: textTheme.headlineMedium?.copyWith(
+                    style: textTheme.displayMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: colorScheme.primary,
                     ),
                   ),
                   const SizedBox(width: 10),
-                  _StarRow(rating: seller.rating, size: 18),
-                  const SizedBox(width: 10),
-                  Text(
-                    l10n.storeProfileReviewsCount(seller.reviewsCount),
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
+                  _StarRow(rating: seller.rating, size: 20),
+                  if (seller.reviewsCount != '0') ...[
+                    const SizedBox(width: 10),
+                    Text(
+                      l10n.storeProfileReviewsCount(seller.reviewsCount),
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
-              const SizedBox(height: 16),
-              Divider(color: colorScheme.outline),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _ReviewStatChip(
-                    colorScheme: colorScheme,
-                    textTheme: textTheme,
-                    icon: Icons.thumb_up_outlined,
-                    label: l10n.storeProfileRecommendPercent(
-                      '${seller.recommendPercent}',
+              if (hasStats) ...[
+                const SizedBox(height: 16),
+                Divider(color: colorScheme.outline),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _ReviewStatChip(
+                      colorScheme: colorScheme,
+                      textTheme: textTheme,
+                      icon: Icons.thumb_up_outlined,
+                      label: l10n.storeProfileRecommendPercent(
+                        '${seller.recommendPercent}',
+                      ),
                     ),
-                  ),
-                  _ReviewStatChip(
-                    colorScheme: colorScheme,
-                    textTheme: textTheme,
-                    icon: Icons.schedule_outlined,
-                    label: l10n.storeProfileResponseTimeChip(
-                      seller.responseTime.replaceFirst('Within ', ''),
+                    _ReviewStatChip(
+                      colorScheme: colorScheme,
+                      textTheme: textTheme,
+                      icon: Icons.schedule_outlined,
+                      label: l10n.storeProfileResponseTimeChip(
+                        seller.responseTime.replaceFirst('Within ', ''),
+                      ),
                     ),
-                  ),
-                  _ReviewStatChip(
-                    colorScheme: colorScheme,
-                    textTheme: textTheme,
-                    icon: Icons.military_tech_outlined,
-                    label: l10n.storeProfileTopSellerChip,
-                  ),
-                ],
-              ),
+                    _ReviewStatChip(
+                      colorScheme: colorScheme,
+                      textTheme: textTheme,
+                      icon: Icons.military_tech_outlined,
+                      label: l10n.storeProfileTopSellerChip,
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),
@@ -1096,19 +1079,23 @@ class _ReviewsTab extends StatelessWidget {
             ),
           ),
         ],
-        const SizedBox(height: 16),
-        Text(
-          l10n.storeProfileRecentReviewsTitle,
-          style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 12),
-        for (final review in seller.reviews) ...[
-          _ReviewCard(
-            review: review,
-            colorScheme: colorScheme,
-            textTheme: textTheme,
+        if (hasReviews) ...[
+          const SizedBox(height: 16),
+          Text(
+            l10n.storeProfileRecentReviewsTitle,
+            style: textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
+          for (final review in seller.reviews) ...[
+            _ReviewCard(
+              review: review,
+              colorScheme: colorScheme,
+              textTheme: textTheme,
+            ),
+            const SizedBox(height: 10),
+          ],
         ],
       ],
     );
@@ -1154,19 +1141,19 @@ class _ReviewStatChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
       decoration: BoxDecoration(
-        color: colorScheme.primaryContainer.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(12),
+        color: colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(24),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: colorScheme.primary),
+          Icon(icon, size: 15, color: colorScheme.primary),
           const SizedBox(width: 6),
           Text(
             label,
-            style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+            style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
         ],
       ),

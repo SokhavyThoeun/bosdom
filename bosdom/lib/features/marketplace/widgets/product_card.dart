@@ -15,12 +15,18 @@ class ProductCard extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(20),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: colorScheme.outline),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: colorScheme.shadow.withValues(alpha: 0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -30,7 +36,16 @@ class ProductCard extends StatelessWidget {
               aspectRatio: 1.3,
               child: Container(
                 color: colorScheme.primaryContainer,
-                child: Icon(product.icon, color: colorScheme.primary, size: 32),
+                child: Image.network(
+                  product.imageUrl,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, progress) =>
+                      progress == null
+                      ? child
+                      : Icon(product.icon, color: colorScheme.primary, size: 32),
+                  errorBuilder: (context, error, stackTrace) =>
+                      Icon(product.icon, color: colorScheme.primary, size: 32),
+                ),
               ),
             ),
             Padding(

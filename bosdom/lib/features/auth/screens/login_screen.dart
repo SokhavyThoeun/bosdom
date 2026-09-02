@@ -12,13 +12,13 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
 
   @override
   void dispose() {
-    _phoneController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -46,32 +46,21 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _FieldLabel(l10n.authLoginPhoneLabel, textTheme: textTheme),
+                    _FieldLabel(l10n.authLoginEmailLabel, textTheme: textTheme),
                     const SizedBox(height: 8),
                     TextFormField(
-                      controller: _phoneController,
-                      keyboardType: TextInputType.phone,
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
-                        hintText: l10n.authLoginPhoneHint,
-                        prefixIcon: Padding(
-                          padding: const EdgeInsets.only(left: 4),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.phone_outlined, size: 20),
-                              const SizedBox(width: 8),
-                              Text('+855', style: textTheme.bodyLarge),
-                              const SizedBox(width: 8),
-                              Container(
-                                width: 1,
-                                height: 20,
-                                color: colorScheme.outline,
-                              ),
-                            ],
-                          ),
+                        hintText: l10n.authLoginEmailHint,
+                        prefixIcon: Icon(
+                          Icons.email_outlined,
+                          size: 20,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                         prefixIconConstraints: const BoxConstraints(
-                          minWidth: 0,
+                          minWidth: 48,
+                          minHeight: 20,
                         ),
                       ),
                     ),
@@ -83,12 +72,21 @@ class _LoginScreenState extends State<LoginScreen> {
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
                         hintText: l10n.authLoginPasswordHint,
-                        prefixIcon: const Icon(Icons.lock_outline, size: 20),
+                        prefixIcon: Icon(
+                          Icons.lock_outline,
+                          size: 20,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        prefixIconConstraints: const BoxConstraints(
+                          minWidth: 48,
+                          minHeight: 20,
+                        ),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword
                                 ? Icons.visibility_outlined
                                 : Icons.visibility_off_outlined,
+                            color: colorScheme.onSurfaceVariant,
                           ),
                           onPressed: () => setState(
                             () => _obscurePassword = !_obscurePassword,
@@ -197,10 +195,6 @@ class _Header extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: colorScheme.primary,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(36),
-          bottomRight: Radius.circular(36),
-        ),
       ),
       child: Padding(
         padding: EdgeInsets.fromLTRB(

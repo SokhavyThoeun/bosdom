@@ -11,3 +11,10 @@ wheels/
 
 # Environment variables (secrets — never commit)
 .env
+
+# Uploaded user media (in-memory profile store has no real persistence anyway)
+src/bosdom_backend/media/**
+!src/bosdom_backend/media/.gitkeep
+
+# Local SQLite database
+*.db

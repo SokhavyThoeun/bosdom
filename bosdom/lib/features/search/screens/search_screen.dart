@@ -25,6 +25,7 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState extends State<SearchScreen> {
   final _controller = TextEditingController();
   String _query = '';
+  bool _recentExpanded = false;
   final List<String> _recentSearches = [
     'Wholesale T-Shirts',
     'USB-C Charger',
@@ -82,44 +83,54 @@ class _SearchScreenState extends State<SearchScreen> {
     final isSearching = _query.trim().isNotEmpty;
     final results = _results;
 
-    return Scaffold(
-      body: Column(
-        children: [
-          _Header(
-            controller: _controller,
-            colorScheme: colorScheme,
-            textTheme: textTheme,
-            hasQuery: isSearching,
-            onChanged: (value) => setState(() => _query = value),
-            onSubmitted: _submitSearch,
-            onClear: _clearSearch,
-          ),
-          Expanded(
-            child: SafeArea(
-              top: false,
-              bottom: false,
-              child: isSearching
-                  ? _SearchResults(
-                      query: _query,
-                      results: results,
-                      colorScheme: colorScheme,
-                      textTheme: textTheme,
-                    )
-                  : _SearchSuggestions(
-                      recentSearches: _recentSearches,
-                      onRecentTap: _applySearch,
-                      onClearAll: () => setState(_recentSearches.clear),
-                      onTrendingTap: _applySearch,
-                      onCategoryTap: (category) => context.pushNamed(
-                        'categoryResults',
-                        extra: category,
-                      ),
-                      colorScheme: colorScheme,
-                      textTheme: textTheme,
-                    ),
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        body: Column(
+          children: [
+            _Header(
+              controller: _controller,
+              colorScheme: colorScheme,
+              textTheme: textTheme,
+              hasQuery: isSearching,
+              onChanged: (value) => setState(() => _query = value),
+              onSubmitted: _submitSearch,
+              onClear: _clearSearch,
             ),
-          ),
-        ],
+            Expanded(
+              child: SafeArea(
+                top: false,
+                bottom: false,
+                child: isSearching
+                    ? _SearchResults(
+                        query: _query,
+                        results: results,
+                        colorScheme: colorScheme,
+                        textTheme: textTheme,
+                      )
+                    : _SearchSuggestions(
+                        recentSearches: _recentSearches,
+                        recentExpanded: _recentExpanded,
+                        onToggleRecentExpanded: () =>
+                            setState(() => _recentExpanded = !_recentExpanded),
+                        onRecentTap: _applySearch,
+                        onClearAll: () => setState(() {
+                          _recentSearches.clear();
+                          _recentExpanded = false;
+                        }),
+                        onTrendingTap: _applySearch,
+                        onCategoryTap: (category) => context.pushNamed(
+                          'categoryResults',
+                          extra: category,
+                        ),
+                        colorScheme: colorScheme,
+                        textTheme: textTheme,
+                      ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -156,10 +167,6 @@ class _Header extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: colorScheme.primary,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
-        ),
       ),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
@@ -221,9 +228,13 @@ class _Header extends StatelessWidget {
   }
 }
 
+const _kCollapsedRecentSearchCount = 3;
+
 class _SearchSuggestions extends StatelessWidget {
   const _SearchSuggestions({
     required this.recentSearches,
+    required this.recentExpanded,
+    required this.onToggleRecentExpanded,
     required this.onRecentTap,
     required this.onClearAll,
     required this.onTrendingTap,
@@ -233,6 +244,8 @@ class _SearchSuggestions extends StatelessWidget {
   });
 
   final List<String> recentSearches;
+  final bool recentExpanded;
+  final VoidCallback onToggleRecentExpanded;
   final ValueChanged<String> onRecentTap;
   final VoidCallback onClearAll;
   final ValueChanged<String> onTrendingTap;
@@ -281,20 +294,39 @@ class _SearchSuggestions extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: recentSearches
-                  .map(
-                    (term) => _SearchChip(
-                      label: term,
-                      icon: Icons.access_time,
-                      colorScheme: colorScheme,
-                      textTheme: textTheme,
-                      onTap: () => onRecentTap(term),
-                    ),
-                  )
-                  .toList(),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: (recentExpanded
+                            ? recentSearches
+                            : recentSearches.take(
+                                _kCollapsedRecentSearchCount,
+                              ))
+                        .map(
+                          (term) => _SearchChip(
+                            label: term,
+                            icon: Icons.access_time,
+                            colorScheme: colorScheme,
+                            textTheme: textTheme,
+                            onTap: () => onRecentTap(term),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
+                if (recentSearches.length > _kCollapsedRecentSearchCount) ...[
+                  const SizedBox(width: 10),
+                  _RecentSearchExpandButton(
+                    expanded: recentExpanded,
+                    colorScheme: colorScheme,
+                    onTap: onToggleRecentExpanded,
+                  ),
+                ],
+              ],
             ),
             const SizedBox(height: 24),
           ],
@@ -330,7 +362,7 @@ class _SearchSuggestions extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           SizedBox(
-            height: 80,
+            height: 88,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: kCategories.length,
@@ -418,6 +450,48 @@ class _SearchChip extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RecentSearchExpandButton extends StatelessWidget {
+  const _RecentSearchExpandButton({
+    required this.expanded,
+    required this.colorScheme,
+    required this.onTap,
+  });
+
+  final bool expanded;
+  final ColorScheme colorScheme;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: Container(
+          width: 36,
+          height: 36,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: colorScheme.outline),
+          ),
+          child: AnimatedRotation(
+            duration: const Duration(milliseconds: 200),
+            turns: expanded ? 0.5 : 0,
+            child: Icon(
+              Icons.keyboard_arrow_down,
+              size: 20,
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
       ),

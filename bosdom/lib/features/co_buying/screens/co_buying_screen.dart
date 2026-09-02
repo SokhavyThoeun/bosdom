@@ -125,10 +125,6 @@ class _Header extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: colorScheme.primary,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
-        ),
       ),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
@@ -363,18 +359,34 @@ class _CoBuyCard extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Icon(
-                      session.icon,
-                      color: colorScheme.primary,
-                      size: 24,
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: Image.network(
+                        session.imageUrl,
+                        width: 48,
+                        height: 48,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, progress) =>
+                            progress == null
+                            ? child
+                            : Container(
+                                color: Colors.white,
+                                alignment: Alignment.center,
+                                child: Icon(session.icon, color: colorScheme.primary, size: 24),
+                              ),
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          color: Colors.white,
+                          alignment: Alignment.center,
+                          child: Icon(
+                            session.icon,
+                            color: colorScheme.primary,
+                            size: 24,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),

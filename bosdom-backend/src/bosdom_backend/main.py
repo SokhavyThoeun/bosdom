@@ -1,5 +1,8 @@
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from .db import Base, engine
 from .routers import (
@@ -9,7 +12,7 @@ from .routers import (
     marketing_consent,
     notifications,
     orders,
-    payments,
+    profile,
     receipts,
     wishlist,
 )
@@ -25,7 +28,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(payments.router)
 app.include_router(receipts.router)
 app.include_router(orders.router)
 app.include_router(co_buy.router)
@@ -34,6 +36,11 @@ app.include_router(chat.router)
 app.include_router(notifications.router)
 app.include_router(ads_consent.router)
 app.include_router(marketing_consent.router)
+app.include_router(profile.router)
+
+_media_dir = Path(__file__).resolve().parent / "media"
+_media_dir.mkdir(exist_ok=True)
+app.mount("/media", StaticFiles(directory=_media_dir), name="media")
 
 
 @app.get("/health")

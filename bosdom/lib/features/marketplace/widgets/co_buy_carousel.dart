@@ -63,10 +63,13 @@ class _CoBuyCarouselState extends State<CoBuyCarousel> {
       children: [
         // Offstage clone used only to measure the natural card height.
         Offstage(
-          child: CoBuyCard(
-            key: _measureKey,
-            session: widget.sessions.first,
-            onTap: () {},
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: CoBuyCard(
+              key: _measureKey,
+              session: widget.sessions.first,
+              onTap: () {},
+            ),
           ),
         ),
         SizedBox(
@@ -78,11 +81,14 @@ class _CoBuyCarouselState extends State<CoBuyCarousel> {
                 : widget.sessions.length,
             itemBuilder: (context, index) {
               final session = widget.sessions[index % widget.sessions.length];
-              return CoBuyCard(
-                session: session,
-                onTap: () => context.pushNamed(
-                  'coBuyDetail',
-                  pathParameters: {'id': session.id},
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: CoBuyCard(
+                  session: session,
+                  onTap: () => context.pushNamed(
+                    'coBuyDetail',
+                    pathParameters: {'id': session.id},
+                  ),
                 ),
               );
             },

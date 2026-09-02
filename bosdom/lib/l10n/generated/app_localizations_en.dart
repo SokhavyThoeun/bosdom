@@ -105,10 +105,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get authLoginPhoneLabel => 'PHONE NUMBER';
+  String get authLoginEmailLabel => 'EMAIL';
 
   @override
-  String get authLoginPhoneHint => '012 345 678';
+  String get authLoginEmailHint => 'you@example.com';
 
   @override
   String get authLoginPasswordLabel => 'PASSWORD';
@@ -679,6 +679,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatComposerHint => 'Type a message...';
+
+  @override
+  String get chatAttachPhotoCamera => 'Take a photo';
+
+  @override
+  String get chatAttachPhotoGallery => 'Choose from gallery';
 
   @override
   String get liveChatTitle => 'Live Chat';
@@ -1635,7 +1641,80 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileSellerOnboardingLabel => 'Seller Onboarding';
 
   @override
+  String get profileSellerActiveBadge => 'ACTIVE SELLER';
+
+  @override
+  String get profileSellerActiveTitle => 'You\'re a Seller';
+
+  @override
+  String get profileSellerActiveSubtitle =>
+      'Manage your listings and orders from the Marketplace tab';
+
+  @override
+  String get profileSellerActivatedSnackbar =>
+      'You\'re now part of the Seller Program!';
+
+  @override
+  String get profileSellerGoToMarketplace => 'Go to Marketplace';
+
+  @override
   String get profileEditProfileLabel => 'Edit Profile';
+
+  @override
+  String get profileEditProfileRoleLabel => 'Role Profile';
+
+  @override
+  String get profileEditProfileRoleSheetTitle => 'Select Role Profile';
+
+  @override
+  String get profileEditProfileChangePhoto => 'Change photo';
+
+  @override
+  String get profileEditProfileNameLabel => 'Full Name';
+
+  @override
+  String get profileEditProfileNameHint => 'Enter your full name';
+
+  @override
+  String get profileEditProfileNameRequired => 'Please enter your name';
+
+  @override
+  String get profileEditProfilePhoneLabel => 'Phone Number';
+
+  @override
+  String get profileEditProfilePhoneHint => 'Enter your phone number';
+
+  @override
+  String get profileEditProfilePhoneRequired =>
+      'Please enter your phone number';
+
+  @override
+  String get profileEditProfileEmailLabel => 'Email Address';
+
+  @override
+  String get profileEditProfileEmailHint => 'Enter your email address';
+
+  @override
+  String get profileEditProfileEmailRequired =>
+      'Please enter your email address';
+
+  @override
+  String get profileEditProfileEmailInvalid =>
+      'Please enter a valid email address';
+
+  @override
+  String get profileEditProfileSaveButton => 'Save Changes';
+
+  @override
+  String get profileEditProfileSavedSnackbar => 'Profile updated successfully';
+
+  @override
+  String get profileEditProfileSaveErrorSnackbar =>
+      'Couldn\'t save your profile. Please try again.';
+
+  @override
+  String get profileEditProfileLoadErrorSnackbar =>
+      'Couldn\'t load your profile. Please try again.';
 
   @override
   String get profileLogout => 'Logout';

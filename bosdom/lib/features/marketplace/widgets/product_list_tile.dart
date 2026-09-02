@@ -25,14 +25,23 @@ class ProductListTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                width: 64,
+                height: 64,
                 color: colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(12),
+                child: Image.network(
+                  product.imageUrl,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, progress) =>
+                      progress == null
+                      ? child
+                      : Icon(product.icon, color: colorScheme.primary, size: 28),
+                  errorBuilder: (context, error, stackTrace) =>
+                      Icon(product.icon, color: colorScheme.primary, size: 28),
+                ),
               ),
-              child: Icon(product.icon, color: colorScheme.primary, size: 28),
             ),
             const SizedBox(width: 12),
             Expanded(

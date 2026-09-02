@@ -20,7 +20,13 @@ class CoBuyCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colorScheme.outline),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -33,7 +39,23 @@ class CoBuyCard extends StatelessWidget {
               aspectRatio: 1.9,
               child: Container(
                 color: colorScheme.primaryContainer,
-                child: Icon(session.icon, color: colorScheme.primary, size: 56),
+                child: Image.network(
+                  session.imageUrl,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, progress) =>
+                      progress == null
+                      ? child
+                      : Icon(
+                          session.icon,
+                          color: colorScheme.primary,
+                          size: 56,
+                        ),
+                  errorBuilder: (context, error, stackTrace) => Icon(
+                    session.icon,
+                    color: colorScheme.primary,
+                    size: 56,
+                  ),
+                ),
               ),
             ),
             Padding(

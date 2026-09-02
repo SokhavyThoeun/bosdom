@@ -4,9 +4,18 @@ import 'package:go_router/go_router.dart';
 import '../models/merchant_role.dart';
 
 class UploadDocumentsScreen extends StatefulWidget {
-  const UploadDocumentsScreen({required this.role, super.key});
+  const UploadDocumentsScreen({
+    required this.role,
+    this.standalone = false,
+    super.key,
+  });
 
   final MerchantRole role;
+
+  /// True when reached from the profile's "Become a Seller" card rather
+  /// than the account signup wizard — shortens the step counter to this
+  /// flow's own 2 steps and always pops back to the profile screen.
+  final bool standalone;
 
   @override
   State<UploadDocumentsScreen> createState() => _UploadDocumentsScreenState();
@@ -18,6 +27,10 @@ class _UploadDocumentsScreenState extends State<UploadDocumentsScreen> {
   bool _businessCertUploaded = false;
 
   void _goBack() {
+    if (widget.standalone) {
+      context.pop();
+      return;
+    }
     if (context.canPop()) {
       context.pop();
     } else {
@@ -27,7 +40,10 @@ class _UploadDocumentsScreenState extends State<UploadDocumentsScreen> {
 
   void _continue() {
     if (!_nationalIdUploaded) return;
-    context.pushNamed('businessInfo', extra: widget.role);
+    context.pushNamed(
+      widget.standalone ? 'becomeSellerBusinessInfo' : 'businessInfo',
+      extra: widget.role,
+    );
   }
 
   @override
@@ -41,8 +57,8 @@ class _UploadDocumentsScreenState extends State<UploadDocumentsScreen> {
           _Header(
             colorScheme: colorScheme,
             textTheme: textTheme,
-            currentStep: 3,
-            totalSteps: widget.role.totalSteps,
+            currentStep: widget.standalone ? 1 : 3,
+            totalSteps: widget.standalone ? 2 : widget.role.totalSteps,
             onBack: _goBack,
           ),
           Expanded(
@@ -66,8 +82,9 @@ class _UploadDocumentsScreenState extends State<UploadDocumentsScreen> {
                       required: true,
                       subtitle: 'Front and back of your Cambodian National ID',
                       uploaded: _nationalIdUploaded,
-                      onTap: () =>
-                          setState(() => _nationalIdUploaded = !_nationalIdUploaded),
+                      onTap: () => setState(
+                        () => _nationalIdUploaded = !_nationalIdUploaded,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     _DocumentCard(
@@ -78,8 +95,9 @@ class _UploadDocumentsScreenState extends State<UploadDocumentsScreen> {
                       optional: true,
                       subtitle: 'Alternative to National ID (optional)',
                       uploaded: _passportUploaded,
-                      onTap: () =>
-                          setState(() => _passportUploaded = !_passportUploaded),
+                      onTap: () => setState(
+                        () => _passportUploaded = !_passportUploaded,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     _DocumentCard(
@@ -134,10 +152,6 @@ class _Header extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: colorScheme.primary,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(36),
-          bottomRight: Radius.circular(36),
-        ),
       ),
       child: Padding(
         padding: EdgeInsets.fromLTRB(

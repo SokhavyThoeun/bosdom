@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
@@ -32,7 +34,7 @@ class MessageBubble extends StatelessWidget {
             constraints: BoxConstraints(
               maxWidth: MediaQuery.of(context).size.width * 0.72,
             ),
-            child: message.imageIcon != null
+            child: (message.imageIcon != null || message.imageFile != null)
                 ? ImageBubble(
                     message: message,
                     isMe: isMe,
@@ -222,20 +224,12 @@ class ImageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.only(
-        topLeft: const Radius.circular(16),
-        topRight: const Radius.circular(16),
-        bottomLeft: Radius.circular(isMe ? 16 : 4),
-        bottomRight: Radius.circular(isMe ? 4 : 16),
-      ),
-      child: Container(
-        color: Colors.white,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              height: 140,
+    final thumbnail = SizedBox(
+      height: 160,
+      width: double.infinity,
+      child: message.imageFile != null
+          ? Image.file(message.imageFile!, fit: BoxFit.cover)
+          : Container(
               color: AppColors.blushSurface,
               child: Icon(
                 message.imageIcon,
@@ -243,6 +237,35 @@ class ImageBubble extends StatelessWidget {
                 color: colorScheme.primary,
               ),
             ),
+    );
+
+    return ClipRRect(
+      borderRadius: BorderRadius.only(
+        topLeft: const Radius.circular(16),
+        topRight: const Radius.circular(16),
+        bottomLeft: Radius.circular(isMe ? 16 : 4),
+        bottomRight: Radius.circular(isMe ? 4 : 16),
+      ),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: colorScheme.primary.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            message.imageFile != null
+                ? InkWell(
+                    onTap: () => _openImageViewer(context, message.imageFile!),
+                    child: thumbnail,
+                  )
+                : thumbnail,
             if (message.imageCaption != null)
               Padding(
                 padding: const EdgeInsets.all(10),
@@ -258,6 +281,57 @@ class ImageBubble extends StatelessWidget {
       ),
     );
   }
+
+  void _openImageViewer(BuildContext context, File file) {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.black,
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            FadeTransition(opacity: animation, child: _PhotoViewer(file: file)),
+      ),
+    );
+  }
+}
+
+class _PhotoViewer extends StatelessWidget {
+  const _PhotoViewer({required this.file});
+
+  final File file;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: InteractiveViewer(
+              minScale: 1,
+              maxScale: 4,
+              child: Center(child: Image.file(file)),
+            ),
+          ),
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8,
+            right: 12,
+            child: Material(
+              color: Colors.black.withValues(alpha: 0.4),
+              shape: const CircleBorder(),
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: () => Navigator.of(context).pop(),
+                child: const Padding(
+                  padding: EdgeInsets.all(8),
+                  child: Icon(Icons.close, color: Colors.white, size: 22),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 /// Shared message composer: photo attach, text field, and send button.
@@ -267,97 +341,125 @@ class Composer extends StatelessWidget {
     required this.controller,
     required this.colorScheme,
     required this.onSend,
+    required this.onAttachPhoto,
   });
 
   final TextEditingController controller;
   final ColorScheme colorScheme;
   final VoidCallback onSend;
+  final VoidCallback onAttachPhoto;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final bottomInset = MediaQuery.of(context).padding.bottom;
 
-    return Container(
-      padding: EdgeInsets.fromLTRB(12, 10, 12, 10 + bottomInset),
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.primary.withValues(alpha: 0.06),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
+        border: Border(
+          top: BorderSide(color: AppColors.roseDivider.withValues(alpha: 0.5)),
+        ),
       ),
-      child: Row(
-        children: [
-          InkWell(
-            onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(l10n.chatPhotoAttachmentComingSoon)),
-            ),
-            borderRadius: BorderRadius.circular(24),
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: colorScheme.primaryContainer,
-                shape: BoxShape.circle,
+      child: SafeArea(
+        top: false,
+        minimum: EdgeInsets.only(bottom: bottomInset > 0 ? 0 : 6),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              _CircleIconButton(
+                icon: Icons.camera_alt_outlined,
+                background: colorScheme.primaryContainer,
+                foreground: colorScheme.primary,
+                size: 46,
+                onTap: onAttachPhoto,
               ),
-              child: Icon(
-                Icons.camera_alt_outlined,
-                color: colorScheme.primary,
-                size: 20,
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.petalWhite,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: AppColors.roseDivider.withValues(alpha: 0.7),
-                ),
-              ),
-              child: TextField(
-                controller: controller,
-                minLines: 1,
-                maxLines: 4,
-                textInputAction: TextInputAction.send,
-                onSubmitted: (_) => onSend(),
-                decoration: InputDecoration(
-                  hintText: l10n.chatComposerHint,
-                  isDense: true,
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 12,
+              const SizedBox(width: 10),
+              Expanded(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 46),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.petalWhite,
+                      borderRadius: BorderRadius.circular(23),
+                    ),
+                    child: TextField(
+                      controller: controller,
+                      minLines: 1,
+                      maxLines: 5,
+                      textCapitalization: TextCapitalization.sentences,
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: (_) => onSend(),
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      decoration: InputDecoration(
+                        hintText: l10n.chatComposerHint,
+                        hintStyle: Theme.of(context).textTheme.bodyMedium
+                            ?.copyWith(
+                              color: colorScheme.onSurfaceVariant.withValues(
+                                alpha: 0.6,
+                              ),
+                            ),
+                        isDense: true,
+                        isCollapsed: true,
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 14,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          InkWell(
-            onTap: onSend,
-            borderRadius: BorderRadius.circular(24),
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: colorScheme.primary,
-                shape: BoxShape.circle,
+              const SizedBox(width: 10),
+              _CircleIconButton(
+                icon: Icons.send_rounded,
+                background: colorScheme.primary,
+                foreground: colorScheme.onPrimary,
+                size: 46,
+                onTap: onSend,
+                iconSize: 19,
               ),
-              child: Icon(
-                Icons.send_rounded,
-                color: colorScheme.onPrimary,
-                size: 18,
-              ),
-            ),
+            ],
           ),
-        ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CircleIconButton extends StatelessWidget {
+  const _CircleIconButton({
+    required this.icon,
+    required this.background,
+    required this.foreground,
+    required this.onTap,
+    this.iconSize = 20,
+    this.size = 44,
+  });
+
+  final IconData icon;
+  final Color background;
+  final Color foreground;
+  final VoidCallback onTap;
+  final double iconSize;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: background,
+      shape: const CircleBorder(),
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const CircleBorder(),
+        child: SizedBox(
+          width: size,
+          height: size,
+          child: Icon(icon, color: foreground, size: iconSize),
+        ),
       ),
     );
   }

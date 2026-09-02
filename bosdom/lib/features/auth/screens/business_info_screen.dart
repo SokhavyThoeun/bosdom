@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../l10n/generated/app_localizations.dart';
+import '../../profile/providers/profile_provider.dart';
 import '../models/merchant_role.dart';
 
 const _kStoreTypes = [
@@ -28,16 +31,27 @@ const _kDistricts = [
 
 const _kMaxStorePhotos = 3;
 
-class BusinessInfoScreen extends StatefulWidget {
-  const BusinessInfoScreen({required this.role, super.key});
+class BusinessInfoScreen extends ConsumerStatefulWidget {
+  const BusinessInfoScreen({
+    required this.role,
+    this.standalone = false,
+    super.key,
+  });
 
   final MerchantRole role;
 
+  /// True when reached from the profile's "Become a Seller" card rather
+  /// than the account signup wizard — shortens the step counter to this
+  /// flow's own 2 steps, activates the seller role on the existing
+  /// profile instead of mock-creating a new account, and returns to the
+  /// profile screen instead of the marketplace.
+  final bool standalone;
+
   @override
-  State<BusinessInfoScreen> createState() => _BusinessInfoScreenState();
+  ConsumerState<BusinessInfoScreen> createState() => _BusinessInfoScreenState();
 }
 
-class _BusinessInfoScreenState extends State<BusinessInfoScreen> {
+class _BusinessInfoScreenState extends ConsumerState<BusinessInfoScreen> {
   final _shopNameController = TextEditingController();
   final _storeUrlController = TextEditingController();
   final _streetController = TextEditingController();
@@ -56,6 +70,10 @@ class _BusinessInfoScreenState extends State<BusinessInfoScreen> {
   }
 
   void _goBack() {
+    if (widget.standalone) {
+      context.pop();
+      return;
+    }
     if (context.canPop()) {
       context.pop();
     } else {
@@ -72,8 +90,31 @@ class _BusinessInfoScreenState extends State<BusinessInfoScreen> {
     setState(() => _storePhotoCount--);
   }
 
-  void _createAccount() {
+  Future<void> _createAccount() async {
     if (!_agreed) return;
+
+    if (widget.standalone) {
+      final profile = ref.read(profileProvider).value;
+      if (profile != null) {
+        try {
+          await ref
+              .read(profileProvider.notifier)
+              .save(profile.copyWith(role: MerchantRole.supplier.name));
+        } catch (_) {
+          // profileProvider.save already reverts local state on failure;
+          // still surface the success message optimistically below since
+          // this form itself is mock (no real KYC/backend wiring yet).
+        }
+      }
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.profileSellerActivatedSnackbar)),
+      );
+      context.goNamed('profile');
+      return;
+    }
+
     // Mock submit — real KYC/backend wiring lands later.
     context.goNamed('marketplace');
   }
@@ -89,8 +130,8 @@ class _BusinessInfoScreenState extends State<BusinessInfoScreen> {
           _Header(
             colorScheme: colorScheme,
             textTheme: textTheme,
-            currentStep: widget.role.totalSteps,
-            totalSteps: widget.role.totalSteps,
+            currentStep: widget.standalone ? 2 : widget.role.totalSteps,
+            totalSteps: widget.standalone ? 2 : widget.role.totalSteps,
             onBack: _goBack,
           ),
           Expanded(
@@ -165,9 +206,13 @@ class _BusinessInfoScreenState extends State<BusinessInfoScreen> {
                     const SizedBox(height: 32),
                     FilledButton(
                       onPressed: _agreed ? _createAccount : null,
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 4),
-                        child: Text('Create my Account'),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Text(
+                          widget.standalone
+                              ? 'Activate my Seller Account'
+                              : 'Create my Account',
+                        ),
                       ),
                     ),
                   ],
@@ -201,10 +246,6 @@ class _Header extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: colorScheme.primary,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(36),
-          bottomRight: Radius.circular(36),
-        ),
       ),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
@@ -314,11 +355,15 @@ class _FormField extends StatelessWidget {
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: colorScheme.primary.withValues(alpha: 0.5)),
+          borderSide: BorderSide(
+            color: colorScheme.primary.withValues(alpha: 0.5),
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: colorScheme.primary.withValues(alpha: 0.5)),
+          borderSide: BorderSide(
+            color: colorScheme.primary.withValues(alpha: 0.5),
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
@@ -369,11 +414,15 @@ class _DropdownField extends StatelessWidget {
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: colorScheme.primary.withValues(alpha: 0.5)),
+          borderSide: BorderSide(
+            color: colorScheme.primary.withValues(alpha: 0.5),
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: colorScheme.primary.withValues(alpha: 0.5)),
+          borderSide: BorderSide(
+            color: colorScheme.primary.withValues(alpha: 0.5),
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
@@ -437,7 +486,10 @@ class _StorePhotosField extends StatelessWidget {
                     color: colorScheme.primaryContainer,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.camera_alt_outlined, color: colorScheme.primary),
+                  child: Icon(
+                    Icons.camera_alt_outlined,
+                    color: colorScheme.primary,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Text(

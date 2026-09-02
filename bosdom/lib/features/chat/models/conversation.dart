@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
@@ -12,12 +14,13 @@ class ChatMessage {
     this.text,
     this.imageIcon,
     this.imageCaption,
+    this.imageFile,
   });
 
   factory ChatMessage.fromJson(Map<String, dynamic> json, String kind) {
     return ChatMessage(
       sender: json['sender'] == 'me' ? MessageSender.me : MessageSender.them,
-      time: _formatTime(DateTime.parse(json['created_at'] as String)),
+      time: formatChatTime(DateTime.parse(json['created_at'] as String)),
       text: json['text'] as String?,
       imageIcon: json['image_caption'] != null ? kindToIcon(kind) : null,
       imageCaption: json['image_caption'] as String?,
@@ -29,6 +32,8 @@ class ChatMessage {
   final String? text;
   final IconData? imageIcon;
   final String? imageCaption;
+  /// Locally attached photo (picked from camera/gallery) awaiting delivery.
+  final File? imageFile;
 
   bool get flagged => detectsOffPlatformAttempt(text);
 }
@@ -57,7 +62,7 @@ class Conversation {
         if ((json['last_message_preview'] as String).isNotEmpty)
           ChatMessage(
             sender: MessageSender.them,
-            time: lastAt != null ? _formatTime(DateTime.parse(lastAt)) : '',
+            time: lastAt != null ? formatChatTime(DateTime.parse(lastAt)) : '',
             text: json['last_message_preview'] as String,
           ),
       ],
@@ -97,6 +102,7 @@ class Conversation {
     final last = lastMessage;
     if (last == null) return '';
     if (last.text != null) return last.text!;
+    if (last.imageFile != null) return '📷 Photo';
     return '📷 ${last.imageCaption ?? 'Photo'}';
   }
 }
@@ -143,7 +149,7 @@ Color kindToColor(String kind) {
   }
 }
 
-String _formatTime(DateTime dateTime) {
+String formatChatTime(DateTime dateTime) {
   final local = dateTime.toLocal();
   final now = DateTime.now();
   final isToday =

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../shared/utils/mock_images.dart';
+
 class Product {
   const Product({
     required this.name,
@@ -8,6 +10,7 @@ class Product {
     required this.seller,
     required this.icon,
     required this.category,
+    required this.imageQuery,
     this.moqValue = 10,
     this.samplePrice,
     this.rating = 4.5,
@@ -27,6 +30,9 @@ class Product {
   final String seller;
   final IconData icon;
   final String category;
+
+  /// Keyword(s) used to fetch a category/topic-matched mock photo.
+  final String imageQuery;
   final int moqValue;
   final String? samplePrice;
   final double rating;
@@ -47,6 +53,12 @@ class Product {
   String get deliveryFeeLabel =>
       hasFreeDelivery ? 'Free Delivery' : '\$${deliveryFee.toStringAsFixed(2)} delivery fee';
 
+  /// Category/topic-matched mock product photo.
+  String get imageUrl => mockPhotoUrl(imageQuery, name);
+
+  /// Clean mock logo for this product's seller/store.
+  String get sellerLogoUrl => mockStoreLogoUrl(seller);
+
   double get priceValue => double.parse(price.replaceFirst('\$', ''));
 
   double get samplePriceValue => samplePrice != null
@@ -64,6 +76,7 @@ const kMockProducts = [
     seller: 'Mekong Agri-Food Co.',
     icon: Icons.rice_bowl_outlined,
     category: 'Food & Bev',
+    imageQuery: 'rice,sack',
     rating: 4.5,
     weight: '25kg per bag',
     origin: 'Cambodia',
@@ -78,6 +91,7 @@ const kMockProducts = [
     seller: 'EcoPack Cambodia',
     icon: Icons.local_cafe_outlined,
     category: 'Home',
+    imageQuery: 'paper,cup',
     deliveryFee: 3.5,
   ),
   Product(
@@ -87,6 +101,7 @@ const kMockProducts = [
     seller: 'PP Tech Import',
     icon: Icons.bolt_outlined,
     category: 'Electronics',
+    imageQuery: 'usb,charger',
     deliveryFee: 8,
   ),
   Product(
@@ -96,6 +111,7 @@ const kMockProducts = [
     seller: 'Angkor BioSource',
     icon: Icons.spa_outlined,
     category: 'Food & Bev',
+    imageQuery: 'coconut,oil',
   ),
   Product(
     name: 'Heavy Duty Cotton Canvas Tote Bags',
@@ -104,6 +120,7 @@ const kMockProducts = [
     seller: 'Angkor Garment Factory',
     icon: Icons.shopping_bag_outlined,
     category: 'Clothing',
+    imageQuery: 'tote,bag',
     deliveryFee: 6,
   ),
   Product(
@@ -113,6 +130,7 @@ const kMockProducts = [
     seller: 'Phnom Penh Cleaners',
     icon: Icons.cleaning_services_outlined,
     category: 'Home',
+    imageQuery: 'cleaning,cloth',
     deliveryFee: 4,
   ),
   Product(
@@ -122,6 +140,7 @@ const kMockProducts = [
     seller: 'SnackHub Wholesale',
     icon: Icons.fastfood_outlined,
     category: 'Food & Bev',
+    imageQuery: 'snack,mix',
     deliveryFee: 2.5,
   ),
   Product(
@@ -131,6 +150,7 @@ const kMockProducts = [
     seller: 'Angkor Garment Factory',
     icon: Icons.masks_outlined,
     category: 'Beauty',
+    imageQuery: 'face,mask',
     deliveryFee: 6,
   ),
   Product(
@@ -140,6 +160,7 @@ const kMockProducts = [
     seller: 'Mekong Agri-Food Co.',
     icon: Icons.water_drop_outlined,
     category: 'Home',
+    imageQuery: 'water,bottle',
     deliveryFee: 5,
   ),
   Product(
@@ -149,6 +170,7 @@ const kMockProducts = [
     seller: 'PP Tech Import',
     icon: Icons.headset_outlined,
     category: 'Electronics',
+    imageQuery: 'wireless,earbuds',
     deliveryFee: 8,
   ),
   Product(
@@ -158,6 +180,7 @@ const kMockProducts = [
     seller: 'Apparel Hub',
     icon: Icons.checkroom_outlined,
     category: 'Clothing',
+    imageQuery: 'tshirt,stack',
     deliveryFee: 7,
   ),
   Product(
@@ -167,6 +190,7 @@ const kMockProducts = [
     seller: 'Home Essentials',
     icon: Icons.countertops_outlined,
     category: 'Home',
+    imageQuery: 'paper,towel',
     deliveryFee: 4.5,
   ),
   Product(
@@ -176,6 +200,7 @@ const kMockProducts = [
     seller: 'Mekong Agri-Food Co.',
     icon: Icons.grain_outlined,
     category: 'Food & Bev',
+    imageQuery: 'brown,sugar',
     deliveryFee: 5,
   ),
   Product(
@@ -185,6 +210,7 @@ const kMockProducts = [
     seller: 'Phnom Penh Foods',
     icon: Icons.liquor_outlined,
     category: 'Food & Bev',
+    imageQuery: 'fish,sauce',
     deliveryFee: 3,
   ),
   Product(
@@ -194,6 +220,7 @@ const kMockProducts = [
     seller: 'Angkor BioSource',
     icon: Icons.emoji_food_beverage_outlined,
     category: 'Food & Bev',
+    imageQuery: 'green,tea',
   ),
   Product(
     name: 'Dried Organic Mango Slices (1kg)',
@@ -202,6 +229,7 @@ const kMockProducts = [
     seller: 'Mekong Agri-Food Co.',
     icon: Icons.eco_outlined,
     category: 'Food & Bev',
+    imageQuery: 'dried,mango',
     deliveryFee: 5,
   ),
   Product(
@@ -212,6 +240,7 @@ const kMockProducts = [
     seller: 'Mekong Agri-Food Co.',
     icon: Icons.liquor_outlined,
     category: 'Food & Bev',
+    imageQuery: 'fish,sauce',
     deliveryFee: 5,
   ),
   Product(
@@ -222,6 +251,7 @@ const kMockProducts = [
     seller: 'Mekong Agri-Food Co.',
     icon: Icons.local_drink_outlined,
     category: 'Food & Bev',
+    imageQuery: 'coconut,milk',
     deliveryFee: 5,
   ),
 ];

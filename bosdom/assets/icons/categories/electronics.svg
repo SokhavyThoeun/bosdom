@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+    <defs>
+      <linearGradient id="bodyGrad" x1="15%" y1="0%" x2="85%" y2="100%">
+        <stop offset="0%" stop-color="#8a5a5a"/>
+        <stop offset="50%" stop-color="#5e3232"/>
+        <stop offset="100%" stop-color="#391818"/>
+      </linearGradient>
+      <linearGradient id="screenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#7a2c2c"/>
+        <stop offset="100%" stop-color="#3a1414"/>
+      </linearGradient>
+    </defs>
+    <path d="M66,50 Q66,26 92,26 L108,26 Q134,26 134,50 L134,150 Q134,174 108,174 L92,174 Q66,174 66,150 Z" fill="url(#bodyGrad)" stroke="#2c1212" stroke-opacity="0.3" stroke-width="1.6"/>
+    <circle cx="115" cy="42" r="4.5" fill="#391818"/>
+    <circle cx="115" cy="42" r="1.6" fill="#f0c8c8" opacity="0.7"/>
+    <path d="M74,58 Q74,50 82,50 L118,50 Q126,50 126,58 L126,142 Q126,150 118,150 L82,150 Q74,150 74,142 Z" fill="url(#screenGrad)"/>
+    <path d="M80,56 Q100,70 120,56 L120,64 Q100,78 80,64 Z" fill="#ffffff" opacity="0.2"/>
+    <rect x="80" y="80" width="14" height="14" rx="4" fill="#c07878" opacity="0.6"/>
+    <rect x="98" y="80" width="14" height="14" rx="4" fill="#e4b8b8" opacity="0.5"/>
+    <rect x="80" y="98" width="14" height="14" rx="4" fill="#e4b8b8" opacity="0.5"/>
+    <rect x="98" y="98" width="14" height="14" rx="4" fill="#c07878" opacity="0.6"/>
+    <rect x="80" y="118" width="32" height="8" rx="4" fill="#c07878" opacity="0.4"/>
+    <rect x="90" y="160" width="20" height="4" rx="2" fill="#F5E2E2" opacity="0.5"/>
+  </svg>

@@ -11,7 +11,6 @@ import '../../../shared/widgets/checkout_progress_stepper.dart';
 import '../../marketplace/models/product.dart';
 import '../../orders/models/order.dart';
 import '../../orders/providers/orders_provider.dart';
-import '../services/payment_service.dart';
 
 enum _PaymentMethod { card, aba }
 
@@ -73,6 +72,13 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           ? match.group(2)!
           : 'Units';
       final unitPrice = quantity > 0 ? summary.total / quantity : summary.total;
+      Product? matchedProduct;
+      for (final product in kMockProducts) {
+        if (product.name == summary.name) {
+          matchedProduct = product;
+          break;
+        }
+      }
 
       return OrderLineItem(
         product: Product(
@@ -82,6 +88,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           seller: 'BosDom Marketplace',
           icon: summary.icon,
           category: '',
+          imageQuery: matchedProduct?.imageQuery ?? 'wholesale,shipping,box',
         ),
         quantity: quantity,
         unitLabel: unitLabel,
@@ -103,6 +110,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                   seller: 'BosDom Marketplace',
                   icon: Icons.shopping_bag_outlined,
                   category: '',
+                  imageQuery: 'wholesale,shipping,box',
                 ),
                 quantity: 1,
                 unitLabel: 'Order',
@@ -155,10 +163,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     );
 
     try {
-      await Future.wait([
-        PaymentService.createPaymentIntent(amount: widget.amount),
-        Future.delayed(const Duration(milliseconds: 1900)),
-      ]);
+      await Future.delayed(const Duration(milliseconds: 1900));
 
       if (!mounted) return;
       setState(() => _orderConfirmed = true);
@@ -349,10 +354,6 @@ class _PaymentHeader extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: colorScheme.primary,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
-        ),
       ),
       child: Padding(
         padding: EdgeInsets.fromLTRB(

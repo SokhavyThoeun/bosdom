@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../shared/utils/mock_images.dart';
+
 class SellerCertification {
   const SellerCertification({required this.label, required this.icon});
 
@@ -75,6 +77,9 @@ class Seller {
   final int recommendPercent;
   final Map<int, int> ratingBreakdown;
   final List<SellerReview> reviews;
+
+  /// Clean mock logo for this store.
+  String get logoUrl => mockStoreLogoUrl(name);
 }
 
 const kMockSellers = <String, Seller>{
@@ -181,5 +186,12 @@ Seller sellerFor(String name, {required IconData icon, required double rating, r
             icon: Icons.storefront_outlined,
           ),
         ],
+        // No written feedback for these sellers yet, but the rating summary
+        // (recommend %, response time chip, breakdown) still has plausible
+        // placeholder stats so the reviews tab looks consistent — only the
+        // "Recent Reviews" list is left out.
+        reviewsCount: '340',
+        recommendPercent: (rating / 5 * 100).round(),
+        ratingBreakdown: const {5: 65, 4: 22, 3: 8, 2: 3, 1: 2},
       );
 }

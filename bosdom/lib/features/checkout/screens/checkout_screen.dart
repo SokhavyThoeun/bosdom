@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/checkout_progress_stepper.dart';
 import '../../payment/screens/payment_screen.dart' show OrderLineSummary;
+import '../../../shared/utils/mock_images.dart';
 import '../models/address.dart';
 import '../providers/address_provider.dart';
 
@@ -14,12 +15,14 @@ class CheckoutLineItem {
     required this.name,
     required this.qtyLabel,
     required this.total,
+    required this.seller,
   });
 
   final IconData icon;
   final String name;
   final String qtyLabel;
   final double total;
+  final String seller;
 }
 
 class _ShippingOption {
@@ -42,18 +45,21 @@ const _kCheckoutItems = [
     name: 'Premium Jasmine Rice (25kg)',
     qtyLabel: 'Qty: 20 Bags',
     total: 370,
+    seller: 'Mekong Agri-Food Co.',
   ),
   CheckoutLineItem(
     icon: Icons.local_cafe_outlined,
     name: 'Biodegradable Paper Hot Cups',
     qtyLabel: 'Qty: 5 Boxes',
     total: 80,
+    seller: 'EcoPack Cambodia',
   ),
   CheckoutLineItem(
     icon: Icons.bolt_outlined,
     name: 'Universal USB-C Bulk Pack',
     qtyLabel: 'Qty: 100 Units',
     total: 320,
+    seller: 'PP Tech Import',
   ),
 ];
 
@@ -254,10 +260,6 @@ class _CheckoutHeader extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: colorScheme.primary,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
-        ),
       ),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
@@ -404,67 +406,152 @@ class _OrderItemsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final groups = <String, List<CheckoutLineItem>>{};
+    for (final item in items) {
+      groups.putIfAbsent(item.seller, () => []).add(item);
+    }
+
+    return Column(
+      children: [
+        for (final entry in groups.entries) ...[
+          _SellerGroupCard(
+            seller: entry.key,
+            items: entry.value,
+            colorScheme: colorScheme,
+            textTheme: textTheme,
+          ),
+          if (entry.key != groups.keys.last) const SizedBox(height: 12),
+        ],
+      ],
+    );
+  }
+}
+
+class _SellerGroupCard extends StatelessWidget {
+  const _SellerGroupCard({
+    required this.seller,
+    required this.items,
+    required this.colorScheme,
+    required this.textTheme,
+  });
+
+  final String seller;
+  final List<CheckoutLineItem> items;
+  final ColorScheme colorScheme;
+  final TextTheme textTheme;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: colorScheme.outline),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          for (final item in items) ...[
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              child: Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(
-                      item.icon,
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 11,
+                backgroundColor: colorScheme.primaryContainer,
+                child: ClipOval(
+                  child: Image.network(
+                    mockStoreLogoUrl(seller),
+                    width: 22,
+                    height: 22,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, progress) =>
+                        progress == null
+                        ? child
+                        : Icon(
+                            Icons.storefront_outlined,
+                            size: 13,
+                            color: colorScheme.primary,
+                          ),
+                    errorBuilder: (context, error, stackTrace) => Icon(
+                      Icons.storefront_outlined,
+                      size: 13,
                       color: colorScheme.primary,
-                      size: 20,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          item.qtyLabel,
-                          style: textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Text(
-                    '\$${item.total.toStringAsFixed(2)}',
-                    style: textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+                ),
               ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  seller,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  l10n.checkoutItemsCount(items.length),
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          for (final item in items) ...[
+            Divider(color: colorScheme.outlineVariant, height: 20),
+            Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(item.icon, color: colorScheme.primary, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        item.qtyLabel,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Text(
+                  '\$${item.total.toStringAsFixed(2)}',
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
-            if (item != items.last)
-              Divider(color: colorScheme.outlineVariant, height: 1),
           ],
         ],
       ),

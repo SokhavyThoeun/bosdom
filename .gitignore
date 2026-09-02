@@ -26,6 +26,7 @@ bosdom/**/ios/Pods/
 bosdom/**/android/app/debug
 bosdom/**/android/app/profile
 bosdom/**/android/app/release
+bosdom/**/android/build/
 bosdom/**/android/.gradle/
 bosdom/**/android/local.properties
 bosdom/devtools_options.yaml

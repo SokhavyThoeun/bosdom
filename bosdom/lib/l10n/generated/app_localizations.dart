@@ -278,17 +278,17 @@ abstract class AppLocalizations {
   /// **'Language set to {language}'**
   String languageSavedSnackbar(String language);
 
-  /// No description provided for @authLoginPhoneLabel.
+  /// No description provided for @authLoginEmailLabel.
   ///
   /// In en, this message translates to:
-  /// **'PHONE NUMBER'**
-  String get authLoginPhoneLabel;
+  /// **'EMAIL'**
+  String get authLoginEmailLabel;
 
-  /// No description provided for @authLoginPhoneHint.
+  /// No description provided for @authLoginEmailHint.
   ///
   /// In en, this message translates to:
-  /// **'012 345 678'**
-  String get authLoginPhoneHint;
+  /// **'you@example.com'**
+  String get authLoginEmailHint;
 
   /// No description provided for @authLoginPasswordLabel.
   ///
@@ -1357,6 +1357,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Type a message...'**
   String get chatComposerHint;
+
+  /// No description provided for @chatAttachPhotoCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo'**
+  String get chatAttachPhotoCamera;
+
+  /// No description provided for @chatAttachPhotoGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from gallery'**
+  String get chatAttachPhotoGallery;
 
   /// No description provided for @liveChatTitle.
   ///
@@ -3027,11 +3039,143 @@ abstract class AppLocalizations {
   /// **'Seller Onboarding'**
   String get profileSellerOnboardingLabel;
 
+  /// No description provided for @profileSellerActiveBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'ACTIVE SELLER'**
+  String get profileSellerActiveBadge;
+
+  /// No description provided for @profileSellerActiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re a Seller'**
+  String get profileSellerActiveTitle;
+
+  /// No description provided for @profileSellerActiveSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage your listings and orders from the Marketplace tab'**
+  String get profileSellerActiveSubtitle;
+
+  /// No description provided for @profileSellerActivatedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re now part of the Seller Program!'**
+  String get profileSellerActivatedSnackbar;
+
+  /// No description provided for @profileSellerGoToMarketplace.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Marketplace'**
+  String get profileSellerGoToMarketplace;
+
   /// No description provided for @profileEditProfileLabel.
   ///
   /// In en, this message translates to:
   /// **'Edit Profile'**
   String get profileEditProfileLabel;
+
+  /// No description provided for @profileEditProfileRoleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Role Profile'**
+  String get profileEditProfileRoleLabel;
+
+  /// No description provided for @profileEditProfileRoleSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Role Profile'**
+  String get profileEditProfileRoleSheetTitle;
+
+  /// No description provided for @profileEditProfileChangePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Change photo'**
+  String get profileEditProfileChangePhoto;
+
+  /// No description provided for @profileEditProfileNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get profileEditProfileNameLabel;
+
+  /// No description provided for @profileEditProfileNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your full name'**
+  String get profileEditProfileNameHint;
+
+  /// No description provided for @profileEditProfileNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your name'**
+  String get profileEditProfileNameRequired;
+
+  /// No description provided for @profileEditProfilePhoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone Number'**
+  String get profileEditProfilePhoneLabel;
+
+  /// No description provided for @profileEditProfilePhoneHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your phone number'**
+  String get profileEditProfilePhoneHint;
+
+  /// No description provided for @profileEditProfilePhoneRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your phone number'**
+  String get profileEditProfilePhoneRequired;
+
+  /// No description provided for @profileEditProfileEmailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email Address'**
+  String get profileEditProfileEmailLabel;
+
+  /// No description provided for @profileEditProfileEmailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email address'**
+  String get profileEditProfileEmailHint;
+
+  /// No description provided for @profileEditProfileEmailRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your email address'**
+  String get profileEditProfileEmailRequired;
+
+  /// No description provided for @profileEditProfileEmailInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid email address'**
+  String get profileEditProfileEmailInvalid;
+
+  /// No description provided for @profileEditProfileSaveButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Changes'**
+  String get profileEditProfileSaveButton;
+
+  /// No description provided for @profileEditProfileSavedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile updated successfully'**
+  String get profileEditProfileSavedSnackbar;
+
+  /// No description provided for @profileEditProfileSaveErrorSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save your profile. Please try again.'**
+  String get profileEditProfileSaveErrorSnackbar;
+
+  /// No description provided for @profileEditProfileLoadErrorSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your profile. Please try again.'**
+  String get profileEditProfileLoadErrorSnackbar;
 
   /// No description provided for @profileLogout.
   ///

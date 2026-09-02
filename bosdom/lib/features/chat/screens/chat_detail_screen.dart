@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -21,6 +24,7 @@ class ChatDetailScreen extends ConsumerStatefulWidget {
 class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
   final _messageController = TextEditingController();
   final _scrollController = ScrollController();
+  final _picker = ImagePicker();
   bool _draftLooksOffPlatform = false;
 
   @override
@@ -58,6 +62,48 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
     ref.read(chatProvider.notifier).sendMessage(widget.conversationId, text);
     _messageController.clear();
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+  }
+
+  Future<void> _attachPhoto() async {
+    final l10n = AppLocalizations.of(context);
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: Text(l10n.chatAttachPhotoCamera),
+              onTap: () => Navigator.pop(sheetContext, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: Text(l10n.chatAttachPhotoGallery),
+              onTap: () => Navigator.pop(sheetContext, ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (source == null || !mounted) return;
+
+    try {
+      final picked = await _picker.pickImage(source: source, imageQuality: 85);
+      if (picked == null || !mounted) return;
+      await ref
+          .read(chatProvider.notifier)
+          .sendImage(widget.conversationId, File(picked.path));
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.chatPhotoAttachmentComingSoon)));
+    }
   }
 
   void _scrollToBottom() {
@@ -153,6 +199,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                     controller: _messageController,
                     colorScheme: colorScheme,
                     onSend: _send,
+                    onAttachPhoto: _attachPhoto,
                   ),
                 ],
               ),
@@ -184,10 +231,6 @@ class _Header extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: colorScheme.primary,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
-        ),
       ),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
@@ -278,10 +321,18 @@ class _Header extends StatelessWidget {
                         ),
                         if (conversation.verified) ...[
                           const SizedBox(width: 6),
-                          Icon(
-                            Icons.verified,
-                            size: 16,
-                            color: colorScheme.onPrimary,
+                          Container(
+                            width: 16,
+                            height: 16,
+                            decoration: const BoxDecoration(
+                              color: AppColors.trustGreen,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.check,
+                              size: 11,
+                              color: Colors.white,
+                            ),
                           ),
                         ],
                       ],

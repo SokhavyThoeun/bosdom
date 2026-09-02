@@ -14,7 +14,6 @@ abstract final class ReceiptService {
       body: jsonEncode({
         'order_id': order.id,
         'date': order.date,
-        'status': order.status.label,
         'items': [
           for (final item in order.items)
             {
@@ -26,6 +25,7 @@ abstract final class ReceiptService {
         'shipping_name': order.shippingName,
         'shipping_address': order.shippingAddress,
         'shipping_phone': order.shippingPhone,
+        'delivery_method': order.deliveryMethod,
         'subtotal': order.subtotal,
         'discount': order.discount,
         'shipping_fee': order.shippingFee,

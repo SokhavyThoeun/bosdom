@@ -85,7 +85,7 @@ class CartNotifier extends Notifier<List<CartLine>> {
   }
 
   void changeQuantity(CartLine line, int delta) {
-    line.quantity = (line.quantity + delta).clamp(1, 9999);
+    line.quantity = (line.quantity + delta).clamp(line.product.moqValue, 9999);
     state = [...state];
   }
 

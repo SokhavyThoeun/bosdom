@@ -58,6 +58,14 @@
     "en": "Type a message...",
     "km": "វាយសារ..."
   },
+  "chatAttachPhotoCamera": {
+    "en": "Take a photo",
+    "km": "ថតរូប"
+  },
+  "chatAttachPhotoGallery": {
+    "en": "Choose from gallery",
+    "km": "ជ្រើសរើសពីវិចិត្រសាល"
+  },
   "liveChatTitle": {
     "en": "Live Chat",
     "km": "ជជែកផ្ទាល់"

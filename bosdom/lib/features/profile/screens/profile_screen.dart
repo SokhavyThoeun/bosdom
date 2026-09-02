@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/config/api_config.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../auth/models/merchant_role.dart';
 import '../../notifications/widgets/notification_settings_popup.dart';
+import '../providers/profile_provider.dart';
 import '../widgets/data_privacy_popup.dart';
 import '../widgets/marketing_emails_popup.dart';
 import '../widgets/personalized_ads_popup.dart';
@@ -97,7 +101,7 @@ List<_ProfileMenuItem> _aboutItems(AppLocalizations l10n) => [
   _ProfileMenuItem(Icons.info_outline, l10n.profileMenuAbout, route: 'about'),
 ];
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   void _showComingSoon(BuildContext context, String label) {
@@ -118,7 +122,7 @@ class ProfileScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
@@ -225,21 +229,19 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
-class _ProfileHeader extends StatelessWidget {
+class _ProfileHeader extends ConsumerWidget {
   const _ProfileHeader({required this.colorScheme, required this.textTheme});
 
   final ColorScheme colorScheme;
   final TextTheme textTheme;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profile = ref.watch(profileProvider).value;
+
     return DecoratedBox(
       decoration: BoxDecoration(
         color: colorScheme.primary,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
-        ),
       ),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
@@ -256,11 +258,12 @@ class _ProfileHeader extends StatelessWidget {
               CircleAvatar(
                 radius: 32,
                 backgroundColor: colorScheme.onPrimary.withValues(alpha: 0.2),
-                child: Icon(
-                  Icons.person,
-                  size: 34,
-                  color: colorScheme.onPrimary,
-                ),
+                backgroundImage: (profile?.avatarUrl ?? '').isNotEmpty
+                    ? NetworkImage('${ApiConfig.baseUrl}${profile!.avatarUrl}')
+                    : null,
+                child: (profile?.avatarUrl ?? '').isEmpty
+                    ? Icon(Icons.person, size: 34, color: colorScheme.onPrimary)
+                    : null,
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -269,7 +272,7 @@ class _ProfileHeader extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Sokhavy Thoeun',
+                      profile?.name ?? '',
                       style: textTheme.titleLarge?.copyWith(
                         color: colorScheme.onPrimary,
                         fontWeight: FontWeight.bold,
@@ -277,7 +280,7 @@ class _ProfileHeader extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '+855 76 227 5858',
+                      profile?.phone ?? '',
                       style: textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onPrimary.withValues(alpha: 0.85),
                       ),
@@ -316,11 +319,7 @@ class _EditProfileButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
-        onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.commonComingSoon(l10n.profileEditProfileLabel)),
-          ),
-        ),
+        onTap: () => context.pushNamed('editProfile'),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           child: Row(
@@ -443,14 +442,16 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _BecomeASellerCard extends StatelessWidget {
+class _BecomeASellerCard extends ConsumerWidget {
   const _BecomeASellerCard();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
+    final isSeller =
+        ref.watch(profileProvider).value?.role == MerchantRole.supplier.name;
 
     return Container(
       clipBehavior: Clip.antiAlias,
@@ -510,13 +511,15 @@ class _BecomeASellerCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        Icons.bolt_rounded,
+                        isSeller ? Icons.check_circle : Icons.bolt_rounded,
                         size: 13,
                         color: colorScheme.onPrimary,
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        l10n.profileSellerProgramBadge,
+                        isSeller
+                            ? l10n.profileSellerActiveBadge
+                            : l10n.profileSellerProgramBadge,
                         style: textTheme.labelSmall?.copyWith(
                           color: colorScheme.onPrimary,
                           fontWeight: FontWeight.bold,
@@ -528,7 +531,9 @@ class _BecomeASellerCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  l10n.profileSellerTitle,
+                  isSeller
+                      ? l10n.profileSellerActiveTitle
+                      : l10n.profileSellerTitle,
                   style: textTheme.titleLarge?.copyWith(
                     color: colorScheme.onPrimary,
                     fontWeight: FontWeight.bold,
@@ -537,7 +542,9 @@ class _BecomeASellerCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  l10n.profileSellerSubtitle,
+                  isSeller
+                      ? l10n.profileSellerActiveSubtitle
+                      : l10n.profileSellerSubtitle,
                   style: textTheme.bodySmall?.copyWith(
                     color: colorScheme.onPrimary.withValues(alpha: 0.85),
                     height: 1.35,
@@ -549,15 +556,9 @@ class _BecomeASellerCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(20),
-                    onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          l10n.commonComingSoon(
-                            l10n.profileSellerOnboardingLabel,
-                          ),
-                        ),
-                      ),
-                    ),
+                    onTap: () => isSeller
+                        ? context.goNamed('marketplace')
+                        : context.pushNamed('becomeSeller'),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 18,
@@ -567,7 +568,9 @@ class _BecomeASellerCard extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            l10n.profileSellerCta,
+                            isSeller
+                                ? l10n.profileSellerGoToMarketplace
+                                : l10n.profileSellerCta,
                             style: textTheme.labelLarge?.copyWith(
                               color: colorScheme.primary,
                               fontWeight: FontWeight.bold,
@@ -575,7 +578,9 @@ class _BecomeASellerCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 6),
                           Icon(
-                            Icons.arrow_forward_rounded,
+                            isSeller
+                                ? Icons.storefront_rounded
+                                : Icons.arrow_forward_rounded,
                             size: 16,
                             color: colorScheme.primary,
                           ),

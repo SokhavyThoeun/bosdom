@@ -27,6 +27,7 @@ const _kJasmineRiceHistorical = Product(
   seller: 'Mekong Agri-Food Co.',
   icon: Icons.rice_bowl_outlined,
   category: 'Food & Bev',
+  imageQuery: 'jasmine,rice,bag',
 );
 
 const _kCashewNutsHistorical = Product(
@@ -37,6 +38,7 @@ const _kCashewNutsHistorical = Product(
   seller: 'Angkor BioSource',
   icon: Icons.eco_outlined,
   category: 'Food & Bev',
+  imageQuery: 'roasted,cashew,nuts',
 );
 
 Product _productNamed(String name) =>
@@ -71,6 +73,7 @@ class Order {
     required this.shippingPhone,
     this.discount = 0,
     this.shippingFee = 0,
+    this.deliveryMethod = 'Standard Delivery',
   });
 
   final String id;
@@ -82,6 +85,7 @@ class Order {
   final String shippingPhone;
   final double discount;
   final double shippingFee;
+  final String deliveryMethod;
 
   IconData get icon => items.first.product.icon;
 
@@ -128,6 +132,7 @@ final kMockOrders = [
         'Khan Sen Sok, Phnom Penh, 120801, Cambodia',
     shippingPhone: '+855 12 345 678',
     discount: 30.40,
+    deliveryMethod: 'Vireak Buntham Express',
   ),
   Order(
     id: 'BD-98211',
@@ -145,6 +150,7 @@ final kMockOrders = [
         'Street 271, Sangkat Boeung Tumpun, Khan Mean Chey, Phnom Penh, '
         'Cambodia',
     shippingPhone: '+855 92 456 789',
+    deliveryMethod: 'J&T Express',
   ),
   Order(
     id: 'BD-97992',
@@ -162,6 +168,7 @@ final kMockOrders = [
         'National Road 5, Sangkat Svay Por, Battambang, Cambodia',
     shippingPhone: '+855 77 654 321',
     shippingFee: 8.00,
+    deliveryMethod: 'Grab Express',
   ),
   Order(
     id: 'BD-97814',

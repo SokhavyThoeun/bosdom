@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+    <defs>
+      <linearGradient id="shirtGrad" x1="15%" y1="0%" x2="85%" y2="100%">
+        <stop offset="0%" stop-color="#5a7a92"/>
+        <stop offset="50%" stop-color="#2e4a60"/>
+        <stop offset="100%" stop-color="#152838"/>
+      </linearGradient>
+      <linearGradient id="sleeveGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#4a6a82"/>
+        <stop offset="100%" stop-color="#1c3040"/>
+      </linearGradient>
+      <linearGradient id="collarGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#d5e2ea"/>
+        <stop offset="100%" stop-color="#9fb8c8"/>
+      </linearGradient>
+    </defs>
+    <path d="M72,82 Q46,72 38,64 Q32,74 34,88 Q36,98 48,98 L60,96 Z" fill="url(#sleeveGrad)" stroke="#0f1c26" stroke-opacity="0.55" stroke-width="2"/>
+    <path d="M128,82 Q154,72 162,64 Q168,74 166,88 Q164,98 152,98 L140,96 Z" fill="url(#sleeveGrad)" stroke="#0f1c26" stroke-opacity="0.55" stroke-width="2"/>
+    <path d="M78,74 Q100,62 122,74 L132,88 Q134,124 130,158 Q100,170 70,158 Q66,124 68,88 Z" fill="url(#shirtGrad)" stroke="#0f1c26" stroke-opacity="0.6" stroke-width="2.4"/>
+    <path d="M82,76 Q100,96 118,76 L111,62 Q100,71 89,62 Z" fill="url(#collarGrad)" stroke="#0f1c26" stroke-opacity="0.55" stroke-width="1.6"/>
+    <path d="M100,92 Q98,120 100,150" fill="none" stroke="#fdf6f6" stroke-width="1.2" stroke-opacity="0.4" stroke-dasharray="1 4"/>
+    <circle cx="100" cy="100" r="2.8" fill="#c9a24a"/>
+    <circle cx="100" cy="118" r="2.8" fill="#c9a24a"/>
+    <circle cx="100" cy="136" r="2.8" fill="#c9a24a"/>
+    <path d="M78,84 Q82,116 74,154" fill="none" stroke="#0f1c26" stroke-width="5" stroke-opacity="0.18" stroke-linecap="round"/>
+    <ellipse cx="86" cy="88" rx="16" ry="26" fill="#ffffff" opacity="0.18" transform="rotate(-8 86 88)"/>
+  </svg>
