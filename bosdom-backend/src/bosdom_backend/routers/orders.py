@@ -100,6 +100,7 @@ class OrderOut(BaseModel):
     paid_at: datetime | None
     released_at: datetime | None
     cancelled_at: datetime | None
+    refunded_at: datetime | None
 
     model_config = {"from_attributes": True}
 

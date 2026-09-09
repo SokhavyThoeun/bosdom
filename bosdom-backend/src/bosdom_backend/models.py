@@ -160,6 +160,9 @@ class Order(Base):
     cancelled_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    refunded_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
 
 class Dispute(Base):
@@ -172,11 +175,16 @@ class Dispute(Base):
     raised_by: Mapped[str] = mapped_column(String, index=True)
     reason: Mapped[str] = mapped_column(String)
     note: Mapped[str] = mapped_column(String, default="")
-    # evidence_window -> under_review (video submitted, awaiting resolution).
-    # Actually resolving a dispute (release vs refund) is Phase 15.5 — no
-    # endpoint here can move a dispute past under_review yet.
+    # evidence_window -> under_review (video submitted) -> resolved
+    # (release or refund, decided by the counterparty per 15.5's
+    # resolve endpoint — see routers/disputes.py for why there's no
+    # separate admin role making this call).
     status: Mapped[str] = mapped_column(String, default="evidence_window")
     evidence_deadline: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    resolution: Mapped[str | None] = mapped_column(String, nullable=True)
+    resolved_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )

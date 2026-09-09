@@ -9,7 +9,13 @@ from sqlalchemy.orm import Session
 from ..auth import CurrentUser, get_current_user
 from ..db import get_db
 from ..models import Dispute, DisputeEvidence, Order
-from .orders import STATUS_DISPUTED, _get_participant_order, _transition
+from .orders import (
+    STATUS_DISPUTED,
+    STATUS_REFUNDED,
+    STATUS_RELEASED,
+    _get_participant_order,
+    _transition,
+)
 
 router = APIRouter(tags=["disputes"])
 
@@ -27,6 +33,11 @@ EVIDENCE_WINDOW = timedelta(hours=48)
 
 DISPUTE_STATUS_EVIDENCE_WINDOW = "evidence_window"
 DISPUTE_STATUS_UNDER_REVIEW = "under_review"
+DISPUTE_STATUS_RESOLVED = "resolved"
+
+RESOLUTION_RELEASE = "release"
+RESOLUTION_REFUND = "refund"
+_VALID_RESOLUTIONS = {RESOLUTION_RELEASE, RESOLUTION_REFUND}
 
 
 def _aware(dt: datetime) -> datetime:
@@ -61,10 +72,16 @@ class DisputeOut(BaseModel):
     note: str
     status: str
     evidence_deadline: datetime
+    resolution: str | None
+    resolved_at: datetime | None
     created_at: datetime
     updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class DisputeResolveRequest(BaseModel):
+    resolution: str
 
 
 class DisputeEvidenceOut(BaseModel):
@@ -170,3 +187,58 @@ def upload_evidence(
     db.commit()
     db.refresh(evidence)
     return evidence
+
+
+@router.post("/disputes/{dispute_id}/resolve", response_model=DisputeOut)
+def resolve_dispute(
+    dispute_id: str,
+    payload: DisputeResolveRequest,
+    user: CurrentUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> Dispute:
+    """Settles a dispute (15.5) by driving the order to `released` (funds go
+    to the seller) or `refunded` (funds go back to the buyer). There's no
+    admin/support role anywhere in this backend (nothing checks `Profile.role`
+    — see the 10.1/11.2 notes), so the counterparty who did *not* raise the
+    dispute makes the call — today that's always the seller, since 15.4
+    restricts opening a dispute to the buyer. This mirrors a seller responding
+    to a buyer's claim on a real marketplace before it would otherwise
+    escalate to a human reviewer."""
+    dispute = _get_dispute_for_participant(db, dispute_id, user.id)
+    if user.id == dispute.raised_by:
+        raise HTTPException(
+            status_code=403, detail="The dispute's raiser cannot resolve it"
+        )
+    if payload.resolution not in _VALID_RESOLUTIONS:
+        raise HTTPException(
+            status_code=400, detail="Resolution must be 'release' or 'refund'"
+        )
+    if dispute.status == DISPUTE_STATUS_RESOLVED:
+        raise HTTPException(status_code=409, detail="Dispute already resolved")
+    if (
+        dispute.status == DISPUTE_STATUS_EVIDENCE_WINDOW
+        and datetime.now(timezone.utc) <= _aware(dispute.evidence_deadline)
+    ):
+        # Forces the buyer to actually submit evidence before the seller has
+        # to respond, unless the window has lapsed without any — then the
+        # seller can resolve it themselves rather than waiting forever.
+        raise HTTPException(
+            status_code=409,
+            detail="Cannot resolve until evidence is submitted or the evidence window closes",
+        )
+
+    order = db.get(Order, dispute.order_id)
+    now = datetime.now(timezone.utc)
+    if payload.resolution == RESOLUTION_RELEASE:
+        _transition(order, STATUS_RELEASED)
+        order.released_at = now
+    else:
+        _transition(order, STATUS_REFUNDED)
+        order.refunded_at = now
+
+    dispute.status = DISPUTE_STATUS_RESOLVED
+    dispute.resolution = payload.resolution
+    dispute.resolved_at = now
+    db.commit()
+    db.refresh(dispute)
+    return dispute
