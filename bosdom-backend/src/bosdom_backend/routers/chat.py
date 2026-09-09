@@ -1,312 +1,302 @@
-import re
 from datetime import datetime, timedelta, timezone
-from itertools import count
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy import or_
+from sqlalchemy.orm import Session
 
+from ..auth import CurrentUser, get_current_user
+from ..db import get_db
+from ..models import Conversation, Listing, Message, Profile, Shop
+from ..off_platform import detects_off_platform_attempt
 from .notifications import NotificationTarget, push_notification
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
-_message_id_counter = count(1)
-
-_AUTO_REPLY = (
-    "Thanks for the message! We'll get back to you shortly."
-)
-
-_SUPPORT_AUTO_REPLY = (
-    "Thanks for reaching out. A BosDom support agent will review your "
-    "message and reply here shortly."
-)
+# After this many off-platform-flagged messages, the sender is temporarily
+# blocked from sending further messages.
+FLAG_RESTRICTION_THRESHOLD = 3
+FLAG_RESTRICTION_DURATION = timedelta(hours=24)
 
 
-class Message(BaseModel):
+class MessageOut(BaseModel):
     id: str
-    sender: str  # "me" | "them"
-    text: str | None = None
-    image_caption: str | None = None
+    sender_id: str
+    text: str
+    flagged: bool
     created_at: datetime
 
+    model_config = {"from_attributes": True}
 
-class Conversation(BaseModel):
+
+class ConversationSummaryOut(BaseModel):
     id: str
-    name: str
-    kind: str  # maps to an icon/color on the client
-    verified: bool
-    online: bool
-    unread_count: int
-    messages: list[Message]
-
-
-class ConversationSummary(BaseModel):
-    id: str
-    name: str
-    kind: str
-    verified: bool
-    online: bool
+    counterpart_id: str
+    counterpart_name: str
+    counterpart_verified: bool
+    listing_id: str | None
     unread_count: int
     last_message_preview: str
     last_message_at: datetime | None
+
+
+class ConversationOut(BaseModel):
+    id: str
+    counterpart_id: str
+    counterpart_name: str
+    counterpart_verified: bool
+    listing_id: str | None
+    messages: list[MessageOut]
+
+
+class StartConversationRequest(BaseModel):
+    counterpart_id: str
+    listing_id: str | None = None
 
 
 class SendMessageRequest(BaseModel):
     text: str
 
 
-class StartConversationRequest(BaseModel):
-    name: str
-    verified: bool = False
-
-
-class StartAdminConversationRequest(BaseModel):
-    user_id: str
-
-
-class SendMessageOut(BaseModel):
-    messages: list[Message]
-
-
 class MarkReadOut(BaseModel):
     unread_count: int
 
 
-def _msg(sender: str, minutes_ago: int, text: str | None = None, image_caption: str | None = None) -> Message:
-    return Message(
-        id=f"msg-{next(_message_id_counter)}",
-        sender=sender,
-        text=text,
-        image_caption=image_caption,
-        created_at=datetime.now(timezone.utc) - timedelta(minutes=minutes_ago),
-    )
+class TosStatusOut(BaseModel):
+    accepted: bool
+    accepted_at: datetime | None
 
 
-_ADMIN_WELCOME_MESSAGE = (
-    "Hello! Welcome to BosDom Wholesale Support. How can we assist you with "
-    "your business orders, disputes, or payments today?"
-)
-
-
-def _seed() -> dict[str, Conversation]:
-    conversations = [
-        Conversation(
-            id="mekong-agri-food-co",
-            name="Mekong Agri-Food Co.",
-            kind="rice",
-            verified=True,
-            online=True,
-            unread_count=2,
-            messages=[
-                _msg("them", 30, "Hello! Thank you for your interest in our products. How can I help you today?"),
-                _msg("me", 29, "Hi, I would like to inquire about your Jasmine Rice stock."),
-                _msg("them", 28, "Yes, we have Jasmine Rice available in 25kg and 50kg bags. For orders above 500kg, we offer a 5% discount."),
-                _msg("me", 27, "That sounds great! Can you send me a photo of the latest batch?"),
-                _msg("them", 25, image_caption="Jasmine Rice - Grade A Premium"),
-            ],
-        ),
-        Conversation(
-            id="phnom-penh-textiles",
-            name="Phnom Penh Textiles",
-            kind="textile",
-            verified=True,
-            online=False,
-            unread_count=1,
-            messages=[
-                _msg("them", 100, "Good morning! Thanks for reaching out about our cotton line."),
-                _msg("them", 95, "Your order of wholesale cotton shirts has been confirmed and is being packed."),
-            ],
-        ),
-        Conversation(
-            id="siem-reap-handicrafts",
-            name="Siem Reap Handicrafts",
-            kind="handicraft",
-            verified=False,
-            online=False,
-            unread_count=0,
-            messages=[
-                _msg("them", 1440, "Can you send the product catalog with bulk pricing?"),
-            ],
-        ),
-        Conversation(
-            id="battambang-rice-mill",
-            name="Battambang Rice Mill",
-            kind="grain",
-            verified=True,
-            online=False,
-            unread_count=0,
-            messages=[
-                _msg("them", 1500, "Our premium fragrant broken rice has a minimum order of 200kg."),
-            ],
-        ),
-        Conversation(
-            id="cambodia-fresh-produce",
-            name="Cambodia Fresh Produce",
-            kind="produce",
-            verified=False,
-            online=True,
-            unread_count=0,
-            messages=[
-                _msg("them", 4000, "The fresh batch of Kampot durians arrived and is ready for pickup."),
-            ],
-        ),
-        Conversation(
-            id="golden-silk-trading",
-            name="Golden Silk Trading",
-            kind="silk",
-            verified=True,
-            online=False,
-            unread_count=0,
-            messages=[
-                _msg("them", 8000, "Thank you for the invoice payment. Preparing your shipment now."),
-            ],
-        ),
-    ]
-    return {c.id: c for c in conversations}
-
-
-_conversations: dict[str, Conversation] = _seed()
-
-
-def _get_or_404(conversation_id: str) -> Conversation:
-    conversation = _conversations.get(conversation_id)
-    if conversation is None:
+def _get_conversation_or_404(db: Session, conversation_id: str, user_id: str) -> Conversation:
+    conversation = db.get(Conversation, conversation_id)
+    if conversation is None or user_id not in (conversation.buyer_id, conversation.seller_id):
         raise HTTPException(status_code=404, detail="Conversation not found")
     return conversation
 
 
-def _to_summary(conversation: Conversation) -> ConversationSummary:
-    last = conversation.messages[-1] if conversation.messages else None
-    if last is None:
-        preview = ""
-    elif last.text is not None:
-        preview = last.text
-    else:
-        preview = f"📷 {last.image_caption or 'Photo'}"
-    return ConversationSummary(
+def _counterpart_id(conversation: Conversation, user_id: str) -> str:
+    return conversation.seller_id if user_id == conversation.buyer_id else conversation.buyer_id
+
+
+def _counterpart_display(db: Session, counterpart_id: str) -> tuple[str, bool]:
+    shop = db.get(Shop, counterpart_id)
+    profile = db.get(Profile, counterpart_id)
+    name = (shop.shop_name if shop else "") or (profile.name if profile else "") or "BosDom User"
+    verified = profile.verification_status == "verified" if profile else False
+    return name, verified
+
+
+def _last_read_at(conversation: Conversation, user_id: str) -> datetime | None:
+    return (
+        conversation.buyer_last_read_at
+        if user_id == conversation.buyer_id
+        else conversation.seller_last_read_at
+    )
+
+
+def _to_summary(db: Session, conversation: Conversation, user_id: str) -> ConversationSummaryOut:
+    counterpart_id = _counterpart_id(conversation, user_id)
+    name, verified = _counterpart_display(db, counterpart_id)
+
+    last_message = (
+        db.query(Message)
+        .filter(Message.conversation_id == conversation.id)
+        .order_by(Message.created_at.desc())
+        .first()
+    )
+    last_read_at = _last_read_at(conversation, user_id)
+    unread_query = db.query(Message).filter(
+        Message.conversation_id == conversation.id,
+        Message.sender_id != user_id,
+    )
+    if last_read_at is not None:
+        unread_query = unread_query.filter(Message.created_at > last_read_at)
+    unread_count = unread_query.count()
+
+    return ConversationSummaryOut(
         id=conversation.id,
-        name=conversation.name,
-        kind=conversation.kind,
-        verified=conversation.verified,
-        online=conversation.online,
-        unread_count=conversation.unread_count,
-        last_message_preview=preview,
-        last_message_at=last.created_at if last else None,
+        counterpart_id=counterpart_id,
+        counterpart_name=name,
+        counterpart_verified=verified,
+        listing_id=conversation.listing_id,
+        unread_count=unread_count,
+        last_message_preview=last_message.text if last_message else "",
+        last_message_at=last_message.created_at if last_message else None,
     )
 
 
-def _slugify(name: str) -> str:
-    return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+@router.post("/conversations", response_model=ConversationSummaryOut)
+def start_conversation(
+    body: StartConversationRequest,
+    user: CurrentUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> ConversationSummaryOut:
+    if body.counterpart_id == user.id:
+        raise HTTPException(status_code=400, detail="Cannot start a conversation with yourself")
 
+    if body.listing_id is not None:
+        listing = db.get(Listing, body.listing_id)
+        if listing is None:
+            raise HTTPException(status_code=404, detail="Listing not found")
+        if listing.seller_id != body.counterpart_id:
+            raise HTTPException(status_code=400, detail="Listing does not belong to counterpart")
 
-@router.post("/conversations", response_model=ConversationSummary)
-def start_conversation(body: StartConversationRequest) -> ConversationSummary:
-    conversation_id = _slugify(body.name)
-    existing = _conversations.get(conversation_id)
-    if existing is not None:
-        return _to_summary(existing)
-
-    conversation = Conversation(
-        id=conversation_id,
-        name=body.name,
-        kind="store",
-        verified=body.verified,
-        online=False,
-        unread_count=0,
-        messages=[],
+    existing = (
+        db.query(Conversation)
+        .filter(
+            Conversation.buyer_id == user.id,
+            Conversation.seller_id == body.counterpart_id,
+        )
+        .first()
     )
-    _conversations[conversation_id] = conversation
-    return _to_summary(conversation)
+    if existing is None:
+        existing = Conversation(
+            buyer_id=user.id, seller_id=body.counterpart_id, listing_id=body.listing_id
+        )
+        db.add(existing)
+        db.commit()
+        db.refresh(existing)
+
+    return _to_summary(db, existing, user.id)
 
 
-def _admin_conversation_id(user_id: str) -> str:
-    return f"admin-{user_id}"
-
-
-@router.post("/admin/conversations", response_model=ConversationSummary)
-def start_admin_conversation(body: StartAdminConversationRequest) -> ConversationSummary:
-    conversation_id = _admin_conversation_id(body.user_id)
-    existing = _conversations.get(conversation_id)
-    if existing is not None:
-        return _to_summary(existing)
-
-    conversation = Conversation(
-        id=conversation_id,
-        name="BosDom Support",
-        kind="support",
-        verified=True,
-        online=True,
-        unread_count=0,
-        messages=[_msg("them", 0, _ADMIN_WELCOME_MESSAGE)],
+@router.get("/conversations", response_model=list[ConversationSummaryOut])
+def list_conversations(
+    user: CurrentUser = Depends(get_current_user), db: Session = Depends(get_db)
+) -> list[ConversationSummaryOut]:
+    conversations = (
+        db.query(Conversation)
+        .filter(or_(Conversation.buyer_id == user.id, Conversation.seller_id == user.id))
+        .all()
     )
-    _conversations[conversation_id] = conversation
-    return _to_summary(conversation)
-
-
-@router.get("/conversations", response_model=list[ConversationSummary])
-def list_conversations(user_id: str | None = None) -> list[ConversationSummary]:
-    own_admin_id = _admin_conversation_id(user_id) if user_id else None
-    visible = [
-        c
-        for c in _conversations.values()
-        if not c.id.startswith("admin-") or c.id == own_admin_id
-    ]
-    ordered = sorted(
-        visible,
-        key=lambda c: c.messages[-1].created_at if c.messages else datetime.min.replace(tzinfo=timezone.utc),
+    summaries = [_to_summary(db, c, user.id) for c in conversations]
+    summaries.sort(
+        key=lambda s: s.last_message_at or datetime.min.replace(tzinfo=timezone.utc),
         reverse=True,
     )
-    return [_to_summary(c) for c in ordered]
+    return summaries
 
 
-@router.get("/conversations/{conversation_id}", response_model=Conversation)
-def get_conversation(conversation_id: str) -> Conversation:
-    return _get_or_404(conversation_id)
+@router.get("/conversations/{conversation_id}", response_model=ConversationOut)
+def get_conversation(
+    conversation_id: str,
+    user: CurrentUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> ConversationOut:
+    conversation = _get_conversation_or_404(db, conversation_id, user.id)
+    counterpart_id = _counterpart_id(conversation, user.id)
+    name, verified = _counterpart_display(db, counterpart_id)
+    messages = (
+        db.query(Message)
+        .filter(Message.conversation_id == conversation.id)
+        .order_by(Message.created_at.asc())
+        .all()
+    )
+    return ConversationOut(
+        id=conversation.id,
+        counterpart_id=counterpart_id,
+        counterpart_name=name,
+        counterpart_verified=verified,
+        listing_id=conversation.listing_id,
+        messages=messages,
+    )
 
 
 @router.post("/conversations/{conversation_id}/read", response_model=MarkReadOut)
-def mark_read(conversation_id: str) -> MarkReadOut:
-    conversation = _get_or_404(conversation_id)
-    conversation.unread_count = 0
+def mark_read(
+    conversation_id: str,
+    user: CurrentUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> MarkReadOut:
+    conversation = _get_conversation_or_404(db, conversation_id, user.id)
+    now = datetime.now(timezone.utc)
+    if user.id == conversation.buyer_id:
+        conversation.buyer_last_read_at = now
+    else:
+        conversation.seller_last_read_at = now
+    db.commit()
     return MarkReadOut(unread_count=0)
 
 
-@router.post(
-    "/conversations/{conversation_id}/messages", response_model=SendMessageOut
-)
-def send_message(conversation_id: str, body: SendMessageRequest) -> SendMessageOut:
-    conversation = _get_or_404(conversation_id)
+@router.get("/tos/status", response_model=TosStatusOut)
+def get_tos_status(
+    user: CurrentUser = Depends(get_current_user), db: Session = Depends(get_db)
+) -> TosStatusOut:
+    profile = db.get(Profile, user.id)
+    accepted_at = profile.chat_tos_accepted_at if profile else None
+    return TosStatusOut(accepted=accepted_at is not None, accepted_at=accepted_at)
+
+
+@router.post("/tos/accept", response_model=TosStatusOut)
+def accept_tos(
+    user: CurrentUser = Depends(get_current_user), db: Session = Depends(get_db)
+) -> TosStatusOut:
+    profile = db.get(Profile, user.id)
+    if profile is None:
+        profile = Profile(id=user.id, email=user.email or "", name=user.name or "")
+        db.add(profile)
+    profile.chat_tos_accepted_at = datetime.now(timezone.utc)
+    db.commit()
+    return TosStatusOut(accepted=True, accepted_at=profile.chat_tos_accepted_at)
+
+
+def _flag_sender(db: Session, profile: Profile) -> None:
+    profile.chat_flag_count += 1
+    if profile.chat_flag_count >= FLAG_RESTRICTION_THRESHOLD:
+        profile.chat_restricted_until = datetime.now(timezone.utc) + FLAG_RESTRICTION_DURATION
+        profile.chat_flag_count = 0
+
+
+@router.post("/conversations/{conversation_id}/messages", response_model=MessageOut)
+def send_message(
+    conversation_id: str,
+    body: SendMessageRequest,
+    user: CurrentUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> Message:
+    conversation = _get_conversation_or_404(db, conversation_id, user.id)
     text = body.text.strip()
     if not text:
         raise HTTPException(status_code=422, detail="Message text is required")
 
-    mine = Message(
-        id=f"msg-{next(_message_id_counter)}",
-        sender="me",
-        text=text,
-        created_at=datetime.now(timezone.utc),
-    )
-    conversation.messages.append(mine)
+    profile = db.get(Profile, user.id)
+    if profile is None or profile.chat_tos_accepted_at is None:
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "tos_not_accepted", "message": "Accept the chat & trading policy first"},
+        )
 
-    reply_text = (
-        _SUPPORT_AUTO_REPLY if conversation.kind == "support" else _AUTO_REPLY
-    )
-    reply = Message(
-        id=f"msg-{next(_message_id_counter)}",
-        sender="them",
-        text=reply_text,
-        created_at=datetime.now(timezone.utc),
-    )
-    conversation.messages.append(reply)
+    restricted_until = profile.chat_restricted_until
+    if restricted_until is not None:
+        if restricted_until.tzinfo is None:
+            restricted_until = restricted_until.replace(tzinfo=timezone.utc)
+        if datetime.now(timezone.utc) < restricted_until:
+            raise HTTPException(
+                status_code=403,
+                detail={
+                    "code": "chat_restricted",
+                    "message": "You're temporarily restricted from sending messages due to repeated off-platform contact attempts",
+                    "restricted_until": restricted_until.isoformat(),
+                },
+            )
+        profile.chat_restricted_until = None
 
+    flagged = detects_off_platform_attempt(text)
+    message = Message(
+        conversation_id=conversation.id, sender_id=user.id, text=text, flagged=flagged
+    )
+    db.add(message)
+    if flagged:
+        _flag_sender(db, profile)
+    db.commit()
+    db.refresh(message)
+
+    sender_name, _ = _counterpart_display(db, user.id)
     push_notification(
         category="chat",
-        title=f"New message from {conversation.name}",
-        body=reply_text,
-        target=(
-            NotificationTarget(route="liveChat", params={})
-            if conversation.kind == "support"
-            else NotificationTarget(route="chatDetail", params={"id": conversation.id})
-        ),
+        title=f"New message from {sender_name}",
+        body=text,
+        target=NotificationTarget(route="chatDetail", params={"id": conversation.id}),
     )
 
-    return SendMessageOut(messages=[mine, reply])
+    return message

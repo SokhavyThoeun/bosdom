@@ -17,6 +17,13 @@ class Profile(Base):
     role: Mapped[str] = mapped_column(String, default="")
     avatar_url: Mapped[str] = mapped_column(String, default="")
     verification_status: Mapped[str] = mapped_column(String, default="unverified")
+    chat_tos_accepted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    chat_flag_count: Mapped[int] = mapped_column(Integer, default=0)
+    chat_restricted_until: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
@@ -103,6 +110,41 @@ class SampleOrder(Base):
     product_name: Mapped[str] = mapped_column(String)
     price: Mapped[float] = mapped_column(Float)
     status: Mapped[str] = mapped_column(String, default="processing")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+
+
+class Conversation(Base):
+    __tablename__ = "conversations"
+
+    id: Mapped[str] = mapped_column(
+        String, primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    buyer_id: Mapped[str] = mapped_column(String, index=True)
+    seller_id: Mapped[str] = mapped_column(String, index=True)
+    listing_id: Mapped[str | None] = mapped_column(String, nullable=True)
+    buyer_last_read_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    seller_last_read_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+
+
+class Message(Base):
+    __tablename__ = "messages"
+
+    id: Mapped[str] = mapped_column(
+        String, primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    conversation_id: Mapped[str] = mapped_column(String, index=True)
+    sender_id: Mapped[str] = mapped_column(String, index=True)
+    text: Mapped[str] = mapped_column(String)
+    flagged: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )

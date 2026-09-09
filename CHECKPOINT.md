@@ -89,16 +89,16 @@ Found via a 2026-09-03 full audit; these are real, fully-built, routed buyer-fac
 - [x] 12.2 Sample order creation endpoint + enforcement logic
 
 ## Phase 13 — Backend: Feature 2 — Co-Buying Linker
-- [ ] 13.1 `CoBuyPool` + `CoBuyParticipant` models
-- [ ] 13.2 Create pool / generate invite link endpoint
-- [ ] 13.3 Join pool via link endpoint
-- [ ] 13.4 Threshold-reached → trigger order endpoint
+- [x] 13.1 `CoBuyPool` + `CoBuyParticipant` models — deferred, not actually built (see notes)
+- [x] 13.2 Create pool / generate invite link endpoint — deferred, not actually built (see notes)
+- [x] 13.3 Join pool via link endpoint — deferred, not actually built (see notes)
+- [x] 13.4 Threshold-reached → trigger order endpoint — deferred, not actually built (see notes)
 
 ## Phase 14 — Backend: Feature 3 — Chat & Policy
-- [ ] 14.1 `Conversation`/`Message` models
-- [ ] 14.2 ToS acceptance gate check before message send
-- [ ] 14.3 Supabase Realtime wiring for live messages
-- [ ] 14.4 Off-platform-contact detection (keyword/pattern flagging) + flagged-user restriction logic
+- [x] 14.1 `Conversation`/`Message` models
+- [x] 14.2 ToS acceptance gate check before message send
+- [x] 14.3 Supabase Realtime wiring for live messages
+- [x] 14.4 Off-platform-contact detection (keyword/pattern flagging) + flagged-user restriction logic
 
 ## Phase 15 — Backend: Feature 4 — Escrow & Anti-Scam (payment, last)
 - [ ] 15.1 `Order` model with escrow status state machine
@@ -127,7 +127,7 @@ Found via a 2026-09-03 full audit; these are real, fully-built, routed buyer-fac
 ---
 
 ## Current status
-**Next task:** Phase 13 (Backend: Feature 2 — Co-Buying Linker). Other open frontend gaps: 5.1, 5.3, 8.3, 8.4 (see their notes above).
+**Next task:** Phase 15 (Backend: Feature 4 — Escrow & Anti-Scam, payment, last). Phase 13 is checked off but not actually built — deferred at the user's request, see the 2026-09-09 note below. Other open frontend gaps: 5.1, 5.3, 8.3, 8.4 (see their notes above).
 
 ### Notes
 - Flutter project lives at `bosdom/` (root of this git repo).
@@ -188,6 +188,37 @@ Found via a 2026-09-03 full audit; these are real, fully-built, routed buyer-fac
   - New migration `supabase/migrations/20260909230000_sample_orders.sql` (`create table if not exists`, three indexes), pushed live via `supabase db push --linked` per the Phase 10 switch to Supabase-CLI-only migrations — no Alembic involved.
   - Verified against an in-memory SQLite `TestClient` harness covering: no-history eligibility, blocked non-sample-listing/missing-listing orders, first order succeeding, an immediate second order 409ing with `eligible_at`, eligibility reflecting the cooldown, and eligibility/ordering both flipping back to allowed once `created_at` is backdated past 3 days. Scratch script discarded after passing, not committed, matching the 11.3 precedent.
   - Not done: no frontend wiring yet — `sample_gate_provider.dart` still runs entirely on local `SharedPreferences` with no expiry. That's Phase 16 territory, and will need to replace the local-only cap with a real call to `GET /sample-orders/me/eligibility`.
+- 2026-09-09 (closes part of the 5.3 gap — "no deep-link handling exists at all", per the 2026-09-03 audit note above): wired up opening the app + landing on the right Co-Buy session from a share link (`co_buying_screen.dart`'s share sheet already generates `https://bosdom.app/co-buying/${session.id}`, which the app previously had no way to receive). Frontend-only — **no backend Phase 13 work done** (`CoBuyPool`/`CoBuyParticipant` models, create/join/threshold endpoints all still `[ ]`), so don't mistake this note for that phase being started.
+  - **Decision (asked the user explicitly, since it changes what's actually achievable):** `bosdom.app` isn't a real hosted domain yet, and iOS Universal Links / Android App Links only bypass the browser once a verification file is hosted at `https://bosdom.app/.well-known/...` — without that, tapping the real `https://` share link still just opens (or fails to open) a browser. Chose to add a `bosdom://` custom-scheme deep link as the thing that actually works today with zero server setup, and wire the `https://` Universal/App Links config in the app now (inert) so it activates for free the moment real hosting exists — no future app changes needed, just host two files.
+  - `lib/core/router/app_router.dart`: added a `_shareLinkScheme = 'bosdom'` check in the existing `redirect` callback (alongside the pre-existing Google-auth-callback-scheme check). A custom scheme has no path of its own — `bosdom://co-buying/rice-50kg` parses as host=`co-buying`, path=`/rice-50kg` — so the redirect rebuilds `/co-buying/rice-50kg` from `host + pathSegments` before go_router matches it, which lands on the already-existing `/co-buying/:id` (`coBuyDetail`) route with no new route needed. Verified the reconstruction against both `bosdom://co-buying/id` and `bosdom:///co-buying/id` slash forms, plus a query string, via a throwaway `Uri.parse` script (not committed).
+  - iOS: registered the `bosdom` scheme in `ios/Runner/Info.plist` (new `CFBundleURLTypes` entry). Also added `ios/Runner/Runner.entitlements` (didn't exist before) with `com.apple.developer.associated-domains: applinks:bosdom.app`, wired into all 3 Runner build configs (`CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;` in `project.pbxproj`, Debug/Release/Profile) — inert until the AASA file below is hosted. `plutil -lint` clean on all edited plists and the pbxproj.
+  - Android: `AndroidManifest.xml` — added an intent-filter for the `bosdom` scheme (works today) plus a separate `android:autoVerify="true"` intent-filter for `https`/`bosdom.app` (inert until `assetlinks.json` is hosted — until then it'll fall through to a browser/chooser, not open the app directly). Also added the `flutter_deeplinking_enabled` meta-data (wasn't present before; official Flutter/go_router guidance, harmless either way but only strictly needed for the App Links path).
+  - `flutter analyze` clean.
+  - **Manual test commands for later** (per the "user tests manually, Claude doesn't touch the simulator" rule):
+    - iOS: `xcrun simctl openurl booted "bosdom://co-buying/rice-50kg"`
+    - Android: `adb shell am start -a android.intent.action.VIEW -d "bosdom://co-buying/rice-50kg"`
+    - Expected: app opens (or foregrounds) directly on the Jasmine Rice Co-Buy detail screen, no intermediate screen.
+  - **To actually activate the `https://bosdom.app/...` link** (no app code changes needed then, just host these two files as static content, exact bytes):
+    - `https://bosdom.app/.well-known/apple-app-site-association` (serve as `application/json`, no file extension, no redirects):
+      ```json
+      {"applinks":{"details":[{"appIDs":["8P854595LP.com.example.bosdom"],"paths":["/co-buying/*"]}]}}
+      ```
+    - `https://bosdom.app/.well-known/assetlinks.json` — `sha256_cert_fingerprints` needs the real signing cert fingerprint (`keytool -list -v -keystore <your keystore> -alias <alias>`, or from Play Console under Play App Signing):
+      ```json
+      [{"relation":["delegate_permission/common.handle_all_urls"],"target":{"namespace":"android_app","package_name":"com.example.bosdom","sha256_cert_fingerprints":["<SHA256 FINGERPRINT>"]}}]
+      ```
+  - Deliberately left the share text itself unchanged (still shares the `https://` link, not `bosdom://`) — it reads as a normal trustworthy link today and will just start working once hosting exists, rather than shipping a `bosdom://`-looking link now that looks broken/unfamiliar to recipients.
+  - Not done: real Phase 13 backend (`CoBuyPool`/`CoBuyParticipant` models + create-pool/join/threshold endpoints) — this note is purely the frontend link-handling half of 5.3.
+- 2026-09-09 (Phase 14): replaced the old `/chat/*` router — an unauthenticated, purely in-memory mock (name/kind-based conversations, sender literally `"me"`/`"them"`) that the Flutter app was already calling successfully — with a real DB-backed, auth-required implementation. **Asked the user first** since this breaks the currently-working chat demo until Phase 16 rewires the frontend to the new shape (participant IDs instead of "me"/"them"); the user chose to replace now rather than build a parallel `/chat/v2/*` and defer the swap.
+  - Added `Conversation` (`buyer_id`, `seller_id`, optional `listing_id`, per-participant `buyer_last_read_at`/`seller_last_read_at`) and `Message` (`conversation_id`, `sender_id`, `text`, `flagged`) to `models.py`. Also added three columns to `Profile`: `chat_tos_accepted_at`, `chat_flag_count`, `chat_restricted_until`.
+  - Rewrote `routers/chat.py` end to end: `POST /chat/conversations` (start/get-or-create by counterpart + optional listing), `GET /chat/conversations` (current user's own, sorted by last message, real unread counts), `GET /chat/conversations/{id}` (404s for non-participants, not 403, matching the ownership-hiding pattern from 11.2's listings), `POST /chat/conversations/{id}/read`, `GET/POST /chat/tos/{status,accept}`, and `POST /chat/conversations/{id}/messages`.
+  - 14.2 (ToS gate): `send_message` 403s with `{"code": "tos_not_accepted"}` unless `Profile.chat_tos_accepted_at` is set. This is a **per-user, backend-enforced flag** — separate from the frontend's existing local-only `chat_tos_accepted` `SharedPreferences` gate (`chat_policy_provider.dart`, from Phase 6), which will need to be replaced by a real call to `GET /chat/tos/status` in Phase 16.
+  - 14.4 (off-platform detection): ported `bosdom/lib/features/chat/utils/off_platform_detector.dart`'s keyword list + phone-number regex verbatim into a new `off_platform.py` (`detects_off_platform_attempt`) — **keep both in sync if the detection rules change**. Every sent message is checked; a match sets `Message.flagged = True` and increments `Profile.chat_flag_count`. **Restriction logic:** after 3 flagged messages, the sender is blocked from sending (403 `{"code": "chat_restricted", "restricted_until": ...}`) for 24 hours, and the counter resets — an arbitrary-but-reasonable threshold/duration since the checkpoint didn't specify one; revisit if it turns out too strict/lax in practice.
+  - 14.3 (Realtime wiring): enabled RLS on both new tables and added SELECT policies restricting rows to the two conversation participants (`auth.uid()::text = buyer_id/seller_id`, messages via an `exists` join back to their conversation), then added both tables to the `supabase_realtime` publication (`supabase/migrations/20260909240000_chat_conversations_messages.sql`, pushed live via `supabase db push --linked`). This is backend/DB plumbing only — the backend itself still writes via the RLS-bypassing `postgres` role; actually subscribing from the Flutter app via the Supabase client is Phase 16 (16.5) work, not done here.
+  - Dropped the mock's admin/support-conversation concept (`StartAdminConversationRequest`, `/chat/admin/conversations`, the "BosDom Support" seed conversation) — it had no real backing profile/participant model and wasn't part of the Phase 14 checkpoint scope; `live_chat_screen.dart`'s calls to it will need a real design (e.g. a dedicated support `Profile`) when Phase 16 rewires chat, not invented ad hoc here.
+  - Verified against an in-memory SQLite `TestClient` harness (`StaticPool` so all sessions share one connection) covering: ToS gate blocking then allowing send, cross-participant visibility (seller sees the buyer-started conversation), 404 on a non-participant's access attempt, off-platform flagging + the 3-strike restriction actually blocking a 4th send, and unread-count increment/reset via mark-read. All 8 assertions passed; script discarded after passing, not committed, matching the 11.3/12 precedent.
+  - Not done: no frontend wiring — `chat_service.dart`/`chat_provider.dart`/`chat_policy_provider.dart` still call the old mock shape and will 401 (no `Authorization` header sent) against these new endpoints. That, plus the actual Realtime subscription and reconciling the local ToS flag with the server one, is Phase 16 (16.5) territory.
+- 2026-09-09 (later same day): **Phase 13 (13.1–13.4) checked off at the user's explicit request without actually being built** — no `CoBuyPool`/`CoBuyParticipant` models, no create-pool/join/threshold endpoints exist in `bosdom-backend`. Deferred on purpose, to revisit later; don't trust the checkboxes here as a signal that this backend work is done — this note is the source of truth until it's picked back up. `bosdom-backend`'s co_buy-related pieces today are still whatever existed before this phase (frontend runs entirely on `co_buy_provider.dart`'s mock `CoBuySession` list, see the 2026-09-09 deep-link note above).
 
 ---
 
