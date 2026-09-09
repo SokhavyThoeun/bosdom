@@ -162,6 +162,44 @@ class Order(Base):
     )
 
 
+class Dispute(Base):
+    __tablename__ = "disputes"
+
+    id: Mapped[str] = mapped_column(
+        String, primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    order_id: Mapped[str] = mapped_column(String, index=True)
+    raised_by: Mapped[str] = mapped_column(String, index=True)
+    reason: Mapped[str] = mapped_column(String)
+    note: Mapped[str] = mapped_column(String, default="")
+    # evidence_window -> under_review (video submitted, awaiting resolution).
+    # Actually resolving a dispute (release vs refund) is Phase 15.5 — no
+    # endpoint here can move a dispute past under_review yet.
+    status: Mapped[str] = mapped_column(String, default="evidence_window")
+    evidence_deadline: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+
+class DisputeEvidence(Base):
+    __tablename__ = "dispute_evidence"
+
+    id: Mapped[str] = mapped_column(
+        String, primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    dispute_id: Mapped[str] = mapped_column(String, index=True)
+    file_url: Mapped[str] = mapped_column(String)
+    uploaded_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+
+
 class Conversation(Base):
     __tablename__ = "conversations"
 

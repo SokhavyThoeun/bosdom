@@ -104,7 +104,7 @@ Found via a 2026-09-03 full audit; these are real, fully-built, routed buyer-fac
 - [x] 15.1 `Order` model with escrow status state machine
 - [x] 15.2 Payment gateway integration (Bakong/Stripe) — hold funds in escrow — reinterpreted as a **mock** gateway (no real Stripe/Bakong call), see notes
 - [x] 15.3 QR generation + QR scan confirm-delivery endpoint
-- [ ] 15.4 Dispute model + video evidence upload endpoint (Supabase Storage) with time-window enforcement
+- [x] 15.4 Dispute model + video evidence upload endpoint (Supabase Storage) with time-window enforcement — local-disk storage, not Supabase Storage, same reasoning as 10.4 (see notes)
 - [ ] 15.5 Refund release logic
 
 ---
@@ -127,7 +127,7 @@ Found via a 2026-09-03 full audit; these are real, fully-built, routed buyer-fac
 ---
 
 ## Current status
-**Next task:** Phase 15.4 (Dispute model + video evidence upload endpoint with time-window enforcement), continuing Phase 15 (Backend: Feature 4 — Escrow & Anti-Scam, payment, last). 15.1/15.2/15.3 are done. Phase 13 is checked off but not actually built — deferred at the user's request, see the 2026-09-09 note below. Other open frontend gaps: 5.1, 5.3, 8.3, 8.4 (see their notes above).
+**Next task:** Phase 15.5 (Refund release logic), the last item in Phase 15 (Backend: Feature 4 — Escrow & Anti-Scam, payment, last). 15.1/15.2/15.3/15.4 are done. Phase 13 is checked off but not actually built — deferred at the user's request, see the 2026-09-09 note below. Other open frontend gaps: 5.1, 5.3, 8.3, 8.4 (see their notes above).
 
 ### Notes
 - Flutter project lives at `bosdom/` (root of this git repo).
@@ -233,6 +233,14 @@ Found via a 2026-09-03 full audit; these are real, fully-built, routed buyer-fac
   - New migration `supabase/migrations/20260909260000_order_delivery_confirmation_code.sql` (`alter table ... add column if not exists`), pushed live via `supabase db push --linked`.
   - Verified against an in-memory SQLite `TestClient` harness (`StaticPool`) covering: QR/confirm both 409ing before payment, a participant (including the seller, not just the buyer) fetching the QR successfully once `held`, a non-participant 404ing, the seller being blocked from confirming (403, buyer-only), a wrong code 400ing, the right code (lowercased, proving case-insensitivity) releasing the order, and both QR and confirm 409ing again once already `released`. All 11 assertions passed; script discarded after passing, not committed, matching the 11.3/12/14/15.1 precedent.
   - Not done: no frontend wiring — nothing in the Flutter app calls `GET /orders/{id}/qr` or scans a code yet (no QR-scanning package in `pubspec.yaml` either, same gap 8.3 already flagged on the frontend side). That's Phase 16 (16.7) territory.
+- 2026-09-09 (Phase 15.4): added a `Dispute` model + video-evidence upload flow to `bosdom-backend`, wired to the `held -> disputed` transition already reserved (but unreachable) in 15.1's state machine. Resolving a dispute (release vs. refund) is explicitly left to 15.5, not built here.
+  - `Dispute` (`disputes` table): `order_id`/`raised_by`, `reason`/`note`, `status` (`evidence_window` -> `under_review`), `evidence_deadline`. `DisputeEvidence` (`dispute_evidence` table): `dispute_id`, `file_url`, `uploaded_at` — a dispute can carry multiple evidence files, not just one.
+  - New `routers/disputes.py`: `POST /orders/{id}/dispute` (buyer-only; 409s if a dispute already exists for the order; drives `held -> disputed` via `orders.py`'s existing `_transition`, so it's a 409 — not a new check — if the order isn't `held`), `GET /orders/{id}/dispute`, `GET/POST /disputes/{id}/evidence`. Imports `_transition`/`_get_participant_order`/`STATUS_DISPUTED` straight from `routers/orders.py` rather than duplicating them.
+  - **Time-window enforcement**: opening a dispute sets `evidence_deadline = now + 48h` (an arbitrary-but-reasonable duration — the checkpoint didn't specify one, same call as 12.1's 3-day sample cooldown and 14.4's 24h chat restriction). `POST .../evidence` 409s once that deadline passes; a successful upload flips the dispute to `under_review`. Nothing auto-resolves an expired, evidence-less dispute — that's 15.5's job.
+  - **Storage: local disk, not Supabase Storage**, under `media/dispute_evidence/` — same reasoning as 10.4's KYC docs (Storage isn't wired up anywhere in this backend yet, per the 9.2/10.4 notes). Accepts `video/mp4`, `video/quicktime`, `video/webm` only (400s otherwise) — the checkpoint literally says "video evidence," so photo evidence was deliberately not allowed here.
+  - New migration `supabase/migrations/20260909270000_disputes.sql` (`create table if not exists`, indexes on `order_id`/`raised_by`/`dispute_id`), pushed live via `supabase db push --linked`.
+  - Verified against an in-memory SQLite `TestClient` harness (`StaticPool`) covering: dispute-before-`held` 409, buyer-only enforcement on opening (403 for the seller), successful open + order status flipping to `disputed`, duplicate-dispute 409, non-participant 404 on both the order-dispute lookup and the evidence list, the seller (as the *other* participant, not just the buyer) being able to view the dispute, an unsupported file type 400ing, only the dispute's raiser being able to upload (403 for the seller), a successful upload flipping status to `under_review`, and upload-after-deadline 409ing. All 16 assertions passed; script discarded after passing (media file it wrote — gitignored under `media/**` — cleaned up too), not committed, matching the 11.3/12/14/15.1/15.3 precedent.
+  - Not done: no frontend wiring — the frontend's dispute UI is still just `report_order_sheet.dart`'s text-only report sheet (this backend's pre-existing `OrderReport`/`.../report` endpoint, untouched here). Building an actual video-upload + countdown UI is frontend item 8.4, and wiring either to this backend is Phase 16 (16.7) territory.
 - 2026-09-09 (later same day): **Phase 13 (13.1–13.4) checked off at the user's explicit request without actually being built** — no `CoBuyPool`/`CoBuyParticipant` models, no create-pool/join/threshold endpoints exist in `bosdom-backend`. Deferred on purpose, to revisit later; don't trust the checkboxes here as a signal that this backend work is done — this note is the source of truth until it's picked back up. `bosdom-backend`'s co_buy-related pieces today are still whatever existed before this phase (frontend runs entirely on `co_buy_provider.dart`'s mock `CoBuySession` list, see the 2026-09-09 deep-link note above).
 
 ---

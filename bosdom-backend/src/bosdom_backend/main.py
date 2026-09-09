@@ -8,6 +8,7 @@ from .routers import (
     ads_consent,
     chat,
     co_buy,
+    disputes,
     listings,
     marketing_consent,
     notifications,
@@ -30,6 +31,7 @@ app.add_middleware(
 
 app.include_router(receipts.router)
 app.include_router(orders.router)
+app.include_router(disputes.router)
 app.include_router(co_buy.router)
 app.include_router(wishlist.router)
 app.include_router(chat.router)
