@@ -28,6 +28,7 @@ class Product {
     this.colorOptions = const [],
     this.photoUrl,
     this.sellerLogoOverride,
+    this.sellerId,
   });
 
   /// Backend listing id for real products, or a stringified index into
@@ -72,6 +73,10 @@ class Product {
   /// Real shop logo URL for a backend-sourced listing's seller. `null` for
   /// mock products, which fall back to [sellerLogoUrl]'s generated mock logo.
   final String? sellerLogoOverride;
+
+  /// Real backend user id of the seller, for starting a chat conversation.
+  /// `null` for mock products, which have no real counterpart to message.
+  final String? sellerId;
 
   bool get hasVariants => sizes.isNotEmpty || colorOptions.isNotEmpty;
 

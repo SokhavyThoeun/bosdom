@@ -21,7 +21,7 @@ class MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMe = message.sender == MessageSender.me;
+    final isMe = message.isMine;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -34,7 +34,7 @@ class MessageBubble extends StatelessWidget {
             constraints: BoxConstraints(
               maxWidth: MediaQuery.of(context).size.width * 0.72,
             ),
-            child: (message.imageIcon != null || message.imageFile != null)
+            child: message.imageFile != null
                 ? ImageBubble(
                     message: message,
                     isMe: isMe,
@@ -86,7 +86,9 @@ class MessageBubble extends StatelessWidget {
           ],
           const SizedBox(height: 4),
           Text(
-            message.time,
+            message.sending
+                ? AppLocalizations.of(context).chatMessageSending
+                : message.time,
             style: textTheme.labelSmall?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
@@ -224,20 +226,8 @@ class ImageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final thumbnail = SizedBox(
-      height: 160,
-      width: double.infinity,
-      child: message.imageFile != null
-          ? Image.file(message.imageFile!, fit: BoxFit.cover)
-          : Container(
-              color: AppColors.blushSurface,
-              child: Icon(
-                message.imageIcon,
-                size: 48,
-                color: colorScheme.primary,
-              ),
-            ),
-    );
+    final file = message.imageFile;
+    if (file == null) return const SizedBox.shrink();
 
     return ClipRRect(
       borderRadius: BorderRadius.only(
@@ -257,26 +247,13 @@ class ImageBubble extends StatelessWidget {
             ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            message.imageFile != null
-                ? InkWell(
-                    onTap: () => _openImageViewer(context, message.imageFile!),
-                    child: thumbnail,
-                  )
-                : thumbnail,
-            if (message.imageCaption != null)
-              Padding(
-                padding: const EdgeInsets.all(10),
-                child: Text(
-                  message.imageCaption!,
-                  style: textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-          ],
+        child: InkWell(
+          onTap: () => _openImageViewer(context, file),
+          child: SizedBox(
+            height: 160,
+            width: double.infinity,
+            child: Image.file(file, fit: BoxFit.cover),
+          ),
         ),
       ),
     );

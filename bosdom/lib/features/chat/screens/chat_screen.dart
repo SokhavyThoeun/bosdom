@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../models/conversation.dart';
 import '../providers/chat_provider.dart';
@@ -65,7 +64,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   final filtered = query.isEmpty
                       ? conversations
                       : conversations
-                            .where((c) => c.name.toLowerCase().contains(query))
+                            .where(
+                              (c) =>
+                                  c.counterpartName.toLowerCase().contains(query),
+                            )
                             .toList();
 
                   return RefreshIndicator(
@@ -288,47 +290,16 @@ class _ConversationTile extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Stack(
-                children: [
-                  if (conversation.kind == 'support')
-                    CircleAvatar(
-                      radius: 26,
-                      backgroundColor: colorScheme.primary,
-                      child: Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Image.asset(
-                          'assets/images/bosdom-logo-white.png',
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                    )
-                  else
-                    CircleAvatar(
-                      radius: 26,
-                      backgroundColor: conversation.avatarColor.withValues(
-                        alpha: 0.18,
-                      ),
-                      child: Icon(
-                        conversation.avatarIcon,
-                        color: conversation.avatarColor,
-                        size: 24,
-                      ),
-                    ),
-                  if (conversation.online)
-                    Positioned(
-                      right: 0,
-                      bottom: 0,
-                      child: Container(
-                        width: 12,
-                        height: 12,
-                        decoration: BoxDecoration(
-                          color: AppColors.trustGreen,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
-                        ),
-                      ),
-                    ),
-                ],
+              CircleAvatar(
+                radius: 26,
+                backgroundColor: conversation.avatarColor.withValues(
+                  alpha: 0.18,
+                ),
+                child: Icon(
+                  conversation.avatarIcon,
+                  color: conversation.avatarColor,
+                  size: 24,
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -339,7 +310,7 @@ class _ConversationTile extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            conversation.name,
+                            conversation.counterpartName,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: textTheme.bodyMedium?.copyWith(

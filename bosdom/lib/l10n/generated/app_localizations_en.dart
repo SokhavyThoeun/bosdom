@@ -747,10 +747,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatDetailLoadError => 'Couldn\'t load this conversation';
 
   @override
-  String get chatStatusOnline => 'Online';
+  String get chatMessageSending => 'Sending...';
 
   @override
-  String get chatStatusOffline => 'Offline';
+  String get chatSendError => 'Couldn\'t send message. Try again.';
+
+  @override
+  String get chatStartConversationError =>
+      'Couldn\'t start the conversation. Try again.';
+
+  @override
+  String chatRestrictedError(String until) {
+    return 'You\'re temporarily restricted from sending messages until $until.';
+  }
 
   @override
   String get chatPolicySecurePayTitle => 'Pay only through Bosdom Secure Pay';

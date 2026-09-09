@@ -48,6 +48,7 @@ Product _productFromJson(Map<String, dynamic> json) {
         ? ApiConfig.resolveAvatarUrl(photoUrls.first)
         : null,
     sellerLogoOverride: ApiConfig.resolveAvatarUrl(json['seller_logo_url'] as String?),
+    sellerId: json['seller_id'] as String,
     verified: json['seller_verified'] as bool,
     location: (json['seller_location'] as String).isNotEmpty
         ? json['seller_location'] as String

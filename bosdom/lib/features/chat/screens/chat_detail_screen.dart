@@ -4,11 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../models/conversation.dart';
+import '../providers/chat_policy_provider.dart';
 import '../providers/chat_provider.dart';
+import '../services/chat_service.dart';
 import '../utils/off_platform_detector.dart';
 import '../widgets/chat_widgets.dart';
 
@@ -54,12 +57,43 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
     super.dispose();
   }
 
-  void _send() {
+  Future<void> _send() async {
     final text = _messageController.text;
     if (text.trim().isEmpty) return;
-    ref.read(chatProvider.notifier).sendMessage(widget.conversationId, text);
+    final l10n = AppLocalizations.of(context);
     _messageController.clear();
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+
+    try {
+      await ref
+          .read(chatProvider.notifier)
+          .sendMessage(widget.conversationId, text);
+    } on ChatRestrictedException catch (e) {
+      if (!mounted) return;
+      _messageController.text = text;
+      final until = e.restrictedUntil;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            until != null
+                ? l10n.chatRestrictedError(
+                    DateFormat.yMMMd().add_jm().format(until.toLocal()),
+                  )
+                : e.message,
+          ),
+        ),
+      );
+    } on ChatTosNotAcceptedException {
+      if (!mounted) return;
+      _messageController.text = text;
+      ref.invalidate(chatPolicyProvider);
+    } catch (_) {
+      if (!mounted) return;
+      _messageController.text = text;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.chatSendError)));
+    }
   }
 
   Future<void> _attachPhoto() async {
@@ -119,7 +153,6 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
     final textTheme = Theme.of(context).textTheme;
     final conversationsAsync = ref.watch(chatProvider);
     final conversations = conversationsAsync.value;
-    final isTyping = ref.watch(chatTypingProvider(widget.conversationId));
     Conversation? conversation;
     for (final c in conversations ?? const <Conversation>[]) {
       if (c.id == widget.conversationId) {
@@ -149,6 +182,13 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+    if (loadedConversation.unreadCount > 0) {
+      // A live message arrived via Realtime while this thread is already
+      // open — re-mark it read instead of leaving the badge stuck.
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => ref.read(chatProvider.notifier).markRead(widget.conversationId),
+      );
+    }
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -176,13 +216,8 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                     child: ListView.builder(
                       controller: _scrollController,
                       padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-                      itemCount:
-                          loadedConversation.messages.length +
-                          (isTyping ? 1 : 0),
+                      itemCount: loadedConversation.messages.length,
                       itemBuilder: (context, index) {
-                        if (index == loadedConversation.messages.length) {
-                          return const TypingBubble();
-                        }
                         final message = loadedConversation.messages[index];
                         return MessageBubble(
                           message: message,
@@ -209,7 +244,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
   }
 }
 
-const _kHeaderContentHeight = 96.0;
+const _kHeaderContentHeight = 78.0;
 
 class _Header extends StatelessWidget {
   const _Header({
@@ -224,8 +259,6 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-
     return DecoratedBox(
       decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
@@ -261,48 +294,27 @@ class _Header extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Stack(
-                      children: [
-                        CircleAvatar(
-                          radius: 24,
-                          backgroundColor: Colors.white,
-                          child: Icon(
-                            conversation.avatarIcon,
-                            color: conversation.avatarColor,
-                            size: 22,
-                          ),
-                        ),
-                        if (conversation.online)
-                          Positioned(
-                            right: 0,
-                            bottom: 0,
-                            child: Container(
-                              width: 12,
-                              height: 12,
-                              decoration: BoxDecoration(
-                                color: AppColors.trustGreen,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: colorScheme.primary,
-                                  width: 2,
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor: Colors.white,
+                      child: Icon(
+                        conversation.avatarIcon,
+                        color: conversation.avatarColor,
+                        size: 22,
+                      ),
                     ),
                     const SizedBox(height: 6),
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          conversation.name,
+                          conversation.counterpartName,
                           style: textTheme.titleMedium?.copyWith(
                             color: colorScheme.onPrimary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        if (conversation.verified) ...[
+                        if (conversation.counterpartVerified) ...[
                           const SizedBox(width: 6),
                           Container(
                             width: 16,
@@ -318,33 +330,6 @@ class _Header extends StatelessWidget {
                             ),
                           ),
                         ],
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 7,
-                          height: 7,
-                          decoration: BoxDecoration(
-                            color: conversation.online
-                                ? AppColors.trustGreen
-                                : colorScheme.onPrimary.withValues(alpha: 0.5),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 5),
-                        Text(
-                          conversation.online
-                              ? l10n.chatStatusOnline
-                              : l10n.chatStatusOffline,
-                          style: textTheme.labelSmall?.copyWith(
-                            color: colorScheme.onPrimary.withValues(
-                              alpha: 0.85,
-                            ),
-                          ),
-                        ),
                       ],
                     ),
                   ],

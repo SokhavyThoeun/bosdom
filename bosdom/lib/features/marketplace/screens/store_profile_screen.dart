@@ -137,6 +137,9 @@ class _StoreProfileBodyState extends State<_StoreProfileBody>
                         ),
                         _AboutTab(
                           seller: seller,
+                          sellerId: products.isEmpty
+                              ? null
+                              : products.first.sellerId,
                           colorScheme: colorScheme,
                           textTheme: textTheme,
                         ),
@@ -535,11 +538,16 @@ class _ProductsTab extends StatelessWidget {
 class _AboutTab extends ConsumerWidget {
   const _AboutTab({
     required this.seller,
+    required this.sellerId,
     required this.colorScheme,
     required this.textTheme,
   });
 
   final Seller seller;
+
+  /// Real backend user id of the seller, if any of their listings loaded —
+  /// `null` means there's no real counterpart to start a chat with.
+  final String? sellerId;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
 
@@ -751,23 +759,29 @@ class _AboutTab extends ConsumerWidget {
             ),
           ),
         ],
-        const SizedBox(height: 16),
-        FilledButton(
-          onPressed: () async {
-            final conversation = await ref
-                .read(chatProvider.notifier)
-                .startConversation(
-                  name: seller.name,
-                  verified: seller.verified,
+        if (sellerId != null) ...[
+          const SizedBox(height: 16),
+          FilledButton(
+            onPressed: () async {
+              try {
+                final conversation = await ref
+                    .read(chatProvider.notifier)
+                    .startConversation(counterpartId: sellerId!);
+                if (!context.mounted) return;
+                context.pushNamed(
+                  'chatDetail',
+                  pathParameters: {'id': conversation.id},
                 );
-            if (!context.mounted) return;
-            context.pushNamed(
-              'chatDetail',
-              pathParameters: {'id': conversation.id},
-            );
-          },
-          child: Text(l10n.storeProfileContactSupplierButton),
-        ),
+              } catch (_) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(l10n.chatStartConversationError)),
+                );
+              }
+            },
+            child: Text(l10n.storeProfileContactSupplierButton),
+          ),
+        ],
       ],
     );
   }

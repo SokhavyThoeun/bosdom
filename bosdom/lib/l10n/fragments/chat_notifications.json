@@ -26,13 +26,24 @@
     "en": "Couldn't load this conversation",
     "km": "មិនអាចផ្ទុកការសន្ទនានេះបានទេ"
   },
-  "chatStatusOnline": {
-    "en": "Online",
-    "km": "កំពុងអនឡាញ"
+  "chatMessageSending": {
+    "en": "Sending...",
+    "km": "កំពុងផ្ញើ..."
   },
-  "chatStatusOffline": {
-    "en": "Offline",
-    "km": "គ្មានអនឡាញ"
+  "chatSendError": {
+    "en": "Couldn't send message. Try again.",
+    "km": "មិនអាចផ្ញើសារបានទេ។ សូមព្យាយាមម្តងទៀត។"
+  },
+  "chatStartConversationError": {
+    "en": "Couldn't start the conversation. Try again.",
+    "km": "មិនអាចចាប់ផ្តើមការសន្ទនាបានទេ។ សូមព្យាយាមម្តងទៀត។"
+  },
+  "chatRestrictedError": {
+    "en": "You're temporarily restricted from sending messages until {until}.",
+    "km": "អ្នកត្រូវបានដាក់កម្រិតបណ្តោះអាសន្នមិនឱ្យផ្ញើសារ រហូតដល់ {until}។",
+    "placeholders": [
+      "until"
+    ]
   },
   "chatPolicySecurePayTitle": {
     "en": "Pay only through Bosdom Secure Pay",

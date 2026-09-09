@@ -327,8 +327,17 @@
   },
   "chatLoadError": "Couldn't load conversations",
   "chatDetailLoadError": "Couldn't load this conversation",
-  "chatStatusOnline": "Online",
-  "chatStatusOffline": "Offline",
+  "chatMessageSending": "Sending...",
+  "chatSendError": "Couldn't send message. Try again.",
+  "chatStartConversationError": "Couldn't start the conversation. Try again.",
+  "chatRestrictedError": "You're temporarily restricted from sending messages until {until}.",
+  "@chatRestrictedError": {
+    "placeholders": {
+      "until": {
+        "type": "String"
+      }
+    }
+  },
   "chatPolicySecurePayTitle": "Pay only through Bosdom Secure Pay",
   "chatPolicyBannerBody": "Direct payments to the seller outside the app aren't covered by Bosdom's buyer protection. Keep transactions in Secure Pay to stay protected.",
   "chatFlaggedBadge": "Off-platform contact flagged",

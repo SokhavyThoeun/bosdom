@@ -754,10 +754,19 @@ class AppLocalizationsKm extends AppLocalizations {
   String get chatDetailLoadError => 'មិនអាចផ្ទុកការសន្ទនានេះបានទេ';
 
   @override
-  String get chatStatusOnline => 'កំពុងអនឡាញ';
+  String get chatMessageSending => 'កំពុងផ្ញើ...';
 
   @override
-  String get chatStatusOffline => 'គ្មានអនឡាញ';
+  String get chatSendError => 'មិនអាចផ្ញើសារបានទេ។ សូមព្យាយាមម្តងទៀត។';
+
+  @override
+  String get chatStartConversationError =>
+      'មិនអាចចាប់ផ្តើមការសន្ទនាបានទេ។ សូមព្យាយាមម្តងទៀត។';
+
+  @override
+  String chatRestrictedError(String until) {
+    return 'អ្នកត្រូវបានដាក់កម្រិតបណ្តោះអាសន្នមិនឱ្យផ្ញើសារ រហូតដល់ $until។';
+  }
 
   @override
   String get chatPolicySecurePayTitle =>

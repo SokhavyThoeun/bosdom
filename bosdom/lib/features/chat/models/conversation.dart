@@ -3,98 +3,122 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../utils/off_platform_detector.dart';
-
-enum MessageSender { me, them }
 
 class ChatMessage {
   const ChatMessage({
-    required this.sender,
-    required this.time,
+    required this.id,
+    required this.senderId,
+    required this.isMine,
+    required this.createdAt,
     this.text,
-    this.imageIcon,
-    this.imageCaption,
+    this.flagged = false,
     this.imageFile,
+    this.sending = false,
   });
 
-  factory ChatMessage.fromJson(Map<String, dynamic> json, String kind) {
+  factory ChatMessage.fromJson(
+    Map<String, dynamic> json, {
+    required String currentUserId,
+  }) {
+    final senderId = json['sender_id'] as String;
     return ChatMessage(
-      sender: json['sender'] == 'me' ? MessageSender.me : MessageSender.them,
-      time: formatChatTime(DateTime.parse(json['created_at'] as String)),
+      id: json['id'] as String,
+      senderId: senderId,
+      isMine: senderId == currentUserId,
+      createdAt: DateTime.parse(json['created_at'] as String),
       text: json['text'] as String?,
-      imageIcon: json['image_caption'] != null ? kindToIcon(kind) : null,
-      imageCaption: json['image_caption'] as String?,
+      flagged: json['flagged'] as bool? ?? false,
     );
   }
 
-  final MessageSender sender;
-  final String time;
+  final String id;
+  final String senderId;
+  final bool isMine;
+  final DateTime createdAt;
   final String? text;
-  final IconData? imageIcon;
-  final String? imageCaption;
-  /// Locally attached photo (picked from camera/gallery) awaiting delivery.
+  final bool flagged;
+
+  /// Locally attached photo (picked from camera/gallery). There is no
+  /// image-message endpoint on the backend, so this never leaves the
+  /// device — same known limitation as before this screen was wired up.
   final File? imageFile;
 
-  bool get flagged => detectsOffPlatformAttempt(text);
+  /// True while an optimistically-appended message is awaiting the
+  /// server's response.
+  final bool sending;
+
+  String get time => formatChatTime(createdAt);
 }
 
 class Conversation {
   Conversation({
     required this.id,
-    required this.name,
-    required this.kind,
-    required this.verified,
-    required this.online,
+    required this.counterpartId,
+    required this.counterpartName,
+    required this.counterpartVerified,
+    required this.listingId,
     required this.unreadCount,
     required List<ChatMessage> messages,
   }) : messages = [...messages];
 
-  factory Conversation.fromSummaryJson(Map<String, dynamic> json) {
+  factory Conversation.fromSummaryJson(
+    Map<String, dynamic> json, {
+    required String currentUserId,
+  }) {
     final lastAt = json['last_message_at'] as String?;
+    final preview = json['last_message_preview'] as String;
     return Conversation(
       id: json['id'] as String,
-      name: json['name'] as String,
-      kind: json['kind'] as String,
-      verified: json['verified'] as bool,
-      online: json['online'] as bool,
+      counterpartId: json['counterpart_id'] as String,
+      counterpartName: json['counterpart_name'] as String,
+      counterpartVerified: json['counterpart_verified'] as bool,
+      listingId: json['listing_id'] as String?,
       unreadCount: json['unread_count'] as int,
       messages: [
-        if ((json['last_message_preview'] as String).isNotEmpty)
+        if (preview.isNotEmpty && lastAt != null)
           ChatMessage(
-            sender: MessageSender.them,
-            time: lastAt != null ? formatChatTime(DateTime.parse(lastAt)) : '',
-            text: json['last_message_preview'] as String,
+            id: 'preview',
+            senderId: '',
+            isMine: false,
+            createdAt: DateTime.parse(lastAt),
+            text: preview,
           ),
       ],
     );
   }
 
-  factory Conversation.fromDetailJson(Map<String, dynamic> json) {
-    final kind = json['kind'] as String;
+  /// The backend's conversation-detail response has no `unread_count` (the
+  /// caller is expected to mark the thread read right after loading it), so
+  /// this defaults to 0 — callers that need to preserve a known unread
+  /// count should overwrite it after construction.
+  factory Conversation.fromDetailJson(
+    Map<String, dynamic> json, {
+    required String currentUserId,
+  }) {
     return Conversation(
       id: json['id'] as String,
-      name: json['name'] as String,
-      kind: kind,
-      verified: json['verified'] as bool,
-      online: json['online'] as bool,
-      unreadCount: json['unread_count'] as int,
+      counterpartId: json['counterpart_id'] as String,
+      counterpartName: json['counterpart_name'] as String,
+      counterpartVerified: json['counterpart_verified'] as bool,
+      listingId: json['listing_id'] as String?,
+      unreadCount: 0,
       messages: (json['messages'] as List)
           .cast<Map<String, dynamic>>()
-          .map((m) => ChatMessage.fromJson(m, kind))
+          .map((m) => ChatMessage.fromJson(m, currentUserId: currentUserId))
           .toList(),
     );
   }
 
   final String id;
-  final String name;
-  final String kind;
-  final bool verified;
-  final bool online;
+  final String counterpartId;
+  final String counterpartName;
+  final bool counterpartVerified;
+  final String? listingId;
   int unreadCount;
   final List<ChatMessage> messages;
 
-  IconData get avatarIcon => kindToIcon(kind);
-  Color get avatarColor => kindToColor(kind);
+  IconData get avatarIcon => avatarIconFor(counterpartName);
+  Color get avatarColor => avatarColorFor(counterpartName);
 
   ChatMessage? get lastMessage => messages.isEmpty ? null : messages.last;
 
@@ -103,51 +127,37 @@ class Conversation {
     if (last == null) return '';
     if (last.text != null) return last.text!;
     if (last.imageFile != null) return '📷 Photo';
-    return '📷 ${last.imageCaption ?? 'Photo'}';
+    return '';
   }
 }
 
-IconData kindToIcon(String kind) {
-  switch (kind) {
-    case 'support':
-      return Icons.support_agent_rounded;
-    case 'rice':
-      return Icons.rice_bowl_outlined;
-    case 'textile':
-      return Icons.checkroom_outlined;
-    case 'handicraft':
-      return Icons.palette_outlined;
-    case 'grain':
-      return Icons.grain_outlined;
-    case 'produce':
-      return Icons.eco_outlined;
-    case 'silk':
-      return Icons.diamond_outlined;
-    default:
-      return Icons.storefront_outlined;
-  }
-}
+const _kAvatarIcons = [
+  Icons.storefront_outlined,
+  Icons.rice_bowl_outlined,
+  Icons.checkroom_outlined,
+  Icons.palette_outlined,
+  Icons.grain_outlined,
+  Icons.eco_outlined,
+  Icons.diamond_outlined,
+];
 
-Color kindToColor(String kind) {
-  switch (kind) {
-    case 'support':
-      return AppColors.brandCrimson;
-    case 'rice':
-      return const Color(0xFFC9A05C);
-    case 'textile':
-      return AppColors.deepBurgundy;
-    case 'handicraft':
-      return AppColors.alertAmber;
-    case 'grain':
-      return AppColors.trustGreen;
-    case 'produce':
-      return const Color(0xFF6FA26E);
-    case 'silk':
-      return const Color(0xFF8A6A2F);
-    default:
-      return AppColors.brandCrimson;
-  }
-}
+const _kAvatarColors = [
+  AppColors.brandCrimson,
+  Color(0xFFC9A05C),
+  AppColors.deepBurgundy,
+  AppColors.alertAmber,
+  AppColors.trustGreen,
+  Color(0xFF6FA26E),
+  Color(0xFF8A6A2F),
+];
+
+/// Deterministic avatar icon/color for a counterpart, since real
+/// conversations have no seller "kind" concept to key off of.
+IconData avatarIconFor(String key) =>
+    _kAvatarIcons[key.hashCode.abs() % _kAvatarIcons.length];
+
+Color avatarColorFor(String key) =>
+    _kAvatarColors[key.hashCode.abs() % _kAvatarColors.length];
 
 String formatChatTime(DateTime dateTime) {
   final local = dateTime.toLocal();

@@ -1484,17 +1484,29 @@ abstract class AppLocalizations {
   /// **'Couldn\'t load this conversation'**
   String get chatDetailLoadError;
 
-  /// No description provided for @chatStatusOnline.
+  /// No description provided for @chatMessageSending.
   ///
   /// In en, this message translates to:
-  /// **'Online'**
-  String get chatStatusOnline;
+  /// **'Sending...'**
+  String get chatMessageSending;
 
-  /// No description provided for @chatStatusOffline.
+  /// No description provided for @chatSendError.
   ///
   /// In en, this message translates to:
-  /// **'Offline'**
-  String get chatStatusOffline;
+  /// **'Couldn\'t send message. Try again.'**
+  String get chatSendError;
+
+  /// No description provided for @chatStartConversationError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t start the conversation. Try again.'**
+  String get chatStartConversationError;
+
+  /// No description provided for @chatRestrictedError.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re temporarily restricted from sending messages until {until}.'**
+  String chatRestrictedError(String until);
 
   /// No description provided for @chatPolicySecurePayTitle.
   ///

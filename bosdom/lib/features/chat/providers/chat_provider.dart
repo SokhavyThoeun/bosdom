@@ -1,48 +1,97 @@
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../core/providers/device_identity_provider.dart';
 import '../../notifications/providers/notification_provider.dart';
 import '../models/conversation.dart';
 import '../services/chat_service.dart';
 
 class ChatNotifier extends AsyncNotifier<List<Conversation>> {
+  RealtimeChannel? _channel;
+
   @override
   Future<List<Conversation>> build() async {
-    final userId = await ref.watch(deviceUserIdProvider.future);
-    return ChatService.fetchConversations(userId: userId);
+    final existingChannel = _channel;
+    if (existingChannel != null) {
+      Supabase.instance.client.removeChannel(existingChannel);
+      _channel = null;
+    }
+    ref.onDispose(() {
+      final channel = _channel;
+      if (channel != null) Supabase.instance.client.removeChannel(channel);
+    });
+
+    final conversations = await ChatService.fetchConversations();
+    _subscribeToMessages();
+    return conversations;
+  }
+
+  /// Live message delivery: subscribes to every `messages` insert visible
+  /// to this user (Supabase RLS already scopes rows to the two
+  /// participants of each conversation, per the Phase 14.3 migration), so
+  /// a message the other side sends shows up here without polling.
+  void _subscribeToMessages() {
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    if (currentUserId == null) return;
+
+    _channel = Supabase.instance.client
+        .channel('chat-messages-$currentUserId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: 'messages',
+          callback: (payload) =>
+              _onMessageInserted(payload.newRecord, currentUserId),
+        )
+        .subscribe();
+  }
+
+  Future<void> _onMessageInserted(
+    Map<String, dynamic> record,
+    String currentUserId,
+  ) async {
+    final conversationId = record['conversation_id'] as String?;
+    if (conversationId == null) return;
+
+    final message = ChatMessage.fromJson(record, currentUserId: currentUserId);
+    if (message.isMine) return; // already appended optimistically by us
+
+    final conversations = <Conversation>[...state.value ?? const []];
+    final index = conversations.indexWhere((c) => c.id == conversationId);
+    if (index == -1) {
+      // A brand-new conversation someone else just started — refetch.
+      state = AsyncData(await ChatService.fetchConversations());
+      return;
+    }
+
+    final conversation = conversations.removeAt(index)
+      ..messages.add(message)
+      ..unreadCount += 1;
+    conversations.insert(0, conversation);
+    state = AsyncData(conversations);
+    ref.read(notificationProvider.notifier).refresh();
   }
 
   Conversation? byId(String id) {
-    final conversations = state.value ?? const [];
-    for (final conversation in conversations) {
+    for (final conversation in state.value ?? const <Conversation>[]) {
       if (conversation.id == id) return conversation;
     }
     return null;
   }
 
   Future<Conversation> startConversation({
-    required String name,
-    required bool verified,
+    required String counterpartId,
+    String? listingId,
   }) async {
-    final existing = byId(_slugify(name));
-    if (existing != null) return existing;
+    for (final conversation in state.value ?? const <Conversation>[]) {
+      if (conversation.counterpartId == counterpartId) return conversation;
+    }
 
     final conversation = await ChatService.startConversation(
-      name: name,
-      verified: verified,
+      counterpartId: counterpartId,
+      listingId: listingId,
     );
-    state = AsyncData([conversation, ...state.value ?? const []]);
-    return conversation;
-  }
-
-  Future<Conversation> startAdminConversation() async {
-    final userId = await ref.read(deviceUserIdProvider.future);
-    final existing = byId('admin-$userId');
-    if (existing != null) return existing;
-
-    final conversation = await ChatService.startAdminConversation(userId);
     state = AsyncData([conversation, ...state.value ?? const []]);
     return conversation;
   }
@@ -62,6 +111,7 @@ class ChatNotifier extends AsyncNotifier<List<Conversation>> {
     if (index == -1) {
       conversations.insert(0, full);
     } else {
+      full.unreadCount = conversations[index].unreadCount;
       conversations[index] = full;
     }
     state = AsyncData(conversations);
@@ -73,33 +123,46 @@ class ChatNotifier extends AsyncNotifier<List<Conversation>> {
     final conversation = byId(id);
     if (conversation == null) return;
 
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id ?? '';
+    final optimisticId = 'pending-${DateTime.now().microsecondsSinceEpoch}';
     conversation.messages.add(
-      ChatMessage(sender: MessageSender.me, time: 'Sending...', text: trimmed),
+      ChatMessage(
+        id: optimisticId,
+        senderId: currentUserId,
+        isMine: true,
+        createdAt: DateTime.now(),
+        text: trimmed,
+        sending: true,
+      ),
     );
     _bumpToTop(conversation);
     state = AsyncData([...state.value ?? const []]);
 
-    ref.read(chatTypingProvider(id).notifier).state = true;
-    final replyMessages = await ChatService.sendMessage(id, trimmed);
-    ref.read(chatTypingProvider(id).notifier).state = false;
-
-    conversation.messages
-      ..removeLast()
-      ..addAll(replyMessages);
-    _bumpToTop(conversation);
-    state = AsyncData([...state.value ?? const []]);
-
-    ref.read(notificationProvider.notifier).refresh();
+    try {
+      final sent = await ChatService.sendMessage(id, trimmed);
+      final index = conversation.messages.indexWhere(
+        (m) => m.id == optimisticId,
+      );
+      if (index != -1) conversation.messages[index] = sent;
+      state = AsyncData([...state.value ?? const []]);
+    } catch (_) {
+      conversation.messages.removeWhere((m) => m.id == optimisticId);
+      state = AsyncData([...state.value ?? const []]);
+      rethrow;
+    }
   }
 
   Future<void> sendImage(String id, File file) async {
     final conversation = byId(id);
     if (conversation == null) return;
 
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id ?? '';
     conversation.messages.add(
       ChatMessage(
-        sender: MessageSender.me,
-        time: formatChatTime(DateTime.now()),
+        id: 'local-${DateTime.now().microsecondsSinceEpoch}',
+        senderId: currentUserId,
+        isMine: true,
+        createdAt: DateTime.now(),
         imageFile: file,
       ),
     );
@@ -118,20 +181,3 @@ class ChatNotifier extends AsyncNotifier<List<Conversation>> {
 final chatProvider = AsyncNotifierProvider<ChatNotifier, List<Conversation>>(
   ChatNotifier.new,
 );
-
-class _ChatTypingNotifier extends Notifier<bool> {
-  @override
-  bool build() => false;
-}
-
-/// Whether the other party appears to be "typing" — toggled while a sent
-/// message is awaiting its reply, to simulate a realtime chat presence cue.
-final chatTypingProvider =
-    NotifierProvider.family<_ChatTypingNotifier, bool, String>(
-      (id) => _ChatTypingNotifier(),
-    );
-
-String _slugify(String name) => name
-    .toLowerCase()
-    .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
-    .replaceAll(RegExp(r'^-+|-+$'), '');

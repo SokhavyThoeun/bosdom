@@ -1,18 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-const _kChatTosAcceptedKey = 'chat_tos_accepted';
+import '../services/chat_service.dart';
 
+/// Backed by the real `chat_tos_accepted_at` flag on the buyer/seller's
+/// profile (`GET/POST /chat/tos/*`) — the same flag `POST
+/// /chat/conversations/{id}/messages` enforces server-side, so this gate
+/// and the backend can no longer disagree the way the old local-prefs-only
+/// gate could.
 class ChatPolicyNotifier extends AsyncNotifier<bool> {
   @override
-  Future<bool> build() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_kChatTosAcceptedKey) ?? false;
-  }
+  Future<bool> build() => ChatService.fetchTosAccepted();
 
   Future<void> accept() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_kChatTosAcceptedKey, true);
+    await ChatService.acceptTos();
     state = const AsyncData(true);
   }
 }
