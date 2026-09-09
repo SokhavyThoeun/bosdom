@@ -11,7 +11,7 @@ class SampleGateScreen extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.all(24),
           child: Text(
-            '1-per-account sample purchase flow — UI comes in phase 4',
+            '1-per-account sample purchase flow. UI comes in phase 4',
             textAlign: TextAlign.center,
           ),
         ),

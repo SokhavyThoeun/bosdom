@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../shared/models/variant_option.dart';
 import '../../../shared/utils/mock_images.dart';
 
 class Product {
@@ -22,6 +23,8 @@ class Product {
     this.grade = 'Standard',
     this.packaging = '-',
     this.deliveryFee = 0,
+    this.sizes = const [],
+    this.colorOptions = const [],
   });
 
   final String name;
@@ -47,6 +50,15 @@ class Product {
   /// Flat delivery fee set by the seller for this product. `0` means the
   /// seller offers free delivery.
   final double deliveryFee;
+
+  /// Selectable sizes (e.g. clothing). Empty when the product has no size
+  /// variants.
+  final List<String> sizes;
+
+  /// Selectable colors. Empty when the product has no color variants.
+  final List<ProductColorOption> colorOptions;
+
+  bool get hasVariants => sizes.isNotEmpty || colorOptions.isNotEmpty;
 
   bool get hasFreeDelivery => deliveryFee == 0;
 
@@ -122,6 +134,12 @@ const kMockProducts = [
     category: 'Clothing',
     imageQuery: 'tote,bag',
     deliveryFee: 6,
+    colorOptions: [
+      ProductColorOption('Natural', Color(0xFFE8DCC8)),
+      ProductColorOption('Black', Color(0xFF1A1A1A)),
+      ProductColorOption('Navy', Color(0xFF243B55)),
+      ProductColorOption('Forest Green', Color(0xFF2F5233)),
+    ],
   ),
   Product(
     name: 'Industrial Microfiber Cleaning Cloths',
@@ -152,6 +170,12 @@ const kMockProducts = [
     category: 'Beauty',
     imageQuery: 'face,mask',
     deliveryFee: 6,
+    sizes: ['Kids', 'Adult'],
+    colorOptions: [
+      ProductColorOption('White', Color(0xFFFFFFFF)),
+      ProductColorOption('Black', Color(0xFF1A1A1A)),
+      ProductColorOption('Sky Blue', Color(0xFF7EC8E3)),
+    ],
   ),
   Product(
     name: 'Stainless Steel Water Bottles (500ml)',
@@ -182,6 +206,14 @@ const kMockProducts = [
     category: 'Clothing',
     imageQuery: 'tshirt,stack',
     deliveryFee: 7,
+    sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+    colorOptions: [
+      ProductColorOption('White', Color(0xFFFFFFFF)),
+      ProductColorOption('Black', Color(0xFF1A1A1A)),
+      ProductColorOption('Navy', Color(0xFF243B55)),
+      ProductColorOption('Red', Color(0xFFB3261E)),
+      ProductColorOption('Heather Gray', Color(0xFF9E9E9E)),
+    ],
   ),
   Product(
     name: 'Kitchen Towel Rolls (48 Rolls)',

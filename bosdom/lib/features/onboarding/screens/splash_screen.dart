@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/theme/app_colors.dart';
 
@@ -13,6 +16,7 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
+  StreamSubscription<AuthState>? _authSubscription;
 
   @override
   void initState() {
@@ -21,11 +25,30 @@ class _SplashScreenState extends State<SplashScreen>
       vsync: this,
       duration: const Duration(milliseconds: 1700),
     )..forward();
+
+    if (Supabase.instance.client.auth.currentSession != null) {
+      _goToMarketplace();
+    } else {
+      // Covers the Google sign-in redirect landing here before
+      // supabase_flutter's deep-link listener has finished exchanging the
+      // code for a session.
+      _authSubscription = Supabase.instance.client.auth.onAuthStateChange
+          .listen((data) {
+            if (data.session != null) _goToMarketplace();
+          });
+    }
+  }
+
+  void _goToMarketplace() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.goNamed('marketplace');
+    });
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _authSubscription?.cancel();
     super.dispose();
   }
 
@@ -243,32 +266,35 @@ class _Logo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const logoSize = 170.0;
+    const glowSize = 230.0;
+
     return SizedBox(
-      width: 200,
-      height: 200,
+      width: glowSize,
+      height: glowSize,
       child: Stack(
         alignment: Alignment.center,
         clipBehavior: Clip.none,
         children: [
           Container(
-            width: 200,
-            height: 200,
+            width: glowSize,
+            height: glowSize,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  Colors.white.withValues(alpha: 0.5),
-                  Colors.white.withValues(alpha: 0.3),
-                  Colors.white.withValues(alpha: 0.02),
+                  Colors.white.withValues(alpha: 0.4),
+                  Colors.white.withValues(alpha: 0.22),
+                  Colors.white.withValues(alpha: 0.08),
                   Colors.white.withValues(alpha: 0),
                 ],
-                stops: const [0, 0.3, 0.6, 1],
+                stops: const [0, 0.4, 0.7, 1],
               ),
             ),
           ),
           SizedBox(
-            width: 170,
-            height: 170,
+            width: logoSize,
+            height: logoSize,
             child: Image.asset('assets/images/bosdom-logo-white.png'),
           ),
         ],

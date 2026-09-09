@@ -23,9 +23,7 @@ class ChatPolicyGate extends ConsumerWidget {
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (error, _) => Scaffold(
-        body: Center(
-          child: Text(l10n.chatPolicyLoadError(error.toString())),
-        ),
+        body: Center(child: Text(l10n.chatPolicyLoadError(error.toString()))),
       ),
       data: (accepted) => accepted ? child : const _ChatPolicyScreen(),
     );
@@ -101,8 +99,7 @@ class _ChatPolicyScreenState extends ConsumerState<_ChatPolicyScreen> {
                   const SizedBox(height: 20),
                   _ContinueButton(
                     enabled: _agreed,
-                    onTap: () =>
-                        ref.read(chatPolicyProvider.notifier).accept(),
+                    onTap: () => ref.read(chatPolicyProvider.notifier).accept(),
                   ),
                 ],
               ),
@@ -125,9 +122,7 @@ class _Header extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
@@ -145,23 +140,10 @@ class _Header extends StatelessWidget {
                     ? context.pop()
                     : context.goNamed('profile'),
                 borderRadius: BorderRadius.circular(8),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.arrow_back,
-                      color: colorScheme.onPrimary,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      l10n.commonBack,
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onPrimary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
+                child: Icon(
+                  Icons.arrow_back,
+                  color: colorScheme.onPrimary,
+                  size: 20,
                 ),
               ),
             ),
@@ -338,9 +320,7 @@ class _ContinueButton extends StatelessWidget {
           duration: const Duration(milliseconds: 200),
           height: 52,
           decoration: BoxDecoration(
-            color: enabled
-                ? AppColors.brandCrimson
-                : AppColors.roseDivider,
+            color: enabled ? AppColors.brandCrimson : AppColors.roseDivider,
             borderRadius: BorderRadius.circular(16),
           ),
           alignment: Alignment.center,

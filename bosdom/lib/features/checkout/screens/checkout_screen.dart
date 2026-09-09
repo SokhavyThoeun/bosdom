@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
+import '../../../shared/services/shipping_fee_calculator.dart';
 import '../../../shared/widgets/checkout_progress_stepper.dart';
 import '../../payment/screens/payment_screen.dart' show OrderLineSummary;
 import '../../../shared/utils/mock_images.dart';
@@ -16,6 +17,10 @@ class CheckoutLineItem {
     required this.qtyLabel,
     required this.total,
     required this.seller,
+    // Co-buy sessions don't track a per-item weight yet, so this falls back
+    // to a rough average wholesale-carton estimate rather than 0 (which
+    // would silently understate the shipping estimate to nothing).
+    this.weightKg = 1.0,
   });
 
   final IconData icon;
@@ -23,19 +28,21 @@ class CheckoutLineItem {
   final String qtyLabel;
   final double total;
   final String seller;
+
+  /// Total weight for this line (already accounts for quantity) — used to
+  /// pick the right weight bracket in [estimateShippingFee].
+  final double weightKg;
 }
 
 class _ShippingOption {
   const _ShippingOption({
     required this.id,
     required this.name,
-    required this.description,
     required this.logoAsset,
   });
 
   final String id;
   final String name;
-  final String description;
   final String logoAsset;
 }
 
@@ -46,6 +53,7 @@ const _kCheckoutItems = [
     qtyLabel: 'Qty: 20 Bags',
     total: 370,
     seller: 'Mekong Agri-Food Co.',
+    weightKg: 500, // 20 bags × 25kg
   ),
   CheckoutLineItem(
     icon: Icons.local_cafe_outlined,
@@ -53,6 +61,7 @@ const _kCheckoutItems = [
     qtyLabel: 'Qty: 5 Boxes',
     total: 80,
     seller: 'EcoPack Cambodia',
+    weightKg: 2.5, // 5 boxes × 0.5kg
   ),
   CheckoutLineItem(
     icon: Icons.bolt_outlined,
@@ -60,26 +69,28 @@ const _kCheckoutItems = [
     qtyLabel: 'Qty: 100 Units',
     total: 320,
     seller: 'PP Tech Import',
+    weightKg: 5, // 100 units × 0.05kg
   ),
 ];
+
+// Every seller in this dataset ships from Phnom Penh — see
+// `kSellerOriginProvince` in `features/profile/models/seller_order.dart`.
+const _kOriginProvince = 'Phnom Penh';
 
 const _kShippingOptions = [
   _ShippingOption(
     id: 'vireak',
-    name: 'Vireak Buntham Express',
-    description: 'Standard delivery · 1-2 days',
+    name: kVireakBunthamCarrier,
     logoAsset: 'assets/images/shipping/vet-express.png',
   ),
   _ShippingOption(
     id: 'jt',
-    name: 'J&T Express',
-    description: 'Standard delivery · 1-2 days',
+    name: kJtExpressCarrier,
     logoAsset: 'assets/images/shipping/jt-express.png',
   ),
   _ShippingOption(
     id: 'grab',
-    name: 'Grab Express',
-    description: 'Phnom Penh only · Fast Delivery',
+    name: kGrabExpressCarrier,
     logoAsset: 'assets/images/shipping/grab-express.png',
   ),
 ];
@@ -100,11 +111,39 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   double get _subtotal => _items.fold(0, (sum, item) => sum + item.total);
 
-  double get _shipping => 2.0;
+  double get _totalWeightKg =>
+      _items.fold(0, (sum, item) => sum + item.weightKg);
 
-  double get _escrowFee => (_subtotal + _shipping) * 0.02;
+  /// Every offered carrier's live quote for this shipment's actual weight
+  /// and route, keyed by [_ShippingOption.id] — `null` where the carrier
+  /// can't serve this weight/route at all (e.g. Grab Express outside
+  /// Phnom Penh, or a shipment over a carrier's parcel weight cap).
+  Map<String, ShippingQuote?> _shippingQuotes(String destinationProvince) => {
+    for (final option in _kShippingOptions)
+      option.id: estimateShippingFee(
+        carrier: option.name,
+        weightKg: _totalWeightKg,
+        originProvince: _kOriginProvince,
+        destinationProvince: destinationProvince,
+      ),
+  };
 
-  double get _total => _subtotal + _shipping + _escrowFee;
+  /// Falls back to the first carrier that can actually serve this shipment
+  /// when the selected one can't (e.g. the buyer picked Grab Express, then
+  /// switched their address outside Phnom Penh).
+  String _effectiveShippingId(Map<String, ShippingQuote?> quotes) {
+    if (quotes[_selectedShippingId] != null) return _selectedShippingId;
+    return quotes.entries
+        .firstWhere(
+          (entry) => entry.value != null,
+          orElse: () => quotes.entries.first,
+        )
+        .key;
+  }
+
+  double _escrowFee(double shipping) => (_subtotal + shipping) * 0.02;
+
+  double _total(double shipping) => _subtotal + shipping + _escrowFee(shipping);
 
   @override
   Widget build(BuildContext context) {
@@ -112,6 +151,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
     final defaultAddress = ref.watch(defaultAddressProvider);
+    final destinationProvince = defaultAddress?.province ?? _kOriginProvince;
+    final shippingQuotes = _shippingQuotes(destinationProvince);
+    final effectiveShippingId = _effectiveShippingId(shippingQuotes);
+    final shipping = shippingQuotes[effectiveShippingId]?.fee ?? 0.0;
 
     return Scaffold(
       body: Column(
@@ -180,7 +223,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   for (final option in _kShippingOptions) ...[
                     _ShippingOptionTile(
                       option: option,
-                      selected: option.id == _selectedShippingId,
+                      quote: shippingQuotes[option.id],
+                      selected: option.id == effectiveShippingId,
                       onTap: () =>
                           setState(() => _selectedShippingId = option.id),
                       colorScheme: colorScheme,
@@ -191,9 +235,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   const SizedBox(height: 10),
                   _OrderSummaryCard(
                     subtotal: _subtotal,
-                    shipping: _shipping,
-                    escrowFee: _escrowFee,
-                    total: _total,
+                    shipping: shipping,
+                    escrowFee: _escrowFee(shipping),
+                    total: _total(shipping),
                     colorScheme: colorScheme,
                     textTheme: textTheme,
                   ),
@@ -218,7 +262,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     onPressed: () => context.pushNamed(
                       'payment',
                       extra: {
-                        'amount': _total,
+                        'amount': _total(shipping),
                         'itemCount': _items.length,
                         'items': [
                           for (final item in _items)
@@ -258,9 +302,7 @@ class _CheckoutHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
@@ -281,23 +323,10 @@ class _CheckoutHeader extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.arrow_back,
-                          color: colorScheme.onPrimary,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          l10n.commonBack,
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
+                    child: Icon(
+                      Icons.arrow_back,
+                      color: colorScheme.onPrimary,
+                      size: 20,
                     ),
                   ),
                 ),
@@ -562,6 +591,7 @@ class _SellerGroupCard extends StatelessWidget {
 class _ShippingOptionTile extends StatelessWidget {
   const _ShippingOptionTile({
     required this.option,
+    required this.quote,
     required this.selected,
     required this.onTap,
     required this.colorScheme,
@@ -569,6 +599,7 @@ class _ShippingOptionTile extends StatelessWidget {
   });
 
   final _ShippingOption option;
+  final ShippingQuote? quote;
   final bool selected;
   final VoidCallback onTap;
   final ColorScheme colorScheme;
@@ -576,82 +607,111 @@ class _ShippingOptionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final quote = this.quote;
+    final available = quote != null;
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        onTap: available ? onTap : null,
         borderRadius: BorderRadius.circular(14),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: selected ? colorScheme.primary : colorScheme.outline,
-              width: selected ? 2 : 1,
+        child: Opacity(
+          opacity: available ? 1 : 0.5,
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: selected && available
+                    ? colorScheme.primary
+                    : colorScheme.outline,
+                width: selected && available ? 2 : 1,
+              ),
             ),
-          ),
-          child: Row(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(right: 12),
-                child: Container(
-                  width: 20,
-                  height: 20,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: selected
-                          ? colorScheme.primary
-                          : colorScheme.onSurfaceVariant,
-                      width: 2,
+            child: Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: selected
+                            ? colorScheme.primary
+                            : colorScheme.onSurfaceVariant,
+                        width: 2,
+                      ),
                     ),
+                    child: selected
+                        ? Center(
+                            child: Container(
+                              width: 10,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                          )
+                        : null,
                   ),
-                  child: selected
-                      ? Center(
-                          child: Container(
-                            width: 10,
-                            height: 10,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: colorScheme.primary,
+                ),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.asset(
+                    option.logoAsset,
+                    width: 56,
+                    height: 42,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              option.name,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-                        )
-                      : null,
-                ),
-              ),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Image.asset(
-                  option.logoAsset,
-                  width: 56,
-                  height: 42,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      option.name,
-                      style: textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                          if (available) ...[
+                            const SizedBox(width: 8),
+                            Text(
+                              '\$${quote.fee.toStringAsFixed(2)}',
+                              style: textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      option.description,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+                      const SizedBox(height: 2),
+                      Text(
+                        available
+                            ? quote.etaLabel
+                            : l10n.checkoutShippingUnavailableLabel,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

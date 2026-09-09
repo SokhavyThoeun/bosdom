@@ -11,12 +11,9 @@ import 'report_order_sheet.dart';
 
 const _kFilters = [null, ...OrderStatus.values];
 
-Color _statusColor(OrderStatus status) => switch (status) {
-  OrderStatus.processing => AppColors.alertAmber,
-  OrderStatus.shipped => AppColors.infoBlue,
-  OrderStatus.delivered => AppColors.trustGreen,
-  OrderStatus.cancelled => AppColors.brandCrimson,
-};
+// All statuses share the brand color instead of a traffic-light palette —
+// status is distinguished by icon and label, not by hue.
+Color _statusColor(OrderStatus status) => AppColors.brandCrimson;
 
 IconData _statusIcon(OrderStatus status) => switch (status) {
   OrderStatus.processing => Icons.hourglass_top_rounded,
@@ -88,8 +85,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                       ),
                       sliver: SliverList.separated(
                         itemCount: filteredOrders.length,
-                        separatorBuilder: (_, _) =>
-                            const SizedBox(height: 16),
+                        separatorBuilder: (_, _) => const SizedBox(height: 16),
                         itemBuilder: (context, index) => _OrderCard(
                           order: filteredOrders[index],
                           colorScheme: colorScheme,
@@ -105,6 +101,10 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                           onRate: () => showRateReviewSheet(
                             context,
                             filteredOrders[index],
+                          ),
+                          onTrack: () => context.pushNamed(
+                            'deliveryTracking',
+                            pathParameters: {'id': filteredOrders[index].id},
                           ),
                         ),
                       ),
@@ -134,9 +134,7 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
@@ -157,23 +155,10 @@ class _Header extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.arrow_back,
-                          color: colorScheme.onPrimary,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          l10n.commonBack,
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
+                    child: Icon(
+                      Icons.arrow_back,
+                      color: colorScheme.onPrimary,
+                      size: 20,
                     ),
                   ),
                 ),
@@ -221,9 +206,6 @@ class _FilterRow extends StatelessWidget {
               label: _kFilters[i] == null
                   ? l10n.ordersFilterAllLabel(orderCount)
                   : _kFilters[i]!.label,
-              dotColor: _kFilters[i] == null
-                  ? null
-                  : _statusColor(_kFilters[i]!),
               isSelected: selected == _kFilters[i],
               onTap: () => onSelected(_kFilters[i]),
               colorScheme: colorScheme,
@@ -240,7 +222,6 @@ class _FilterRow extends StatelessWidget {
 class _FilterChip extends StatelessWidget {
   const _FilterChip({
     required this.label,
-    required this.dotColor,
     required this.isSelected,
     required this.onTap,
     required this.colorScheme,
@@ -248,7 +229,6 @@ class _FilterChip extends StatelessWidget {
   });
 
   final String label;
-  final Color? dotColor;
   final bool isSelected;
   final VoidCallback onTap;
   final ColorScheme colorScheme;
@@ -270,30 +250,14 @@ class _FilterChip extends StatelessWidget {
               color: isSelected ? colorScheme.primary : colorScheme.outline,
             ),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (dotColor != null) ...[
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isSelected ? colorScheme.onPrimary : dotColor,
-                  ),
-                ),
-                const SizedBox(width: 8),
-              ],
-              Text(
-                label,
-                style: textTheme.labelMedium?.copyWith(
-                  color: isSelected
-                      ? colorScheme.onPrimary
-                      : colorScheme.onSurface,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: textTheme.labelMedium?.copyWith(
+              color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ),
@@ -309,6 +273,7 @@ class _OrderCard extends StatelessWidget {
     required this.onViewDetails,
     required this.onReport,
     required this.onRate,
+    required this.onTrack,
   });
 
   final Order order;
@@ -317,6 +282,7 @@ class _OrderCard extends StatelessWidget {
   final VoidCallback onViewDetails;
   final VoidCallback onReport;
   final VoidCallback onRate;
+  final VoidCallback onTrack;
 
   @override
   Widget build(BuildContext context) {
@@ -428,14 +394,29 @@ class _OrderCard extends StatelessWidget {
                                 Container(
                                   width: 56,
                                   height: 56,
+                                  clipBehavior: Clip.antiAlias,
                                   decoration: BoxDecoration(
                                     color: colorScheme.primaryContainer,
                                     borderRadius: BorderRadius.circular(14),
                                   ),
-                                  child: Icon(
-                                    order.icon,
-                                    color: colorScheme.primary,
-                                    size: 24,
+                                  child: Image.network(
+                                    order.imageUrl,
+                                    fit: BoxFit.cover,
+                                    loadingBuilder:
+                                        (context, child, progress) =>
+                                            progress == null
+                                            ? child
+                                            : Icon(
+                                                order.icon,
+                                                color: colorScheme.primary,
+                                                size: 24,
+                                              ),
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        Icon(
+                                          order.icon,
+                                          color: colorScheme.primary,
+                                          size: 24,
+                                        ),
                                   ),
                                 ),
                                 const SizedBox(width: 12),
@@ -448,6 +429,14 @@ class _OrderCard extends StatelessWidget {
                                         order.productName,
                                         style: textTheme.bodyMedium?.copyWith(
                                           fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        order.sellerName,
+                                        style: textTheme.bodySmall?.copyWith(
+                                          color: colorScheme.primary,
+                                          fontWeight: FontWeight.w600,
                                         ),
                                       ),
                                       const SizedBox(height: 2),
@@ -503,6 +492,19 @@ class _OrderCard extends StatelessWidget {
                                 expand: true,
                                 accent: true,
                               ),
+                            ] else if (order.status ==
+                                    OrderStatus.processing ||
+                                order.status == OrderStatus.shipped) ...[
+                              const SizedBox(height: 10),
+                              _SecondaryActionButton(
+                                icon: Icons.location_on_outlined,
+                                label: l10n.ordersTrackOrderButton,
+                                onTap: onTrack,
+                                colorScheme: colorScheme,
+                                textTheme: textTheme,
+                                expand: true,
+                                accent: true,
+                              ),
                             ],
                           ],
                         ),
@@ -552,11 +554,7 @@ class _PrimaryActionButton extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Icon(
-                Icons.chevron_right,
-                size: 16,
-                color: colorScheme.onPrimary,
-              ),
+              Icon(Icons.chevron_right, size: 16, color: colorScheme.onPrimary),
             ],
           ),
         ),
@@ -590,7 +588,9 @@ class _SecondaryActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tintColor = accent ? colorScheme.primary : colorScheme.onSurfaceVariant;
+    final tintColor = accent
+        ? colorScheme.primary
+        : colorScheme.onSurfaceVariant;
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(14),

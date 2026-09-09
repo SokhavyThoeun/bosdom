@@ -38,7 +38,10 @@ class NotificationsScreen extends ConsumerWidget {
                   onRetry: () => ref.invalidate(notificationProvider),
                 ),
                 data: (state) => state.items.isEmpty
-                    ? _EmptyState(colorScheme: colorScheme, textTheme: textTheme)
+                    ? _EmptyState(
+                        colorScheme: colorScheme,
+                        textTheme: textTheme,
+                      )
                     : ListView.separated(
                         padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
                         itemCount: state.items.length,
@@ -95,9 +98,7 @@ class _Header extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           16,
@@ -118,23 +119,10 @@ class _Header extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.arrow_back,
-                          color: colorScheme.onPrimary,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          l10n.commonBack,
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
+                    child: Icon(
+                      Icons.arrow_back,
+                      color: colorScheme.onPrimary,
+                      size: 20,
                     ),
                   ),
                 ),
@@ -298,7 +286,10 @@ class _NotificationTile extends StatelessWidget {
                   width: 8,
                   height: 8,
                   margin: const EdgeInsets.only(top: 4),
-                  decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                  ),
                 ),
               ],
             ],

@@ -164,9 +164,7 @@ class _TermsHeader extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
@@ -187,23 +185,10 @@ class _TermsHeader extends StatelessWidget {
                       ? context.pop()
                       : context.goNamed('profile'),
                   borderRadius: BorderRadius.circular(8),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.arrow_back,
-                        color: colorScheme.onPrimary,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        l10n.commonBack,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+                  child: Icon(
+                    Icons.arrow_back,
+                    color: colorScheme.onPrimary,
+                    size: 20,
                   ),
                 ),
               ),
@@ -302,7 +287,10 @@ class _TermsBlockView extends StatelessWidget {
     }
 
     final style = block.style == _BlockStyle.lead
-        ? bodyStyle?.copyWith(fontWeight: FontWeight.w700, color: AppColors.warmBlack)
+        ? bodyStyle?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: AppColors.warmBlack,
+          )
         : bodyStyle;
 
     return Text(block.text, style: style);
@@ -348,7 +336,11 @@ class _ContactCard extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              Icon(Icons.mail_outline_rounded, size: 16, color: colorScheme.primary),
+              Icon(
+                Icons.mail_outline_rounded,
+                size: 16,
+                color: colorScheme.primary,
+              ),
               const SizedBox(width: 8),
               Text(
                 l10n.termsConditionsContactEmail,
@@ -362,7 +354,11 @@ class _ContactCard extends StatelessWidget {
           const SizedBox(height: 8),
           Row(
             children: [
-              Icon(Icons.headset_mic_outlined, size: 16, color: colorScheme.primary),
+              Icon(
+                Icons.headset_mic_outlined,
+                size: 16,
+                color: colorScheme.primary,
+              ),
               const SizedBox(width: 8),
               Text(
                 l10n.termsConditionsContactInApp,

@@ -11,9 +11,8 @@ extension on _CurrencyCode {
   String name(AppLocalizations l10n) =>
       this == _CurrencyCode.usd ? l10n.currencyUsdName : l10n.currencyKhrName;
   String get symbol => this == _CurrencyCode.usd ? r'$' : '៛';
-  String get rateLine => this == _CurrencyCode.usd
-      ? r'$1.00 = ៛4,100'
-      : '៛4,100 = \$1.00';
+  String get rateLine =>
+      this == _CurrencyCode.usd ? r'$1.00 = ៛4,100' : '៛4,100 = \$1.00';
 }
 
 class PaymentCurrencyScreen extends StatefulWidget {
@@ -60,9 +59,9 @@ class _PaymentCurrencyScreenState extends State<PaymentCurrencyScreen> {
       _justSaved = true;
     });
     final l10n = AppLocalizations.of(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.currencySavedSnackbar)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.currencySavedSnackbar)));
     await Future.delayed(const Duration(milliseconds: 1800));
     if (!mounted) return;
     setState(() => _justSaved = false);
@@ -130,11 +129,7 @@ class _PaymentCurrencyScreenState extends State<PaymentCurrencyScreen> {
                     },
                   ),
                   const SizedBox(height: 28),
-                  _SaveButton(
-                    saving: _saving,
-                    saved: _justSaved,
-                    onTap: _save,
-                  ),
+                  _SaveButton(saving: _saving, saved: _justSaved, onTap: _save),
                 ],
               ),
             ),
@@ -156,9 +151,7 @@ class _CurrencyHeader extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
@@ -179,23 +172,10 @@ class _CurrencyHeader extends StatelessWidget {
                       ? context.pop()
                       : context.goNamed('marketplace'),
                   borderRadius: BorderRadius.circular(8),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.arrow_back,
-                        color: colorScheme.onPrimary,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        l10n.commonBack,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+                  child: Icon(
+                    Icons.arrow_back,
+                    color: colorScheme.onPrimary,
+                    size: 20,
                   ),
                 ),
               ),
@@ -461,10 +441,8 @@ class _RefreshChip extends StatelessWidget {
               TweenAnimationBuilder<double>(
                 tween: Tween(begin: 0, end: refreshing ? 1 : 0),
                 duration: const Duration(milliseconds: 700),
-                builder: (context, value, child) => Transform.rotate(
-                  angle: value * 6.28319,
-                  child: child,
-                ),
+                builder: (context, value, child) =>
+                    Transform.rotate(angle: value * 6.28319, child: child),
                 child: const Icon(
                   Icons.refresh_rounded,
                   size: 15,
@@ -593,7 +571,9 @@ class _SaveButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final backgroundColor = saved ? AppColors.trustGreen : AppColors.brandCrimson;
+    final backgroundColor = saved
+        ? AppColors.trustGreen
+        : AppColors.brandCrimson;
 
     return Material(
       color: Colors.transparent,

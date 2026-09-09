@@ -75,5 +75,8 @@
   "searchTrendingSearchesTitle": {"en": "Trending Searches", "km": "ការស្វែងរកពេញនិយម"},
   "searchSuggestedCategoriesTitle": {"en": "Suggested Categories", "km": "ប្រភេទដែលបានស្នើ"},
   "searchRecommendedForYouTitle": {"en": "Recommended For You", "km": "ណែនាំសម្រាប់អ្នក"},
-  "searchNoResults": {"en": "No products found for \"{query}\"", "km": "រកមិនឃើញផលិតផលសម្រាប់ \"{query}\" ទេ", "placeholders": ["query"]}
+  "searchNoResults": {"en": "No products found for \"{query}\"", "km": "រកមិនឃើញផលិតផលសម្រាប់ \"{query}\" ទេ", "placeholders": ["query"]},
+  "variantSelectOptionsTitle": {"en": "Select Options", "km": "ជ្រើសរើសជម្រើស"},
+  "variantSizeLabel": {"en": "Size", "km": "ទំហំ"},
+  "variantColorLabel": {"en": "Color", "km": "ពណ៌"}
 }

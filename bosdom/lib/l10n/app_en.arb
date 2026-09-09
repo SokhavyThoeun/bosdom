@@ -206,7 +206,7 @@
   "splashLoginPrompt": "Already have an account? Log in",
   "splashFooterNote": "For registered Cambodian merchants only",
   "sampleGateTitle": "Buy sample",
-  "sampleGateBody": "1-per-account sample purchase flow — UI comes in phase 4",
+  "sampleGateBody": "1-per-account sample purchase flow. UI comes in phase 4",
   "cartMovedToWishlistSnackbar": "{productName} moved to wishlist",
   "@cartMovedToWishlistSnackbar": {
     "placeholders": {
@@ -251,6 +251,7 @@
     }
   },
   "checkoutShippingMethodLabel": "Shipping Method",
+  "checkoutShippingUnavailableLabel": "Not available for this weight/address",
   "checkoutEscrowNotice": "Funds held in escrow until delivery confirmed.",
   "checkoutContinueToPayment": "Continue to Payment",
   "checkoutScreenTitle": "Checkout",
@@ -285,6 +286,34 @@
   "addressAddNewButton": "Add New Address",
   "addressBookScreenTitle": "Address Book",
   "addressDefaultBadge": "Default",
+  "storeAddressBookScreenTitle": "Store Addresses",
+  "storeAddressAddNewButton": "Add New Store Address",
+  "storeAddressAddScreenTitle": "Add Store Address",
+  "storeAddressLabelFieldLabel": "ADDRESS LABEL",
+  "storeAddressLabelFieldHint": "e.g. Phnom Penh Headquarters",
+  "storeAddressNameFieldLabel": "STORE / BUSINESS NAME",
+  "storeAddressNameFieldHint": "e.g. Angkor Artisans Store",
+  "storeAddressBusinessTypeFieldLabel": "BUSINESS TYPE",
+  "storeAddressBusinessTypeFieldHint": "e.g. Wholesale & Manufacturer",
+  "storeAddressFullAddressFieldLabel": "FULL ADDRESS",
+  "storeAddressFullAddressFieldHint": "e.g. No. 124, Street 271, Sangkat Boeung Salang",
+  "storeAddressDistrictFieldLabel": "SANGKAT / DISTRICT",
+  "storeAddressDistrictFieldHint": "e.g. Sangkat Teuk Thla",
+  "storeAddressProvinceFieldLabel": "PROVINCE / CITY",
+  "storeAddressProvinceFieldHint": "e.g. Phnom Penh",
+  "storeAddressPhoneFieldLabel": "CONTACT PHONE NUMBER",
+  "storeAddressPhoneFieldHint": "e.g. +855 76 227 5858",
+  "storeAddressEmailFieldLabel": "CONTACT EMAIL",
+  "storeAddressEmailFieldHint": "e.g. orders@angkorartisans.com",
+  "storeAddressHoursFieldLabel": "OPERATING HOURS",
+  "storeAddressHoursFieldHint": "e.g. Mon - Fri: 8:00 AM - 5:30 PM",
+  "storeAddressFieldRequiredError": "Required",
+  "storeAddressEmailInvalidError": "Enter a valid email",
+  "storeAddressSetDefaultTitle": "Set as Default Store Address",
+  "storeAddressSetDefaultSubtitle": "Ship and dispatch all primary orders from here",
+  "storeAddressSaveButton": "Save Store Address",
+  "storeAddressDefaultBadge": "Default",
+  "storeAddressEmptyState": "No store addresses yet. Add one to start shipping from a fixed location.",
   "chatScreenTitle": "Chat",
   "chatSearchHint": "Search conversations...",
   "chatEmptyTitle": "No conversations yet",
@@ -303,7 +332,7 @@
   "chatPolicySecurePayTitle": "Pay only through Bosdom Secure Pay",
   "chatPolicyBannerBody": "Direct payments to the seller outside the app aren't covered by Bosdom's buyer protection. Keep transactions in Secure Pay to stay protected.",
   "chatFlaggedBadge": "Off-platform contact flagged",
-  "chatOffPlatformWarning": "This message may share contact info or arrange a deal outside Bosdom — you won't be covered by buyer protection.",
+  "chatOffPlatformWarning": "This message may share contact info or arrange a deal outside Bosdom: you won't be covered by buyer protection.",
   "chatPhotoAttachmentComingSoon": "Photo attachment coming soon",
   "chatComposerHint": "Type a message...",
   "chatAttachPhotoCamera": "Take a photo",
@@ -348,7 +377,7 @@
   "dataPrivacyContactBanner": "Get in touch to manage your data",
   "dataPrivacyBody": "Request access, correction, or deletion of your personal data. Contact our privacy team for any data-related inquiries.",
   "dataPrivacyContactButton": "Contact Privacy Team",
-  "dataPrivacyLaunchError": "Couldn't open your email app — copied {email} to your clipboard instead",
+  "dataPrivacyLaunchError": "Couldn't open your email app; copied {email} to your clipboard instead",
   "@dataPrivacyLaunchError": {
     "placeholders": {
       "email": {
@@ -361,7 +390,7 @@
   "marketingEmailsFinePrint": "You can withdraw your consent at anytime. If you withdraw your consent, it will not affect the legality of data processed before. We process your data in line with our Privacy Policy.",
   "marketingEmailsSaveError": "Couldn't save your marketing email preference. Please try again.",
   "personalizedAdsAllowTitle": "Allow personalized ads",
-  "personalizedAdsBody": "We use your browsing data and purchase history to show you relevant product recommendations and ads. You can opt out anytime — you will still see ads, but they won't be tailored to your interests.",
+  "personalizedAdsBody": "We use your browsing data and purchase history to show you relevant product recommendations and ads. You can opt out anytime; you will still see ads, but they won't be tailored to your interests.",
   "personalizedAdsBrowsingTitle": "Browsing data",
   "personalizedAdsBrowsingBody": "Pages and products you view in the app",
   "personalizedAdsPurchaseTitle": "Purchase history",
@@ -416,7 +445,7 @@
   "coBuyingCheckoutReadyLabel": "Ready for checkout",
   "coBuyingFullLabel": "Co-Buy Full",
   "coBuyingJoinButtonLabel": "Join This Co-Buy",
-  "coBuyingShareText": "Join me on this Co-Buy for {productName} on BosDom! Get it for {price} ({savingsPct}% off) — {url}",
+  "coBuyingShareText": "Join me on this Co-Buy for {productName} on BosDom! Get it for {price} ({savingsPct}% off).\n\n{url}",
   "@coBuyingShareText": {
     "placeholders": {
       "productName": {
@@ -441,6 +470,93 @@
       }
     }
   },
+  "coBuyCreateScreenTitle": "Start a Co-Buy",
+  "coBuyCreateEditScreenTitle": "Edit Co-Buy Deal",
+  "coBuyCreateProductNameLabel": "Product Name",
+  "coBuyCreateProductNameHint": "e.g. Jasmine Rice Premium 50kg",
+  "coBuyCreateProductNameRequired": "Product name is required",
+  "coBuyCreatePriceLabel": "Co-Buy Price (USD)",
+  "coBuyCreatePriceRequired": "Co-buy price is required",
+  "coBuyCreatePriceInvalid": "Enter a valid price",
+  "coBuyCreateOriginalPriceLabel": "Original Price (USD)",
+  "coBuyCreateOriginalPriceRequired": "Original price is required",
+  "coBuyCreateOriginalPriceInvalid": "Original price must be higher than the co-buy price",
+  "coBuyCreateTargetQtyLabel": "Target Retailers",
+  "coBuyCreateTargetQtyHint": "e.g. 20",
+  "coBuyCreateTargetQtyRequired": "Target retailers is required",
+  "coBuyCreateTargetQtyInvalid": "Enter a valid number",
+  "coBuyCreateUnitLabelLabel": "Unit",
+  "coBuyCreateUnitLabelHint": "e.g. kg, packs, units",
+  "coBuyCreateUnitLabelRequired": "Unit is required",
+  "coBuyCreateMinOrderQtyLabel": "Minimum Order",
+  "coBuyCreateMinOrderQtyHint": "e.g. 500 kg",
+  "coBuyCreateMinOrderQtyRequired": "Minimum order is required",
+  "coBuyCreateMinOrderQtyInvalid": "Enter a valid quantity",
+  "coBuyCreateDurationLabel": "Deal Duration",
+  "coBuyCreateDuration1Day": "1 day",
+  "coBuyCreateDuration2Days": "2 days",
+  "coBuyCreateDuration3Days": "3 days",
+  "coBuyCreateDuration5Days": "5 days",
+  "coBuyCreateDuration1Week": "1 week",
+  "coBuyCreateButton": "Launch Co-Buy",
+  "coBuyCreateCreatedSnackbar": "Co-Buy created! Invite others to join.",
+  "coBuyCreateUpdatedSnackbar": "Co-buy deal updated",
+  "coBuyCreateProductInfoSectionTitle": "Product Information",
+  "coBuyCreatePricingSectionTitle": "Pricing & Quantity",
+  "coBuyCreateDealSettingsSectionTitle": "Deal Settings",
+  "coBuyCreatePhotosLabel": "Product Photos",
+  "coBuyCreatePhotoLabel": "Tap to add cover photo",
+  "coBuyCreatePhotoHint": "Recommended 512×512px JPG or PNG",
+  "coBuyCreatePhotosHelper": "Add up to 4 photos. The first photo is the cover.",
+  "coBuyCreateDescriptionLabel": "Product Description",
+  "coBuyCreateDescriptionHint": "Describe the product for retailers",
+  "coBuyCreateAutoRenewLabel": "Auto-renew when expired",
+  "coBuyDealsWelcomeMessage": "Welcome back! Here is your co-buy performance summary today.",
+  "coBuyDealsShopNamePlaceholder": "My Shop",
+  "coBuyDealsAutoRenewBadge": "Auto-renews",
+  "coBuyDealsActiveDealsLabel": "Active Deals",
+  "coBuyDealsJoinedLabel": "Joined",
+  "coBuyDealsRevenueLabel": "Revenue",
+  "coBuyDealsCreateButtonLabel": "Create New Co-Buy Deal",
+  "coBuyDealsListingsSectionTitle": "Your Co-Buy Listings",
+  "coBuyDealsMinTargetLabel": "Min wholesale target: {targetQty} {unitLabel}",
+  "@coBuyDealsMinTargetLabel": {
+    "placeholders": {
+      "targetQty": {
+        "type": "int"
+      },
+      "unitLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "coBuyDealsStatusActive": "Active",
+  "coBuyDealsStatusCompleted": "Completed",
+  "coBuyDealsStatusExpired": "Expired",
+  "coBuyDealsProgressLabel": "Progress",
+  "coBuyDealsRetailersLabel": "{count} retailers",
+  "@coBuyDealsRetailersLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "coBuyDealsStatusEndedLabel": "Ended",
+  "coBuyDealsEndsSoonLabel": "Ends soon",
+  "coBuyDealsOriginalLabel": "Original",
+  "coBuyDealsCoBuyPriceLabel": "Co-buy price",
+  "coBuyDealsDeleteConfirmTitle": "Delete Co-Buy Deal?",
+  "coBuyDealsDeleteConfirmBody": "{productName} and its retailer progress will be permanently removed.",
+  "@coBuyDealsDeleteConfirmBody": {
+    "placeholders": {
+      "productName": {
+        "type": "String"
+      }
+    }
+  },
+  "coBuyDealsDeletedSnackbar": "Co-buy deal deleted",
+  "coBuyDealsEmptyMessage": "No co-buy deals yet. Create one so retailers can pool orders with you.",
   "coBuyDetailActiveDealLabel": "Active Deal",
   "coBuyDetailVisitShopLabel": "Visit Shop",
   "coBuyDetailJoinedSnackbar": "Joined {productName} Co-Buy · {amount}",
@@ -756,6 +872,7 @@
     }
   },
   "ordersViewDetailsButton": "View Details",
+  "ordersTrackOrderButton": "Track Order",
   "orderDetailScreenTitle": "Order Details",
   "orderDetailItemsAddedSnackbar": "Items added to your cart",
   "orderDetailItemsOrderedSection": "Items Ordered",
@@ -767,6 +884,8 @@
       }
     }
   },
+  "orderDetailDeliveryMethodSection": "Delivery Method",
+  "orderDetailCarrierLabel": "Carrier",
   "orderDetailPaymentSummarySection": "Payment Summary",
   "orderDetailPhoneLabel": "Phone: {phone}",
   "@orderDetailPhoneLabel": {
@@ -893,11 +1012,12 @@
   "paymentViewOrdersButton": "View Orders",
   "paymentWholesaleItemsFallbackLabel": "Wholesale Items",
   "escrowScreenTitle": "Escrow & checkout",
-  "escrowPlaceholderText": "Payment, QR confirm, dispute evidence — UI comes in phase 8",
+  "escrowPlaceholderText": "Payment, QR confirm, dispute evidence. UI comes in phase 8",
   "profileMenuMyOrders": "My Orders",
   "profileMenuCoBuyInvites": "Co-Buy Invites",
   "profileMenuAddressBook": "Address Book",
-  "profileMenuChat": "Chat",
+  "profileMenuAddressStore": "Address Store",
+  "profileMenuBuyerChat": "Chat with Buyers",
   "profileMenuNotifications": "Notifications",
   "profileMenuPaymentCurrency": "Payment Currency",
   "profileMenuLanguage": "Language",
@@ -908,7 +1028,13 @@
   "profileMenuTermsConditions": "Terms & Conditions",
   "profileMenuPrivacyPolicy": "Privacy Policy",
   "profileMenuAbout": "About",
+  "profileMenuSellerDashboard": "Seller Dashboard",
+  "profileMenuMyInventory": "My Inventory",
+  "profileMenuAddListing": "Add Listing",
+  "profileMenuCoBuyDeals": "Co-Buy Deals",
+  "profileMenuShopProfile": "Shop Profile",
   "profileSectionShopping": "SHOPPING",
+  "profileSectionSelling": "SELLING",
   "profileSectionAccount": "ACCOUNT",
   "profileSectionSettings": "SETTINGS",
   "profileSectionSupport": "SUPPORT",
@@ -916,6 +1042,8 @@
   "profileStatTotalOrders": "Total Orders",
   "profileStatActiveOrders": "Active Orders",
   "profileStatSavedItems": "Saved Items",
+  "profileStatTotalProducts": "Total Products",
+  "profileStatRevenue": "Revenue",
   "profileSellerProgramBadge": "SELLER PROGRAM",
   "profileSellerTitle": "Start Selling on Bosdom",
   "profileSellerSubtitle": "Join thousands of wholesalers and reach more retailers across Cambodia",
@@ -927,6 +1055,204 @@
   "profileSellerActivatedSnackbar": "You're now part of the Seller Program!",
   "profileSellerGoToMarketplace": "Go to Marketplace",
   "profileEditProfileLabel": "Edit Profile",
+  "sellerDashboardScreenTitle": "Dashboard",
+  "sellerDashboardVerifiedBadge": "Verified",
+  "sellerDashboardWelcomeMessage": "Welcome back! Here's your wholesale store performance summary today.",
+  "sellerDashboardRevenueLabel": "Revenue",
+  "sellerDashboardPendingLabel": "Pending",
+  "sellerDashboardPendingOrdersLabel": "{count} Orders",
+  "@sellerDashboardPendingOrdersLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sellerDashboardProductsLabel": "Products",
+  "sellerDashboardProductsCountLabel": "{count} Items",
+  "@sellerDashboardProductsCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sellerDashboardQuickActionsTitle": "Quick Actions",
+  "sellerDashboardAddListingAction": "Add Listing",
+  "sellerDashboardMyInventoryAction": "My Inventory",
+  "sellerDashboardOrdersAction": "Orders",
+  "sellerDashboardEarningsAction": "Earnings",
+  "sellerDashboardBuyerToolsTitle": "Shop as a Buyer",
+  "sellerDashboardMarketplaceAction": "Marketplace",
+  "sellerDashboardWishlistAction": "Wishlist",
+  "sellerDashboardCartAction": "Cart",
+  "sellerDashboardCoBuyingAction": "Co-Buying",
+  "sellerDashboardPerformanceTitle": "Performance",
+  "sellerDashboardRatingLabel": "Rating",
+  "sellerDashboardCompletionLabel": "Completion",
+  "sellerDashboardAvgDeliveryLabel": "Avg Delivery",
+  "sellerDashboardRecentOrdersTitle": "Recent Active Orders",
+  "sellerDashboardViewAllLabel": "View All",
+  "sellerEarningsScreenTitle": "Earnings",
+  "sellerEarningsAvailableBalanceLabel": "Available Balance",
+  "sellerEarningsCompletedSalesPercentLabel": "{percent}% of completed sales",
+  "@sellerEarningsCompletedSalesPercentLabel": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "sellerEarningsWithdrawButton": "Withdraw",
+  "sellerEarningsReleasedLabel": "Released",
+  "sellerEarningsInEscrowLabel": "In Escrow",
+  "sellerEarningsRefundedLabel": "Refunded",
+  "sellerEarningsFilterAllLabel": "All",
+  "sellerEarningsFilterReleasedLabel": "Released",
+  "sellerEarningsFilterInEscrowLabel": "In Escrow",
+  "sellerEarningsFilterDisputedLabel": "Disputed",
+  "sellerEarningsTransactionsCountLabel": "{count} transactions",
+  "@sellerEarningsTransactionsCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sellerEarningsOrderBuyerLabel": "#{id} • {buyer}",
+  "@sellerEarningsOrderBuyerLabel": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      },
+      "buyer": {
+        "type": "String"
+      }
+    }
+  },
+  "sellerEarningsSaleAmountLabel": "Sale amount",
+  "sellerEarningsPlatformFeeLabel": "Platform fee ({rate}%)",
+  "@sellerEarningsPlatformFeeLabel": {
+    "placeholders": {
+      "rate": {
+        "type": "int"
+      }
+    }
+  },
+  "sellerEarningsYourEarningsLabel": "Your earnings",
+  "sellerEarningsWithdrawalLabel": "Withdrawal",
+  "sellerEarningsStatusPending": "Pending",
+  "sellerEarningsStatusInEscrow": "In Escrow",
+  "sellerEarningsStatusReleased": "Released",
+  "sellerEarningsStatusDisputed": "Refunded",
+  "sellerEarningsStatusWithdrawn": "Withdrawn",
+  "sellerEarningsEscrowNoticeText": "Funds are held in escrow for 48 hours after purchase. Once released, tap Withdraw to transfer earnings to your bank account.",
+  "sellerEarningsEmptyStateMessage": "No transactions in this category",
+  "sellerEarningsWithdrawSheetTitle": "Withdraw Funds",
+  "sellerEarningsWithdrawPoweredByLabel": "Powered by ABA Pay",
+  "sellerEarningsWithdrawAmountLabel": "Withdrawal Amount ($)",
+  "sellerEarningsAccountHolderNameLabel": "Account Holder Name",
+  "sellerEarningsAccountHolderNameHint": "Full name on account",
+  "sellerEarningsRoutingNumberLabel": "Routing Number",
+  "sellerEarningsRoutingNumberHint": "Enter ABA routing number (e.g., 020001)",
+  "sellerEarningsAccountNumberLabel": "Account Number",
+  "sellerEarningsAccountNumberHint": "Enter ABA account number",
+  "sellerEarningsWithdrawNoticeText": "Funds will be instantly transferred to your designated ABA Pay account. Standard security holds may apply.",
+  "sellerEarningsWithdrawContinueButton": "Continue",
+  "sellerEarningsWithdrawFieldRequiredError": "This field is required",
+  "sellerEarningsWithdrawAmountInvalidError": "Enter a valid amount",
+  "sellerEarningsWithdrawAmountExceedsError": "Amount exceeds available balance",
+  "sellerEarningsWithdrawJustNowLabel": "Just now",
+  "sellerEarningsWithdrawSuccessSnackbar": "Withdrawal of ${amount} submitted",
+  "@sellerEarningsWithdrawSuccessSnackbar": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sellerEarningsWithdrawSuccessTitle": "Success",
+  "sellerEarningsWithdrawSuccessMessage": "${amount} withdrawal initiated. Funds will arrive in 2-3 business days.",
+  "@sellerEarningsWithdrawSuccessMessage": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sellerEarningsWithdrawSuccessOkButton": "OK",
+  "sellerOrdersScreenTitle": "Orders",
+  "sellerOrdersEmptyStateMessage": "No orders in this category",
+  "sellerOrdersFilterAllLabel": "All ({count})",
+  "@sellerOrdersFilterAllLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sellerOrdersFilterPendingLabel": "Pending ({count})",
+  "@sellerOrdersFilterPendingLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sellerOrdersQuantityProductLabel": "{quantity} • {product}",
+  "@sellerOrdersQuantityProductLabel": {
+    "placeholders": {
+      "quantity": {
+        "type": "String"
+      },
+      "product": {
+        "type": "String"
+      }
+    }
+  },
+  "sellerOrdersCoBuyBadgeLabel": "Co-Buy",
+  "sellerOrderDetailBuyerInfoSection": "Buyer Information",
+  "sellerOrderDetailPlatformFeeLabel": "Platform Fee ({rate}%)",
+  "@sellerOrderDetailPlatformFeeLabel": {
+    "placeholders": {
+      "rate": {
+        "type": "int"
+      }
+    }
+  },
+  "sellerOrderDetailYourEarningsLabel": "Your Earnings",
+  "sellerOrderDetailAcceptButton": "Accept Order",
+  "sellerOrderDetailDeclineButton": "Decline Order",
+  "sellerOrderDetailOrderAcceptedSnackbar": "Order accepted",
+  "sellerOrderDetailOrderDeclinedSnackbar": "Order declined",
+  "sellerOrderDetailDeclineConfirmTitle": "Decline this order?",
+  "sellerOrderDetailDeclineConfirmMessage": "The buyer will be notified that you can't fulfill this order.",
+  "sellerOrderDetailDeclineConfirmCancel": "Cancel",
+  "sellerOrderDetailDeclineConfirmConfirm": "Decline",
+  "myInventoryScreenTitle": "My Inventory",
+  "myInventorySearchHint": "Search products...",
+  "myInventoryFilterAll": "All",
+  "myInventoryFilterActive": "Active",
+  "myInventoryFilterInactive": "Inactive",
+  "myInventoryStockLabel": "Stock: {stock}",
+  "@myInventoryStockLabel": {
+    "placeholders": {
+      "stock": {"type": "String"}
+    }
+  },
+  "myInventoryEmptyStateMessage": "No products found.",
+  "myInventoryListingActivatedSnackbar": "{product} is now active",
+  "@myInventoryListingActivatedSnackbar": {
+    "placeholders": {
+      "product": {"type": "String"}
+    }
+  },
+  "myInventoryListingDeactivatedSnackbar": "{product} is now inactive",
+  "@myInventoryListingDeactivatedSnackbar": {
+    "placeholders": {
+      "product": {"type": "String"}
+    }
+  },
   "profileEditProfileRoleLabel": "Role Profile",
   "profileEditProfileRoleSheetTitle": "Select Role Profile",
   "profileEditProfileChangePhoto": "Change photo",
@@ -944,7 +1270,74 @@
   "profileEditProfileSavedSnackbar": "Profile updated successfully",
   "profileEditProfileSaveErrorSnackbar": "Couldn't save your profile. Please try again.",
   "profileEditProfileLoadErrorSnackbar": "Couldn't load your profile. Please try again.",
+  "shopProfileScreenTitle": "Shop Profile",
+  "shopProfileChangeLogo": "Change Store Logo",
+  "shopProfileShopNameLabel": "Shop Name",
+  "shopProfileShopNameHint": "Enter your shop name",
+  "shopProfileShopNameRequired": "Please enter your shop name",
+  "shopProfileBusinessTypeLabel": "Business Type",
+  "shopProfileBusinessTypeHint": "e.g. Manufacturer & Distributor",
+  "shopProfileBusinessTypeRequired": "Please enter your business type",
+  "shopProfileYearEstablishedLabel": "Year Established",
+  "shopProfileYearEstablishedHint": "e.g. 2018",
+  "shopProfileLocationLabel": "Location",
+  "shopProfileLocationHint": "e.g. Phnom Penh",
+  "shopProfileLocationRequired": "Please enter your location",
+  "shopProfilePhoneLabel": "Phone Number",
+  "shopProfilePhoneHint": "Enter your phone number",
+  "shopProfilePhoneRequired": "Please enter your phone number",
+  "shopProfileEmailLabel": "Email Address",
+  "shopProfileEmailHint": "Enter your email address",
+  "shopProfileEmailRequired": "Please enter your email address",
+  "shopProfileEmailInvalid": "Please enter a valid email address",
+  "shopProfileDescriptionLabel": "Business Description",
+  "shopProfileDescriptionHint": "Tell buyers about your business",
+  "shopProfileSaveButton": "Save Changes",
+  "shopProfileSavedSnackbar": "Shop profile updated successfully",
+  "shopProfileSaveErrorSnackbar": "Couldn't save your shop profile. Please try again.",
+  "addListingScreenTitle": "Add Listing",
+  "addListingProductNameLabel": "Product Name",
+  "addListingProductNameHint": "e.g. Premium Cashew Nuts",
+  "addListingProductNameRequired": "Please enter a product name",
+  "addListingCategoryLabel": "Category",
+  "addListingCategoryHint": "Select category",
+  "addListingCategoryRequired": "Please select a category",
+  "addListingPriceLabel": "Price USD",
+  "addListingPriceRequired": "Please enter a price",
+  "addListingPriceInvalid": "Please enter a valid price",
+  "addListingMoqLabel": "Minimum Order Qty",
+  "addListingMoqHint": "e.g. 100 bags",
+  "addListingMoqRequired": "Please enter a minimum order quantity",
+  "addListingMoqInvalid": "Please enter a valid quantity",
+  "addListingStockLabel": "Stock Quantity",
+  "addListingStockHint": "e.g. 500",
+  "addListingStockRequired": "Please enter a stock quantity",
+  "addListingStockInvalid": "Please enter a valid quantity",
+  "addListingPhotosLabel": "Product Photos",
+  "addListingCoverPhotoCta": "Tap to add cover photo",
+  "addListingPhotosFormatHint": "JPG, PNG up to 5MB",
+  "addListingPhotosHelper": "Upload up to 5 photos. First photo is the cover.",
+  "addListingCoverPhotoRequired": "Please add a cover photo",
+  "addListingDescriptionLabel": "Description",
+  "addListingDescriptionHint": "e.g. 100% cotton crew-neck t-shirts, Grade A quality, sold in bulk from 50pcs, ships within 3-5 business days.",
+  "addListingSampleTestingLabel": "Sample Testing",
+  "addListingSampleTestingToggleTitle": "Enable Sample Testing",
+  "addListingSampleTestingToggleSubtitle": "Limit 1 item per buyer",
+  "addListingSamplePriceLabel": "Sample Price USD",
+  "addListingSamplePriceRequired": "Please enter a sample price",
+  "addListingSamplePriceInvalid": "Please enter a valid sample price",
+  "addListingVariantsLabel": "Sizes & Colors",
+  "addListingVariantsHelper": "Let buyers pick from the options you offer",
+  "addListingAddSizeChip": "Add size",
+  "addListingAddSizeDialogTitle": "Add a size",
+  "addListingAddSizeDialogHint": "e.g. Kids, 42, Free Size",
+  "addListingAddSizeConfirm": "Add",
+  "addListingAddColorDialogTitle": "Choose a color",
+  "addListingCreateButton": "Create Listing",
+  "addListingCreatedSnackbar": "Listing created successfully",
+  "addListingCreateErrorSnackbar": "Couldn't create your listing. Please try again.",
   "profileLogout": "Logout",
+  "profileRefreshFailedSnackbar": "Couldn't refresh your profile. Check your connection and try again.",
   "currencyScreenTitle": "Payment Currency",
   "currencyScreenIntro": "Choose your preferred currency for all transactions on Bosdom. Prices will be displayed in your selected currency.",
   "currencySectionSelect": "SELECT CURRENCY",
@@ -1201,20 +1594,20 @@
 
   "privacyPolicySection5Title": "5. Data Retention",
   "privacyPolicySection5Point1": "We retain your personal data only for as long as necessary to fulfill the purposes outlined in this policy:",
-  "privacyPolicySection5Point2": "Account Data — retained while your account is active and for up to 12 months after deletion",
-  "privacyPolicySection5Point3": "Transaction Records — retained for 5 years for accounting and legal compliance",
-  "privacyPolicySection5Point4": "Chat Messages — retained for 12 months",
-  "privacyPolicySection5Point5": "Dispute Evidence — retained for 12 months after resolution",
+  "privacyPolicySection5Point2": "Account Data: retained while your account is active and for up to 12 months after deletion",
+  "privacyPolicySection5Point3": "Transaction Records: retained for 5 years for accounting and legal compliance",
+  "privacyPolicySection5Point4": "Chat Messages: retained for 12 months",
+  "privacyPolicySection5Point5": "Dispute Evidence: retained for 12 months after resolution",
   "privacyPolicySection5Point6": "You may request account deletion at any time by contacting support or using the in-app support feature.",
 
   "privacyPolicySection6Title": "6. Your Privacy Rights",
   "privacyPolicySection6Point1": "As a Bosdom user, you have the right to:",
-  "privacyPolicySection6Point2": "Access — request a copy of the personal data we hold about you",
-  "privacyPolicySection6Point3": "Correction — update inaccurate or outdated information",
-  "privacyPolicySection6Point4": "Deletion — request deletion of your personal data, subject to legal retention requirements",
-  "privacyPolicySection6Point5": "Data Portability — request your data in a machine-readable format",
-  "privacyPolicySection6Point6": "Notification Preferences — manage notification settings within the app",
-  "privacyPolicySection6Point7": "Opt-Out — opt out of marketing communications at any time",
+  "privacyPolicySection6Point2": "Access: request a copy of the personal data we hold about you",
+  "privacyPolicySection6Point3": "Correction: update inaccurate or outdated information",
+  "privacyPolicySection6Point4": "Deletion: request deletion of your personal data, subject to legal retention requirements",
+  "privacyPolicySection6Point5": "Data Portability: request your data in a machine-readable format",
+  "privacyPolicySection6Point6": "Notification Preferences: manage notification settings within the app",
+  "privacyPolicySection6Point7": "Opt-Out: opt out of marketing communications at any time",
   "privacyPolicySection6Point8": "To exercise these rights, contact us at privacy@bosdom.com or via the in-app Support section.",
 
   "privacyPolicySection7Title": "7. Chat & Communication Privacy",
@@ -1280,5 +1673,8 @@
   "aboutValueTrustTitle": "Trust & Transparency",
   "aboutValueRetailerFirstTitle": "Retailer First",
   "aboutValueInnovationTitle": "Innovation",
-  "aboutFooterCopyright": "© 2024-2026 Bosdom. All rights reserved."
+  "aboutFooterCopyright": "© 2024-2026 Bosdom. All rights reserved.",
+  "variantSelectOptionsTitle": "Select Options",
+  "variantSizeLabel": "Size",
+  "variantColorLabel": "Color"
 }

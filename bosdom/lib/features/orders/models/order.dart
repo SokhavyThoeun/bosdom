@@ -89,9 +89,13 @@ class Order {
 
   IconData get icon => items.first.product.icon;
 
+  String get imageUrl => items.first.product.imageUrl;
+
   String get productName => items.length > 1
       ? '${items.first.product.name} +${items.length - 1} more'
       : items.first.product.name;
+
+  String get sellerName => items.first.product.seller;
 
   int get itemCount => items.fold(0, (sum, item) => sum + item.quantity);
 
@@ -105,6 +109,24 @@ class Order {
 }
 
 final kMockOrders = [
+  Order(
+    id: 'BD-98517',
+    date: 'Nov 4, 2025',
+    status: OrderStatus.processing,
+    items: [
+      OrderLineItem(
+        product: _productNamed('Organic Coconut Milk (Case of 24)'),
+        quantity: 6,
+        unitLabel: 'Cases',
+      ),
+    ],
+    shippingName: 'Kampong Cham Grocers',
+    shippingAddress:
+        'Preah Monivong Blvd, Sangkat Boeung Keng Kang 1, Khan Boeung '
+        'Keng Kang, Phnom Penh, Cambodia',
+    shippingPhone: '+855 70 998 112',
+    deliveryMethod: 'Grab Express',
+  ),
   Order(
     id: 'BD-98402',
     date: 'Oct 28, 2025',

@@ -83,30 +83,23 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     }
   }
 
-  Future<void> _selectRole() async {
-    final selected = await showModalBottomSheet<MerchantRole>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _RolePickerSheet(selected: _role),
-    );
-    if (selected != null) setState(() => _role = selected);
-  }
-
   Future<void> _submit() async {
     final l10n = AppLocalizations.of(context);
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     setState(() => _isSaving = true);
     try {
-      await ref.read(profileProvider.notifier).save(
-        UserProfile(
-          name: _nameController.text.trim(),
-          phone: _phoneController.text.trim(),
-          role: _role.name,
-          email: _emailController.text.trim(),
-          avatarUrl: ref.read(profileProvider).value?.avatarUrl ?? '',
-        ),
-      );
+      await ref
+          .read(profileProvider.notifier)
+          .save(
+            UserProfile(
+              name: _nameController.text.trim(),
+              phone: _phoneController.text.trim(),
+              role: _role.name,
+              email: _emailController.text.trim(),
+              avatarUrl: ref.read(profileProvider).value?.avatarUrl ?? '',
+            ),
+          );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.profileEditProfileSavedSnackbar)),
@@ -169,11 +162,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                             ),
                           ),
                           const SizedBox(height: 32),
-                          _PickerField(
+                          _ReadOnlyField(
                             label: l10n.profileEditProfileRoleLabel,
                             icon: Icons.person_outline,
                             value: _role.title,
-                            onTap: _selectRole,
                           ),
                           const SizedBox(height: 20),
                           _AppTextField(
@@ -252,7 +244,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 }
 
 class _EditProfileHeader extends StatelessWidget {
-  const _EditProfileHeader({required this.colorScheme, required this.textTheme});
+  const _EditProfileHeader({
+    required this.colorScheme,
+    required this.textTheme,
+  });
 
   final ColorScheme colorScheme;
   final TextTheme textTheme;
@@ -262,9 +257,7 @@ class _EditProfileHeader extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
@@ -285,23 +278,10 @@ class _EditProfileHeader extends StatelessWidget {
                       ? context.pop()
                       : context.goNamed('profile'),
                   borderRadius: BorderRadius.circular(8),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.arrow_back,
-                        color: colorScheme.onPrimary,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        l10n.commonBack,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+                  child: Icon(
+                    Icons.arrow_back,
+                    color: colorScheme.onPrimary,
+                    size: 20,
                   ),
                 ),
               ),
@@ -329,6 +309,8 @@ class _AvatarPicker extends StatelessWidget {
     required this.onTap,
   });
 
+  static const double _size = 136;
+
   final XFile? file;
   final String? networkAvatarUrl;
   final bool isUploading;
@@ -339,10 +321,11 @@ class _AvatarPicker extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     ImageProvider? backgroundImage;
+    final resolvedAvatarUrl = ApiConfig.resolveAvatarUrl(networkAvatarUrl);
     if (file != null) {
       backgroundImage = FileImage(File(file!.path));
-    } else if (networkAvatarUrl != null && networkAvatarUrl!.isNotEmpty) {
-      backgroundImage = NetworkImage('${ApiConfig.baseUrl}$networkAvatarUrl');
+    } else if (resolvedAvatarUrl != null) {
+      backgroundImage = NetworkImage(resolvedAvatarUrl);
     }
 
     return Semantics(
@@ -351,19 +334,19 @@ class _AvatarPicker extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: SizedBox(
-          width: 96,
-          height: 96,
+          width: _size,
+          height: _size,
           child: Stack(
             clipBehavior: Clip.none,
             children: [
               CircleAvatar(
-                radius: 48,
+                radius: _size / 2,
                 backgroundColor: AppColors.blushSurface,
                 backgroundImage: backgroundImage,
                 child: backgroundImage == null
                     ? const Icon(
                         Icons.person,
-                        size: 44,
+                        size: 60,
                         color: AppColors.roseMist,
                       )
                     : null,
@@ -377,8 +360,8 @@ class _AvatarPicker extends StatelessWidget {
                     ),
                     child: Center(
                       child: SizedBox(
-                        width: 28,
-                        height: 28,
+                        width: 32,
+                        height: 32,
                         child: CircularProgressIndicator(
                           strokeWidth: 2.4,
                           color: Colors.white,
@@ -388,10 +371,10 @@ class _AvatarPicker extends StatelessWidget {
                   ),
                 ),
               Positioned(
-                right: -2,
-                bottom: -2,
+                right: 0,
+                bottom: 0,
                 child: Container(
-                  padding: const EdgeInsets.all(7),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: AppColors.brandCrimson,
                     shape: BoxShape.circle,
@@ -399,7 +382,7 @@ class _AvatarPicker extends StatelessWidget {
                   ),
                   child: const Icon(
                     Icons.camera_alt,
-                    size: 16,
+                    size: 18,
                     color: Colors.white,
                   ),
                 ),
@@ -421,6 +404,7 @@ InputDecoration _fieldDecoration({
     labelText: label.toUpperCase(),
     floatingLabelBehavior: FloatingLabelBehavior.always,
     hintText: hintText,
+    hintStyle: const TextStyle(fontWeight: FontWeight.w400),
     filled: true,
     fillColor: Colors.white,
     isDense: true,
@@ -481,178 +465,36 @@ class _AppTextField extends StatelessWidget {
         fontWeight: FontWeight.w600,
         color: AppColors.warmBlack,
       ),
-      decoration: _fieldDecoration(label: label, icon: icon, hintText: hintText),
+      decoration: _fieldDecoration(
+        label: label,
+        icon: icon,
+        hintText: hintText,
+      ),
       validator: validator,
     );
   }
 }
 
-class _PickerField extends StatelessWidget {
-  const _PickerField({
+class _ReadOnlyField extends StatelessWidget {
+  const _ReadOnlyField({
     required this.label,
     required this.icon,
     required this.value,
-    required this.onTap,
   });
 
   final String label;
   final IconData icon;
   final String value;
-  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: InputDecorator(
-          decoration: _fieldDecoration(label: label, icon: icon),
-          child: Text(
-            value,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: AppColors.warmBlack,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _RolePickerSheet extends StatelessWidget {
-  const _RolePickerSheet({required this.selected});
-
-  final MerchantRole selected;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final textTheme = Theme.of(context).textTheme;
-    final bottomInset = MediaQuery.of(context).padding.bottom;
-
-    return Padding(
-      padding: EdgeInsets.fromLTRB(16, 0, 16, bottomInset + 16),
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(28)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: AppColors.roseDivider,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-            ),
-            Text(
-              l10n.profileEditProfileRoleSheetTitle,
-              style: textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: AppColors.warmBlack,
-              ),
-            ),
-            const SizedBox(height: 16),
-            for (final role in MerchantRole.values) ...[
-              _RoleOption(
-                role: role,
-                selected: role == selected,
-                onTap: () => Navigator.of(context).pop(role),
-              ),
-              if (role != MerchantRole.values.last) const SizedBox(height: 10),
-            ],
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _RoleOption extends StatelessWidget {
-  const _RoleOption({
-    required this.role,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final MerchantRole role;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
-    return Material(
-      color: selected ? AppColors.blushSurface : Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: selected ? AppColors.brandCrimson : AppColors.roseDivider,
-              width: selected ? 1.4 : 1,
-            ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: const BoxDecoration(
-                  color: AppColors.blushSurface,
-                  shape: BoxShape.circle,
-                ),
-                alignment: Alignment.center,
-                child: Icon(role.icon, size: 20, color: AppColors.brandCrimson),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      role.title,
-                      style: textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.warmBlack,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      role.subtitle,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: AppColors.warmTaupe,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (selected)
-                const Icon(
-                  Icons.check_circle_rounded,
-                  size: 20,
-                  color: AppColors.brandCrimson,
-                ),
-            ],
-          ),
+    return InputDecorator(
+      decoration: _fieldDecoration(label: label, icon: icon),
+      child: Text(
+        value,
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+          color: AppColors.warmBlack,
         ),
       ),
     );

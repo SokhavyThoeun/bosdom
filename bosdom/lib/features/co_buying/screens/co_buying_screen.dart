@@ -1,16 +1,13 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
 import '../../wishlist/providers/wishlist_provider.dart';
 import '../models/co_buy_session.dart';
 import '../providers/co_buy_provider.dart';
+import '../widgets/co_buy_product_image.dart';
 
 class CoBuyingScreen extends ConsumerWidget {
   const CoBuyingScreen({super.key});
@@ -86,21 +83,15 @@ class CoBuyingScreen extends ConsumerWidget {
         ? (box.localToGlobal(Offset.zero) & box.size)
         : null;
 
-    final logoData = await rootBundle.load('assets/images/bosdom-logo-red.png');
-    final tempDir = await getTemporaryDirectory();
-    final logoFile = File('${tempDir.path}/bosdom-co-buy-share.png');
-    await logoFile.writeAsBytes(logoData.buffer.asUint8List(), flush: true);
-
     await SharePlus.instance.share(
       ShareParams(
         text: l10n.coBuyingShareText(
           session.productName,
           '\$${session.price.toStringAsFixed(2)}',
           '${session.savingsPct}',
-          'https://bosdom.app/co-buy/${session.id}',
+          'https://bosdom.app/co-buying/${session.id}',
         ),
         subject: l10n.coBuyingShareSubject(session.productName),
-        files: [XFile(logoFile.path, mimeType: 'image/png')],
         sharePositionOrigin: origin,
       ),
     );
@@ -123,9 +114,7 @@ class _Header extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
@@ -146,23 +135,10 @@ class _Header extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.arrow_back,
-                          color: colorScheme.onPrimary,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          l10n.commonBack,
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
+                    child: Icon(
+                      Icons.arrow_back,
+                      color: colorScheme.onPrimary,
+                      size: 20,
                     ),
                   ),
                 ),
@@ -364,29 +340,7 @@ class _CoBuyCard extends StatelessWidget {
                     child: SizedBox(
                       width: 48,
                       height: 48,
-                      child: Image.network(
-                        session.imageUrl,
-                        width: 48,
-                        height: 48,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, progress) =>
-                            progress == null
-                            ? child
-                            : Container(
-                                color: Colors.white,
-                                alignment: Alignment.center,
-                                child: Icon(session.icon, color: colorScheme.primary, size: 24),
-                              ),
-                        errorBuilder: (context, error, stackTrace) => Container(
-                          color: Colors.white,
-                          alignment: Alignment.center,
-                          child: Icon(
-                            session.icon,
-                            color: colorScheme.primary,
-                            size: 24,
-                          ),
-                        ),
-                      ),
+                      child: CoBuyProductImage(session: session),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -594,7 +548,10 @@ class _CoBuyCard extends StatelessWidget {
                       onTap: onOpenDetail,
                     )
                   else if (session.isFull)
-                    _FullLockedPill(colorScheme: colorScheme, textTheme: textTheme)
+                    _FullLockedPill(
+                      colorScheme: colorScheme,
+                      textTheme: textTheme,
+                    )
                   else if (session.joined)
                     _JoinedPill(
                       colorScheme: colorScheme,

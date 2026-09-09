@@ -472,7 +472,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sampleGateBody =>
-      '1-per-account sample purchase flow — UI comes in phase 4';
+      '1-per-account sample purchase flow. UI comes in phase 4';
 
   @override
   String cartMovedToWishlistSnackbar(String productName) {
@@ -529,6 +529,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get checkoutShippingMethodLabel => 'Shipping Method';
+
+  @override
+  String get checkoutShippingUnavailableLabel =>
+      'Not available for this weight/address';
 
   @override
   String get checkoutEscrowNotice =>
@@ -635,6 +639,94 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addressDefaultBadge => 'Default';
 
   @override
+  String get storeAddressBookScreenTitle => 'Store Addresses';
+
+  @override
+  String get storeAddressAddNewButton => 'Add New Store Address';
+
+  @override
+  String get storeAddressAddScreenTitle => 'Add Store Address';
+
+  @override
+  String get storeAddressLabelFieldLabel => 'ADDRESS LABEL';
+
+  @override
+  String get storeAddressLabelFieldHint => 'e.g. Phnom Penh Headquarters';
+
+  @override
+  String get storeAddressNameFieldLabel => 'STORE / BUSINESS NAME';
+
+  @override
+  String get storeAddressNameFieldHint => 'e.g. Angkor Artisans Store';
+
+  @override
+  String get storeAddressBusinessTypeFieldLabel => 'BUSINESS TYPE';
+
+  @override
+  String get storeAddressBusinessTypeFieldHint =>
+      'e.g. Wholesale & Manufacturer';
+
+  @override
+  String get storeAddressFullAddressFieldLabel => 'FULL ADDRESS';
+
+  @override
+  String get storeAddressFullAddressFieldHint =>
+      'e.g. No. 124, Street 271, Sangkat Boeung Salang';
+
+  @override
+  String get storeAddressDistrictFieldLabel => 'SANGKAT / DISTRICT';
+
+  @override
+  String get storeAddressDistrictFieldHint => 'e.g. Sangkat Teuk Thla';
+
+  @override
+  String get storeAddressProvinceFieldLabel => 'PROVINCE / CITY';
+
+  @override
+  String get storeAddressProvinceFieldHint => 'e.g. Phnom Penh';
+
+  @override
+  String get storeAddressPhoneFieldLabel => 'CONTACT PHONE NUMBER';
+
+  @override
+  String get storeAddressPhoneFieldHint => 'e.g. +855 76 227 5858';
+
+  @override
+  String get storeAddressEmailFieldLabel => 'CONTACT EMAIL';
+
+  @override
+  String get storeAddressEmailFieldHint => 'e.g. orders@angkorartisans.com';
+
+  @override
+  String get storeAddressHoursFieldLabel => 'OPERATING HOURS';
+
+  @override
+  String get storeAddressHoursFieldHint => 'e.g. Mon - Fri: 8:00 AM - 5:30 PM';
+
+  @override
+  String get storeAddressFieldRequiredError => 'Required';
+
+  @override
+  String get storeAddressEmailInvalidError => 'Enter a valid email';
+
+  @override
+  String get storeAddressSetDefaultTitle => 'Set as Default Store Address';
+
+  @override
+  String get storeAddressSetDefaultSubtitle =>
+      'Ship and dispatch all primary orders from here';
+
+  @override
+  String get storeAddressSaveButton => 'Save Store Address';
+
+  @override
+  String get storeAddressDefaultBadge => 'Default';
+
+  @override
+  String get storeAddressEmptyState =>
+      'No store addresses yet. Add one to start shipping from a fixed location.';
+
+  @override
   String get chatScreenTitle => 'Chat';
 
   @override
@@ -672,7 +764,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatOffPlatformWarning =>
-      'This message may share contact info or arrange a deal outside Bosdom — you won\'t be covered by buyer protection.';
+      'This message may share contact info or arrange a deal outside Bosdom: you won\'t be covered by buyer protection.';
 
   @override
   String get chatPhotoAttachmentComingSoon => 'Photo attachment coming soon';
@@ -802,7 +894,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String dataPrivacyLaunchError(String email) {
-    return 'Couldn\'t open your email app — copied $email to your clipboard instead';
+    return 'Couldn\'t open your email app; copied $email to your clipboard instead';
   }
 
   @override
@@ -825,7 +917,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get personalizedAdsBody =>
-      'We use your browsing data and purchase history to show you relevant product recommendations and ads. You can opt out anytime — you will still see ads, but they won\'t be tailored to your interests.';
+      'We use your browsing data and purchase history to show you relevant product recommendations and ads. You can opt out anytime; you will still see ads, but they won\'t be tailored to your interests.';
 
   @override
   String get personalizedAdsBrowsingTitle => 'Browsing data';
@@ -921,13 +1013,213 @@ class AppLocalizationsEn extends AppLocalizations {
     String savingsPct,
     String url,
   ) {
-    return 'Join me on this Co-Buy for $productName on BosDom! Get it for $price ($savingsPct% off) — $url';
+    return 'Join me on this Co-Buy for $productName on BosDom! Get it for $price ($savingsPct% off).\n\n$url';
   }
 
   @override
   String coBuyingShareSubject(String productName) {
     return 'Co-Buy: $productName';
   }
+
+  @override
+  String get coBuyCreateScreenTitle => 'Start a Co-Buy';
+
+  @override
+  String get coBuyCreateEditScreenTitle => 'Edit Co-Buy Deal';
+
+  @override
+  String get coBuyCreateProductNameLabel => 'Product Name';
+
+  @override
+  String get coBuyCreateProductNameHint => 'e.g. Jasmine Rice Premium 50kg';
+
+  @override
+  String get coBuyCreateProductNameRequired => 'Product name is required';
+
+  @override
+  String get coBuyCreatePriceLabel => 'Co-Buy Price (USD)';
+
+  @override
+  String get coBuyCreatePriceRequired => 'Co-buy price is required';
+
+  @override
+  String get coBuyCreatePriceInvalid => 'Enter a valid price';
+
+  @override
+  String get coBuyCreateOriginalPriceLabel => 'Original Price (USD)';
+
+  @override
+  String get coBuyCreateOriginalPriceRequired => 'Original price is required';
+
+  @override
+  String get coBuyCreateOriginalPriceInvalid =>
+      'Original price must be higher than the co-buy price';
+
+  @override
+  String get coBuyCreateTargetQtyLabel => 'Target Retailers';
+
+  @override
+  String get coBuyCreateTargetQtyHint => 'e.g. 20';
+
+  @override
+  String get coBuyCreateTargetQtyRequired => 'Target retailers is required';
+
+  @override
+  String get coBuyCreateTargetQtyInvalid => 'Enter a valid number';
+
+  @override
+  String get coBuyCreateUnitLabelLabel => 'Unit';
+
+  @override
+  String get coBuyCreateUnitLabelHint => 'e.g. kg, packs, units';
+
+  @override
+  String get coBuyCreateUnitLabelRequired => 'Unit is required';
+
+  @override
+  String get coBuyCreateMinOrderQtyLabel => 'Minimum Order';
+
+  @override
+  String get coBuyCreateMinOrderQtyHint => 'e.g. 500 kg';
+
+  @override
+  String get coBuyCreateMinOrderQtyRequired => 'Minimum order is required';
+
+  @override
+  String get coBuyCreateMinOrderQtyInvalid => 'Enter a valid quantity';
+
+  @override
+  String get coBuyCreateDurationLabel => 'Deal Duration';
+
+  @override
+  String get coBuyCreateDuration1Day => '1 day';
+
+  @override
+  String get coBuyCreateDuration2Days => '2 days';
+
+  @override
+  String get coBuyCreateDuration3Days => '3 days';
+
+  @override
+  String get coBuyCreateDuration5Days => '5 days';
+
+  @override
+  String get coBuyCreateDuration1Week => '1 week';
+
+  @override
+  String get coBuyCreateButton => 'Launch Co-Buy';
+
+  @override
+  String get coBuyCreateCreatedSnackbar =>
+      'Co-Buy created! Invite others to join.';
+
+  @override
+  String get coBuyCreateUpdatedSnackbar => 'Co-buy deal updated';
+
+  @override
+  String get coBuyCreateProductInfoSectionTitle => 'Product Information';
+
+  @override
+  String get coBuyCreatePricingSectionTitle => 'Pricing & Quantity';
+
+  @override
+  String get coBuyCreateDealSettingsSectionTitle => 'Deal Settings';
+
+  @override
+  String get coBuyCreatePhotosLabel => 'Product Photos';
+
+  @override
+  String get coBuyCreatePhotoLabel => 'Tap to add cover photo';
+
+  @override
+  String get coBuyCreatePhotoHint => 'Recommended 512×512px JPG or PNG';
+
+  @override
+  String get coBuyCreatePhotosHelper =>
+      'Add up to 4 photos. The first photo is the cover.';
+
+  @override
+  String get coBuyCreateDescriptionLabel => 'Product Description';
+
+  @override
+  String get coBuyCreateDescriptionHint => 'Describe the product for retailers';
+
+  @override
+  String get coBuyCreateAutoRenewLabel => 'Auto-renew when expired';
+
+  @override
+  String get coBuyDealsWelcomeMessage =>
+      'Welcome back! Here is your co-buy performance summary today.';
+
+  @override
+  String get coBuyDealsShopNamePlaceholder => 'My Shop';
+
+  @override
+  String get coBuyDealsAutoRenewBadge => 'Auto-renews';
+
+  @override
+  String get coBuyDealsActiveDealsLabel => 'Active Deals';
+
+  @override
+  String get coBuyDealsJoinedLabel => 'Joined';
+
+  @override
+  String get coBuyDealsRevenueLabel => 'Revenue';
+
+  @override
+  String get coBuyDealsCreateButtonLabel => 'Create New Co-Buy Deal';
+
+  @override
+  String get coBuyDealsListingsSectionTitle => 'Your Co-Buy Listings';
+
+  @override
+  String coBuyDealsMinTargetLabel(int targetQty, String unitLabel) {
+    return 'Min wholesale target: $targetQty $unitLabel';
+  }
+
+  @override
+  String get coBuyDealsStatusActive => 'Active';
+
+  @override
+  String get coBuyDealsStatusCompleted => 'Completed';
+
+  @override
+  String get coBuyDealsStatusExpired => 'Expired';
+
+  @override
+  String get coBuyDealsProgressLabel => 'Progress';
+
+  @override
+  String coBuyDealsRetailersLabel(int count) {
+    return '$count retailers';
+  }
+
+  @override
+  String get coBuyDealsStatusEndedLabel => 'Ended';
+
+  @override
+  String get coBuyDealsEndsSoonLabel => 'Ends soon';
+
+  @override
+  String get coBuyDealsOriginalLabel => 'Original';
+
+  @override
+  String get coBuyDealsCoBuyPriceLabel => 'Co-buy price';
+
+  @override
+  String get coBuyDealsDeleteConfirmTitle => 'Delete Co-Buy Deal?';
+
+  @override
+  String coBuyDealsDeleteConfirmBody(String productName) {
+    return '$productName and its retailer progress will be permanently removed.';
+  }
+
+  @override
+  String get coBuyDealsDeletedSnackbar => 'Co-buy deal deleted';
+
+  @override
+  String get coBuyDealsEmptyMessage =>
+      'No co-buy deals yet. Create one so retailers can pool orders with you.';
 
   @override
   String get coBuyDetailActiveDealLabel => 'Active Deal';
@@ -1331,6 +1623,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ordersViewDetailsButton => 'View Details';
 
   @override
+  String get ordersTrackOrderButton => 'Track Order';
+
+  @override
   String get orderDetailScreenTitle => 'Order Details';
 
   @override
@@ -1343,6 +1638,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String orderDetailOrderNumberLabel(String orderId) {
     return 'Order #$orderId';
   }
+
+  @override
+  String get orderDetailDeliveryMethodSection => 'Delivery Method';
+
+  @override
+  String get orderDetailCarrierLabel => 'Carrier';
 
   @override
   String get orderDetailPaymentSummarySection => 'Payment Summary';
@@ -1556,7 +1857,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get escrowPlaceholderText =>
-      'Payment, QR confirm, dispute evidence — UI comes in phase 8';
+      'Payment, QR confirm, dispute evidence. UI comes in phase 8';
 
   @override
   String get profileMenuMyOrders => 'My Orders';
@@ -1568,7 +1869,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileMenuAddressBook => 'Address Book';
 
   @override
-  String get profileMenuChat => 'Chat';
+  String get profileMenuAddressStore => 'Address Store';
+
+  @override
+  String get profileMenuBuyerChat => 'Chat with Buyers';
 
   @override
   String get profileMenuNotifications => 'Notifications';
@@ -1601,7 +1905,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileMenuAbout => 'About';
 
   @override
+  String get profileMenuSellerDashboard => 'Seller Dashboard';
+
+  @override
+  String get profileMenuMyInventory => 'My Inventory';
+
+  @override
+  String get profileMenuAddListing => 'Add Listing';
+
+  @override
+  String get profileMenuCoBuyDeals => 'Co-Buy Deals';
+
+  @override
+  String get profileMenuShopProfile => 'Shop Profile';
+
+  @override
   String get profileSectionShopping => 'SHOPPING';
+
+  @override
+  String get profileSectionSelling => 'SELLING';
 
   @override
   String get profileSectionAccount => 'ACCOUNT';
@@ -1623,6 +1945,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileStatSavedItems => 'Saved Items';
+
+  @override
+  String get profileStatTotalProducts => 'Total Products';
+
+  @override
+  String get profileStatRevenue => 'Revenue';
 
   @override
   String get profileSellerProgramBadge => 'SELLER PROGRAM';
@@ -1659,6 +1987,323 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileEditProfileLabel => 'Edit Profile';
+
+  @override
+  String get sellerDashboardScreenTitle => 'Dashboard';
+
+  @override
+  String get sellerDashboardVerifiedBadge => 'Verified';
+
+  @override
+  String get sellerDashboardWelcomeMessage =>
+      'Welcome back! Here\'s your wholesale store performance summary today.';
+
+  @override
+  String get sellerDashboardRevenueLabel => 'Revenue';
+
+  @override
+  String get sellerDashboardPendingLabel => 'Pending';
+
+  @override
+  String sellerDashboardPendingOrdersLabel(int count) {
+    return '$count Orders';
+  }
+
+  @override
+  String get sellerDashboardProductsLabel => 'Products';
+
+  @override
+  String sellerDashboardProductsCountLabel(int count) {
+    return '$count Items';
+  }
+
+  @override
+  String get sellerDashboardQuickActionsTitle => 'Quick Actions';
+
+  @override
+  String get sellerDashboardAddListingAction => 'Add Listing';
+
+  @override
+  String get sellerDashboardMyInventoryAction => 'My Inventory';
+
+  @override
+  String get sellerDashboardOrdersAction => 'Orders';
+
+  @override
+  String get sellerDashboardEarningsAction => 'Earnings';
+
+  @override
+  String get sellerDashboardBuyerToolsTitle => 'Shop as a Buyer';
+
+  @override
+  String get sellerDashboardMarketplaceAction => 'Marketplace';
+
+  @override
+  String get sellerDashboardWishlistAction => 'Wishlist';
+
+  @override
+  String get sellerDashboardCartAction => 'Cart';
+
+  @override
+  String get sellerDashboardCoBuyingAction => 'Co-Buying';
+
+  @override
+  String get sellerDashboardPerformanceTitle => 'Performance';
+
+  @override
+  String get sellerDashboardRatingLabel => 'Rating';
+
+  @override
+  String get sellerDashboardCompletionLabel => 'Completion';
+
+  @override
+  String get sellerDashboardAvgDeliveryLabel => 'Avg Delivery';
+
+  @override
+  String get sellerDashboardRecentOrdersTitle => 'Recent Active Orders';
+
+  @override
+  String get sellerDashboardViewAllLabel => 'View All';
+
+  @override
+  String get sellerEarningsScreenTitle => 'Earnings';
+
+  @override
+  String get sellerEarningsAvailableBalanceLabel => 'Available Balance';
+
+  @override
+  String sellerEarningsCompletedSalesPercentLabel(int percent) {
+    return '$percent% of completed sales';
+  }
+
+  @override
+  String get sellerEarningsWithdrawButton => 'Withdraw';
+
+  @override
+  String get sellerEarningsReleasedLabel => 'Released';
+
+  @override
+  String get sellerEarningsInEscrowLabel => 'In Escrow';
+
+  @override
+  String get sellerEarningsRefundedLabel => 'Refunded';
+
+  @override
+  String get sellerEarningsFilterAllLabel => 'All';
+
+  @override
+  String get sellerEarningsFilterReleasedLabel => 'Released';
+
+  @override
+  String get sellerEarningsFilterInEscrowLabel => 'In Escrow';
+
+  @override
+  String get sellerEarningsFilterDisputedLabel => 'Disputed';
+
+  @override
+  String sellerEarningsTransactionsCountLabel(int count) {
+    return '$count transactions';
+  }
+
+  @override
+  String sellerEarningsOrderBuyerLabel(String id, String buyer) {
+    return '#$id • $buyer';
+  }
+
+  @override
+  String get sellerEarningsSaleAmountLabel => 'Sale amount';
+
+  @override
+  String sellerEarningsPlatformFeeLabel(int rate) {
+    return 'Platform fee ($rate%)';
+  }
+
+  @override
+  String get sellerEarningsYourEarningsLabel => 'Your earnings';
+
+  @override
+  String get sellerEarningsWithdrawalLabel => 'Withdrawal';
+
+  @override
+  String get sellerEarningsStatusPending => 'Pending';
+
+  @override
+  String get sellerEarningsStatusInEscrow => 'In Escrow';
+
+  @override
+  String get sellerEarningsStatusReleased => 'Released';
+
+  @override
+  String get sellerEarningsStatusDisputed => 'Refunded';
+
+  @override
+  String get sellerEarningsStatusWithdrawn => 'Withdrawn';
+
+  @override
+  String get sellerEarningsEscrowNoticeText =>
+      'Funds are held in escrow for 48 hours after purchase. Once released, tap Withdraw to transfer earnings to your bank account.';
+
+  @override
+  String get sellerEarningsEmptyStateMessage =>
+      'No transactions in this category';
+
+  @override
+  String get sellerEarningsWithdrawSheetTitle => 'Withdraw Funds';
+
+  @override
+  String get sellerEarningsWithdrawPoweredByLabel => 'Powered by ABA Pay';
+
+  @override
+  String get sellerEarningsWithdrawAmountLabel => 'Withdrawal Amount (\$)';
+
+  @override
+  String get sellerEarningsAccountHolderNameLabel => 'Account Holder Name';
+
+  @override
+  String get sellerEarningsAccountHolderNameHint => 'Full name on account';
+
+  @override
+  String get sellerEarningsRoutingNumberLabel => 'Routing Number';
+
+  @override
+  String get sellerEarningsRoutingNumberHint =>
+      'Enter ABA routing number (e.g., 020001)';
+
+  @override
+  String get sellerEarningsAccountNumberLabel => 'Account Number';
+
+  @override
+  String get sellerEarningsAccountNumberHint => 'Enter ABA account number';
+
+  @override
+  String get sellerEarningsWithdrawNoticeText =>
+      'Funds will be instantly transferred to your designated ABA Pay account. Standard security holds may apply.';
+
+  @override
+  String get sellerEarningsWithdrawContinueButton => 'Continue';
+
+  @override
+  String get sellerEarningsWithdrawFieldRequiredError =>
+      'This field is required';
+
+  @override
+  String get sellerEarningsWithdrawAmountInvalidError => 'Enter a valid amount';
+
+  @override
+  String get sellerEarningsWithdrawAmountExceedsError =>
+      'Amount exceeds available balance';
+
+  @override
+  String get sellerEarningsWithdrawJustNowLabel => 'Just now';
+
+  @override
+  String sellerEarningsWithdrawSuccessSnackbar(String amount) {
+    return 'Withdrawal of \$$amount submitted';
+  }
+
+  @override
+  String get sellerEarningsWithdrawSuccessTitle => 'Success';
+
+  @override
+  String sellerEarningsWithdrawSuccessMessage(String amount) {
+    return '\$$amount withdrawal initiated. Funds will arrive in 2-3 business days.';
+  }
+
+  @override
+  String get sellerEarningsWithdrawSuccessOkButton => 'OK';
+
+  @override
+  String get sellerOrdersScreenTitle => 'Orders';
+
+  @override
+  String get sellerOrdersEmptyStateMessage => 'No orders in this category';
+
+  @override
+  String sellerOrdersFilterAllLabel(int count) {
+    return 'All ($count)';
+  }
+
+  @override
+  String sellerOrdersFilterPendingLabel(int count) {
+    return 'Pending ($count)';
+  }
+
+  @override
+  String sellerOrdersQuantityProductLabel(String quantity, String product) {
+    return '$quantity • $product';
+  }
+
+  @override
+  String get sellerOrdersCoBuyBadgeLabel => 'Co-Buy';
+
+  @override
+  String get sellerOrderDetailBuyerInfoSection => 'Buyer Information';
+
+  @override
+  String sellerOrderDetailPlatformFeeLabel(int rate) {
+    return 'Platform Fee ($rate%)';
+  }
+
+  @override
+  String get sellerOrderDetailYourEarningsLabel => 'Your Earnings';
+
+  @override
+  String get sellerOrderDetailAcceptButton => 'Accept Order';
+
+  @override
+  String get sellerOrderDetailDeclineButton => 'Decline Order';
+
+  @override
+  String get sellerOrderDetailOrderAcceptedSnackbar => 'Order accepted';
+
+  @override
+  String get sellerOrderDetailOrderDeclinedSnackbar => 'Order declined';
+
+  @override
+  String get sellerOrderDetailDeclineConfirmTitle => 'Decline this order?';
+
+  @override
+  String get sellerOrderDetailDeclineConfirmMessage =>
+      'The buyer will be notified that you can\'t fulfill this order.';
+
+  @override
+  String get sellerOrderDetailDeclineConfirmCancel => 'Cancel';
+
+  @override
+  String get sellerOrderDetailDeclineConfirmConfirm => 'Decline';
+
+  @override
+  String get myInventoryScreenTitle => 'My Inventory';
+
+  @override
+  String get myInventorySearchHint => 'Search products...';
+
+  @override
+  String get myInventoryFilterAll => 'All';
+
+  @override
+  String get myInventoryFilterActive => 'Active';
+
+  @override
+  String get myInventoryFilterInactive => 'Inactive';
+
+  @override
+  String myInventoryStockLabel(String stock) {
+    return 'Stock: $stock';
+  }
+
+  @override
+  String get myInventoryEmptyStateMessage => 'No products found.';
+
+  @override
+  String myInventoryListingActivatedSnackbar(String product) {
+    return '$product is now active';
+  }
+
+  @override
+  String myInventoryListingDeactivatedSnackbar(String product) {
+    return '$product is now inactive';
+  }
 
   @override
   String get profileEditProfileRoleLabel => 'Role Profile';
@@ -1717,7 +2362,216 @@ class AppLocalizationsEn extends AppLocalizations {
       'Couldn\'t load your profile. Please try again.';
 
   @override
+  String get shopProfileScreenTitle => 'Shop Profile';
+
+  @override
+  String get shopProfileChangeLogo => 'Change Store Logo';
+
+  @override
+  String get shopProfileShopNameLabel => 'Shop Name';
+
+  @override
+  String get shopProfileShopNameHint => 'Enter your shop name';
+
+  @override
+  String get shopProfileShopNameRequired => 'Please enter your shop name';
+
+  @override
+  String get shopProfileBusinessTypeLabel => 'Business Type';
+
+  @override
+  String get shopProfileBusinessTypeHint => 'e.g. Manufacturer & Distributor';
+
+  @override
+  String get shopProfileBusinessTypeRequired =>
+      'Please enter your business type';
+
+  @override
+  String get shopProfileYearEstablishedLabel => 'Year Established';
+
+  @override
+  String get shopProfileYearEstablishedHint => 'e.g. 2018';
+
+  @override
+  String get shopProfileLocationLabel => 'Location';
+
+  @override
+  String get shopProfileLocationHint => 'e.g. Phnom Penh';
+
+  @override
+  String get shopProfileLocationRequired => 'Please enter your location';
+
+  @override
+  String get shopProfilePhoneLabel => 'Phone Number';
+
+  @override
+  String get shopProfilePhoneHint => 'Enter your phone number';
+
+  @override
+  String get shopProfilePhoneRequired => 'Please enter your phone number';
+
+  @override
+  String get shopProfileEmailLabel => 'Email Address';
+
+  @override
+  String get shopProfileEmailHint => 'Enter your email address';
+
+  @override
+  String get shopProfileEmailRequired => 'Please enter your email address';
+
+  @override
+  String get shopProfileEmailInvalid => 'Please enter a valid email address';
+
+  @override
+  String get shopProfileDescriptionLabel => 'Business Description';
+
+  @override
+  String get shopProfileDescriptionHint => 'Tell buyers about your business';
+
+  @override
+  String get shopProfileSaveButton => 'Save Changes';
+
+  @override
+  String get shopProfileSavedSnackbar => 'Shop profile updated successfully';
+
+  @override
+  String get shopProfileSaveErrorSnackbar =>
+      'Couldn\'t save your shop profile. Please try again.';
+
+  @override
+  String get addListingScreenTitle => 'Add Listing';
+
+  @override
+  String get addListingProductNameLabel => 'Product Name';
+
+  @override
+  String get addListingProductNameHint => 'e.g. Premium Cashew Nuts';
+
+  @override
+  String get addListingProductNameRequired => 'Please enter a product name';
+
+  @override
+  String get addListingCategoryLabel => 'Category';
+
+  @override
+  String get addListingCategoryHint => 'Select category';
+
+  @override
+  String get addListingCategoryRequired => 'Please select a category';
+
+  @override
+  String get addListingPriceLabel => 'Price USD';
+
+  @override
+  String get addListingPriceRequired => 'Please enter a price';
+
+  @override
+  String get addListingPriceInvalid => 'Please enter a valid price';
+
+  @override
+  String get addListingMoqLabel => 'Minimum Order Qty';
+
+  @override
+  String get addListingMoqHint => 'e.g. 100 bags';
+
+  @override
+  String get addListingMoqRequired => 'Please enter a minimum order quantity';
+
+  @override
+  String get addListingMoqInvalid => 'Please enter a valid quantity';
+
+  @override
+  String get addListingStockLabel => 'Stock Quantity';
+
+  @override
+  String get addListingStockHint => 'e.g. 500';
+
+  @override
+  String get addListingStockRequired => 'Please enter a stock quantity';
+
+  @override
+  String get addListingStockInvalid => 'Please enter a valid quantity';
+
+  @override
+  String get addListingPhotosLabel => 'Product Photos';
+
+  @override
+  String get addListingCoverPhotoCta => 'Tap to add cover photo';
+
+  @override
+  String get addListingPhotosFormatHint => 'JPG, PNG up to 5MB';
+
+  @override
+  String get addListingPhotosHelper =>
+      'Upload up to 5 photos. First photo is the cover.';
+
+  @override
+  String get addListingCoverPhotoRequired => 'Please add a cover photo';
+
+  @override
+  String get addListingDescriptionLabel => 'Description';
+
+  @override
+  String get addListingDescriptionHint =>
+      'e.g. 100% cotton crew-neck t-shirts, Grade A quality, sold in bulk from 50pcs, ships within 3-5 business days.';
+
+  @override
+  String get addListingSampleTestingLabel => 'Sample Testing';
+
+  @override
+  String get addListingSampleTestingToggleTitle => 'Enable Sample Testing';
+
+  @override
+  String get addListingSampleTestingToggleSubtitle => 'Limit 1 item per buyer';
+
+  @override
+  String get addListingSamplePriceLabel => 'Sample Price USD';
+
+  @override
+  String get addListingSamplePriceRequired => 'Please enter a sample price';
+
+  @override
+  String get addListingSamplePriceInvalid =>
+      'Please enter a valid sample price';
+
+  @override
+  String get addListingVariantsLabel => 'Sizes & Colors';
+
+  @override
+  String get addListingVariantsHelper =>
+      'Let buyers pick from the options you offer';
+
+  @override
+  String get addListingAddSizeChip => 'Add size';
+
+  @override
+  String get addListingAddSizeDialogTitle => 'Add a size';
+
+  @override
+  String get addListingAddSizeDialogHint => 'e.g. Kids, 42, Free Size';
+
+  @override
+  String get addListingAddSizeConfirm => 'Add';
+
+  @override
+  String get addListingAddColorDialogTitle => 'Choose a color';
+
+  @override
+  String get addListingCreateButton => 'Create Listing';
+
+  @override
+  String get addListingCreatedSnackbar => 'Listing created successfully';
+
+  @override
+  String get addListingCreateErrorSnackbar =>
+      'Couldn\'t create your listing. Please try again.';
+
+  @override
   String get profileLogout => 'Logout';
+
+  @override
+  String get profileRefreshFailedSnackbar =>
+      'Couldn\'t refresh your profile. Check your connection and try again.';
 
   @override
   String get currencyScreenTitle => 'Payment Currency';
@@ -2474,19 +3328,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacyPolicySection5Point2 =>
-      'Account Data — retained while your account is active and for up to 12 months after deletion';
+      'Account Data: retained while your account is active and for up to 12 months after deletion';
 
   @override
   String get privacyPolicySection5Point3 =>
-      'Transaction Records — retained for 5 years for accounting and legal compliance';
+      'Transaction Records: retained for 5 years for accounting and legal compliance';
 
   @override
   String get privacyPolicySection5Point4 =>
-      'Chat Messages — retained for 12 months';
+      'Chat Messages: retained for 12 months';
 
   @override
   String get privacyPolicySection5Point5 =>
-      'Dispute Evidence — retained for 12 months after resolution';
+      'Dispute Evidence: retained for 12 months after resolution';
 
   @override
   String get privacyPolicySection5Point6 =>
@@ -2501,27 +3355,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacyPolicySection6Point2 =>
-      'Access — request a copy of the personal data we hold about you';
+      'Access: request a copy of the personal data we hold about you';
 
   @override
   String get privacyPolicySection6Point3 =>
-      'Correction — update inaccurate or outdated information';
+      'Correction: update inaccurate or outdated information';
 
   @override
   String get privacyPolicySection6Point4 =>
-      'Deletion — request deletion of your personal data, subject to legal retention requirements';
+      'Deletion: request deletion of your personal data, subject to legal retention requirements';
 
   @override
   String get privacyPolicySection6Point5 =>
-      'Data Portability — request your data in a machine-readable format';
+      'Data Portability: request your data in a machine-readable format';
 
   @override
   String get privacyPolicySection6Point6 =>
-      'Notification Preferences — manage notification settings within the app';
+      'Notification Preferences: manage notification settings within the app';
 
   @override
   String get privacyPolicySection6Point7 =>
-      'Opt-Out — opt out of marketing communications at any time';
+      'Opt-Out: opt out of marketing communications at any time';
 
   @override
   String get privacyPolicySection6Point8 =>
@@ -2707,4 +3561,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutFooterCopyright => '© 2024-2026 Bosdom. All rights reserved.';
+
+  @override
+  String get variantSelectOptionsTitle => 'Select Options';
+
+  @override
+  String get variantSizeLabel => 'Size';
+
+  @override
+  String get variantColorLabel => 'Color';
 }

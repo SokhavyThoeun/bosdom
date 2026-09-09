@@ -40,9 +40,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
   }
 
   void _onDraftChanged() {
-    final looksOffPlatform = detectsOffPlatformAttempt(
-      _messageController.text,
-    );
+    final looksOffPlatform = detectsOffPlatformAttempt(_messageController.text);
     if (looksOffPlatform != _draftLooksOffPlatform) {
       setState(() => _draftLooksOffPlatform = looksOffPlatform);
     }
@@ -100,9 +98,9 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.chatPhotoAttachmentComingSoon)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.chatPhotoAttachmentComingSoon)),
+      );
     }
   }
 
@@ -229,9 +227,7 @@ class _Header extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           16,
@@ -252,23 +248,10 @@ class _Header extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.arrow_back,
-                          color: colorScheme.onPrimary,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          l10n.commonBack,
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
+                    child: Icon(
+                      Icons.arrow_back,
+                      color: colorScheme.onPrimary,
+                      size: 20,
                     ),
                   ),
                 ),
@@ -347,9 +330,7 @@ class _Header extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: conversation.online
                                 ? AppColors.trustGreen
-                                : colorScheme.onPrimary.withValues(
-                                    alpha: 0.5,
-                                  ),
+                                : colorScheme.onPrimary.withValues(alpha: 0.5),
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -405,10 +386,7 @@ class _OffPlatformWarningBanner extends StatelessWidget {
           : Container(
               width: double.infinity,
               margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 10,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
                 color: AppColors.alertAmber.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(14),
@@ -516,4 +494,3 @@ class _PolicyBannerState extends State<_PolicyBanner> {
     );
   }
 }
-

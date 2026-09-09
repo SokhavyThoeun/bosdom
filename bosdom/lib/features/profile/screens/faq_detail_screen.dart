@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../../../l10n/generated/app_localizations.dart';
 import '../models/faq_category.dart';
 
 class FaqDetailScreen extends StatefulWidget {
@@ -38,14 +37,19 @@ class _FaqDetailScreenState extends State<FaqDetailScreen> {
       backgroundColor: colorScheme.surface,
       body: Column(
         children: [
-          _FaqDetailHeader(title: widget.title, colorScheme: colorScheme, textTheme: textTheme),
+          _FaqDetailHeader(
+            title: widget.title,
+            colorScheme: colorScheme,
+            textTheme: textTheme,
+          ),
           Expanded(
             child: SafeArea(
               top: false,
               child: ListView.separated(
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
                 itemCount: data.items.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 12),
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final item = data.items[index];
                   return _FaqTile(
@@ -77,9 +81,7 @@ class _FaqDetailHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
@@ -98,23 +100,10 @@ class _FaqDetailHeader extends StatelessWidget {
                 child: InkWell(
                   onTap: () => context.pop(),
                   borderRadius: BorderRadius.circular(8),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.arrow_back,
-                        color: colorScheme.onPrimary,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        AppLocalizations.of(context).commonBack,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+                  child: Icon(
+                    Icons.arrow_back,
+                    color: colorScheme.onPrimary,
+                    size: 20,
                   ),
                 ),
               ),
@@ -170,7 +159,9 @@ class _FaqTile extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: colorScheme.primary.withValues(alpha: expanded ? 0.1 : 0.04),
+                color: colorScheme.primary.withValues(
+                  alpha: expanded ? 0.1 : 0.04,
+                ),
                 blurRadius: expanded ? 16 : 10,
                 offset: const Offset(0, 4),
               ),
@@ -213,10 +204,7 @@ class _FaqTile extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 10),
-                          Divider(
-                            height: 1,
-                            color: colorScheme.outline,
-                          ),
+                          Divider(height: 1, color: colorScheme.outline),
                           const SizedBox(height: 10),
                           Text(
                             item.answer,

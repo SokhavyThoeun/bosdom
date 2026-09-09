@@ -58,8 +58,18 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   Order _buildOrderFromPayment() {
     final now = DateTime.now();
     const monthNames = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     final date = '${monthNames[now.month - 1]} ${now.day}, ${now.year}';
     final id = 'BD-${now.millisecondsSinceEpoch % 100000}';
@@ -197,10 +207,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                 end: Offset.zero,
               ).animate(curved),
               child: ScaleTransition(
-                scale: Tween<double>(
-                  begin: 0.82,
-                  end: 1,
-                ).animate(curved),
+                scale: Tween<double>(begin: 0.82, end: 1).animate(curved),
                 child: child,
               ),
             ),
@@ -213,10 +220,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         // then push the order on top — so the order detail's back button
         // returns to the marketplace instead of back into payment/checkout.
         context.go('/marketplace');
-        context.pushNamed(
-          'orderDetail',
-          pathParameters: {'id': order.id},
-        );
+        context.pushNamed('orderDetail', pathParameters: {'id': order.id});
       } else {
         context.go('/marketplace');
       }
@@ -224,9 +228,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       rootNavigator.pop();
       if (!mounted) return;
       final l10n = AppLocalizations.of(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.paymentFailedSnackbar('$e'))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.paymentFailedSnackbar('$e'))));
     } finally {
       if (mounted) setState(() => _isPaying = false);
     }
@@ -352,9 +356,7 @@ class _PaymentHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
@@ -375,23 +377,10 @@ class _PaymentHeader extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.arrow_back,
-                          color: colorScheme.onPrimary,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          l10n.commonBack,
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
+                    child: Icon(
+                      Icons.arrow_back,
+                      color: colorScheme.onPrimary,
+                      size: 20,
                     ),
                   ),
                 ),
@@ -569,8 +558,7 @@ class _ConfirmingOrderScreen extends StatefulWidget {
   const _ConfirmingOrderScreen();
 
   @override
-  State<_ConfirmingOrderScreen> createState() =>
-      _ConfirmingOrderScreenState();
+  State<_ConfirmingOrderScreen> createState() => _ConfirmingOrderScreenState();
 }
 
 class _ConfirmingOrderScreenState extends State<_ConfirmingOrderScreen>
@@ -668,9 +656,7 @@ class _ConfirmingOrderScreenState extends State<_ConfirmingOrderScreen>
                             ),
                           ],
                         ),
-                        child: Image.asset(
-                          'assets/images/bosdom-logo-red.png',
-                        ),
+                        child: Image.asset('assets/images/bosdom-logo-red.png'),
                       ),
                     ],
                   ),
@@ -793,10 +779,7 @@ class _OrderConfirmedDialog extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 4,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
                 color: colorScheme.primaryContainer,
                 borderRadius: BorderRadius.circular(14),

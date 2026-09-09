@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
+import '../../../shared/models/variant_option.dart';
 import '../../../shared/widgets/full_screen_image_viewer.dart';
+import '../../../shared/widgets/variant_selector.dart';
 import '../../wishlist/providers/wishlist_provider.dart';
 import '../models/product.dart';
 import '../providers/sample_gate_provider.dart';
@@ -26,6 +28,12 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   _BuyMode _mode = _BuyMode.wholesale;
   late int _wholesaleQty = product.moqValue;
   int _sampleQty = 1;
+  late String? _selectedSize = product.sizes.isNotEmpty
+      ? product.sizes.first
+      : null;
+  late ProductColorOption? _selectedColor = product.colorOptions.isNotEmpty
+      ? product.colorOptions.first
+      : null;
 
   Product get product {
     final index = int.tryParse(widget.productId) ?? 0;
@@ -53,7 +61,9 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     final claimedSample = ref.watch(sampleGateProvider);
     final wishlistId = productWishlistId(widget.productId);
     final isFavorite = ref.watch(
-      wishlistProvider.select((ids) => ids.value?.contains(wishlistId) ?? false),
+      wishlistProvider.select(
+        (ids) => ids.value?.contains(wishlistId) ?? false,
+      ),
     );
 
     return Scaffold(
@@ -170,6 +180,21 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                               ],
                             ),
                           ),
+                          if (product.hasVariants) ...[
+                            const SizedBox(height: 20),
+                            ProductVariantSelector(
+                              sizes: product.sizes,
+                              selectedSize: _selectedSize,
+                              onSizeSelected: (size) =>
+                                  setState(() => _selectedSize = size),
+                              colorOptions: product.colorOptions,
+                              selectedColor: _selectedColor,
+                              onColorSelected: (color) =>
+                                  setState(() => _selectedColor = color),
+                              colorScheme: colorScheme,
+                              textTheme: textTheme,
+                            ),
+                          ],
                           const SizedBox(height: 20),
                           Text(
                             l10n.productDetailSpecsTitle,
@@ -195,6 +220,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                             product: product,
                             productId: widget.productId,
                             mode: _mode,
+                            selectedSize: _selectedSize,
+                            selectedColor: _selectedColor,
                             wholesaleQty: _wholesaleQty,
                             sampleQty: _sampleQty,
                             onWholesaleQtyChanged: _changeWholesaleQty,
@@ -246,12 +273,8 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
@@ -272,23 +295,10 @@ class _Header extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 2),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.arrow_back,
-                            color: colorScheme.onPrimary,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            l10n.commonBack,
-                            style: textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onPrimary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
+                      child: Icon(
+                        Icons.arrow_back,
+                        color: colorScheme.onPrimary,
+                        size: 20,
                       ),
                     ),
                   ),
@@ -336,7 +346,7 @@ class _ImageGallery extends StatefulWidget {
 }
 
 class _ImageGalleryState extends State<_ImageGallery> {
-  static const _imageCount = 5;
+  static const _imageCount = 4;
   static const _autoScrollInterval = Duration(seconds: 3);
   // How many times the image list repeats to fake an infinite, one-way loop.
   // Large enough that auto-scrolling never visibly hits the end.
@@ -685,23 +695,14 @@ class _StockBadge extends StatelessWidget {
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            inStock ? Icons.check_circle : Icons.cancel,
-            size: 12,
-            color: color,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            inStock ? l10n.productDetailInStock : l10n.productDetailOutOfStock,
-            style: textTheme.labelSmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
+      alignment: Alignment.center,
+      child: Text(
+        inStock ? l10n.productDetailInStock : l10n.productDetailOutOfStock,
+        textAlign: TextAlign.center,
+        style: textTheme.labelSmall?.copyWith(
+          color: color,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
@@ -858,6 +859,8 @@ class _BuyBox extends StatelessWidget {
     required this.product,
     required this.productId,
     required this.mode,
+    required this.selectedSize,
+    required this.selectedColor,
     required this.wholesaleQty,
     required this.sampleQty,
     required this.onWholesaleQtyChanged,
@@ -872,6 +875,8 @@ class _BuyBox extends StatelessWidget {
   final Product product;
   final String productId;
   final _BuyMode mode;
+  final String? selectedSize;
+  final ProductColorOption? selectedColor;
   final int wholesaleQty;
   final int sampleQty;
   final ValueChanged<int> onWholesaleQtyChanged;
@@ -943,13 +948,20 @@ class _BuyBox extends StatelessWidget {
                 ? null
                 : () {
                     if (!isWholesale) onRequestSample();
+                    final variantSuffix = [
+                      ?selectedColor?.name,
+                      ?selectedSize,
+                    ].join(', ');
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
                           isWholesale
                               ? l10n.productDetailAddedToCartSnackbar(
-                                  '\$${total.toStringAsFixed(2)}',
-                                )
+                                      '\$${total.toStringAsFixed(2)}',
+                                    ) +
+                                    (variantSuffix.isEmpty
+                                        ? ''
+                                        : ' · $variantSuffix')
                               : l10n.productDetailSampleRequestedSnackbar,
                         ),
                       ),
@@ -971,9 +983,7 @@ class _BuyBox extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               claimedOtherProduct
-                  ? l10n.productDetailSampleUsedNote(
-                      claimedSample!.productName,
-                    )
+                  ? l10n.productDetailSampleUsedNote(claimedSample!.productName)
                   : l10n.productDetailSampleLimitNote,
               textAlign: TextAlign.center,
               style: textTheme.bodySmall?.copyWith(

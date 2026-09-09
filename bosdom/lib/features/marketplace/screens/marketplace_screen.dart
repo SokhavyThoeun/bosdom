@@ -9,7 +9,7 @@ import '../models/category.dart';
 import '../models/product.dart';
 import '../widgets/category_item.dart';
 import '../widgets/co_buy_carousel.dart';
-import '../widgets/product_card.dart';
+import '../widgets/product_list_tile.dart';
 
 class MarketplaceScreen extends ConsumerWidget {
   const MarketplaceScreen({super.key});
@@ -56,7 +56,7 @@ class MarketplaceScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     SizedBox(
-                      height: 88,
+                      height: 76,
                       child: ListView.separated(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
                         scrollDirection: Axis.horizontal,
@@ -121,20 +121,15 @@ class MarketplaceScreen extends ConsumerWidget {
                     const SizedBox(height: 12),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: GridView.builder(
+                      child: ListView.separated(
                         shrinkWrap: true,
                         padding: EdgeInsets.zero,
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: kMockProducts.length,
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              mainAxisSpacing: 16,
-                              crossAxisSpacing: 16,
-                              childAspectRatio: 0.64,
-                            ),
-                        itemBuilder: (context, index) => ProductCard(
+                        separatorBuilder: (_, _) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) => ProductListTile(
                           product: kMockProducts[index],
+                          id: '$index',
                           onTap: () => context.pushNamed(
                             'productDetail',
                             pathParameters: {'id': '$index'},
@@ -211,6 +206,18 @@ class _Header extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
+                  InkWell(
+                    onTap: () => context.pushNamed('chatList'),
+                    borderRadius: BorderRadius.circular(20),
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Icon(
+                        Icons.chat_bubble_outline,
+                        color: colorScheme.onPrimary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                   InkWell(
                     onTap: () => context.pushNamed('notifications'),
                     borderRadius: BorderRadius.circular(20),

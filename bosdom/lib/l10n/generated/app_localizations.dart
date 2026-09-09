@@ -971,7 +971,7 @@ abstract class AppLocalizations {
   /// No description provided for @sampleGateBody.
   ///
   /// In en, this message translates to:
-  /// **'1-per-account sample purchase flow — UI comes in phase 4'**
+  /// **'1-per-account sample purchase flow. UI comes in phase 4'**
   String get sampleGateBody;
 
   /// No description provided for @cartMovedToWishlistSnackbar.
@@ -1069,6 +1069,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Shipping Method'**
   String get checkoutShippingMethodLabel;
+
+  /// No description provided for @checkoutShippingUnavailableLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available for this weight/address'**
+  String get checkoutShippingUnavailableLabel;
 
   /// No description provided for @checkoutEscrowNotice.
   ///
@@ -1274,6 +1280,174 @@ abstract class AppLocalizations {
   /// **'Default'**
   String get addressDefaultBadge;
 
+  /// No description provided for @storeAddressBookScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Store Addresses'**
+  String get storeAddressBookScreenTitle;
+
+  /// No description provided for @storeAddressAddNewButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add New Store Address'**
+  String get storeAddressAddNewButton;
+
+  /// No description provided for @storeAddressAddScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Store Address'**
+  String get storeAddressAddScreenTitle;
+
+  /// No description provided for @storeAddressLabelFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'ADDRESS LABEL'**
+  String get storeAddressLabelFieldLabel;
+
+  /// No description provided for @storeAddressLabelFieldHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Phnom Penh Headquarters'**
+  String get storeAddressLabelFieldHint;
+
+  /// No description provided for @storeAddressNameFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'STORE / BUSINESS NAME'**
+  String get storeAddressNameFieldLabel;
+
+  /// No description provided for @storeAddressNameFieldHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Angkor Artisans Store'**
+  String get storeAddressNameFieldHint;
+
+  /// No description provided for @storeAddressBusinessTypeFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'BUSINESS TYPE'**
+  String get storeAddressBusinessTypeFieldLabel;
+
+  /// No description provided for @storeAddressBusinessTypeFieldHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Wholesale & Manufacturer'**
+  String get storeAddressBusinessTypeFieldHint;
+
+  /// No description provided for @storeAddressFullAddressFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'FULL ADDRESS'**
+  String get storeAddressFullAddressFieldLabel;
+
+  /// No description provided for @storeAddressFullAddressFieldHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. No. 124, Street 271, Sangkat Boeung Salang'**
+  String get storeAddressFullAddressFieldHint;
+
+  /// No description provided for @storeAddressDistrictFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'SANGKAT / DISTRICT'**
+  String get storeAddressDistrictFieldLabel;
+
+  /// No description provided for @storeAddressDistrictFieldHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Sangkat Teuk Thla'**
+  String get storeAddressDistrictFieldHint;
+
+  /// No description provided for @storeAddressProvinceFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'PROVINCE / CITY'**
+  String get storeAddressProvinceFieldLabel;
+
+  /// No description provided for @storeAddressProvinceFieldHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Phnom Penh'**
+  String get storeAddressProvinceFieldHint;
+
+  /// No description provided for @storeAddressPhoneFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTACT PHONE NUMBER'**
+  String get storeAddressPhoneFieldLabel;
+
+  /// No description provided for @storeAddressPhoneFieldHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. +855 76 227 5858'**
+  String get storeAddressPhoneFieldHint;
+
+  /// No description provided for @storeAddressEmailFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTACT EMAIL'**
+  String get storeAddressEmailFieldLabel;
+
+  /// No description provided for @storeAddressEmailFieldHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. orders@angkorartisans.com'**
+  String get storeAddressEmailFieldHint;
+
+  /// No description provided for @storeAddressHoursFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'OPERATING HOURS'**
+  String get storeAddressHoursFieldLabel;
+
+  /// No description provided for @storeAddressHoursFieldHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Mon - Fri: 8:00 AM - 5:30 PM'**
+  String get storeAddressHoursFieldHint;
+
+  /// No description provided for @storeAddressFieldRequiredError.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get storeAddressFieldRequiredError;
+
+  /// No description provided for @storeAddressEmailInvalidError.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email'**
+  String get storeAddressEmailInvalidError;
+
+  /// No description provided for @storeAddressSetDefaultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set as Default Store Address'**
+  String get storeAddressSetDefaultTitle;
+
+  /// No description provided for @storeAddressSetDefaultSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ship and dispatch all primary orders from here'**
+  String get storeAddressSetDefaultSubtitle;
+
+  /// No description provided for @storeAddressSaveButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Store Address'**
+  String get storeAddressSaveButton;
+
+  /// No description provided for @storeAddressDefaultBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get storeAddressDefaultBadge;
+
+  /// No description provided for @storeAddressEmptyState.
+  ///
+  /// In en, this message translates to:
+  /// **'No store addresses yet. Add one to start shipping from a fixed location.'**
+  String get storeAddressEmptyState;
+
   /// No description provided for @chatScreenTitle.
   ///
   /// In en, this message translates to:
@@ -1343,7 +1517,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatOffPlatformWarning.
   ///
   /// In en, this message translates to:
-  /// **'This message may share contact info or arrange a deal outside Bosdom — you won\'t be covered by buyer protection.'**
+  /// **'This message may share contact info or arrange a deal outside Bosdom: you won\'t be covered by buyer protection.'**
   String get chatOffPlatformWarning;
 
   /// No description provided for @chatPhotoAttachmentComingSoon.
@@ -1571,7 +1745,7 @@ abstract class AppLocalizations {
   /// No description provided for @dataPrivacyLaunchError.
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t open your email app — copied {email} to your clipboard instead'**
+  /// **'Couldn\'t open your email app; copied {email} to your clipboard instead'**
   String dataPrivacyLaunchError(String email);
 
   /// No description provided for @marketingEmailsToggleTitle.
@@ -1607,7 +1781,7 @@ abstract class AppLocalizations {
   /// No description provided for @personalizedAdsBody.
   ///
   /// In en, this message translates to:
-  /// **'We use your browsing data and purchase history to show you relevant product recommendations and ads. You can opt out anytime — you will still see ads, but they won\'t be tailored to your interests.'**
+  /// **'We use your browsing data and purchase history to show you relevant product recommendations and ads. You can opt out anytime; you will still see ads, but they won\'t be tailored to your interests.'**
   String get personalizedAdsBody;
 
   /// No description provided for @personalizedAdsBrowsingTitle.
@@ -1761,7 +1935,7 @@ abstract class AppLocalizations {
   /// No description provided for @coBuyingShareText.
   ///
   /// In en, this message translates to:
-  /// **'Join me on this Co-Buy for {productName} on BosDom! Get it for {price} ({savingsPct}% off) — {url}'**
+  /// **'Join me on this Co-Buy for {productName} on BosDom! Get it for {price} ({savingsPct}% off).\n\n{url}'**
   String coBuyingShareText(
     String productName,
     String price,
@@ -1774,6 +1948,384 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Co-Buy: {productName}'**
   String coBuyingShareSubject(String productName);
+
+  /// No description provided for @coBuyCreateScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a Co-Buy'**
+  String get coBuyCreateScreenTitle;
+
+  /// No description provided for @coBuyCreateEditScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Co-Buy Deal'**
+  String get coBuyCreateEditScreenTitle;
+
+  /// No description provided for @coBuyCreateProductNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Product Name'**
+  String get coBuyCreateProductNameLabel;
+
+  /// No description provided for @coBuyCreateProductNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Jasmine Rice Premium 50kg'**
+  String get coBuyCreateProductNameHint;
+
+  /// No description provided for @coBuyCreateProductNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Product name is required'**
+  String get coBuyCreateProductNameRequired;
+
+  /// No description provided for @coBuyCreatePriceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Co-Buy Price (USD)'**
+  String get coBuyCreatePriceLabel;
+
+  /// No description provided for @coBuyCreatePriceRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Co-buy price is required'**
+  String get coBuyCreatePriceRequired;
+
+  /// No description provided for @coBuyCreatePriceInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid price'**
+  String get coBuyCreatePriceInvalid;
+
+  /// No description provided for @coBuyCreateOriginalPriceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Original Price (USD)'**
+  String get coBuyCreateOriginalPriceLabel;
+
+  /// No description provided for @coBuyCreateOriginalPriceRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Original price is required'**
+  String get coBuyCreateOriginalPriceRequired;
+
+  /// No description provided for @coBuyCreateOriginalPriceInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Original price must be higher than the co-buy price'**
+  String get coBuyCreateOriginalPriceInvalid;
+
+  /// No description provided for @coBuyCreateTargetQtyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Target Retailers'**
+  String get coBuyCreateTargetQtyLabel;
+
+  /// No description provided for @coBuyCreateTargetQtyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 20'**
+  String get coBuyCreateTargetQtyHint;
+
+  /// No description provided for @coBuyCreateTargetQtyRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Target retailers is required'**
+  String get coBuyCreateTargetQtyRequired;
+
+  /// No description provided for @coBuyCreateTargetQtyInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid number'**
+  String get coBuyCreateTargetQtyInvalid;
+
+  /// No description provided for @coBuyCreateUnitLabelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get coBuyCreateUnitLabelLabel;
+
+  /// No description provided for @coBuyCreateUnitLabelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. kg, packs, units'**
+  String get coBuyCreateUnitLabelHint;
+
+  /// No description provided for @coBuyCreateUnitLabelRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit is required'**
+  String get coBuyCreateUnitLabelRequired;
+
+  /// No description provided for @coBuyCreateMinOrderQtyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum Order'**
+  String get coBuyCreateMinOrderQtyLabel;
+
+  /// No description provided for @coBuyCreateMinOrderQtyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 500 kg'**
+  String get coBuyCreateMinOrderQtyHint;
+
+  /// No description provided for @coBuyCreateMinOrderQtyRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum order is required'**
+  String get coBuyCreateMinOrderQtyRequired;
+
+  /// No description provided for @coBuyCreateMinOrderQtyInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid quantity'**
+  String get coBuyCreateMinOrderQtyInvalid;
+
+  /// No description provided for @coBuyCreateDurationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Deal Duration'**
+  String get coBuyCreateDurationLabel;
+
+  /// No description provided for @coBuyCreateDuration1Day.
+  ///
+  /// In en, this message translates to:
+  /// **'1 day'**
+  String get coBuyCreateDuration1Day;
+
+  /// No description provided for @coBuyCreateDuration2Days.
+  ///
+  /// In en, this message translates to:
+  /// **'2 days'**
+  String get coBuyCreateDuration2Days;
+
+  /// No description provided for @coBuyCreateDuration3Days.
+  ///
+  /// In en, this message translates to:
+  /// **'3 days'**
+  String get coBuyCreateDuration3Days;
+
+  /// No description provided for @coBuyCreateDuration5Days.
+  ///
+  /// In en, this message translates to:
+  /// **'5 days'**
+  String get coBuyCreateDuration5Days;
+
+  /// No description provided for @coBuyCreateDuration1Week.
+  ///
+  /// In en, this message translates to:
+  /// **'1 week'**
+  String get coBuyCreateDuration1Week;
+
+  /// No description provided for @coBuyCreateButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Launch Co-Buy'**
+  String get coBuyCreateButton;
+
+  /// No description provided for @coBuyCreateCreatedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Co-Buy created! Invite others to join.'**
+  String get coBuyCreateCreatedSnackbar;
+
+  /// No description provided for @coBuyCreateUpdatedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Co-buy deal updated'**
+  String get coBuyCreateUpdatedSnackbar;
+
+  /// No description provided for @coBuyCreateProductInfoSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Product Information'**
+  String get coBuyCreateProductInfoSectionTitle;
+
+  /// No description provided for @coBuyCreatePricingSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pricing & Quantity'**
+  String get coBuyCreatePricingSectionTitle;
+
+  /// No description provided for @coBuyCreateDealSettingsSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deal Settings'**
+  String get coBuyCreateDealSettingsSectionTitle;
+
+  /// No description provided for @coBuyCreatePhotosLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Product Photos'**
+  String get coBuyCreatePhotosLabel;
+
+  /// No description provided for @coBuyCreatePhotoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to add cover photo'**
+  String get coBuyCreatePhotoLabel;
+
+  /// No description provided for @coBuyCreatePhotoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended 512×512px JPG or PNG'**
+  String get coBuyCreatePhotoHint;
+
+  /// No description provided for @coBuyCreatePhotosHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Add up to 4 photos. The first photo is the cover.'**
+  String get coBuyCreatePhotosHelper;
+
+  /// No description provided for @coBuyCreateDescriptionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Product Description'**
+  String get coBuyCreateDescriptionLabel;
+
+  /// No description provided for @coBuyCreateDescriptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe the product for retailers'**
+  String get coBuyCreateDescriptionHint;
+
+  /// No description provided for @coBuyCreateAutoRenewLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-renew when expired'**
+  String get coBuyCreateAutoRenewLabel;
+
+  /// No description provided for @coBuyDealsWelcomeMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back! Here is your co-buy performance summary today.'**
+  String get coBuyDealsWelcomeMessage;
+
+  /// No description provided for @coBuyDealsShopNamePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'My Shop'**
+  String get coBuyDealsShopNamePlaceholder;
+
+  /// No description provided for @coBuyDealsAutoRenewBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-renews'**
+  String get coBuyDealsAutoRenewBadge;
+
+  /// No description provided for @coBuyDealsActiveDealsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Deals'**
+  String get coBuyDealsActiveDealsLabel;
+
+  /// No description provided for @coBuyDealsJoinedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Joined'**
+  String get coBuyDealsJoinedLabel;
+
+  /// No description provided for @coBuyDealsRevenueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue'**
+  String get coBuyDealsRevenueLabel;
+
+  /// No description provided for @coBuyDealsCreateButtonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Create New Co-Buy Deal'**
+  String get coBuyDealsCreateButtonLabel;
+
+  /// No description provided for @coBuyDealsListingsSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Co-Buy Listings'**
+  String get coBuyDealsListingsSectionTitle;
+
+  /// No description provided for @coBuyDealsMinTargetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Min wholesale target: {targetQty} {unitLabel}'**
+  String coBuyDealsMinTargetLabel(int targetQty, String unitLabel);
+
+  /// No description provided for @coBuyDealsStatusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get coBuyDealsStatusActive;
+
+  /// No description provided for @coBuyDealsStatusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get coBuyDealsStatusCompleted;
+
+  /// No description provided for @coBuyDealsStatusExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get coBuyDealsStatusExpired;
+
+  /// No description provided for @coBuyDealsProgressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress'**
+  String get coBuyDealsProgressLabel;
+
+  /// No description provided for @coBuyDealsRetailersLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} retailers'**
+  String coBuyDealsRetailersLabel(int count);
+
+  /// No description provided for @coBuyDealsStatusEndedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Ended'**
+  String get coBuyDealsStatusEndedLabel;
+
+  /// No description provided for @coBuyDealsEndsSoonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends soon'**
+  String get coBuyDealsEndsSoonLabel;
+
+  /// No description provided for @coBuyDealsOriginalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Original'**
+  String get coBuyDealsOriginalLabel;
+
+  /// No description provided for @coBuyDealsCoBuyPriceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Co-buy price'**
+  String get coBuyDealsCoBuyPriceLabel;
+
+  /// No description provided for @coBuyDealsDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Co-Buy Deal?'**
+  String get coBuyDealsDeleteConfirmTitle;
+
+  /// No description provided for @coBuyDealsDeleteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{productName} and its retailer progress will be permanently removed.'**
+  String coBuyDealsDeleteConfirmBody(String productName);
+
+  /// No description provided for @coBuyDealsDeletedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Co-buy deal deleted'**
+  String get coBuyDealsDeletedSnackbar;
+
+  /// No description provided for @coBuyDealsEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No co-buy deals yet. Create one so retailers can pool orders with you.'**
+  String get coBuyDealsEmptyMessage;
 
   /// No description provided for @coBuyDetailActiveDealLabel.
   ///
@@ -2469,6 +3021,12 @@ abstract class AppLocalizations {
   /// **'View Details'**
   String get ordersViewDetailsButton;
 
+  /// No description provided for @ordersTrackOrderButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Track Order'**
+  String get ordersTrackOrderButton;
+
   /// No description provided for @orderDetailScreenTitle.
   ///
   /// In en, this message translates to:
@@ -2492,6 +3050,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Order #{orderId}'**
   String orderDetailOrderNumberLabel(String orderId);
+
+  /// No description provided for @orderDetailDeliveryMethodSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery Method'**
+  String get orderDetailDeliveryMethodSection;
+
+  /// No description provided for @orderDetailCarrierLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Carrier'**
+  String get orderDetailCarrierLabel;
 
   /// No description provided for @orderDetailPaymentSummarySection.
   ///
@@ -2874,7 +3444,7 @@ abstract class AppLocalizations {
   /// No description provided for @escrowPlaceholderText.
   ///
   /// In en, this message translates to:
-  /// **'Payment, QR confirm, dispute evidence — UI comes in phase 8'**
+  /// **'Payment, QR confirm, dispute evidence. UI comes in phase 8'**
   String get escrowPlaceholderText;
 
   /// No description provided for @profileMenuMyOrders.
@@ -2895,11 +3465,17 @@ abstract class AppLocalizations {
   /// **'Address Book'**
   String get profileMenuAddressBook;
 
-  /// No description provided for @profileMenuChat.
+  /// No description provided for @profileMenuAddressStore.
   ///
   /// In en, this message translates to:
-  /// **'Chat'**
-  String get profileMenuChat;
+  /// **'Address Store'**
+  String get profileMenuAddressStore;
+
+  /// No description provided for @profileMenuBuyerChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat with Buyers'**
+  String get profileMenuBuyerChat;
 
   /// No description provided for @profileMenuNotifications.
   ///
@@ -2961,11 +3537,47 @@ abstract class AppLocalizations {
   /// **'About'**
   String get profileMenuAbout;
 
+  /// No description provided for @profileMenuSellerDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Seller Dashboard'**
+  String get profileMenuSellerDashboard;
+
+  /// No description provided for @profileMenuMyInventory.
+  ///
+  /// In en, this message translates to:
+  /// **'My Inventory'**
+  String get profileMenuMyInventory;
+
+  /// No description provided for @profileMenuAddListing.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Listing'**
+  String get profileMenuAddListing;
+
+  /// No description provided for @profileMenuCoBuyDeals.
+  ///
+  /// In en, this message translates to:
+  /// **'Co-Buy Deals'**
+  String get profileMenuCoBuyDeals;
+
+  /// No description provided for @profileMenuShopProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop Profile'**
+  String get profileMenuShopProfile;
+
   /// No description provided for @profileSectionShopping.
   ///
   /// In en, this message translates to:
   /// **'SHOPPING'**
   String get profileSectionShopping;
+
+  /// No description provided for @profileSectionSelling.
+  ///
+  /// In en, this message translates to:
+  /// **'SELLING'**
+  String get profileSectionSelling;
 
   /// No description provided for @profileSectionAccount.
   ///
@@ -3008,6 +3620,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Saved Items'**
   String get profileStatSavedItems;
+
+  /// No description provided for @profileStatTotalProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Products'**
+  String get profileStatTotalProducts;
+
+  /// No description provided for @profileStatRevenue.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue'**
+  String get profileStatRevenue;
 
   /// No description provided for @profileSellerProgramBadge.
   ///
@@ -3074,6 +3698,564 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edit Profile'**
   String get profileEditProfileLabel;
+
+  /// No description provided for @sellerDashboardScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard'**
+  String get sellerDashboardScreenTitle;
+
+  /// No description provided for @sellerDashboardVerifiedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified'**
+  String get sellerDashboardVerifiedBadge;
+
+  /// No description provided for @sellerDashboardWelcomeMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back! Here\'s your wholesale store performance summary today.'**
+  String get sellerDashboardWelcomeMessage;
+
+  /// No description provided for @sellerDashboardRevenueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue'**
+  String get sellerDashboardRevenueLabel;
+
+  /// No description provided for @sellerDashboardPendingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get sellerDashboardPendingLabel;
+
+  /// No description provided for @sellerDashboardPendingOrdersLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} Orders'**
+  String sellerDashboardPendingOrdersLabel(int count);
+
+  /// No description provided for @sellerDashboardProductsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Products'**
+  String get sellerDashboardProductsLabel;
+
+  /// No description provided for @sellerDashboardProductsCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} Items'**
+  String sellerDashboardProductsCountLabel(int count);
+
+  /// No description provided for @sellerDashboardQuickActionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Actions'**
+  String get sellerDashboardQuickActionsTitle;
+
+  /// No description provided for @sellerDashboardAddListingAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Listing'**
+  String get sellerDashboardAddListingAction;
+
+  /// No description provided for @sellerDashboardMyInventoryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'My Inventory'**
+  String get sellerDashboardMyInventoryAction;
+
+  /// No description provided for @sellerDashboardOrdersAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get sellerDashboardOrdersAction;
+
+  /// No description provided for @sellerDashboardEarningsAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Earnings'**
+  String get sellerDashboardEarningsAction;
+
+  /// No description provided for @sellerDashboardBuyerToolsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop as a Buyer'**
+  String get sellerDashboardBuyerToolsTitle;
+
+  /// No description provided for @sellerDashboardMarketplaceAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Marketplace'**
+  String get sellerDashboardMarketplaceAction;
+
+  /// No description provided for @sellerDashboardWishlistAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Wishlist'**
+  String get sellerDashboardWishlistAction;
+
+  /// No description provided for @sellerDashboardCartAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Cart'**
+  String get sellerDashboardCartAction;
+
+  /// No description provided for @sellerDashboardCoBuyingAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Co-Buying'**
+  String get sellerDashboardCoBuyingAction;
+
+  /// No description provided for @sellerDashboardPerformanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Performance'**
+  String get sellerDashboardPerformanceTitle;
+
+  /// No description provided for @sellerDashboardRatingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Rating'**
+  String get sellerDashboardRatingLabel;
+
+  /// No description provided for @sellerDashboardCompletionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Completion'**
+  String get sellerDashboardCompletionLabel;
+
+  /// No description provided for @sellerDashboardAvgDeliveryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg Delivery'**
+  String get sellerDashboardAvgDeliveryLabel;
+
+  /// No description provided for @sellerDashboardRecentOrdersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Active Orders'**
+  String get sellerDashboardRecentOrdersTitle;
+
+  /// No description provided for @sellerDashboardViewAllLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'View All'**
+  String get sellerDashboardViewAllLabel;
+
+  /// No description provided for @sellerEarningsScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Earnings'**
+  String get sellerEarningsScreenTitle;
+
+  /// No description provided for @sellerEarningsAvailableBalanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Available Balance'**
+  String get sellerEarningsAvailableBalanceLabel;
+
+  /// No description provided for @sellerEarningsCompletedSalesPercentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% of completed sales'**
+  String sellerEarningsCompletedSalesPercentLabel(int percent);
+
+  /// No description provided for @sellerEarningsWithdrawButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw'**
+  String get sellerEarningsWithdrawButton;
+
+  /// No description provided for @sellerEarningsReleasedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Released'**
+  String get sellerEarningsReleasedLabel;
+
+  /// No description provided for @sellerEarningsInEscrowLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'In Escrow'**
+  String get sellerEarningsInEscrowLabel;
+
+  /// No description provided for @sellerEarningsRefundedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Refunded'**
+  String get sellerEarningsRefundedLabel;
+
+  /// No description provided for @sellerEarningsFilterAllLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get sellerEarningsFilterAllLabel;
+
+  /// No description provided for @sellerEarningsFilterReleasedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Released'**
+  String get sellerEarningsFilterReleasedLabel;
+
+  /// No description provided for @sellerEarningsFilterInEscrowLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'In Escrow'**
+  String get sellerEarningsFilterInEscrowLabel;
+
+  /// No description provided for @sellerEarningsFilterDisputedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Disputed'**
+  String get sellerEarningsFilterDisputedLabel;
+
+  /// No description provided for @sellerEarningsTransactionsCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} transactions'**
+  String sellerEarningsTransactionsCountLabel(int count);
+
+  /// No description provided for @sellerEarningsOrderBuyerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'#{id} • {buyer}'**
+  String sellerEarningsOrderBuyerLabel(String id, String buyer);
+
+  /// No description provided for @sellerEarningsSaleAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sale amount'**
+  String get sellerEarningsSaleAmountLabel;
+
+  /// No description provided for @sellerEarningsPlatformFeeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Platform fee ({rate}%)'**
+  String sellerEarningsPlatformFeeLabel(int rate);
+
+  /// No description provided for @sellerEarningsYourEarningsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Your earnings'**
+  String get sellerEarningsYourEarningsLabel;
+
+  /// No description provided for @sellerEarningsWithdrawalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawal'**
+  String get sellerEarningsWithdrawalLabel;
+
+  /// No description provided for @sellerEarningsStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get sellerEarningsStatusPending;
+
+  /// No description provided for @sellerEarningsStatusInEscrow.
+  ///
+  /// In en, this message translates to:
+  /// **'In Escrow'**
+  String get sellerEarningsStatusInEscrow;
+
+  /// No description provided for @sellerEarningsStatusReleased.
+  ///
+  /// In en, this message translates to:
+  /// **'Released'**
+  String get sellerEarningsStatusReleased;
+
+  /// No description provided for @sellerEarningsStatusDisputed.
+  ///
+  /// In en, this message translates to:
+  /// **'Refunded'**
+  String get sellerEarningsStatusDisputed;
+
+  /// No description provided for @sellerEarningsStatusWithdrawn.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawn'**
+  String get sellerEarningsStatusWithdrawn;
+
+  /// No description provided for @sellerEarningsEscrowNoticeText.
+  ///
+  /// In en, this message translates to:
+  /// **'Funds are held in escrow for 48 hours after purchase. Once released, tap Withdraw to transfer earnings to your bank account.'**
+  String get sellerEarningsEscrowNoticeText;
+
+  /// No description provided for @sellerEarningsEmptyStateMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions in this category'**
+  String get sellerEarningsEmptyStateMessage;
+
+  /// No description provided for @sellerEarningsWithdrawSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw Funds'**
+  String get sellerEarningsWithdrawSheetTitle;
+
+  /// No description provided for @sellerEarningsWithdrawPoweredByLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Powered by ABA Pay'**
+  String get sellerEarningsWithdrawPoweredByLabel;
+
+  /// No description provided for @sellerEarningsWithdrawAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawal Amount (\$)'**
+  String get sellerEarningsWithdrawAmountLabel;
+
+  /// No description provided for @sellerEarningsAccountHolderNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Holder Name'**
+  String get sellerEarningsAccountHolderNameLabel;
+
+  /// No description provided for @sellerEarningsAccountHolderNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name on account'**
+  String get sellerEarningsAccountHolderNameHint;
+
+  /// No description provided for @sellerEarningsRoutingNumberLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Routing Number'**
+  String get sellerEarningsRoutingNumberLabel;
+
+  /// No description provided for @sellerEarningsRoutingNumberHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter ABA routing number (e.g., 020001)'**
+  String get sellerEarningsRoutingNumberHint;
+
+  /// No description provided for @sellerEarningsAccountNumberLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Number'**
+  String get sellerEarningsAccountNumberLabel;
+
+  /// No description provided for @sellerEarningsAccountNumberHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter ABA account number'**
+  String get sellerEarningsAccountNumberHint;
+
+  /// No description provided for @sellerEarningsWithdrawNoticeText.
+  ///
+  /// In en, this message translates to:
+  /// **'Funds will be instantly transferred to your designated ABA Pay account. Standard security holds may apply.'**
+  String get sellerEarningsWithdrawNoticeText;
+
+  /// No description provided for @sellerEarningsWithdrawContinueButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get sellerEarningsWithdrawContinueButton;
+
+  /// No description provided for @sellerEarningsWithdrawFieldRequiredError.
+  ///
+  /// In en, this message translates to:
+  /// **'This field is required'**
+  String get sellerEarningsWithdrawFieldRequiredError;
+
+  /// No description provided for @sellerEarningsWithdrawAmountInvalidError.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid amount'**
+  String get sellerEarningsWithdrawAmountInvalidError;
+
+  /// No description provided for @sellerEarningsWithdrawAmountExceedsError.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount exceeds available balance'**
+  String get sellerEarningsWithdrawAmountExceedsError;
+
+  /// No description provided for @sellerEarningsWithdrawJustNowLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Just now'**
+  String get sellerEarningsWithdrawJustNowLabel;
+
+  /// No description provided for @sellerEarningsWithdrawSuccessSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawal of \${amount} submitted'**
+  String sellerEarningsWithdrawSuccessSnackbar(String amount);
+
+  /// No description provided for @sellerEarningsWithdrawSuccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Success'**
+  String get sellerEarningsWithdrawSuccessTitle;
+
+  /// No description provided for @sellerEarningsWithdrawSuccessMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'\${amount} withdrawal initiated. Funds will arrive in 2-3 business days.'**
+  String sellerEarningsWithdrawSuccessMessage(String amount);
+
+  /// No description provided for @sellerEarningsWithdrawSuccessOkButton.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get sellerEarningsWithdrawSuccessOkButton;
+
+  /// No description provided for @sellerOrdersScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get sellerOrdersScreenTitle;
+
+  /// No description provided for @sellerOrdersEmptyStateMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No orders in this category'**
+  String get sellerOrdersEmptyStateMessage;
+
+  /// No description provided for @sellerOrdersFilterAllLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'All ({count})'**
+  String sellerOrdersFilterAllLabel(int count);
+
+  /// No description provided for @sellerOrdersFilterPendingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending ({count})'**
+  String sellerOrdersFilterPendingLabel(int count);
+
+  /// No description provided for @sellerOrdersQuantityProductLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{quantity} • {product}'**
+  String sellerOrdersQuantityProductLabel(String quantity, String product);
+
+  /// No description provided for @sellerOrdersCoBuyBadgeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Co-Buy'**
+  String get sellerOrdersCoBuyBadgeLabel;
+
+  /// No description provided for @sellerOrderDetailBuyerInfoSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Buyer Information'**
+  String get sellerOrderDetailBuyerInfoSection;
+
+  /// No description provided for @sellerOrderDetailPlatformFeeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Platform Fee ({rate}%)'**
+  String sellerOrderDetailPlatformFeeLabel(int rate);
+
+  /// No description provided for @sellerOrderDetailYourEarningsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Earnings'**
+  String get sellerOrderDetailYourEarningsLabel;
+
+  /// No description provided for @sellerOrderDetailAcceptButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept Order'**
+  String get sellerOrderDetailAcceptButton;
+
+  /// No description provided for @sellerOrderDetailDeclineButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline Order'**
+  String get sellerOrderDetailDeclineButton;
+
+  /// No description provided for @sellerOrderDetailOrderAcceptedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Order accepted'**
+  String get sellerOrderDetailOrderAcceptedSnackbar;
+
+  /// No description provided for @sellerOrderDetailOrderDeclinedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Order declined'**
+  String get sellerOrderDetailOrderDeclinedSnackbar;
+
+  /// No description provided for @sellerOrderDetailDeclineConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline this order?'**
+  String get sellerOrderDetailDeclineConfirmTitle;
+
+  /// No description provided for @sellerOrderDetailDeclineConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The buyer will be notified that you can\'t fulfill this order.'**
+  String get sellerOrderDetailDeclineConfirmMessage;
+
+  /// No description provided for @sellerOrderDetailDeclineConfirmCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get sellerOrderDetailDeclineConfirmCancel;
+
+  /// No description provided for @sellerOrderDetailDeclineConfirmConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get sellerOrderDetailDeclineConfirmConfirm;
+
+  /// No description provided for @myInventoryScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My Inventory'**
+  String get myInventoryScreenTitle;
+
+  /// No description provided for @myInventorySearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search products...'**
+  String get myInventorySearchHint;
+
+  /// No description provided for @myInventoryFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get myInventoryFilterAll;
+
+  /// No description provided for @myInventoryFilterActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get myInventoryFilterActive;
+
+  /// No description provided for @myInventoryFilterInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get myInventoryFilterInactive;
+
+  /// No description provided for @myInventoryStockLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock: {stock}'**
+  String myInventoryStockLabel(String stock);
+
+  /// No description provided for @myInventoryEmptyStateMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No products found.'**
+  String get myInventoryEmptyStateMessage;
+
+  /// No description provided for @myInventoryListingActivatedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'{product} is now active'**
+  String myInventoryListingActivatedSnackbar(String product);
+
+  /// No description provided for @myInventoryListingDeactivatedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'{product} is now inactive'**
+  String myInventoryListingDeactivatedSnackbar(String product);
 
   /// No description provided for @profileEditProfileRoleLabel.
   ///
@@ -3177,11 +4359,413 @@ abstract class AppLocalizations {
   /// **'Couldn\'t load your profile. Please try again.'**
   String get profileEditProfileLoadErrorSnackbar;
 
+  /// No description provided for @shopProfileScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop Profile'**
+  String get shopProfileScreenTitle;
+
+  /// No description provided for @shopProfileChangeLogo.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Store Logo'**
+  String get shopProfileChangeLogo;
+
+  /// No description provided for @shopProfileShopNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop Name'**
+  String get shopProfileShopNameLabel;
+
+  /// No description provided for @shopProfileShopNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your shop name'**
+  String get shopProfileShopNameHint;
+
+  /// No description provided for @shopProfileShopNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your shop name'**
+  String get shopProfileShopNameRequired;
+
+  /// No description provided for @shopProfileBusinessTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Business Type'**
+  String get shopProfileBusinessTypeLabel;
+
+  /// No description provided for @shopProfileBusinessTypeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Manufacturer & Distributor'**
+  String get shopProfileBusinessTypeHint;
+
+  /// No description provided for @shopProfileBusinessTypeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your business type'**
+  String get shopProfileBusinessTypeRequired;
+
+  /// No description provided for @shopProfileYearEstablishedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Year Established'**
+  String get shopProfileYearEstablishedLabel;
+
+  /// No description provided for @shopProfileYearEstablishedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 2018'**
+  String get shopProfileYearEstablishedHint;
+
+  /// No description provided for @shopProfileLocationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get shopProfileLocationLabel;
+
+  /// No description provided for @shopProfileLocationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Phnom Penh'**
+  String get shopProfileLocationHint;
+
+  /// No description provided for @shopProfileLocationRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your location'**
+  String get shopProfileLocationRequired;
+
+  /// No description provided for @shopProfilePhoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone Number'**
+  String get shopProfilePhoneLabel;
+
+  /// No description provided for @shopProfilePhoneHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your phone number'**
+  String get shopProfilePhoneHint;
+
+  /// No description provided for @shopProfilePhoneRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your phone number'**
+  String get shopProfilePhoneRequired;
+
+  /// No description provided for @shopProfileEmailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email Address'**
+  String get shopProfileEmailLabel;
+
+  /// No description provided for @shopProfileEmailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email address'**
+  String get shopProfileEmailHint;
+
+  /// No description provided for @shopProfileEmailRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your email address'**
+  String get shopProfileEmailRequired;
+
+  /// No description provided for @shopProfileEmailInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid email address'**
+  String get shopProfileEmailInvalid;
+
+  /// No description provided for @shopProfileDescriptionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Business Description'**
+  String get shopProfileDescriptionLabel;
+
+  /// No description provided for @shopProfileDescriptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell buyers about your business'**
+  String get shopProfileDescriptionHint;
+
+  /// No description provided for @shopProfileSaveButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Changes'**
+  String get shopProfileSaveButton;
+
+  /// No description provided for @shopProfileSavedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop profile updated successfully'**
+  String get shopProfileSavedSnackbar;
+
+  /// No description provided for @shopProfileSaveErrorSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save your shop profile. Please try again.'**
+  String get shopProfileSaveErrorSnackbar;
+
+  /// No description provided for @addListingScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Listing'**
+  String get addListingScreenTitle;
+
+  /// No description provided for @addListingProductNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Product Name'**
+  String get addListingProductNameLabel;
+
+  /// No description provided for @addListingProductNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Premium Cashew Nuts'**
+  String get addListingProductNameHint;
+
+  /// No description provided for @addListingProductNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a product name'**
+  String get addListingProductNameRequired;
+
+  /// No description provided for @addListingCategoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get addListingCategoryLabel;
+
+  /// No description provided for @addListingCategoryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select category'**
+  String get addListingCategoryHint;
+
+  /// No description provided for @addListingCategoryRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a category'**
+  String get addListingCategoryRequired;
+
+  /// No description provided for @addListingPriceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Price USD'**
+  String get addListingPriceLabel;
+
+  /// No description provided for @addListingPriceRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a price'**
+  String get addListingPriceRequired;
+
+  /// No description provided for @addListingPriceInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid price'**
+  String get addListingPriceInvalid;
+
+  /// No description provided for @addListingMoqLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum Order Qty'**
+  String get addListingMoqLabel;
+
+  /// No description provided for @addListingMoqHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 100 bags'**
+  String get addListingMoqHint;
+
+  /// No description provided for @addListingMoqRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a minimum order quantity'**
+  String get addListingMoqRequired;
+
+  /// No description provided for @addListingMoqInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid quantity'**
+  String get addListingMoqInvalid;
+
+  /// No description provided for @addListingStockLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock Quantity'**
+  String get addListingStockLabel;
+
+  /// No description provided for @addListingStockHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 500'**
+  String get addListingStockHint;
+
+  /// No description provided for @addListingStockRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a stock quantity'**
+  String get addListingStockRequired;
+
+  /// No description provided for @addListingStockInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid quantity'**
+  String get addListingStockInvalid;
+
+  /// No description provided for @addListingPhotosLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Product Photos'**
+  String get addListingPhotosLabel;
+
+  /// No description provided for @addListingCoverPhotoCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to add cover photo'**
+  String get addListingCoverPhotoCta;
+
+  /// No description provided for @addListingPhotosFormatHint.
+  ///
+  /// In en, this message translates to:
+  /// **'JPG, PNG up to 5MB'**
+  String get addListingPhotosFormatHint;
+
+  /// No description provided for @addListingPhotosHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload up to 5 photos. First photo is the cover.'**
+  String get addListingPhotosHelper;
+
+  /// No description provided for @addListingCoverPhotoRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please add a cover photo'**
+  String get addListingCoverPhotoRequired;
+
+  /// No description provided for @addListingDescriptionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get addListingDescriptionLabel;
+
+  /// No description provided for @addListingDescriptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 100% cotton crew-neck t-shirts, Grade A quality, sold in bulk from 50pcs, ships within 3-5 business days.'**
+  String get addListingDescriptionHint;
+
+  /// No description provided for @addListingSampleTestingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample Testing'**
+  String get addListingSampleTestingLabel;
+
+  /// No description provided for @addListingSampleTestingToggleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Sample Testing'**
+  String get addListingSampleTestingToggleTitle;
+
+  /// No description provided for @addListingSampleTestingToggleSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Limit 1 item per buyer'**
+  String get addListingSampleTestingToggleSubtitle;
+
+  /// No description provided for @addListingSamplePriceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample Price USD'**
+  String get addListingSamplePriceLabel;
+
+  /// No description provided for @addListingSamplePriceRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a sample price'**
+  String get addListingSamplePriceRequired;
+
+  /// No description provided for @addListingSamplePriceInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid sample price'**
+  String get addListingSamplePriceInvalid;
+
+  /// No description provided for @addListingVariantsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sizes & Colors'**
+  String get addListingVariantsLabel;
+
+  /// No description provided for @addListingVariantsHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Let buyers pick from the options you offer'**
+  String get addListingVariantsHelper;
+
+  /// No description provided for @addListingAddSizeChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add size'**
+  String get addListingAddSizeChip;
+
+  /// No description provided for @addListingAddSizeDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a size'**
+  String get addListingAddSizeDialogTitle;
+
+  /// No description provided for @addListingAddSizeDialogHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Kids, 42, Free Size'**
+  String get addListingAddSizeDialogHint;
+
+  /// No description provided for @addListingAddSizeConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get addListingAddSizeConfirm;
+
+  /// No description provided for @addListingAddColorDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a color'**
+  String get addListingAddColorDialogTitle;
+
+  /// No description provided for @addListingCreateButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Listing'**
+  String get addListingCreateButton;
+
+  /// No description provided for @addListingCreatedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Listing created successfully'**
+  String get addListingCreatedSnackbar;
+
+  /// No description provided for @addListingCreateErrorSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t create your listing. Please try again.'**
+  String get addListingCreateErrorSnackbar;
+
   /// No description provided for @profileLogout.
   ///
   /// In en, this message translates to:
   /// **'Logout'**
   String get profileLogout;
+
+  /// No description provided for @profileRefreshFailedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t refresh your profile. Check your connection and try again.'**
+  String get profileRefreshFailedSnackbar;
 
   /// No description provided for @currencyScreenTitle.
   ///
@@ -4434,25 +6018,25 @@ abstract class AppLocalizations {
   /// No description provided for @privacyPolicySection5Point2.
   ///
   /// In en, this message translates to:
-  /// **'Account Data — retained while your account is active and for up to 12 months after deletion'**
+  /// **'Account Data: retained while your account is active and for up to 12 months after deletion'**
   String get privacyPolicySection5Point2;
 
   /// No description provided for @privacyPolicySection5Point3.
   ///
   /// In en, this message translates to:
-  /// **'Transaction Records — retained for 5 years for accounting and legal compliance'**
+  /// **'Transaction Records: retained for 5 years for accounting and legal compliance'**
   String get privacyPolicySection5Point3;
 
   /// No description provided for @privacyPolicySection5Point4.
   ///
   /// In en, this message translates to:
-  /// **'Chat Messages — retained for 12 months'**
+  /// **'Chat Messages: retained for 12 months'**
   String get privacyPolicySection5Point4;
 
   /// No description provided for @privacyPolicySection5Point5.
   ///
   /// In en, this message translates to:
-  /// **'Dispute Evidence — retained for 12 months after resolution'**
+  /// **'Dispute Evidence: retained for 12 months after resolution'**
   String get privacyPolicySection5Point5;
 
   /// No description provided for @privacyPolicySection5Point6.
@@ -4476,37 +6060,37 @@ abstract class AppLocalizations {
   /// No description provided for @privacyPolicySection6Point2.
   ///
   /// In en, this message translates to:
-  /// **'Access — request a copy of the personal data we hold about you'**
+  /// **'Access: request a copy of the personal data we hold about you'**
   String get privacyPolicySection6Point2;
 
   /// No description provided for @privacyPolicySection6Point3.
   ///
   /// In en, this message translates to:
-  /// **'Correction — update inaccurate or outdated information'**
+  /// **'Correction: update inaccurate or outdated information'**
   String get privacyPolicySection6Point3;
 
   /// No description provided for @privacyPolicySection6Point4.
   ///
   /// In en, this message translates to:
-  /// **'Deletion — request deletion of your personal data, subject to legal retention requirements'**
+  /// **'Deletion: request deletion of your personal data, subject to legal retention requirements'**
   String get privacyPolicySection6Point4;
 
   /// No description provided for @privacyPolicySection6Point5.
   ///
   /// In en, this message translates to:
-  /// **'Data Portability — request your data in a machine-readable format'**
+  /// **'Data Portability: request your data in a machine-readable format'**
   String get privacyPolicySection6Point5;
 
   /// No description provided for @privacyPolicySection6Point6.
   ///
   /// In en, this message translates to:
-  /// **'Notification Preferences — manage notification settings within the app'**
+  /// **'Notification Preferences: manage notification settings within the app'**
   String get privacyPolicySection6Point6;
 
   /// No description provided for @privacyPolicySection6Point7.
   ///
   /// In en, this message translates to:
-  /// **'Opt-Out — opt out of marketing communications at any time'**
+  /// **'Opt-Out: opt out of marketing communications at any time'**
   String get privacyPolicySection6Point7;
 
   /// No description provided for @privacyPolicySection6Point8.
@@ -4844,6 +6428,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'© 2024-2026 Bosdom. All rights reserved.'**
   String get aboutFooterCopyright;
+
+  /// No description provided for @variantSelectOptionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Options'**
+  String get variantSelectOptionsTitle;
+
+  /// No description provided for @variantSizeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Size'**
+  String get variantSizeLabel;
+
+  /// No description provided for @variantColorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Color'**
+  String get variantColorLabel;
 }
 
 class _AppLocalizationsDelegate

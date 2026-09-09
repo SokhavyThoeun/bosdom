@@ -99,9 +99,9 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
     if (!mounted) return;
     setState(() => _isSubmitting = false);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.reportIssueSubmittedSnackbar)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.reportIssueSubmittedSnackbar)));
     context.pop();
   }
 
@@ -134,8 +134,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
                           _IssueTypeChip(
                             label: _labelFor(type, l10n),
                             selected: _selectedType == type,
-                            onTap: () =>
-                                setState(() => _selectedType = type),
+                            onTap: () => setState(() => _selectedType = type),
                           ),
                       ],
                     ),
@@ -147,7 +146,8 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
                       decoration: InputDecoration(
                         hintText: l10n.reportIssueSubjectHint,
                       ),
-                      validator: (value) => (value == null || value.trim().isEmpty)
+                      validator: (value) =>
+                          (value == null || value.trim().isEmpty)
                           ? l10n.reportIssueSubjectRequired
                           : null,
                     ),
@@ -162,7 +162,8 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
                         hintText: l10n.reportIssueDescriptionHint,
                         alignLabelWithHint: true,
                       ),
-                      validator: (value) => (value == null || value.trim().isEmpty)
+                      validator: (value) =>
+                          (value == null || value.trim().isEmpty)
                           ? l10n.reportIssueDescriptionRequired
                           : null,
                     ),
@@ -237,7 +238,10 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
 }
 
 class _ReportIssueHeader extends StatelessWidget {
-  const _ReportIssueHeader({required this.colorScheme, required this.textTheme});
+  const _ReportIssueHeader({
+    required this.colorScheme,
+    required this.textTheme,
+  });
 
   final ColorScheme colorScheme;
   final TextTheme textTheme;
@@ -247,9 +251,7 @@ class _ReportIssueHeader extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
@@ -270,23 +272,10 @@ class _ReportIssueHeader extends StatelessWidget {
                       ? context.pop()
                       : context.goNamed('helpSupport'),
                   borderRadius: BorderRadius.circular(8),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.arrow_back,
-                        color: colorScheme.onPrimary,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        l10n.commonBack,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+                  child: Icon(
+                    Icons.arrow_back,
+                    color: colorScheme.onPrimary,
+                    size: 20,
                   ),
                 ),
               ),
@@ -401,7 +390,10 @@ class _AttachmentPicker extends StatelessWidget {
               radius: 18,
               color: colorScheme.primary.withValues(alpha: 0.45),
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 28,
+                  horizontal: 16,
+                ),
                 child: Column(
                   children: [
                     Container(

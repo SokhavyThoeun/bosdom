@@ -1,8 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
+import '../../profile/services/profile_service.dart';
+import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,17 +20,93 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isSubmitting = false;
+  StreamSubscription<AuthState>? _authSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    // Google sign in completes asynchronously once the web sheet redirects
+    // back into the app, so navigation happens here rather than right after
+    // AuthService.signInWithGoogle() returns.
+    //
+    // onAuthStateChange is a ReplaySubject: subscribing here immediately
+    // replays whatever the last known auth event was, even if it's stale
+    // (e.g. a session from before this screen was reached). Compare against
+    // the token seen at mount time so only a genuinely new sign-in navigates.
+    final tokenAtMount =
+        Supabase.instance.client.auth.currentSession?.accessToken;
+    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((
+      data,
+    ) {
+      final isNewSignIn =
+          data.event == AuthChangeEvent.signedIn &&
+          data.session?.accessToken != tokenAtMount;
+      if (isNewSignIn && mounted) {
+        _routeAfterSignIn();
+      }
+    });
+  }
+
+  /// Sends the user to the marketplace, unless this is a Google account that
+  /// has never been through the role/personal-details wizard (no role set
+  /// yet on its profile) — in which case it's routed there instead, since
+  /// Google sign-in is just an auth method, not a substitute for onboarding.
+  Future<void> _routeAfterSignIn() async {
+    var hasRole = true;
+    try {
+      hasRole = (await ProfileService.fetch()).role.isNotEmpty;
+    } catch (_) {
+      // Backend unreachable or similar transient failure: don't bounce an
+      // already-onboarded user into the wizard over a network blip.
+    }
+    if (!mounted) return;
+    context.goNamed(hasRole ? 'marketplace' : 'signup');
+  }
 
   @override
   void dispose() {
+    _authSubscription?.cancel();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  void _submit() {
-    // Mock submit — real auth wiring lands in phase 16.
-    context.goNamed('marketplace');
+  void _showError(Object error) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(error.toString())));
+  }
+
+  Future<void> _submit() async {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    try {
+      await AuthService.signInWithEmail(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+      // Navigation happens via the onAuthStateChange listener in initState.
+    } catch (error) {
+      _showError(error);
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  Future<void> _continueWithGoogle() async {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    try {
+      await AuthService.signInWithGoogle();
+      // Navigation happens via the onAuthStateChange listener in initState
+      // once the web sheet redirects back with a session.
+    } catch (error) {
+      _showError(error);
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   @override
@@ -53,13 +134,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
                         hintText: l10n.authLoginEmailHint,
-                        prefixIcon: Icon(
-                          Icons.email_outlined,
-                          size: 20,
-                          color: colorScheme.onSurfaceVariant,
+                        prefixIcon: Padding(
+                          padding: const EdgeInsets.only(left: 14, right: 6),
+                          child: Icon(
+                            Icons.email_outlined,
+                            size: 20,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                         ),
                         prefixIconConstraints: const BoxConstraints(
-                          minWidth: 48,
+                          minWidth: 0,
                           minHeight: 20,
                         ),
                       ),
@@ -72,13 +156,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
                         hintText: l10n.authLoginPasswordHint,
-                        prefixIcon: Icon(
-                          Icons.lock_outline,
-                          size: 20,
-                          color: colorScheme.onSurfaceVariant,
+                        prefixIcon: Padding(
+                          padding: const EdgeInsets.only(left: 14, right: 6),
+                          child: Icon(
+                            Icons.lock_outline,
+                            size: 20,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                         ),
                         prefixIconConstraints: const BoxConstraints(
-                          minWidth: 48,
+                          minWidth: 0,
                           minHeight: 20,
                         ),
                         suffixIcon: IconButton(
@@ -117,7 +204,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 20),
                     FilledButton(
-                      onPressed: _submit,
+                      onPressed: _isSubmitting ? null : _submit,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4),
                         child: Text(l10n.authLoginSignInButton),
@@ -133,7 +220,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 16),
                     FilledButton.icon(
-                      onPressed: () => context.goNamed('signup'),
+                      onPressed: _isSubmitting ? null : _continueWithGoogle,
                       icon: SvgPicture.asset(
                         'assets/images/google.svg',
                         width: 20,

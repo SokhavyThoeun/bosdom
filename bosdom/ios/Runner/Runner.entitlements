@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<!-- Inert until https://bosdom.app/.well-known/apple-app-site-association
+		     is actually hosted and verified by Apple. Until then, Co-Buy share
+		     links fall back to the bosdom:// custom scheme (see Info.plist). -->
+		<string>applinks:bosdom.app</string>
+	</array>
+</dict>
+</plist>

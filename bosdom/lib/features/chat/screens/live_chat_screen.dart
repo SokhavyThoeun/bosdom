@@ -114,9 +114,9 @@ class _LiveChatScreenState extends ConsumerState<LiveChatScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.chatPhotoAttachmentComingSoon)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.chatPhotoAttachmentComingSoon)),
+      );
     }
   }
 
@@ -181,84 +181,80 @@ class _LiveChatScreenState extends ConsumerState<LiveChatScreen> {
             textTheme: textTheme,
           ),
           Expanded(
-              child: SafeArea(
-                top: false,
-                bottom: false,
-                child: Column(
-                  children: [
-                    Container(
-                      color: AppColors.petalWhite,
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                      child: _SecurityNoticeBanner(textTheme: textTheme),
-                    ),
-                    Expanded(
-                      child: () {
-                        WidgetsBinding.instance.addPostFrameCallback(
-                          (_) => _scrollToBottom(),
-                        );
-                        return Container(
-                          color: AppColors.petalWhite,
-                          child: ListView.builder(
-                            controller: _scrollController,
-                            padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-                            itemCount:
-                                loadedConversation.messages.length +
-                                (isTyping ? 1 : 0),
-                            itemBuilder: (context, index) {
-                              if (index ==
-                                  loadedConversation.messages.length) {
-                                return const TypingBubble();
-                              }
-                              final message =
-                                  loadedConversation.messages[index];
-                              return MessageBubble(
-                                message: message,
-                                colorScheme: colorScheme,
-                                textTheme: textTheme,
-                              );
-                            },
-                          ),
-                        );
-                      }(),
-                    ),
-                    DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(24),
-                          topRight: Radius.circular(24),
+            child: SafeArea(
+              top: false,
+              bottom: false,
+              child: Column(
+                children: [
+                  Container(
+                    color: AppColors.petalWhite,
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                    child: _SecurityNoticeBanner(textTheme: textTheme),
+                  ),
+                  Expanded(
+                    child: () {
+                      WidgetsBinding.instance.addPostFrameCallback(
+                        (_) => _scrollToBottom(),
+                      );
+                      return Container(
+                        color: AppColors.petalWhite,
+                        child: ListView.builder(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                          itemCount:
+                              loadedConversation.messages.length +
+                              (isTyping ? 1 : 0),
+                          itemBuilder: (context, index) {
+                            if (index == loadedConversation.messages.length) {
+                              return const TypingBubble();
+                            }
+                            final message = loadedConversation.messages[index];
+                            return MessageBubble(
+                              message: message,
+                              colorScheme: colorScheme,
+                              textTheme: textTheme,
+                            );
+                          },
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: colorScheme.primary.withValues(
-                              alpha: 0.08,
-                            ),
-                            blurRadius: 16,
-                            offset: const Offset(0, -4),
-                          ),
-                        ],
+                      );
+                    }(),
+                  ),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(24),
+                        topRight: Radius.circular(24),
                       ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _SuggestedTopics(
-                            colorScheme: colorScheme,
-                            textTheme: textTheme,
-                            onTopic: _send,
-                          ),
-                          Composer(
-                            controller: _messageController,
-                            colorScheme: colorScheme,
-                            onSend: _send,
-                            onAttachPhoto: _attachPhoto,
-                          ),
-                        ],
-                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: colorScheme.primary.withValues(alpha: 0.08),
+                          blurRadius: 16,
+                          offset: const Offset(0, -4),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _SuggestedTopics(
+                          colorScheme: colorScheme,
+                          textTheme: textTheme,
+                          onTopic: _send,
+                        ),
+                        Composer(
+                          controller: _messageController,
+                          colorScheme: colorScheme,
+                          onSend: _send,
+                          onAttachPhoto: _attachPhoto,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
+          ),
         ],
       ),
     );
@@ -283,9 +279,7 @@ class _LiveChatHeader extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           16,
@@ -306,23 +300,10 @@ class _LiveChatHeader extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.arrow_back,
-                          color: colorScheme.onPrimary,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          l10n.commonBack,
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
+                    child: Icon(
+                      Icons.arrow_back,
+                      color: colorScheme.onPrimary,
+                      size: 20,
                     ),
                   ),
                 ),
@@ -404,9 +385,7 @@ class _LiveChatHeader extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: conversation.online
                                 ? AppColors.trustGreen
-                                : colorScheme.onPrimary.withValues(
-                                    alpha: 0.5,
-                                  ),
+                                : colorScheme.onPrimary.withValues(alpha: 0.5),
                             shape: BoxShape.circle,
                           ),
                         ),

@@ -80,7 +80,10 @@ class AboutScreen extends StatelessWidget {
                   const SizedBox(height: 24),
                   _MissionCard(colorScheme: colorScheme, textTheme: textTheme),
                   const SizedBox(height: 24),
-                  _SectionHeading(l10n.aboutWhyChooseTitle, textTheme: textTheme),
+                  _SectionHeading(
+                    l10n.aboutWhyChooseTitle,
+                    textTheme: textTheme,
+                  ),
                   const SizedBox(height: 12),
                   _FeatureGrid(
                     features: features,
@@ -96,9 +99,15 @@ class AboutScreen extends StatelessWidget {
                     textTheme: textTheme,
                   ),
                   const SizedBox(height: 24),
-                  _SectionHeading(l10n.aboutCompanyInfoTitle, textTheme: textTheme),
+                  _SectionHeading(
+                    l10n.aboutCompanyInfoTitle,
+                    textTheme: textTheme,
+                  ),
                   const SizedBox(height: 12),
-                  _CompanyInfoCard(colorScheme: colorScheme, textTheme: textTheme),
+                  _CompanyInfoCard(
+                    colorScheme: colorScheme,
+                    textTheme: textTheme,
+                  ),
                   const SizedBox(height: 24),
                   _StoryCard(colorScheme: colorScheme, textTheme: textTheme),
                   const SizedBox(height: 24),
@@ -141,9 +150,7 @@ class _AboutHeader extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
@@ -164,23 +171,10 @@ class _AboutHeader extends StatelessWidget {
                       ? context.pop()
                       : context.goNamed('profile'),
                   borderRadius: BorderRadius.circular(8),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.arrow_back,
-                        color: colorScheme.onPrimary,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        l10n.commonBack,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+                  child: Icon(
+                    Icons.arrow_back,
+                    color: colorScheme.onPrimary,
+                    size: 20,
                   ),
                 ),
               ),
@@ -552,9 +546,21 @@ class _CompanyInfoCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     final rows = [
-      (Icons.location_on_outlined, l10n.aboutCompanyHeadquartersLabel, l10n.aboutCompanyHeadquartersValue),
-      (Icons.mail_outline_rounded, l10n.aboutCompanyEmailLabel, l10n.aboutCompanyEmailValue),
-      (Icons.public_outlined, l10n.aboutCompanyWebsiteLabel, l10n.aboutCompanyWebsiteValue),
+      (
+        Icons.location_on_outlined,
+        l10n.aboutCompanyHeadquartersLabel,
+        l10n.aboutCompanyHeadquartersValue,
+      ),
+      (
+        Icons.mail_outline_rounded,
+        l10n.aboutCompanyEmailLabel,
+        l10n.aboutCompanyEmailValue,
+      ),
+      (
+        Icons.public_outlined,
+        l10n.aboutCompanyWebsiteLabel,
+        l10n.aboutCompanyWebsiteValue,
+      ),
     ];
 
     return Container(

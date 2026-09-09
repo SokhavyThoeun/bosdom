@@ -6,6 +6,7 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../../chat/providers/chat_provider.dart';
 import '../models/product.dart';
 import '../models/seller.dart';
+import '../widgets/product_list_tile.dart';
 
 class StoreProfileScreen extends StatefulWidget {
   const StoreProfileScreen({super.key, required this.sellerName});
@@ -138,12 +139,8 @@ class _StoreHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
@@ -164,23 +161,10 @@ class _StoreHeader extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 2),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.arrow_back,
-                            color: colorScheme.onPrimary,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            l10n.commonBack,
-                            style: textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onPrimary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
+                      child: Icon(
+                        Icons.arrow_back,
+                        color: colorScheme.onPrimary,
+                        size: 20,
                       ),
                     ),
                   ),
@@ -219,7 +203,11 @@ class _StoreHeader extends StatelessWidget {
                         loadingBuilder: (context, child, progress) =>
                             progress == null
                             ? child
-                            : Icon(seller.icon, color: colorScheme.primary, size: 22),
+                            : Icon(
+                                seller.icon,
+                                color: colorScheme.primary,
+                                size: 22,
+                              ),
                         errorBuilder: (context, error, stackTrace) => Icon(
                           seller.icon,
                           color: colorScheme.primary,
@@ -479,7 +467,7 @@ class _ProductsTab extends StatelessWidget {
       );
     }
 
-    return GridView.builder(
+    return ListView.separated(
       padding: EdgeInsets.fromLTRB(
         16,
         16,
@@ -487,129 +475,19 @@ class _ProductsTab extends StatelessWidget {
         8 + MediaQuery.of(context).padding.bottom,
       ),
       itemCount: products.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: 0.6,
-      ),
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final product = products[index];
-        return _StoreProductCard(
+        final productId = '${kMockProducts.indexOf(product)}';
+        return ProductListTile(
           product: product,
-          colorScheme: colorScheme,
-          textTheme: textTheme,
+          id: productId,
           onTap: () => context.pushNamed(
             'productDetail',
-            pathParameters: {'id': '${kMockProducts.indexOf(product)}'},
+            pathParameters: {'id': productId},
           ),
         );
       },
-    );
-  }
-}
-
-class _StoreProductCard extends StatelessWidget {
-  const _StoreProductCard({
-    required this.product,
-    required this.colorScheme,
-    required this.textTheme,
-    required this.onTap,
-  });
-
-  final Product product;
-  final ColorScheme colorScheme;
-  final TextTheme textTheme;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: colorScheme.outline),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AspectRatio(
-              aspectRatio: 1.2,
-              child: Container(
-                color: colorScheme.primaryContainer,
-                child: Image.network(
-                  product.imageUrl,
-                  fit: BoxFit.cover,
-                  loadingBuilder: (context, child, progress) =>
-                      progress == null
-                      ? child
-                      : Icon(product.icon, color: colorScheme.primary, size: 32),
-                  errorBuilder: (context, error, stackTrace) => Icon(
-                    product.icon,
-                    color: colorScheme.primary,
-                    size: 32,
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    product.price,
-                    style: textTheme.titleMedium?.copyWith(
-                      color: colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    product.moq,
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.storefront_outlined,
-                        size: 12,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          product.seller,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -838,7 +716,10 @@ class _AboutTab extends ConsumerWidget {
           onPressed: () async {
             final conversation = await ref
                 .read(chatProvider.notifier)
-                .startConversation(name: seller.name, verified: seller.verified);
+                .startConversation(
+                  name: seller.name,
+                  verified: seller.verified,
+                );
             if (!context.mounted) return;
             context.pushNamed(
               'chatDetail',
@@ -1083,9 +964,7 @@ class _ReviewsTab extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             l10n.storeProfileRecentReviewsTitle,
-            style: textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           for (final review in seller.reviews) ...[

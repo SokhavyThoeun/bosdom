@@ -2,7 +2,7 @@
   "profileMenuMyOrders": { "en": "My Orders", "km": "ការបញ្ជាទិញរបស់ខ្ញុំ" },
   "profileMenuCoBuyInvites": { "en": "Co-Buy Invites", "km": "ការអញ្ជើញទិញរួម" },
   "profileMenuAddressBook": { "en": "Address Book", "km": "សៀវភៅអាសយដ្ឋាន" },
-  "profileMenuChat": { "en": "Chat", "km": "ជជែក" },
+  "profileMenuBuyerChat": { "en": "Chat with Buyers", "km": "ជជែកជាមួយអ្នកទិញ" },
   "profileMenuNotifications": { "en": "Notifications", "km": "ការជូនដំណឹង" },
   "profileMenuPaymentCurrency": { "en": "Payment Currency", "km": "រូបិយប័ណ្ណទូទាត់" },
   "profileMenuLanguage": { "en": "Language", "km": "ភាសា" },

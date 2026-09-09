@@ -18,12 +18,12 @@ class CategoryItem extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: SizedBox(
-        width: 78,
+        width: 68,
         child: Column(
           children: [
             SizedBox(
-              width: 68,
-              height: 68,
+              width: 56,
+              height: 56,
               child: SvgPicture.asset(category.iconAsset),
             ),
             const SizedBox(height: 6),

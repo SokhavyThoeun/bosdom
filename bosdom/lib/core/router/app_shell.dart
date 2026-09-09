@@ -25,8 +25,16 @@ class AppShell extends StatelessWidget {
       // equal to the pill's height, so each tab's SafeArea rests its content
       // above the pill while still scrolling behind it.
       body: navigationShell,
-      bottomNavigationBar: SafeArea(
-        minimum: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      bottomNavigationBar: Padding(
+        padding: EdgeInsets.fromLTRB(
+          16,
+          0,
+          16,
+          (MediaQuery.of(context).padding.bottom - 12).clamp(
+            0,
+            double.infinity,
+          ),
+        ),
         child: FloatingNavBar(
           currentIndex: navigationShell.currentIndex,
           onTap: (index) => navigationShell.goBranch(

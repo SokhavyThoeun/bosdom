@@ -38,6 +38,10 @@
     "en": "View Details",
     "km": "មើលព័ត៌មានលម្អិត"
   },
+  "ordersTrackOrderButton": {
+    "en": "Track Order",
+    "km": "តាមដានការបញ្ជាទិញ"
+  },
   "orderDetailScreenTitle": {
     "en": "Order Details",
     "km": "ព័ត៌មានលម្អិតបញ្ជាទិញ"
@@ -54,6 +58,14 @@
     "en": "Order #{orderId}",
     "km": "លេខបញ្ជាទិញ #{orderId}",
     "placeholders": ["orderId"]
+  },
+  "orderDetailDeliveryMethodSection": {
+    "en": "Delivery Method",
+    "km": "វិធីសាស្ត្រដឹកជញ្ជូន"
+  },
+  "orderDetailCarrierLabel": {
+    "en": "Carrier",
+    "km": "ក្រុមហ៊ុនដឹកជញ្ជូន"
   },
   "orderDetailPaymentSummarySection": {
     "en": "Payment Summary",
@@ -317,7 +329,7 @@
     "km": "អេស្គ្រូ និងការទូទាត់"
   },
   "escrowPlaceholderText": {
-    "en": "Payment, QR confirm, dispute evidence — UI comes in phase 8",
-    "km": "ការទូទាត់ប្រាក់ ការបញ្ជាក់ QR ភស្តុតាងវិវាទ — UI នឹងមកដល់នៅដំណាក់កាលទី ៨"
+    "en": "Payment, QR confirm, dispute evidence. UI comes in phase 8",
+    "km": "ការទូទាត់ប្រាក់ ការបញ្ជាក់ QR ភស្តុតាងវិវាទ។ UI នឹងមកដល់នៅដំណាក់កាលទី ៨"
   }
 }

@@ -478,7 +478,7 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get sampleGateBody =>
-      'ដំណើរការទិញគំរូ ១ ក្នុងមួយគណនី — ចំណុចប្រទាក់នឹងមកដល់នៅដំណាក់កាលទី ៤';
+      'ដំណើរការទិញគំរូ ១ ក្នុងមួយគណនី. ចំណុចប្រទាក់នឹងមកដល់នៅដំណាក់កាលទី ៤';
 
   @override
   String cartMovedToWishlistSnackbar(String productName) {
@@ -535,6 +535,10 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get checkoutShippingMethodLabel => 'វិធីសាស្ត្រដឹកជញ្ជូន';
+
+  @override
+  String get checkoutShippingUnavailableLabel =>
+      'មិនអាចប្រើសម្រាប់ទម្ងន់/អាសយដ្ឋាននេះទេ';
 
   @override
   String get checkoutEscrowNotice =>
@@ -642,6 +646,94 @@ class AppLocalizationsKm extends AppLocalizations {
   String get addressDefaultBadge => 'លំនាំដើម';
 
   @override
+  String get storeAddressBookScreenTitle => 'អាសយដ្ឋានហាង';
+
+  @override
+  String get storeAddressAddNewButton => 'បន្ថែមអាសយដ្ឋានហាងថ្មី';
+
+  @override
+  String get storeAddressAddScreenTitle => 'បន្ថែមអាសយដ្ឋានហាង';
+
+  @override
+  String get storeAddressLabelFieldLabel => 'ស្លាកអាសយដ្ឋាន';
+
+  @override
+  String get storeAddressLabelFieldHint => 'ឧ. ការិយាល័យកណ្តាលភ្នំពេញ';
+
+  @override
+  String get storeAddressNameFieldLabel => 'ឈ្មោះហាង / អាជីវកម្ម';
+
+  @override
+  String get storeAddressNameFieldHint => 'ឧ. ហាង Angkor Artisans';
+
+  @override
+  String get storeAddressBusinessTypeFieldLabel => 'ប្រភេទអាជីវកម្ម';
+
+  @override
+  String get storeAddressBusinessTypeFieldHint => 'ឧ. លក់ដុំ និងផលិត';
+
+  @override
+  String get storeAddressFullAddressFieldLabel => 'អាសយដ្ឋានពេញលេញ';
+
+  @override
+  String get storeAddressFullAddressFieldHint =>
+      'ឧ. ផ្ទះលេខ ១២៤, ផ្លូវ ២៧១, សង្កាត់បឹងសាឡាង';
+
+  @override
+  String get storeAddressDistrictFieldLabel => 'សង្កាត់ / ស្រុក';
+
+  @override
+  String get storeAddressDistrictFieldHint => 'ឧ. សង្កាត់ទឹកថ្លា';
+
+  @override
+  String get storeAddressProvinceFieldLabel => 'ខេត្ត / ក្រុង';
+
+  @override
+  String get storeAddressProvinceFieldHint => 'ឧ. ភ្នំពេញ';
+
+  @override
+  String get storeAddressPhoneFieldLabel => 'លេខទូរស័ព្ទទំនាក់ទំនង';
+
+  @override
+  String get storeAddressPhoneFieldHint => 'ឧ. +855 76 227 5858';
+
+  @override
+  String get storeAddressEmailFieldLabel => 'អ៊ីមែលទំនាក់ទំនង';
+
+  @override
+  String get storeAddressEmailFieldHint => 'ឧ. orders@angkorartisans.com';
+
+  @override
+  String get storeAddressHoursFieldLabel => 'ម៉ោងបើកធ្វើការ';
+
+  @override
+  String get storeAddressHoursFieldHint =>
+      'ឧ. ច័ន្ទ - សុក្រ: ៨:០០ ព្រឹក - ៥:៣០ ល្ងាច';
+
+  @override
+  String get storeAddressFieldRequiredError => 'ត្រូវការបំពេញ';
+
+  @override
+  String get storeAddressEmailInvalidError => 'សូមបញ្ចូលអ៊ីមែលត្រឹមត្រូវ';
+
+  @override
+  String get storeAddressSetDefaultTitle => 'កំណត់ជាអាសយដ្ឋានហាងលំនាំដើម';
+
+  @override
+  String get storeAddressSetDefaultSubtitle =>
+      'ដឹកជញ្ជូន និងចាត់ចែងការបញ្ជាទិញសំខាន់ៗទាំងអស់ពីទីនេះ';
+
+  @override
+  String get storeAddressSaveButton => 'រក្សាទុកអាសយដ្ឋានហាង';
+
+  @override
+  String get storeAddressDefaultBadge => 'លំនាំដើម';
+
+  @override
+  String get storeAddressEmptyState =>
+      'មិនទាន់មានអាសយដ្ឋានហាងទេ។ បន្ថែមមួយដើម្បីចាប់ផ្តើមដឹកជញ្ជូនពីទីតាំងថេរ។';
+
+  @override
   String get chatScreenTitle => 'ជជែក';
 
   @override
@@ -680,7 +772,7 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get chatOffPlatformWarning =>
-      'សារនេះប្រហែលជាចែករំលែកព័ត៌មានទំនាក់ទំនង ឬរៀបចំកិច្ចព្រមព្រៀងក្រៅ Bosdom — អ្នកនឹងមិនត្រូវបានការពារជាអ្នកទិញនោះទេ។';
+      'សារនេះប្រហែលជាចែករំលែកព័ត៌មានទំនាក់ទំនង ឬរៀបចំកិច្ចព្រមព្រៀងក្រៅ Bosdom៖ អ្នកនឹងមិនត្រូវបានការពារជាអ្នកទិញនោះទេ។';
 
   @override
   String get chatPhotoAttachmentComingSoon => 'ការភ្ជាប់រូបថតនឹងមកដល់ឆាប់ៗនេះ';
@@ -812,7 +904,7 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String dataPrivacyLaunchError(String email) {
-    return 'មិនអាចបើកកម្មវិធីអ៊ីមែលបានទេ — បានចម្លង $email ទៅក្តារតម្បៀតខ្ទាស់ជំនួសវិញ';
+    return 'មិនអាចបើកកម្មវិធីអ៊ីមែលបានទេ៖ បានចម្លង $email ទៅក្តារតម្បៀតខ្ទាស់ជំនួសវិញ';
   }
 
   @override
@@ -836,7 +928,7 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get personalizedAdsBody =>
-      'យើងប្រើប្រាស់ទិន្នន័យរុករក និងប្រវត្តិការទិញរបស់អ្នក ដើម្បីបង្ហាញការណែនាំផលិតផល និងការផ្សាយពាណិជ្ជកម្មដែលពាក់ព័ន្ធ។ អ្នកអាចដកខ្លួនបានគ្រប់ពេល — អ្នកនៅតែឃើញការផ្សាយពាណិជ្ជកម្ម ប៉ុន្តែវានឹងមិនត្រូវបានកែសម្រួលតាមចំណាប់អារម្មណ៍របស់អ្នកទេ។';
+      'យើងប្រើប្រាស់ទិន្នន័យរុករក និងប្រវត្តិការទិញរបស់អ្នក ដើម្បីបង្ហាញការណែនាំផលិតផល និងការផ្សាយពាណិជ្ជកម្មដែលពាក់ព័ន្ធ។ អ្នកអាចដកខ្លួនបានគ្រប់ពេល៖ អ្នកនៅតែឃើញការផ្សាយពាណិជ្ជកម្ម ប៉ុន្តែវានឹងមិនត្រូវបានកែសម្រួលតាមចំណាប់អារម្មណ៍របស់អ្នកទេ។';
 
   @override
   String get personalizedAdsBrowsingTitle => 'ទិន្នន័យរុករក';
@@ -933,13 +1025,214 @@ class AppLocalizationsKm extends AppLocalizations {
     String savingsPct,
     String url,
   ) {
-    return 'ចូលរួមជាមួយខ្ញុំក្នុងការទិញរួមសម្រាប់ $productName នៅលើ BosDom! ទទួលបានក្នុងតម្លៃ $price (បញ្ចុះតម្លៃ $savingsPct%) — $url';
+    return 'ចូលរួមជាមួយខ្ញុំក្នុងការទិញរួមសម្រាប់ $productName នៅលើ BosDom! ទទួលបានក្នុងតម្លៃ $price (បញ្ចុះតម្លៃ $savingsPct%)។\n\n$url';
   }
 
   @override
   String coBuyingShareSubject(String productName) {
     return 'ការទិញរួម៖ $productName';
   }
+
+  @override
+  String get coBuyCreateScreenTitle => 'បង្កើតការទិញរួម';
+
+  @override
+  String get coBuyCreateEditScreenTitle => 'កែសម្រួលកិច្ចព្រមព្រៀងទិញរួម';
+
+  @override
+  String get coBuyCreateProductNameLabel => 'ឈ្មោះទំនិញ';
+
+  @override
+  String get coBuyCreateProductNameHint => 'ឧ. អង្ករសែនក្រអូបលក់ដុំ 50kg';
+
+  @override
+  String get coBuyCreateProductNameRequired => 'ត្រូវការឈ្មោះទំនិញ';
+
+  @override
+  String get coBuyCreatePriceLabel => 'តម្លៃក្រុម (ក្នុងមួយឯកតា)';
+
+  @override
+  String get coBuyCreatePriceRequired => 'ត្រូវការតម្លៃក្រុម';
+
+  @override
+  String get coBuyCreatePriceInvalid => 'សូមបញ្ចូលតម្លៃត្រឹមត្រូវ';
+
+  @override
+  String get coBuyCreateOriginalPriceLabel => 'តម្លៃដើម';
+
+  @override
+  String get coBuyCreateOriginalPriceRequired => 'ត្រូវការតម្លៃដើម';
+
+  @override
+  String get coBuyCreateOriginalPriceInvalid =>
+      'តម្លៃដើមត្រូវតែខ្ពស់ជាងតម្លៃក្រុម';
+
+  @override
+  String get coBuyCreateTargetQtyLabel => 'បរិមាណគោលដៅ';
+
+  @override
+  String get coBuyCreateTargetQtyHint => 'ឧ. 50';
+
+  @override
+  String get coBuyCreateTargetQtyRequired => 'ត្រូវការបរិមាណគោលដៅ';
+
+  @override
+  String get coBuyCreateTargetQtyInvalid => 'សូមបញ្ចូលបរិមាណត្រឹមត្រូវ';
+
+  @override
+  String get coBuyCreateUnitLabelLabel => 'ឯកតា';
+
+  @override
+  String get coBuyCreateUnitLabelHint => 'ឧ. kg, packs, units';
+
+  @override
+  String get coBuyCreateUnitLabelRequired => 'ត្រូវការឯកតា';
+
+  @override
+  String get coBuyCreateMinOrderQtyLabel => 'បរិមាណបញ្ជាទិញអប្បបរមា';
+
+  @override
+  String get coBuyCreateMinOrderQtyHint => 'ឧ. 2';
+
+  @override
+  String get coBuyCreateMinOrderQtyRequired => 'ត្រូវការបរិមាណបញ្ជាទិញអប្បបរមា';
+
+  @override
+  String get coBuyCreateMinOrderQtyInvalid => 'សូមបញ្ចូលបរិមាណត្រឹមត្រូវ';
+
+  @override
+  String get coBuyCreateDurationLabel => 'រយៈពេលកំណត់';
+
+  @override
+  String get coBuyCreateDuration1Day => '1 ថ្ងៃ';
+
+  @override
+  String get coBuyCreateDuration2Days => '2 ថ្ងៃ';
+
+  @override
+  String get coBuyCreateDuration3Days => '3 ថ្ងៃ';
+
+  @override
+  String get coBuyCreateDuration5Days => '5 ថ្ងៃ';
+
+  @override
+  String get coBuyCreateDuration1Week => '1 សប្តាហ៍';
+
+  @override
+  String get coBuyCreateButton => 'ចាប់ផ្តើមការទិញរួម';
+
+  @override
+  String get coBuyCreateCreatedSnackbar =>
+      'បានបង្កើតការទិញរួម! អញ្ជើញអ្នកដទៃឱ្យចូលរួម។';
+
+  @override
+  String get coBuyCreateUpdatedSnackbar =>
+      'បានធ្វើបច្ចុប្បន្នភាពកិច្ចព្រមព្រៀងទិញរួម';
+
+  @override
+  String get coBuyCreateProductInfoSectionTitle => 'ព័ត៌មានផលិតផល';
+
+  @override
+  String get coBuyCreatePricingSectionTitle => 'តម្លៃ និងបរិមាណ';
+
+  @override
+  String get coBuyCreateDealSettingsSectionTitle => 'ការកំណត់កិច្ចព្រមព្រៀង';
+
+  @override
+  String get coBuyCreatePhotosLabel => 'រូបភាពផលិតផល';
+
+  @override
+  String get coBuyCreatePhotoLabel => 'ចុចដើម្បីបន្ថែមរូបភាពគម្រប';
+
+  @override
+  String get coBuyCreatePhotoHint => 'ណែនាំទំហំ 512×512px JPG ឬ PNG';
+
+  @override
+  String get coBuyCreatePhotosHelper =>
+      'បន្ថែមរូបភាពរហូតដល់ ៤ សន្លឹក។ រូបភាពទីមួយគឺជារូបគម្រប។';
+
+  @override
+  String get coBuyCreateDescriptionLabel => 'ការពិពណ៌នាផលិតផល';
+
+  @override
+  String get coBuyCreateDescriptionHint => 'ពិពណ៌នាផលិតផលនេះសម្រាប់អ្នកលក់រាយ';
+
+  @override
+  String get coBuyCreateAutoRenewLabel => 'បន្តដោយស្វ័យប្រវត្តិពេលផុតកំណត់';
+
+  @override
+  String get coBuyDealsWelcomeMessage =>
+      'សូមស្វាគមន៍! នេះជាសង្ខេបលទ្ធផលទិញរួមរបស់អ្នកថ្ងៃនេះ។';
+
+  @override
+  String get coBuyDealsShopNamePlaceholder => 'ហាងរបស់ខ្ញុំ';
+
+  @override
+  String get coBuyDealsAutoRenewBadge => 'បន្តដោយស្វ័យប្រវត្តិ';
+
+  @override
+  String get coBuyDealsActiveDealsLabel => 'កិច្ចព្រមព្រៀងកំពុងដំណើរការ';
+
+  @override
+  String get coBuyDealsJoinedLabel => 'បានចូលរួម';
+
+  @override
+  String get coBuyDealsRevenueLabel => 'ចំណូល';
+
+  @override
+  String get coBuyDealsCreateButtonLabel => 'បង្កើតកិច្ចព្រមព្រៀងទិញរួមថ្មី';
+
+  @override
+  String get coBuyDealsListingsSectionTitle => 'បញ្ជីទិញរួមរបស់អ្នក';
+
+  @override
+  String coBuyDealsMinTargetLabel(int targetQty, String unitLabel) {
+    return 'គោលដៅលក់ដុំអប្បបរមា៖ $targetQty $unitLabel';
+  }
+
+  @override
+  String get coBuyDealsStatusActive => 'កំពុងដំណើរការ';
+
+  @override
+  String get coBuyDealsStatusCompleted => 'បានបញ្ចប់';
+
+  @override
+  String get coBuyDealsStatusExpired => 'ផុតកំណត់';
+
+  @override
+  String get coBuyDealsProgressLabel => 'វឌ្ឍនភាព';
+
+  @override
+  String coBuyDealsRetailersLabel(int count) {
+    return 'អ្នកលក់រាយ $count នាក់';
+  }
+
+  @override
+  String get coBuyDealsStatusEndedLabel => 'បានបញ្ចប់';
+
+  @override
+  String get coBuyDealsEndsSoonLabel => 'ជិតផុតកំណត់';
+
+  @override
+  String get coBuyDealsOriginalLabel => 'តម្លៃដើម';
+
+  @override
+  String get coBuyDealsCoBuyPriceLabel => 'តម្លៃទិញរួម';
+
+  @override
+  String get coBuyDealsDeleteConfirmTitle => 'លុបកិច្ចព្រមព្រៀងទិញរួម?';
+
+  @override
+  String coBuyDealsDeleteConfirmBody(String productName) {
+    return '$productName និងវឌ្ឍនភាពអ្នកលក់រាយនឹងត្រូវលុបជាអចិន្ត្រៃយ៍។';
+  }
+
+  @override
+  String get coBuyDealsDeletedSnackbar => 'បានលុបកិច្ចព្រមព្រៀងទិញរួម';
+
+  @override
+  String get coBuyDealsEmptyMessage =>
+      'មិនទាន់មានកិច្ចព្រមព្រៀងទិញរួមទេ។ បង្កើតមួយ ដើម្បីឱ្យអ្នកលក់រាយអាចរួមបញ្ជាទិញជាមួយអ្នក។';
 
   @override
   String get coBuyDetailActiveDealLabel => 'ការផ្តល់ជូនកំពុងដំណើរការ';
@@ -1345,6 +1638,9 @@ class AppLocalizationsKm extends AppLocalizations {
   String get ordersViewDetailsButton => 'មើលព័ត៌មានលម្អិត';
 
   @override
+  String get ordersTrackOrderButton => 'តាមដានការបញ្ជាទិញ';
+
+  @override
   String get orderDetailScreenTitle => 'ព័ត៌មានលម្អិតបញ្ជាទិញ';
 
   @override
@@ -1357,6 +1653,12 @@ class AppLocalizationsKm extends AppLocalizations {
   String orderDetailOrderNumberLabel(String orderId) {
     return 'លេខបញ្ជាទិញ #$orderId';
   }
+
+  @override
+  String get orderDetailDeliveryMethodSection => 'វិធីសាស្ត្រដឹកជញ្ជូន';
+
+  @override
+  String get orderDetailCarrierLabel => 'ក្រុមហ៊ុនដឹកជញ្ជូន';
 
   @override
   String get orderDetailPaymentSummarySection => 'សេចក្តីសង្ខេបការទូទាត់';
@@ -1574,7 +1876,7 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get escrowPlaceholderText =>
-      'ការទូទាត់ប្រាក់ ការបញ្ជាក់ QR ភស្តុតាងវិវាទ — UI នឹងមកដល់នៅដំណាក់កាលទី ៨';
+      'ការទូទាត់ប្រាក់ ការបញ្ជាក់ QR ភស្តុតាងវិវាទ. UI នឹងមកដល់នៅដំណាក់កាលទី ៨';
 
   @override
   String get profileMenuMyOrders => 'ការបញ្ជាទិញរបស់ខ្ញុំ';
@@ -1586,7 +1888,10 @@ class AppLocalizationsKm extends AppLocalizations {
   String get profileMenuAddressBook => 'សៀវភៅអាសយដ្ឋាន';
 
   @override
-  String get profileMenuChat => 'ជជែក';
+  String get profileMenuAddressStore => 'អាសយដ្ឋានហាង';
+
+  @override
+  String get profileMenuBuyerChat => 'ជជែកជាមួយអ្នកទិញ';
 
   @override
   String get profileMenuNotifications => 'ការជូនដំណឹង';
@@ -1619,7 +1924,25 @@ class AppLocalizationsKm extends AppLocalizations {
   String get profileMenuAbout => 'អំពី';
 
   @override
+  String get profileMenuSellerDashboard => 'ផ្ទាំងគ្រប់គ្រងអ្នកលក់';
+
+  @override
+  String get profileMenuMyInventory => 'ស្តុកទំនិញរបស់ខ្ញុំ';
+
+  @override
+  String get profileMenuAddListing => 'បន្ថែមទំនិញ';
+
+  @override
+  String get profileMenuCoBuyDeals => 'កិច្ចព្រមព្រៀងទិញរួម';
+
+  @override
+  String get profileMenuShopProfile => 'ប្រវត្តិរូបហាង';
+
+  @override
   String get profileSectionShopping => 'ការទិញទំនិញ';
+
+  @override
+  String get profileSectionSelling => 'ការលក់';
 
   @override
   String get profileSectionAccount => 'គណនី';
@@ -1641,6 +1964,12 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get profileStatSavedItems => 'ទំនិញដែលបានរក្សាទុក';
+
+  @override
+  String get profileStatTotalProducts => 'ទំនិញសរុប';
+
+  @override
+  String get profileStatRevenue => 'ចំណូល';
 
   @override
   String get profileSellerProgramBadge => 'កម្មវិធីអ្នកលក់';
@@ -1677,6 +2006,325 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get profileEditProfileLabel => 'កែសម្រួលប្រវត្តិរូប';
+
+  @override
+  String get sellerDashboardScreenTitle => 'ផ្ទាំងគ្រប់គ្រង';
+
+  @override
+  String get sellerDashboardVerifiedBadge => 'បានផ្ទៀងផ្ទាត់';
+
+  @override
+  String get sellerDashboardWelcomeMessage =>
+      'សូមស្វាគមន៍! នេះជាសង្ខេបការអនុវត្តការងារហាងលក់ដុំរបស់អ្នកថ្ងៃនេះ។';
+
+  @override
+  String get sellerDashboardRevenueLabel => 'ចំណូល';
+
+  @override
+  String get sellerDashboardPendingLabel => 'កំពុងរង់ចាំ';
+
+  @override
+  String sellerDashboardPendingOrdersLabel(int count) {
+    return 'ការបញ្ជាទិញ $count';
+  }
+
+  @override
+  String get sellerDashboardProductsLabel => 'ផលិតផល';
+
+  @override
+  String sellerDashboardProductsCountLabel(int count) {
+    return 'ទំនិញ $count';
+  }
+
+  @override
+  String get sellerDashboardQuickActionsTitle => 'សកម្មភាពរហ័ស';
+
+  @override
+  String get sellerDashboardAddListingAction => 'បន្ថែមទំនិញ';
+
+  @override
+  String get sellerDashboardMyInventoryAction => 'ស្តុកទំនិញរបស់ខ្ញុំ';
+
+  @override
+  String get sellerDashboardOrdersAction => 'ការបញ្ជាទិញ';
+
+  @override
+  String get sellerDashboardEarningsAction => 'ចំណូល';
+
+  @override
+  String get sellerDashboardBuyerToolsTitle => 'ទិញទំនិញជាអ្នកទិញ';
+
+  @override
+  String get sellerDashboardMarketplaceAction => 'ទីផ្សារ';
+
+  @override
+  String get sellerDashboardWishlistAction => 'ចំណូលចិត្ត';
+
+  @override
+  String get sellerDashboardCartAction => 'រទេះទំនិញ';
+
+  @override
+  String get sellerDashboardCoBuyingAction => 'ទិញរួម';
+
+  @override
+  String get sellerDashboardPerformanceTitle => 'ការអនុវត្តការងារ';
+
+  @override
+  String get sellerDashboardRatingLabel => 'ការវាយតម្លៃ';
+
+  @override
+  String get sellerDashboardCompletionLabel => 'បញ្ចប់';
+
+  @override
+  String get sellerDashboardAvgDeliveryLabel => 'រយៈពេលដឹកជញ្ជូន';
+
+  @override
+  String get sellerDashboardRecentOrdersTitle => 'ការបញ្ជាទិញថ្មីៗ';
+
+  @override
+  String get sellerDashboardViewAllLabel => 'មើលទាំងអស់';
+
+  @override
+  String get sellerEarningsScreenTitle => 'ចំណូល';
+
+  @override
+  String get sellerEarningsAvailableBalanceLabel => 'សមតុល្យដែលអាចដកបាន';
+
+  @override
+  String sellerEarningsCompletedSalesPercentLabel(int percent) {
+    return '$percent% នៃការលក់ដែលបានបញ្ចប់';
+  }
+
+  @override
+  String get sellerEarningsWithdrawButton => 'ដកប្រាក់';
+
+  @override
+  String get sellerEarningsReleasedLabel => 'បានផ្តល់ជូន';
+
+  @override
+  String get sellerEarningsInEscrowLabel => 'កំពុងរក្សាទុក';
+
+  @override
+  String get sellerEarningsRefundedLabel => 'បានសងវិញ';
+
+  @override
+  String get sellerEarningsFilterAllLabel => 'ទាំងអស់';
+
+  @override
+  String get sellerEarningsFilterReleasedLabel => 'បានផ្តល់ជូន';
+
+  @override
+  String get sellerEarningsFilterInEscrowLabel => 'កំពុងរក្សាទុក';
+
+  @override
+  String get sellerEarningsFilterDisputedLabel => 'ជាប់វិវាទ';
+
+  @override
+  String sellerEarningsTransactionsCountLabel(int count) {
+    return '$count ប្រតិបត្តិការ';
+  }
+
+  @override
+  String sellerEarningsOrderBuyerLabel(String id, String buyer) {
+    return '#$id • $buyer';
+  }
+
+  @override
+  String get sellerEarningsSaleAmountLabel => 'ចំនួនលក់';
+
+  @override
+  String sellerEarningsPlatformFeeLabel(int rate) {
+    return 'ថ្លៃសេវាវេទិកា ($rate%)';
+  }
+
+  @override
+  String get sellerEarningsYourEarningsLabel => 'ចំណូលរបស់អ្នក';
+
+  @override
+  String get sellerEarningsWithdrawalLabel => 'ការដកប្រាក់';
+
+  @override
+  String get sellerEarningsStatusPending => 'កំពុងរង់ចាំ';
+
+  @override
+  String get sellerEarningsStatusInEscrow => 'កំពុងរក្សាទុក';
+
+  @override
+  String get sellerEarningsStatusReleased => 'បានផ្តល់ជូន';
+
+  @override
+  String get sellerEarningsStatusDisputed => 'បានសងវិញ';
+
+  @override
+  String get sellerEarningsStatusWithdrawn => 'បានដក';
+
+  @override
+  String get sellerEarningsEscrowNoticeText =>
+      'ប្រាក់ត្រូវបានរក្សាទុករយៈពេល 48 ម៉ោងបន្ទាប់ពីការទិញ។ នៅពេលបានផ្តល់ជូន សូមចុច \"ដកប្រាក់\" ដើម្បីផ្ទេរចំណូលទៅគណនីធនាគាររបស់អ្នក។';
+
+  @override
+  String get sellerEarningsEmptyStateMessage =>
+      'មិនមានប្រតិបត្តិការនៅក្នុងប្រភេទនេះទេ';
+
+  @override
+  String get sellerEarningsWithdrawSheetTitle => 'ដកប្រាក់';
+
+  @override
+  String get sellerEarningsWithdrawPoweredByLabel => 'ដំណើរការដោយ ABA Pay';
+
+  @override
+  String get sellerEarningsWithdrawAmountLabel => 'ចំនួនទឹកប្រាក់ដក (\$)';
+
+  @override
+  String get sellerEarningsAccountHolderNameLabel => 'ឈ្មោះម្ចាស់គណនី';
+
+  @override
+  String get sellerEarningsAccountHolderNameHint => 'ឈ្មោះពេញលើគណនី';
+
+  @override
+  String get sellerEarningsRoutingNumberLabel => 'លេខ Routing';
+
+  @override
+  String get sellerEarningsRoutingNumberHint =>
+      'បញ្ចូលលេខ Routing របស់ ABA (ឧ. 020001)';
+
+  @override
+  String get sellerEarningsAccountNumberLabel => 'លេខគណនី';
+
+  @override
+  String get sellerEarningsAccountNumberHint => 'បញ្ចូលលេខគណនី ABA';
+
+  @override
+  String get sellerEarningsWithdrawNoticeText =>
+      'ប្រាក់នឹងត្រូវផ្ទេរភ្លាមទៅគណនី ABA Pay ដែលអ្នកបានកំណត់។ ការពិនិត្យសុវត្ថិភាពស្តង់ដារអាចនឹងអនុវត្ត។';
+
+  @override
+  String get sellerEarningsWithdrawContinueButton => 'បន្ត';
+
+  @override
+  String get sellerEarningsWithdrawFieldRequiredError =>
+      'ត្រូវការបំពេញព័ត៌មាននេះ';
+
+  @override
+  String get sellerEarningsWithdrawAmountInvalidError =>
+      'សូមបញ្ចូលចំនួនទឹកប្រាក់ត្រឹមត្រូវ';
+
+  @override
+  String get sellerEarningsWithdrawAmountExceedsError =>
+      'ចំនួនទឹកប្រាក់លើសសមតុល្យដែលមាន';
+
+  @override
+  String get sellerEarningsWithdrawJustNowLabel => 'ទើបតែឥឡូវនេះ';
+
+  @override
+  String sellerEarningsWithdrawSuccessSnackbar(String amount) {
+    return 'ការដកប្រាក់ចំនួន \$$amount ត្រូវបានដាក់ស្នើ';
+  }
+
+  @override
+  String get sellerEarningsWithdrawSuccessTitle => 'ជោគជ័យ';
+
+  @override
+  String sellerEarningsWithdrawSuccessMessage(String amount) {
+    return 'ការដកប្រាក់ចំនួន \$$amount ត្រូវបានចាប់ផ្តើម។ ប្រាក់នឹងចូលក្នុងរយៈពេល 2-3 ថ្ងៃធ្វើការ។';
+  }
+
+  @override
+  String get sellerEarningsWithdrawSuccessOkButton => 'យល់ព្រម';
+
+  @override
+  String get sellerOrdersScreenTitle => 'ការបញ្ជាទិញ';
+
+  @override
+  String get sellerOrdersEmptyStateMessage =>
+      'មិនមានការបញ្ជាទិញនៅក្នុងប្រភេទនេះទេ';
+
+  @override
+  String sellerOrdersFilterAllLabel(int count) {
+    return 'ទាំងអស់ ($count)';
+  }
+
+  @override
+  String sellerOrdersFilterPendingLabel(int count) {
+    return 'កំពុងរង់ចាំ ($count)';
+  }
+
+  @override
+  String sellerOrdersQuantityProductLabel(String quantity, String product) {
+    return '$quantity • $product';
+  }
+
+  @override
+  String get sellerOrdersCoBuyBadgeLabel => 'ទិញរួម';
+
+  @override
+  String get sellerOrderDetailBuyerInfoSection => 'ព័ត៌មានអ្នកទិញ';
+
+  @override
+  String sellerOrderDetailPlatformFeeLabel(int rate) {
+    return 'ថ្លៃសេវាវេទិកា ($rate%)';
+  }
+
+  @override
+  String get sellerOrderDetailYourEarningsLabel => 'ចំណូលរបស់អ្នក';
+
+  @override
+  String get sellerOrderDetailAcceptButton => 'ទទួលយកការបញ្ជាទិញ';
+
+  @override
+  String get sellerOrderDetailDeclineButton => 'បដិសេធការបញ្ជាទិញ';
+
+  @override
+  String get sellerOrderDetailOrderAcceptedSnackbar => 'បានទទួលយកការបញ្ជាទិញ';
+
+  @override
+  String get sellerOrderDetailOrderDeclinedSnackbar => 'បានបដិសេធការបញ្ជាទិញ';
+
+  @override
+  String get sellerOrderDetailDeclineConfirmTitle => 'បដិសេធការបញ្ជាទិញនេះ?';
+
+  @override
+  String get sellerOrderDetailDeclineConfirmMessage =>
+      'អ្នកទិញនឹងទទួលបានការជូនដំណឹងថាអ្នកមិនអាចបំពេញការបញ្ជាទិញនេះបានទេ។';
+
+  @override
+  String get sellerOrderDetailDeclineConfirmCancel => 'បោះបង់';
+
+  @override
+  String get sellerOrderDetailDeclineConfirmConfirm => 'បដិសេធ';
+
+  @override
+  String get myInventoryScreenTitle => 'ស្តុកទំនិញរបស់ខ្ញុំ';
+
+  @override
+  String get myInventorySearchHint => 'ស្វែងរកទំនិញ...';
+
+  @override
+  String get myInventoryFilterAll => 'ទាំងអស់';
+
+  @override
+  String get myInventoryFilterActive => 'កំពុងលក់';
+
+  @override
+  String get myInventoryFilterInactive => 'បានផ្អាក';
+
+  @override
+  String myInventoryStockLabel(String stock) {
+    return 'ស្តុក៖ $stock';
+  }
+
+  @override
+  String get myInventoryEmptyStateMessage => 'រកមិនឃើញទំនិញទេ។';
+
+  @override
+  String myInventoryListingActivatedSnackbar(String product) {
+    return '$product កំពុងលក់ហើយ';
+  }
+
+  @override
+  String myInventoryListingDeactivatedSnackbar(String product) {
+    return '$product ត្រូវបានផ្អាក';
+  }
 
   @override
   String get profileEditProfileRoleLabel => 'តួនាទីគណនី';
@@ -1735,7 +2383,217 @@ class AppLocalizationsKm extends AppLocalizations {
       'មិនអាចផ្ទុកប្រវត្តិរូបរបស់អ្នកបានទេ។ សូមព្យាយាមម្តងទៀត។';
 
   @override
+  String get shopProfileScreenTitle => 'ប្រវត្តិរូបហាង';
+
+  @override
+  String get shopProfileChangeLogo => 'ប្តូរឡូហ្គោហាង';
+
+  @override
+  String get shopProfileShopNameLabel => 'ឈ្មោះហាង';
+
+  @override
+  String get shopProfileShopNameHint => 'បញ្ចូលឈ្មោះហាងរបស់អ្នក';
+
+  @override
+  String get shopProfileShopNameRequired => 'សូមបញ្ចូលឈ្មោះហាងរបស់អ្នក';
+
+  @override
+  String get shopProfileBusinessTypeLabel => 'ប្រភេទអាជីវកម្ម';
+
+  @override
+  String get shopProfileBusinessTypeHint => 'ឧ. អ្នកផលិត និងចែកចាយ';
+
+  @override
+  String get shopProfileBusinessTypeRequired =>
+      'សូមបញ្ចូលប្រភេទអាជីវកម្មរបស់អ្នក';
+
+  @override
+  String get shopProfileYearEstablishedLabel => 'ឆ្នាំបង្កើត';
+
+  @override
+  String get shopProfileYearEstablishedHint => 'ឧ. ២០១៨';
+
+  @override
+  String get shopProfileLocationLabel => 'ទីតាំង';
+
+  @override
+  String get shopProfileLocationHint => 'ឧ. ភ្នំពេញ';
+
+  @override
+  String get shopProfileLocationRequired => 'សូមបញ្ចូលទីតាំងរបស់អ្នក';
+
+  @override
+  String get shopProfilePhoneLabel => 'លេខទូរស័ព្ទ';
+
+  @override
+  String get shopProfilePhoneHint => 'បញ្ចូលលេខទូរស័ព្ទរបស់អ្នក';
+
+  @override
+  String get shopProfilePhoneRequired => 'សូមបញ្ចូលលេខទូរស័ព្ទរបស់អ្នក';
+
+  @override
+  String get shopProfileEmailLabel => 'អាសយដ្ឋានអ៊ីមែល';
+
+  @override
+  String get shopProfileEmailHint => 'បញ្ចូលអាសយដ្ឋានអ៊ីមែលរបស់អ្នក';
+
+  @override
+  String get shopProfileEmailRequired => 'សូមបញ្ចូលអាសយដ្ឋានអ៊ីមែលរបស់អ្នក';
+
+  @override
+  String get shopProfileEmailInvalid => 'សូមបញ្ចូលអាសយដ្ឋានអ៊ីមែលដែលត្រឹមត្រូវ';
+
+  @override
+  String get shopProfileDescriptionLabel => 'ការពិពណ៌នាអាជីវកម្ម';
+
+  @override
+  String get shopProfileDescriptionHint => 'ប្រាប់អ្នកទិញអំពីអាជីវកម្មរបស់អ្នក';
+
+  @override
+  String get shopProfileSaveButton => 'រក្សាទុកការផ្លាស់ប្តូរ';
+
+  @override
+  String get shopProfileSavedSnackbar =>
+      'បានធ្វើបច្ចុប្បន្នភាពប្រវត្តិរូបហាងដោយជោគជ័យ';
+
+  @override
+  String get shopProfileSaveErrorSnackbar =>
+      'មិនអាចរក្សាទុកប្រវត្តិរូបហាងរបស់អ្នកបានទេ។ សូមព្យាយាមម្តងទៀត។';
+
+  @override
+  String get addListingScreenTitle => 'បន្ថែមទំនិញ';
+
+  @override
+  String get addListingProductNameLabel => 'ឈ្មោះផលិតផល';
+
+  @override
+  String get addListingProductNameHint => 'ឧ. គ្រាប់ស្វាយចន្ទីគុណភាពខ្ពស់';
+
+  @override
+  String get addListingProductNameRequired => 'សូមបញ្ចូលឈ្មោះផលិតផល';
+
+  @override
+  String get addListingCategoryLabel => 'ប្រភេទ';
+
+  @override
+  String get addListingCategoryHint => 'ជ្រើសរើសប្រភេទ';
+
+  @override
+  String get addListingCategoryRequired => 'សូមជ្រើសរើសប្រភេទ';
+
+  @override
+  String get addListingPriceLabel => 'តម្លៃគិតជាដុល្លារ';
+
+  @override
+  String get addListingPriceRequired => 'សូមបញ្ចូលតម្លៃ';
+
+  @override
+  String get addListingPriceInvalid => 'សូមបញ្ចូលតម្លៃដែលត្រឹមត្រូវ';
+
+  @override
+  String get addListingMoqLabel => 'ចំនួនបញ្ជាទិញអប្បបរមា';
+
+  @override
+  String get addListingMoqHint => 'ឧ. ១០០ បាវ';
+
+  @override
+  String get addListingMoqRequired => 'សូមបញ្ចូលចំនួនបញ្ជាទិញអប្បបរមា';
+
+  @override
+  String get addListingMoqInvalid => 'សូមបញ្ចូលចំនួនដែលត្រឹមត្រូវ';
+
+  @override
+  String get addListingStockLabel => 'ចំនួនស្តុក';
+
+  @override
+  String get addListingStockHint => 'ឧ. ៥០០';
+
+  @override
+  String get addListingStockRequired => 'សូមបញ្ចូលចំនួនស្តុក';
+
+  @override
+  String get addListingStockInvalid => 'សូមបញ្ចូលចំនួនដែលត្រឹមត្រូវ';
+
+  @override
+  String get addListingPhotosLabel => 'រូបភាពផលិតផល';
+
+  @override
+  String get addListingCoverPhotoCta => 'ចុចដើម្បីបន្ថែមរូបភាពគម្រប';
+
+  @override
+  String get addListingPhotosFormatHint => 'JPG, PNG រហូតដល់ 5MB';
+
+  @override
+  String get addListingPhotosHelper =>
+      'អាប់ឡូតរូបភាពបានរហូតដល់ ៥សន្លឹក។ រូបភាពដំបូងគឺជារូបគម្រប។';
+
+  @override
+  String get addListingCoverPhotoRequired => 'សូមបន្ថែមរូបភាពគម្រប';
+
+  @override
+  String get addListingDescriptionLabel => 'ការពិពណ៌នា';
+
+  @override
+  String get addListingDescriptionHint =>
+      'ឧ. អាវយឺតកជុំ ១០០% កប្បាស ថ្នាក់គុណភាព A លក់ជាដុំចាប់ពី ៥០ បំណែក ដឹកជញ្ជូនក្នុងរយៈពេល ៣-៥ ថ្ងៃធ្វើការ។';
+
+  @override
+  String get addListingSampleTestingLabel => 'ការសាកល្បងគំរូ';
+
+  @override
+  String get addListingSampleTestingToggleTitle => 'បើកការសាកល្បងគំរូ';
+
+  @override
+  String get addListingSampleTestingToggleSubtitle =>
+      'កំណត់ ១ ទំនិញក្នុងមួយអ្នកទិញ';
+
+  @override
+  String get addListingSamplePriceLabel => 'តម្លៃគំរូគិតជាដុល្លារ';
+
+  @override
+  String get addListingSamplePriceRequired => 'សូមបញ្ចូលតម្លៃគំរូ';
+
+  @override
+  String get addListingSamplePriceInvalid => 'សូមបញ្ចូលតម្លៃគំរូដែលត្រឹមត្រូវ';
+
+  @override
+  String get addListingVariantsLabel => 'ទំហំ និងពណ៌';
+
+  @override
+  String get addListingVariantsHelper =>
+      'អនុញ្ញាតឱ្យអ្នកទិញជ្រើសរើសពីជម្រើសដែលអ្នកមាន';
+
+  @override
+  String get addListingAddSizeChip => 'បន្ថែមទំហំ';
+
+  @override
+  String get addListingAddSizeDialogTitle => 'បន្ថែមទំហំ';
+
+  @override
+  String get addListingAddSizeDialogHint => 'ឧ. កុមារ, ៤២, ទំហំទូទៅ';
+
+  @override
+  String get addListingAddSizeConfirm => 'បន្ថែម';
+
+  @override
+  String get addListingAddColorDialogTitle => 'ជ្រើសរើសពណ៌';
+
+  @override
+  String get addListingCreateButton => 'បង្កើតទំនិញ';
+
+  @override
+  String get addListingCreatedSnackbar => 'បានបង្កើតទំនិញដោយជោគជ័យ';
+
+  @override
+  String get addListingCreateErrorSnackbar =>
+      'មិនអាចបង្កើតទំនិញរបស់អ្នកបានទេ។ សូមព្យាយាមម្តងទៀត។';
+
+  @override
   String get profileLogout => 'ចេញពីប្រព័ន្ធ';
+
+  @override
+  String get profileRefreshFailedSnackbar =>
+      'មិនអាចធ្វើបច្ចុប្បន្នភាពប្រវត្តិរូបរបស់អ្នកបានទេ។ សូមពិនិត្យការតភ្ជាប់របស់អ្នក ហើយព្យាយាមម្តងទៀត។';
 
   @override
   String get currencyScreenTitle => 'រូបិយប័ណ្ណទូទាត់';
@@ -2487,18 +3345,18 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get privacyPolicySection5Point2 =>
-      'ទិន្នន័យគណនី — រក្សាទុកខណៈពេលគណនីរបស់អ្នកនៅសកម្ម និងរហូតដល់ ១២ ខែក្រោយការលុប';
+      'ទិន្នន័យគណនី៖ រក្សាទុកខណៈពេលគណនីរបស់អ្នកនៅសកម្ម និងរហូតដល់ ១២ ខែក្រោយការលុប';
 
   @override
   String get privacyPolicySection5Point3 =>
-      'កំណត់ត្រាប្រតិបត្តិការ — រក្សាទុករយៈពេល ៥ ឆ្នាំសម្រាប់គណនេយ្យ និងការអនុលោមតាមច្បាប់';
+      'កំណត់ត្រាប្រតិបត្តិការ៖ រក្សាទុករយៈពេល ៥ ឆ្នាំសម្រាប់គណនេយ្យ និងការអនុលោមតាមច្បាប់';
 
   @override
-  String get privacyPolicySection5Point4 => 'សារជជែក — រក្សាទុករយៈពេល ១២ ខែ';
+  String get privacyPolicySection5Point4 => 'សារជជែក៖ រក្សាទុករយៈពេល ១២ ខែ';
 
   @override
   String get privacyPolicySection5Point5 =>
-      'ភស្តុតាងវិវាទ — រក្សាទុករយៈពេល ១២ ខែក្រោយពេលដោះស្រាយ';
+      'ភស្តុតាងវិវាទ៖ រក្សាទុករយៈពេល ១២ ខែក្រោយពេលដោះស្រាយ';
 
   @override
   String get privacyPolicySection5Point6 =>
@@ -2513,27 +3371,27 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get privacyPolicySection6Point2 =>
-      'ចូលមើល — ស្នើសុំច្បាប់ចម្លងទិន្នន័យផ្ទាល់ខ្លួនរបស់អ្នកដែលយើងកាន់កាប់';
+      'ចូលមើល៖ ស្នើសុំច្បាប់ចម្លងទិន្នន័យផ្ទាល់ខ្លួនរបស់អ្នកដែលយើងកាន់កាប់';
 
   @override
   String get privacyPolicySection6Point3 =>
-      'កែតម្រូវ — ធ្វើបច្ចុប្បន្នភាពព័ត៌មានមិនត្រឹមត្រូវ ឬហួសសម័យ';
+      'កែតម្រូវ៖ ធ្វើបច្ចុប្បន្នភាពព័ត៌មានមិនត្រឹមត្រូវ ឬហួសសម័យ';
 
   @override
   String get privacyPolicySection6Point4 =>
-      'លុប — ស្នើសុំលុបទិន្នន័យផ្ទាល់ខ្លួនរបស់អ្នក ដោយអនុលោមតាមតម្រូវការរក្សាទុកតាមច្បាប់';
+      'លុប៖ ស្នើសុំលុបទិន្នន័យផ្ទាល់ខ្លួនរបស់អ្នក ដោយអនុលោមតាមតម្រូវការរក្សាទុកតាមច្បាប់';
 
   @override
   String get privacyPolicySection6Point5 =>
-      'ការផ្ទេរទិន្នន័យ — ស្នើសុំទិន្នន័យរបស់អ្នកជាទម្រង់ដែលអានបានដោយម៉ាស៊ីន';
+      'ការផ្ទេរទិន្នន័យ៖ ស្នើសុំទិន្នន័យរបស់អ្នកជាទម្រង់ដែលអានបានដោយម៉ាស៊ីន';
 
   @override
   String get privacyPolicySection6Point6 =>
-      'ចំណូលចិត្តការជូនដំណឹង — គ្រប់គ្រងការកំណត់ការជូនដំណឹងក្នុងកម្មវិធី';
+      'ចំណូលចិត្តការជូនដំណឹង៖ គ្រប់គ្រងការកំណត់ការជូនដំណឹងក្នុងកម្មវិធី';
 
   @override
   String get privacyPolicySection6Point7 =>
-      'ដកខ្លួន — ដកខ្លួនចេញពីការទំនាក់ទំនងទីផ្សារនៅពេលណាមួយ';
+      'ដកខ្លួន៖ ដកខ្លួនចេញពីការទំនាក់ទំនងទីផ្សារនៅពេលណាមួយ';
 
   @override
   String get privacyPolicySection6Point8 =>
@@ -2724,4 +3582,13 @@ class AppLocalizationsKm extends AppLocalizations {
   @override
   String get aboutFooterCopyright =>
       '© 2024-2026 Bosdom។ រក្សាសិទ្ធិគ្រប់យ៉ាង។';
+
+  @override
+  String get variantSelectOptionsTitle => 'ជ្រើសរើសជម្រើស';
+
+  @override
+  String get variantSizeLabel => 'ទំហំ';
+
+  @override
+  String get variantColorLabel => 'ពណ៌';
 }

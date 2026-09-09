@@ -5,7 +5,6 @@ import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../models/category.dart';
 import '../models/product.dart';
-import '../widgets/product_card.dart';
 import '../widgets/product_list_tile.dart';
 
 class CategoryResultsScreen extends StatefulWidget {
@@ -20,7 +19,6 @@ class CategoryResultsScreen extends StatefulWidget {
 class _CategoryResultsScreenState extends State<CategoryResultsScreen> {
   final _controller = TextEditingController();
   final Set<String> _selectedCategories = {};
-  bool _isGridView = true;
   String _query = '';
 
   @override
@@ -121,25 +119,12 @@ class _CategoryResultsScreenState extends State<CategoryResultsScreen> {
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-                    child: Row(
-                      children: [
-                        Text(
-                          l10n.categoryResultsItemsCount('${results.length}'),
-                          style: textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const Spacer(),
-                        IconButton(
-                          onPressed: () =>
-                              setState(() => _isGridView = !_isGridView),
-                          icon: Icon(
-                            _isGridView ? Icons.grid_view_rounded : Icons.view_list_rounded,
-                            color: colorScheme.onSurface,
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      l10n.categoryResultsItemsCount('${results.length}'),
+                      style: textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
                   Expanded(
@@ -152,35 +137,6 @@ class _CategoryResultsScreenState extends State<CategoryResultsScreen> {
                               ),
                             ),
                           )
-                        : _isGridView
-                        ? GridView.builder(
-                            padding: EdgeInsets.fromLTRB(
-                              24,
-                              0,
-                              24,
-                              8 + MediaQuery.of(context).padding.bottom,
-                            ),
-                            itemCount: results.length,
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
-                                  mainAxisSpacing: 16,
-                                  crossAxisSpacing: 16,
-                                  childAspectRatio: 0.64,
-                                ),
-                            itemBuilder: (context, index) {
-                              final product = results[index];
-                              return ProductCard(
-                                product: product,
-                                onTap: () => context.pushNamed(
-                                  'productDetail',
-                                  pathParameters: {
-                                    'id': '${kMockProducts.indexOf(product)}',
-                                  },
-                                ),
-                              );
-                            },
-                          )
                         : ListView.separated(
                             padding: EdgeInsets.fromLTRB(
                               24,
@@ -189,16 +145,18 @@ class _CategoryResultsScreenState extends State<CategoryResultsScreen> {
                               8 + MediaQuery.of(context).padding.bottom,
                             ),
                             itemCount: results.length,
-                            separatorBuilder: (_, _) => const SizedBox(height: 12),
+                            separatorBuilder: (_, _) =>
+                                const SizedBox(height: 12),
                             itemBuilder: (context, index) {
                               final product = results[index];
+                              final productId =
+                                  '${kMockProducts.indexOf(product)}';
                               return ProductListTile(
                                 product: product,
+                                id: productId,
                                 onTap: () => context.pushNamed(
                                   'productDetail',
-                                  pathParameters: {
-                                    'id': '${kMockProducts.indexOf(product)}',
-                                  },
+                                  pathParameters: {'id': productId},
                                 ),
                               );
                             },
@@ -237,9 +195,7 @@ class _Header extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
@@ -258,19 +214,10 @@ class _Header extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.arrow_back, color: colorScheme.onPrimary, size: 20),
-                      const SizedBox(width: 6),
-                      Text(
-                        l10n.commonBack,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+                  child: Icon(
+                    Icons.arrow_back,
+                    color: colorScheme.onPrimary,
+                    size: 20,
                   ),
                 ),
               ),

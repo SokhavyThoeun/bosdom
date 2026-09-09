@@ -41,6 +41,39 @@
 	</array>
 	<key>UIFileSharingEnabled</key>
 	<true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.example.bosdom</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<!-- Reversed form of SupabaseConfig.googleIosClientId, required by
+				     Google Sign-In's native iOS flow. -->
+				<string>com.googleusercontent.apps.443899746764-pn8co0kshvbcvnpf3foqimfgr04070qh</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>app.bosdom.share</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<!-- Custom-scheme fallback for share links (e.g. Co-Buy invites)
+				     until Universal Links (applinks:bosdom.app, see
+				     Runner.entitlements) are verifiable via a hosted
+				     apple-app-site-association file. Handled in app_router.dart. -->
+				<string>bosdom</string>
+			</array>
+		</dict>
+	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

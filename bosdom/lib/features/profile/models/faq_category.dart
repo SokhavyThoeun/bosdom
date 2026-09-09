@@ -53,7 +53,7 @@ const kFaqData = <FaqCategoryId, FaqCategoryData>{
       FaqItem(
         question: 'What is MOQ?',
         answer:
-            'MOQ stands for Minimum Order Quantity — the smallest amount of '
+            'MOQ stands for Minimum Order Quantity: the smallest amount of '
             'a product a supplier will sell in a single order. It is shown '
             'on every product page before you check out.',
       ),
@@ -207,7 +207,7 @@ const kFaqData = <FaqCategoryId, FaqCategoryData>{
         question: 'How do I open a dispute?',
         answer:
             'Go to the order in My Orders and tap "Report an Issue." Add '
-            'photos and a description — our support team will step in to '
+            'photos and a description, and our support team will step in to '
             'mediate with the supplier.',
       ),
       FaqItem(

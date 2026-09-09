@@ -1,7 +1,14 @@
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'dart:async';
 
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../../profile/models/user_profile.dart';
+import '../../profile/services/profile_service.dart';
 import '../models/merchant_role.dart';
+import '../services/auth_service.dart';
 
 class PersonalDetailsScreen extends StatefulWidget {
   const PersonalDetailsScreen({required this.role, super.key});
@@ -13,14 +20,59 @@ class PersonalDetailsScreen extends StatefulWidget {
 }
 
 class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  bool _isSubmitting = false;
+
+  // True once Google sign-in has completed (either before this screen was
+  // reached, e.g. via the login screen, or from tapping the Google button
+  // below). Password fields and the Google button hide once this is set,
+  // since the account is already authenticated.
+  bool _isAuthenticated = false;
+  StreamSubscription<AuthState>? _authSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _isAuthenticated = AuthService.isSignedIn;
+    if (_isAuthenticated) _prefillFromAccount();
+
+    // Google sign-in via the button below completes synchronously on iOS,
+    // but on Android it only resolves here, once the browser sheet redirects
+    // back into the app — see AuthService.signInWithGoogle.
+    final tokenAtMount =
+        Supabase.instance.client.auth.currentSession?.accessToken;
+    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((
+      data,
+    ) {
+      final isNewSignIn =
+          data.event == AuthChangeEvent.signedIn &&
+          data.session?.accessToken != tokenAtMount;
+      if (isNewSignIn && mounted) {
+        setState(() => _isAuthenticated = true);
+        _prefillFromAccount();
+      }
+    });
+  }
+
+  void _prefillFromAccount() {
+    final user = Supabase.instance.client.auth.currentUser;
+    final name = user?.userMetadata?['name'] as String?;
+    if (_fullNameController.text.isEmpty && name != null) {
+      _fullNameController.text = name;
+    }
+    if (_emailController.text.isEmpty && user?.email != null) {
+      _emailController.text = user!.email!;
+    }
+  }
 
   @override
   void dispose() {
+    _authSubscription?.cancel();
     _fullNameController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
@@ -37,11 +89,68 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
     }
   }
 
-  void _continue() {
+  void _navigateNext() {
     if (widget.role == MerchantRole.supplier) {
       context.pushNamed('uploadDocuments', extra: widget.role);
     } else {
       context.pushNamed('deliveryAddress', extra: widget.role);
+    }
+  }
+
+  void _showError(Object error) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(error.toString())));
+  }
+
+  Future<void> _saveProfile() {
+    return ProfileService.save(
+      UserProfile(
+        name: _fullNameController.text.trim(),
+        phone: _phoneController.text.trim(),
+        role: widget.role.name,
+        email: _emailController.text.trim(),
+      ),
+    );
+  }
+
+  Future<void> _continue() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    try {
+      if (!_isAuthenticated) {
+        await AuthService.signUpWithEmail(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+          name: _fullNameController.text.trim(),
+          phone: _phoneController.text.trim(),
+          role: widget.role.name,
+        );
+      }
+      await _saveProfile();
+      if (mounted) _navigateNext();
+    } catch (error) {
+      _showError(error);
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  /// Only authenticates. [_isAuthenticated] flips to true (via the
+  /// onAuthStateChange listener in initState, which fires on both platforms)
+  /// once it succeeds, which swaps the form into its Google mode; the
+  /// [_continue] button above still does the actual profile save.
+  Future<void> _continueWithGoogle() async {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    try {
+      await AuthService.signInWithGoogle();
+    } catch (error) {
+      _showError(error);
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
@@ -65,51 +174,119 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
               top: false,
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _FormField(
-                      label: 'FULL NAME',
-                      controller: _fullNameController,
-                      hintText: 'Your full name',
-                    ),
-                    const SizedBox(height: 20),
-                    _FormField(
-                      label: 'PHONE NUMBER (+855)',
-                      controller: _phoneController,
-                      hintText: '012 345 678',
-                      keyboardType: TextInputType.phone,
-                    ),
-                    const SizedBox(height: 20),
-                    _FormField(
-                      label: 'EMAIL (OPTIONAL)',
-                      controller: _emailController,
-                      hintText: 'you@example.com',
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                    const SizedBox(height: 20),
-                    _FormField(
-                      label: 'PASSWORD',
-                      controller: _passwordController,
-                      hintText: 'Create a password',
-                      obscureText: true,
-                    ),
-                    const SizedBox(height: 20),
-                    _FormField(
-                      label: 'CONFIRM PASSWORD',
-                      controller: _confirmPasswordController,
-                      hintText: 'Re-enter your password',
-                      obscureText: true,
-                    ),
-                    const SizedBox(height: 32),
-                    FilledButton(
-                      onPressed: _continue,
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 4),
-                        child: Text('Continue'),
+                child: Form(
+                  key: _formKey,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _FormField(
+                        label: 'FULL NAME',
+                        controller: _fullNameController,
+                        hintText: 'Your full name',
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Full name is required';
+                          }
+                          return null;
+                        },
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 20),
+                      _FormField(
+                        label: 'PHONE NUMBER (+855)',
+                        controller: _phoneController,
+                        hintText: '012 345 678',
+                        keyboardType: TextInputType.phone,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Phone number is required';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      _FormField(
+                        label: 'EMAIL',
+                        controller: _emailController,
+                        hintText: 'you@example.com',
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Email is required';
+                          }
+                          if (!value.contains('@')) {
+                            return 'Enter a valid email';
+                          }
+                          return null;
+                        },
+                      ),
+                      if (!_isAuthenticated) ...[
+                        const SizedBox(height: 20),
+                        _FormField(
+                          label: 'PASSWORD',
+                          controller: _passwordController,
+                          hintText: 'Create a password',
+                          obscureText: true,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Password is required';
+                            }
+                            if (value.length < 6) {
+                              return 'Password must be at least 6 characters';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                        _FormField(
+                          label: 'CONFIRM PASSWORD',
+                          controller: _confirmPasswordController,
+                          hintText: 'Re-enter your password',
+                          obscureText: true,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please confirm your password';
+                            }
+                            if (value != _passwordController.text) {
+                              return 'Passwords do not match';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
+                      const SizedBox(height: 32),
+                      FilledButton(
+                        onPressed: _isSubmitting ? null : _continue,
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 4),
+                          child: Text('Continue'),
+                        ),
+                      ),
+                      if (!_isAuthenticated) ...[
+                        const SizedBox(height: 16),
+                        Text(
+                          'Or Sign Up with',
+                          textAlign: TextAlign.center,
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        FilledButton.icon(
+                          onPressed: _isSubmitting ? null : _continueWithGoogle,
+                          icon: SvgPicture.asset(
+                            'assets/images/google.svg',
+                            width: 20,
+                            height: 20,
+                          ),
+                          label: const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 4),
+                            child: Text('Sign Up with Google'),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -219,6 +396,7 @@ class _FormField extends StatelessWidget {
     required this.hintText,
     this.keyboardType,
     this.obscureText = false,
+    this.validator,
   });
 
   final String label;
@@ -226,6 +404,7 @@ class _FormField extends StatelessWidget {
   final String hintText;
   final TextInputType? keyboardType;
   final bool obscureText;
+  final FormFieldValidator<String>? validator;
 
   @override
   Widget build(BuildContext context) {
@@ -236,6 +415,7 @@ class _FormField extends StatelessWidget {
       controller: controller,
       keyboardType: keyboardType,
       obscureText: obscureText,
+      validator: validator,
       style: textTheme.bodyLarge,
       decoration: InputDecoration(
         filled: false,

@@ -5,12 +5,9 @@ import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../models/order.dart';
 
-Color _statusColor(OrderStatus status) => switch (status) {
-  OrderStatus.processing => AppColors.alertAmber,
-  OrderStatus.shipped => AppColors.infoBlue,
-  OrderStatus.delivered => AppColors.trustGreen,
-  OrderStatus.cancelled => AppColors.brandCrimson,
-};
+// All statuses share the brand color instead of a traffic-light palette —
+// status is distinguished by icon and label, not by hue.
+Color _statusColor(OrderStatus status) => AppColors.brandCrimson;
 
 enum _StepState { done, current, pending }
 
@@ -117,8 +114,7 @@ class DeliveryTrackingScreen extends StatefulWidget {
   final String orderId;
 
   @override
-  State<DeliveryTrackingScreen> createState() =>
-      _DeliveryTrackingScreenState();
+  State<DeliveryTrackingScreen> createState() => _DeliveryTrackingScreenState();
 }
 
 class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen>
@@ -276,9 +272,7 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
@@ -299,23 +293,10 @@ class _Header extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.arrow_back,
-                          color: colorScheme.onPrimary,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          l10n.commonBack,
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
+                    child: Icon(
+                      Icons.arrow_back,
+                      color: colorScheme.onPrimary,
+                      size: 20,
                     ),
                   ),
                 ),
@@ -457,9 +438,7 @@ class _ProgressBanner extends StatelessWidget {
     final activeIndex = steps.lastIndexWhere(
       (s) => s.state != _StepState.pending,
     );
-    final fraction = steps.length <= 1
-        ? 1.0
-        : activeIndex / (steps.length - 1);
+    final fraction = steps.length <= 1 ? 1.0 : activeIndex / (steps.length - 1);
     final currentStep = steps.firstWhere(
       (s) => s.state == _StepState.current,
       orElse: () => steps[activeIndex.clamp(0, steps.length - 1)],
@@ -651,9 +630,7 @@ class _DeliveryStatusCard extends StatelessWidget {
         children: [
           Text(
             l10n.deliveryStatusSectionTitle,
-            style: textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 14),
           for (var i = 0; i < steps.length; i++)

@@ -27,9 +27,7 @@ class AddressBookScreen extends ConsumerWidget {
           _AddressBookHeader(
             colorScheme: colorScheme,
             textTheme: textTheme,
-            subtitle: selectionMode
-                ? l10n.addressBookSelectionSubtitle
-                : null,
+            subtitle: selectionMode ? l10n.addressBookSelectionSubtitle : null,
           ),
           Expanded(
             child: SafeArea(
@@ -89,9 +87,7 @@ class _AddressBookHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
@@ -116,23 +112,10 @@ class _AddressBookHeader extends StatelessWidget {
                     }
                   },
                   borderRadius: BorderRadius.circular(8),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.arrow_back,
-                        color: colorScheme.onPrimary,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        l10n.commonBack,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+                  child: Icon(
+                    Icons.arrow_back,
+                    color: colorScheme.onPrimary,
+                    size: 20,
                   ),
                 ),
               ),
@@ -196,7 +179,7 @@ class _AddressCard extends StatelessWidget {
             ),
           ),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Icon(
                 address.isDefault

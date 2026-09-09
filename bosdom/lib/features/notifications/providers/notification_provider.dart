@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../auth/models/merchant_role.dart';
+import '../../profile/providers/profile_provider.dart';
 import '../models/app_notification.dart';
 import '../services/notification_service.dart';
 
@@ -10,17 +12,37 @@ class NotificationState {
   final int unreadCount;
 }
 
+// Fund-movement alerts (escrow releases, invoice payments) are seller
+// bookkeeping noise for a buyer — buyers only care about their order status,
+// store messages, and co-buy outcomes.
+const _kSellerOnlyCategories = {
+  NotificationCategory.escrow,
+  NotificationCategory.payment,
+};
+
 class NotificationNotifier extends AsyncNotifier<NotificationState> {
   @override
   Future<NotificationState> build() async {
     final page = await NotificationService.fetchAll();
-    return NotificationState(items: page.items, unreadCount: page.unreadCount);
+    return _stateForRole(page.items);
   }
 
   Future<void> refresh() async {
     final page = await NotificationService.fetchAll();
-    state = AsyncData(
-      NotificationState(items: page.items, unreadCount: page.unreadCount),
+    state = AsyncData(await _stateForRole(page.items));
+  }
+
+  Future<NotificationState> _stateForRole(List<AppNotification> items) async {
+    final profile = await ref.watch(profileProvider.future);
+    final isSeller = profile.role == MerchantRole.supplier.name;
+    final visible = isSeller
+        ? items
+        : items
+              .where((n) => !_kSellerOnlyCategories.contains(n.category))
+              .toList();
+    return NotificationState(
+      items: visible,
+      unreadCount: visible.where((n) => !n.read).length,
     );
   }
 

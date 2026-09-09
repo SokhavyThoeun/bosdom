@@ -5,7 +5,7 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../../marketplace/models/category.dart';
 import '../../marketplace/models/product.dart';
 import '../../marketplace/widgets/category_item.dart';
-import '../../marketplace/widgets/product_card.dart';
+import '../../marketplace/widgets/product_list_tile.dart';
 
 const _kTrendingSearches = [
   'Jasmine Rice',
@@ -44,13 +44,10 @@ class _SearchScreenState extends State<SearchScreen> {
     final query = _query.trim().toLowerCase();
     if (query.isEmpty) return const [];
     final terms = query.split(RegExp(r'\s+')).where((t) => t.isNotEmpty);
-    return kMockProducts
-        .where((product) {
-          final haystack =
-              '${product.name} ${product.seller}'.toLowerCase();
-          return terms.every(haystack.contains);
-        })
-        .toList();
+    return kMockProducts.where((product) {
+      final haystack = '${product.name} ${product.seller}'.toLowerCase();
+      return terms.every(haystack.contains);
+    }).toList();
   }
 
   void _submitSearch(String value) {
@@ -165,9 +162,7 @@ class _Header extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
@@ -175,10 +170,11 @@ class _Header extends StatelessWidget {
           24,
           20,
         ),
-        child: SizedBox(
-          height: _kHeaderContentHeight,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: _kHeaderContentHeight),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
@@ -193,30 +189,53 @@ class _Header extends StatelessWidget {
               Material(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(28),
-                child: TextField(
-                  controller: controller,
-                  autofocus: true,
-                  onChanged: onChanged,
-                  onSubmitted: onSubmitted,
-                  textInputAction: TextInputAction.search,
-                  decoration: InputDecoration(
-                    hintText: l10n.searchHint,
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    prefixIcon: const Icon(Icons.search),
-                    prefixIconConstraints: const BoxConstraints(
-                      minWidth: 40,
-                      minHeight: 24,
-                    ),
-                    suffixIcon: hasQuery
-                        ? IconButton(
-                            icon: const Icon(Icons.close),
-                            onPressed: onClear,
-                          )
-                        : null,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.search, color: colorScheme.onSurfaceVariant),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextField(
+                          controller: controller,
+                          autofocus: true,
+                          onChanged: onChanged,
+                          onSubmitted: onSubmitted,
+                          textInputAction: TextInputAction.search,
+                          textAlignVertical: TextAlignVertical.center,
+                          style: textTheme.bodyMedium,
+                          decoration: InputDecoration(
+                            hintText: l10n.searchHint,
+                            hintStyle: textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            isDense: true,
+                            isCollapsed: true,
+                            filled: false,
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ),
+                      ),
+                      if (hasQuery)
+                        InkWell(
+                          onTap: onClear,
+                          borderRadius: BorderRadius.circular(12),
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: Icon(
+                              Icons.close,
+                              size: 20,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ),
@@ -301,21 +320,22 @@ class _SearchSuggestions extends StatelessWidget {
                   child: Wrap(
                     spacing: 10,
                     runSpacing: 10,
-                    children: (recentExpanded
-                            ? recentSearches
-                            : recentSearches.take(
-                                _kCollapsedRecentSearchCount,
-                              ))
-                        .map(
-                          (term) => _SearchChip(
-                            label: term,
-                            icon: Icons.access_time,
-                            colorScheme: colorScheme,
-                            textTheme: textTheme,
-                            onTap: () => onRecentTap(term),
-                          ),
-                        )
-                        .toList(),
+                    children:
+                        (recentExpanded
+                                ? recentSearches
+                                : recentSearches.take(
+                                    _kCollapsedRecentSearchCount,
+                                  ))
+                            .map(
+                              (term) => _SearchChip(
+                                label: term,
+                                icon: Icons.access_time,
+                                colorScheme: colorScheme,
+                                textTheme: textTheme,
+                                onTap: () => onRecentTap(term),
+                              ),
+                            )
+                            .toList(),
                   ),
                 ),
                 if (recentSearches.length > _kCollapsedRecentSearchCount) ...[
@@ -332,37 +352,50 @@ class _SearchSuggestions extends StatelessWidget {
           ],
           Text(
             l10n.searchTrendingSearchesTitle,
-            style: textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: _kTrendingSearches
-                .map(
-                  (term) => _SearchChip(
-                    label: term,
-                    icon: Icons.trending_up,
-                    iconColor: colorScheme.tertiary,
-                    colorScheme: colorScheme,
-                    textTheme: textTheme,
-                    onTap: () => onTrendingTap(term),
-                  ),
-                )
-                .toList(),
+          Column(
+            children: [
+              for (var i = 0; i < _kTrendingSearches.length; i += 2) ...[
+                if (i > 0) const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _SearchChip(
+                        label: _kTrendingSearches[i],
+                        colorScheme: colorScheme,
+                        textTheme: textTheme,
+                        onTap: () => onTrendingTap(_kTrendingSearches[i]),
+                        centered: true,
+                      ),
+                    ),
+                    if (i + 1 < _kTrendingSearches.length) ...[
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _SearchChip(
+                          label: _kTrendingSearches[i + 1],
+                          colorScheme: colorScheme,
+                          textTheme: textTheme,
+                          onTap: () => onTrendingTap(_kTrendingSearches[i + 1]),
+                          centered: true,
+                        ),
+                      ),
+                    ] else
+                      const Spacer(),
+                  ],
+                ),
+              ],
+            ],
           ),
           const SizedBox(height: 24),
           Text(
             l10n.searchSuggestedCategoriesTitle,
-            style: textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           SizedBox(
-            height: 88,
+            height: 76,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: kCategories.length,
@@ -376,24 +409,18 @@ class _SearchSuggestions extends StatelessWidget {
           const SizedBox(height: 24),
           Text(
             l10n.searchRecommendedForYouTitle,
-            style: textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
-          GridView.builder(
+          ListView.separated(
             shrinkWrap: true,
             padding: EdgeInsets.zero,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: kMockProducts.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
-              childAspectRatio: 0.64,
-            ),
-            itemBuilder: (context, index) => ProductCard(
+            separatorBuilder: (_, _) => const SizedBox(height: 12),
+            itemBuilder: (context, index) => ProductListTile(
               product: kMockProducts[index],
+              id: '$index',
               onTap: () => context.pushNamed(
                 'productDetail',
                 pathParameters: {'id': '$index'},
@@ -409,19 +436,21 @@ class _SearchSuggestions extends StatelessWidget {
 class _SearchChip extends StatelessWidget {
   const _SearchChip({
     required this.label,
-    required this.icon,
     required this.colorScheme,
     required this.textTheme,
     required this.onTap,
+    this.icon,
     this.iconColor,
+    this.centered = false,
   });
 
   final String label;
-  final IconData icon;
+  final IconData? icon;
   final Color? iconColor;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
   final VoidCallback onTap;
+  final bool centered;
 
   @override
   Widget build(BuildContext context) {
@@ -432,6 +461,8 @@ class _SearchChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         onTap: onTap,
         child: Container(
+          width: centered ? double.infinity : null,
+          alignment: centered ? Alignment.center : null,
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
@@ -440,8 +471,14 @@ class _SearchChip extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 16, color: iconColor ?? colorScheme.onSurfaceVariant),
-              const SizedBox(width: 6),
+              if (icon != null) ...[
+                Icon(
+                  icon,
+                  size: 16,
+                  color: iconColor ?? colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 6),
+              ],
               Text(
                 label,
                 style: textTheme.bodySmall?.copyWith(
@@ -541,7 +578,7 @@ class _SearchResults extends StatelessWidget {
       );
     }
 
-    return GridView.builder(
+    return ListView.separated(
       padding: EdgeInsets.fromLTRB(
         24,
         24,
@@ -549,19 +586,16 @@ class _SearchResults extends StatelessWidget {
         8 + MediaQuery.of(context).padding.bottom,
       ),
       itemCount: results.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 16,
-        childAspectRatio: 0.64,
-      ),
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final product = results[index];
-        return ProductCard(
+        final productId = '${kMockProducts.indexOf(product)}';
+        return ProductListTile(
           product: product,
+          id: productId,
           onTap: () => context.pushNamed(
             'productDetail',
-            pathParameters: {'id': '${kMockProducts.indexOf(product)}'},
+            pathParameters: {'id': productId},
           ),
         );
       },

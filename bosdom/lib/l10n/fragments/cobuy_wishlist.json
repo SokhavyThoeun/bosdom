@@ -72,8 +72,8 @@
     "km": "ចូលរួមការទិញរួមនេះ"
   },
   "coBuyingShareText": {
-    "en": "Join me on this Co-Buy for {productName} on BosDom! Get it for {price} ({savingsPct}% off) — {url}",
-    "km": "ចូលរួមជាមួយខ្ញុំក្នុងការទិញរួមសម្រាប់ {productName} នៅលើ BosDom! ទទួលបានក្នុងតម្លៃ {price} (បញ្ចុះតម្លៃ {savingsPct}%) — {url}",
+    "en": "Join me on this Co-Buy for {productName} on BosDom! Get it for {price} ({savingsPct}% off).\n\n{url}",
+    "km": "ចូលរួមជាមួយខ្ញុំក្នុងការទិញរួមសម្រាប់ {productName} នៅលើ BosDom! ទទួលបានក្នុងតម្លៃ {price} (បញ្ចុះតម្លៃ {savingsPct}%)។\n\n{url}",
     "placeholders": {
       "productName": { "type": "String" },
       "price": { "type": "String" },

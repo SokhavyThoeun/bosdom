@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/utils/mock_images.dart';
 import '../../../shared/widgets/checkout_progress_stepper.dart';
+import '../../marketplace/models/product.dart';
+import '../../wishlist/providers/wishlist_provider.dart';
 import '../providers/cart_provider.dart';
 
 class CartScreen extends ConsumerWidget {
@@ -32,6 +34,14 @@ class CartScreen extends ConsumerWidget {
     final total = subtotal + (subtotal > 0 ? shipping : 0) + escrowFee;
 
     void moveToWishlist(CartLine line) {
+      final productId = kMockProducts.indexOf(line.product);
+      if (productId != -1) {
+        final wishlistNotifier = ref.read(wishlistProvider.notifier);
+        final wishlistId = productWishlistId('$productId');
+        if (!wishlistNotifier.contains(wishlistId)) {
+          wishlistNotifier.toggle(wishlistId);
+        }
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.cartMovedToWishlistSnackbar(line.product.name)),
@@ -349,7 +359,7 @@ class _CartLineTile extends StatelessWidget {
             onPressed: (_) => onWishlist(),
             backgroundColor: Colors.amber.shade700,
             foregroundColor: Colors.white,
-            icon: Icons.favorite_border,
+            icon: Icons.favorite,
             label: l10n.cartWishlistAction,
           ),
           SlidableAction(
@@ -375,11 +385,20 @@ class _CartLineTile extends StatelessWidget {
           Container(
             width: 56,
             height: 56,
+            clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
               color: colorScheme.primaryContainer,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(product.icon, color: colorScheme.primary, size: 24),
+            child: Image.network(
+              product.imageUrl,
+              fit: BoxFit.cover,
+              loadingBuilder: (context, child, progress) => progress == null
+                  ? child
+                  : Icon(product.icon, color: colorScheme.primary, size: 24),
+              errorBuilder: (context, error, stackTrace) =>
+                  Icon(product.icon, color: colorScheme.primary, size: 24),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(

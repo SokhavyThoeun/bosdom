@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
+import '../../cart/providers/cart_provider.dart';
 import '../../marketplace/models/product.dart';
 import '../providers/wishlist_provider.dart';
 import '../widgets/wishlist_item_card.dart';
@@ -10,8 +11,9 @@ import '../widgets/wishlist_item_card.dart';
 class WishlistScreen extends ConsumerWidget {
   const WishlistScreen({super.key});
 
-  void _addToCart(BuildContext context, Product product) {
+  void _addToCart(BuildContext context, WidgetRef ref, Product product) {
     final l10n = AppLocalizations.of(context);
+    ref.read(cartProvider.notifier).addItems([(product, product.moqValue)]);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(l10n.wishlistAddedToCartSnackbar(product.name))),
     );
@@ -59,7 +61,7 @@ class WishlistScreen extends ConsumerWidget {
                           onRemove: () => ref
                               .read(wishlistProvider.notifier)
                               .toggle(productWishlistId('$index')),
-                          onAddToCart: () => _addToCart(context, product),
+                          onAddToCart: () => _addToCart(context, ref, product),
                         );
                       },
                     ),

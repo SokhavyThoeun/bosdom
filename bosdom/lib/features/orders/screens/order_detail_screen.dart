@@ -5,18 +5,16 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../../shared/utils/delivery_carrier.dart';
 import '../../../shared/widgets/app_snack_bar.dart';
 import '../../cart/providers/cart_provider.dart';
 import '../models/order.dart';
 import '../providers/orders_provider.dart';
 import '../services/receipt_service.dart';
 
-Color _statusColor(OrderStatus status) => switch (status) {
-  OrderStatus.processing => AppColors.alertAmber,
-  OrderStatus.shipped => AppColors.infoBlue,
-  OrderStatus.delivered => AppColors.trustGreen,
-  OrderStatus.cancelled => AppColors.brandCrimson,
-};
+// All statuses share the brand color instead of a traffic-light palette —
+// status is distinguished by icon and label, not by hue.
+Color _statusColor(OrderStatus status) => AppColors.brandCrimson;
 
 class OrderDetailScreen extends ConsumerStatefulWidget {
   const OrderDetailScreen({super.key, required this.orderId});
@@ -71,6 +69,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
     final l10n = AppLocalizations.of(context);
     final order = _order(ref.watch(ordersProvider));
     final statusColor = _statusColor(order.status);
+    final carrierLogoAsset = deliveryLogoAsset(order.deliveryMethod);
 
     void reorder() {
       ref.read(cartProvider.notifier).addItems([
@@ -113,11 +112,48 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                     child: Column(
                       children: [
                         for (final item in order.items) ...[
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
+                          Container(
+                            margin: const EdgeInsets.only(top: 10),
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: colorScheme.surfaceContainerLowest,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: colorScheme.outlineVariant,
+                              ),
+                            ),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                Container(
+                                  width: 44,
+                                  height: 44,
+                                  clipBehavior: Clip.antiAlias,
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.primaryContainer,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Image.network(
+                                    item.product.imageUrl,
+                                    fit: BoxFit.cover,
+                                    loadingBuilder:
+                                        (context, child, progress) =>
+                                            progress == null
+                                            ? child
+                                            : Icon(
+                                                item.product.icon,
+                                                color: colorScheme.primary,
+                                                size: 20,
+                                              ),
+                                    errorBuilder:
+                                        (context, error, stackTrace) => Icon(
+                                          item.product.icon,
+                                          color: colorScheme.primary,
+                                          size: 20,
+                                        ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
@@ -127,6 +163,14 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                                         item.product.name,
                                         style: textTheme.bodyMedium?.copyWith(
                                           fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        item.product.seller,
+                                        style: textTheme.bodySmall?.copyWith(
+                                          color: colorScheme.primary,
+                                          fontWeight: FontWeight.w600,
                                         ),
                                       ),
                                       const SizedBox(height: 2),
@@ -149,11 +193,6 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                               ],
                             ),
                           ),
-                          if (item != order.items.last)
-                            Divider(
-                              color: colorScheme.outlineVariant,
-                              height: 1,
-                            ),
                         ],
                       ],
                     ),
@@ -185,6 +224,58 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                           l10n.orderDetailPhoneLabel(order.shippingPhone),
                           style: textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _SectionCard(
+                    title: l10n.orderDetailDeliveryMethodSection,
+                    colorScheme: colorScheme,
+                    textTheme: textTheme,
+                    child: Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: carrierLogoAsset != null
+                              ? Image.asset(
+                                  carrierLogoAsset,
+                                  width: 56,
+                                  height: 42,
+                                  fit: BoxFit.cover,
+                                )
+                              : Container(
+                                  width: 56,
+                                  height: 42,
+                                  alignment: Alignment.center,
+                                  color: colorScheme.primaryContainer,
+                                  child: Icon(
+                                    Icons.local_shipping_outlined,
+                                    color: colorScheme.primary,
+                                    size: 20,
+                                  ),
+                                ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                l10n.orderDetailCarrierLabel,
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                order.deliveryMethod,
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -310,9 +401,7 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
@@ -333,23 +422,10 @@ class _Header extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.arrow_back,
-                          color: colorScheme.onPrimary,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          l10n.commonBack,
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
+                    child: Icon(
+                      Icons.arrow_back,
+                      color: colorScheme.onPrimary,
+                      size: 20,
                     ),
                   ),
                 ),

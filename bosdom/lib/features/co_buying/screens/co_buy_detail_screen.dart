@@ -5,11 +5,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
+import '../../../shared/models/variant_option.dart';
 import '../../../shared/widgets/app_snack_bar.dart';
 import '../../../shared/widgets/full_screen_image_viewer.dart';
+import '../../../shared/widgets/variant_selector.dart';
 import '../../checkout/screens/checkout_screen.dart' show CheckoutLineItem;
+import '../../wishlist/providers/wishlist_provider.dart';
 import '../models/co_buy_session.dart';
 import '../providers/co_buy_provider.dart';
+import '../widgets/co_buy_product_image.dart';
 
 class CoBuyDetailScreen extends ConsumerStatefulWidget {
   const CoBuyDetailScreen({super.key, required this.sessionId});
@@ -21,8 +25,10 @@ class CoBuyDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _CoBuyDetailScreenState extends ConsumerState<CoBuyDetailScreen> {
-  bool _isFavorite = false;
   int? _quantity;
+  String? _selectedSize;
+  ProductColorOption? _selectedColor;
+  bool _variantsInitialized = false;
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +40,19 @@ class _CoBuyDetailScreenState extends ConsumerState<CoBuyDetailScreen> {
         .firstWhere((s) => s.id == widget.sessionId);
     final quantity = _quantity ??= session.minOrderQty;
     final subtotal = quantity * session.price;
+    if (!_variantsInitialized) {
+      _variantsInitialized = true;
+      _selectedSize = session.sizes.isNotEmpty ? session.sizes.first : null;
+      _selectedColor = session.colorOptions.isNotEmpty
+          ? session.colorOptions.first
+          : null;
+    }
+    final wishlistId = coBuyWishlistId(widget.sessionId);
+    final isFavorite = ref.watch(
+      wishlistProvider.select(
+        (ids) => ids.value?.contains(wishlistId) ?? false,
+      ),
+    );
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFF8F7),
@@ -45,9 +64,9 @@ class _CoBuyDetailScreenState extends ConsumerState<CoBuyDetailScreen> {
               session: session,
               colorScheme: colorScheme,
               textTheme: textTheme,
-              isFavorite: _isFavorite,
+              isFavorite: isFavorite,
               onFavoriteToggle: () =>
-                  setState(() => _isFavorite = !_isFavorite),
+                  ref.read(wishlistProvider.notifier).toggle(wishlistId),
             ),
           ),
           Expanded(
@@ -120,26 +139,15 @@ class _CoBuyDetailScreenState extends ConsumerState<CoBuyDetailScreen> {
                                               20,
                                             ),
                                           ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(
-                                                Icons.circle,
-                                                size: 8,
-                                                color: colorScheme.tertiary,
-                                              ),
-                                              const SizedBox(width: 6),
-                                              Text(
-                                                l10n.coBuyDetailActiveDealLabel,
-                                                style: textTheme.labelSmall
-                                                    ?.copyWith(
-                                                      color:
-                                                          colorScheme.tertiary,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                              ),
-                                            ],
+                                          alignment: Alignment.center,
+                                          child: Text(
+                                            l10n.coBuyDetailActiveDealLabel,
+                                            textAlign: TextAlign.center,
+                                            style: textTheme.labelSmall
+                                                ?.copyWith(
+                                                  color: colorScheme.tertiary,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
                                           ),
                                         ),
                                       ],
@@ -159,9 +167,34 @@ class _CoBuyDetailScreenState extends ConsumerState<CoBuyDetailScreen> {
                                         height: 1.2,
                                       ),
                                     ),
+                                    if (session.description.isNotEmpty) ...[
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        session.description,
+                                        style: textTheme.bodyMedium?.copyWith(
+                                          color: colorScheme.onSurfaceVariant,
+                                          height: 1.4,
+                                        ),
+                                      ),
+                                    ],
                                   ],
                                 ),
                               ),
+                              if (session.hasVariants) ...[
+                                const SizedBox(height: 20),
+                                ProductVariantSelector(
+                                  sizes: session.sizes,
+                                  selectedSize: _selectedSize,
+                                  onSizeSelected: (size) =>
+                                      setState(() => _selectedSize = size),
+                                  colorOptions: session.colorOptions,
+                                  selectedColor: _selectedColor,
+                                  onColorSelected: (color) =>
+                                      setState(() => _selectedColor = color),
+                                  colorScheme: colorScheme,
+                                  textTheme: textTheme,
+                                ),
+                              ],
                               const SizedBox(height: 20),
                               _ProgressCard(
                                 session: session,
@@ -193,57 +226,72 @@ class _CoBuyDetailScreenState extends ConsumerState<CoBuyDetailScreen> {
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  child: SafeArea(
-                    top: false,
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
-                      child: _JoinCoBuyButton(
-                        joined: session.joined,
-                        isFull: session.isFull,
-                        subtotal: subtotal,
-                        colorScheme: colorScheme,
-                        textTheme: textTheme,
-                        onTap: session.isFull
-                            ? () => context.pushNamed(
+                  // Matches the floating nav bar's bottom offset (AppShell)
+                  // so fixed bottom bars sit at the same height app-wide.
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      24,
+                      12,
+                      24,
+                      (MediaQuery.of(context).padding.bottom - 12).clamp(
+                        0,
+                        double.infinity,
+                      ),
+                    ),
+                    child: _JoinCoBuyButton(
+                      joined: session.joined,
+                      isFull: session.isFull,
+                      subtotal: subtotal,
+                      colorScheme: colorScheme,
+                      textTheme: textTheme,
+                      onTap: session.isFull
+                          ? () {
+                              final variantSuffix = [
+                                ?_selectedColor?.name,
+                                ?_selectedSize,
+                              ].join(', ');
+                              context.pushNamed(
                                 'checkout',
                                 extra: {
                                   'items': [
                                     CheckoutLineItem(
                                       icon: session.icon,
                                       name: session.productName,
-                                      qtyLabel: l10n.coBuyDetailQtyLabel(
-                                        quantity,
-                                        session.unitLabel,
-                                      ),
+                                      qtyLabel: variantSuffix.isEmpty
+                                          ? l10n.coBuyDetailQtyLabel(
+                                              quantity,
+                                              session.unitLabel,
+                                            )
+                                          : '${l10n.coBuyDetailQtyLabel(quantity, session.unitLabel)} · $variantSuffix',
                                       total: subtotal,
                                       seller: session.sellerName,
                                     ),
                                   ],
                                 },
-                              )
-                            : () {
-                                ref
-                                    .read(coBuyProvider.notifier)
-                                    .toggleJoin(session.id);
-                                // toggleJoin mutates the same session instance in place,
-                                // so `session.joined` already reflects the post-toggle state.
-                                final nowJoined = session.joined;
-                                showAppSnackBar(
-                                  context,
-                                  type: nowJoined
-                                      ? AppSnackBarType.success
-                                      : AppSnackBarType.info,
-                                  message: nowJoined
-                                      ? l10n.coBuyDetailJoinedSnackbar(
-                                          session.productName,
-                                          '\$${subtotal.toStringAsFixed(2)}',
-                                        )
-                                      : l10n.coBuyDetailLeftSnackbar(
-                                          session.productName,
-                                        ),
-                                );
-                              },
-                      ),
+                              );
+                            }
+                          : () {
+                              ref
+                                  .read(coBuyProvider.notifier)
+                                  .toggleJoin(session.id);
+                              // toggleJoin mutates the same session instance in place,
+                              // so `session.joined` already reflects the post-toggle state.
+                              final nowJoined = session.joined;
+                              showAppSnackBar(
+                                context,
+                                type: nowJoined
+                                    ? AppSnackBarType.success
+                                    : AppSnackBarType.info,
+                                message: nowJoined
+                                    ? l10n.coBuyDetailJoinedSnackbar(
+                                        session.productName,
+                                        '\$${subtotal.toStringAsFixed(2)}',
+                                      )
+                                    : l10n.coBuyDetailLeftSnackbar(
+                                        session.productName,
+                                      ),
+                              );
+                            },
                     ),
                   ),
                 ),
@@ -278,12 +326,8 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
@@ -306,23 +350,10 @@ class _Header extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 2),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.arrow_back,
-                            color: colorScheme.onPrimary,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            l10n.commonBack,
-                            style: textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onPrimary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
+                      child: Icon(
+                        Icons.arrow_back,
+                        color: colorScheme.onPrimary,
+                        size: 20,
                       ),
                     ),
                   ),
@@ -485,7 +516,7 @@ class _ImageBanner extends StatefulWidget {
 }
 
 class _ImageBannerState extends State<_ImageBanner> {
-  static const _dotCount = 5;
+  static const _dotCount = 4;
   static const _autoScrollInterval = Duration(seconds: 3);
   static const _loopMultiplier = 5000;
 
@@ -567,27 +598,10 @@ class _ImageBannerState extends State<_ImageBanner> {
                       initialIndex: _selected,
                       icon: widget.session.icon,
                     ),
-                    child: Container(
-                      color: colorScheme.primaryContainer,
-                      alignment: Alignment.center,
-                      child: Image.network(
-                        widget.session.imageUrl,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: double.infinity,
-                        loadingBuilder: (context, child, progress) =>
-                            progress == null
-                            ? child
-                            : Icon(
-                                widget.session.icon,
-                                size: 96,
-                                color: colorScheme.primary,
-                              ),
-                        errorBuilder: (context, error, stackTrace) => Icon(
-                          widget.session.icon,
-                          size: 96,
-                          color: colorScheme.primary,
-                        ),
+                    child: SizedBox.expand(
+                      child: CoBuyProductImage(
+                        session: widget.session,
+                        iconSize: 96,
                       ),
                     ),
                   ),
@@ -676,22 +690,9 @@ class _ImageBannerState extends State<_ImageBanner> {
                       ),
                     ),
                     clipBehavior: Clip.antiAlias,
-                    child: Image.network(
-                      widget.session.imageUrl,
-                      fit: BoxFit.cover,
-                      loadingBuilder: (context, child, progress) =>
-                          progress == null
-                          ? child
-                          : Icon(
-                              widget.session.icon,
-                              size: 22,
-                              color: colorScheme.primary,
-                            ),
-                      errorBuilder: (context, error, stackTrace) => Icon(
-                        widget.session.icon,
-                        size: 22,
-                        color: colorScheme.primary,
-                      ),
+                    child: CoBuyProductImage(
+                      session: widget.session,
+                      iconSize: 22,
                     ),
                   ),
                 );

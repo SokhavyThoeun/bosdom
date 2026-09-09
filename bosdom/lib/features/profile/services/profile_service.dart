@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/config/api_config.dart';
 import '../models/user_profile.dart';
@@ -9,9 +11,20 @@ import '../models/user_profile.dart';
 abstract final class ProfileService {
   static const _timeout = Duration(seconds: 8);
 
-  static Future<UserProfile> fetch(String userId) async {
+  static Map<String, String> get _authHeaders {
+    final token = Supabase.instance.client.auth.currentSession?.accessToken;
+    if (token == null) {
+      throw Exception('Not signed in');
+    }
+    return {'Authorization': 'Bearer $token'};
+  }
+
+  static Future<UserProfile> fetch() async {
     final response = await http
-        .get(Uri.parse('${ApiConfig.baseUrl}/profile/$userId'))
+        .get(
+          Uri.parse('${ApiConfig.baseUrl}/profile/me'),
+          headers: _authHeaders,
+        )
         .timeout(_timeout);
 
     if (response.statusCode != 200) {
@@ -21,12 +34,12 @@ abstract final class ProfileService {
     return UserProfile.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   }
 
-  static Future<UserProfile> save(String userId, UserProfile profile) async {
+  static Future<UserProfile> save(UserProfile profile) async {
     final response = await http
         .post(
-          Uri.parse('${ApiConfig.baseUrl}/profile'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'user_id': userId, ...profile.toJson()}),
+          Uri.parse('${ApiConfig.baseUrl}/profile/me'),
+          headers: {..._authHeaders, 'Content-Type': 'application/json'},
+          body: jsonEncode(profile.toJson()),
         )
         .timeout(_timeout);
 
@@ -37,11 +50,24 @@ abstract final class ProfileService {
     return UserProfile.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   }
 
-  static Future<UserProfile> uploadAvatar(String userId, File file) async {
+  static Future<UserProfile> uploadAvatar(File file) async {
     final request = http.MultipartRequest(
       'POST',
-      Uri.parse('${ApiConfig.baseUrl}/profile/$userId/avatar'),
-    )..files.add(await http.MultipartFile.fromPath('file', file.path));
+      Uri.parse('${ApiConfig.baseUrl}/profile/me/avatar'),
+    )
+      ..headers.addAll(_authHeaders)
+      ..files.add(
+        await http.MultipartFile.fromPath(
+          'file',
+          file.path,
+          // The picker (see `_pickAvatar` in edit_profile_screen.dart) always
+          // re-encodes to JPEG, but the temp file path it hands back doesn't
+          // reliably carry a recognizable extension — without an explicit
+          // content type, mime-sniffing can fall back to
+          // application/octet-stream and the backend rejects the upload.
+          contentType: MediaType('image', 'jpeg'),
+        ),
+      );
 
     final streamedResponse = await request.send().timeout(_timeout);
     final response = await http.Response.fromStream(streamedResponse);
