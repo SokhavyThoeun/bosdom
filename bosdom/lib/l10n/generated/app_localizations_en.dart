@@ -1795,6 +1795,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentCardNumberLabel => 'CARD NUMBER';
 
   @override
+  String get paymentCardHolderLabel => 'CARD HOLDER';
+
+  @override
+  String get paymentCardValidThruLabel => 'VALID THRU';
+
+  @override
   String get paymentConfirmedSubtitle => 'Your order has been placed and paid.';
 
   @override
@@ -1827,6 +1833,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paymentMethodSubtitleVisaMastercard => 'Visa, Mastercard, etc.';
+
+  @override
+  String get paymentKhqrMethodTitle => 'KHQR / Bakong';
+
+  @override
+  String get paymentKhqrSubtitle => 'Bakong, ABA, ACLEDA & more';
+
+  @override
+  String get paymentKhqrSheetTitle => 'Scan to Pay';
+
+  @override
+  String get paymentKhqrInstructions =>
+      'Open your banking app and scan this code to complete payment';
+
+  @override
+  String paymentKhqrExpiresLabel(String time) {
+    return 'Expires in $time';
+  }
+
+  @override
+  String get paymentKhqrExpiredLabel => 'QR code expired';
+
+  @override
+  String get paymentKhqrRefreshButton => 'Refresh Code';
+
+  @override
+  String get paymentKhqrConfirmButton => 'I\'ve Completed the Payment';
 
   @override
   String paymentPayAmountLabel(String amount) {

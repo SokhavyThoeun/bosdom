@@ -1813,6 +1813,12 @@ class AppLocalizationsKm extends AppLocalizations {
   String get paymentCardNumberLabel => 'លេខកាត';
 
   @override
+  String get paymentCardHolderLabel => 'ម្ចាស់កាត';
+
+  @override
+  String get paymentCardValidThruLabel => 'ប្រើបានដល់';
+
+  @override
   String get paymentConfirmedSubtitle =>
       'ការបញ្ជាទិញរបស់អ្នកត្រូវបានធ្វើ និងបានទូទាត់ប្រាក់រួចរាល់។';
 
@@ -1846,6 +1852,33 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get paymentMethodSubtitleVisaMastercard => 'Visa, Mastercard ជាដើម';
+
+  @override
+  String get paymentKhqrMethodTitle => 'KHQR / Bakong';
+
+  @override
+  String get paymentKhqrSubtitle => 'Bakong, ABA, ACLEDA និងផ្សេងទៀត';
+
+  @override
+  String get paymentKhqrSheetTitle => 'ស្កេនដើម្បីទូទាត់';
+
+  @override
+  String get paymentKhqrInstructions =>
+      'បើកកម្មវិធីធនាគាររបស់អ្នក ហើយស្កេនកូដនេះ ដើម្បីបញ្ចប់ការទូទាត់';
+
+  @override
+  String paymentKhqrExpiresLabel(String time) {
+    return 'ផុតកំណត់ក្នុងរយៈពេល $time';
+  }
+
+  @override
+  String get paymentKhqrExpiredLabel => 'កូដបានផុតកំណត់ហើយ';
+
+  @override
+  String get paymentKhqrRefreshButton => 'ផ្ទុកកូដឡើងវិញ';
+
+  @override
+  String get paymentKhqrConfirmButton => 'ខ្ញុំបានទូទាត់រួចរាល់';
 
   @override
   String paymentPayAmountLabel(String amount) {

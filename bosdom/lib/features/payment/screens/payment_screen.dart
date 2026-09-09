@@ -3,7 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -12,7 +15,11 @@ import '../../marketplace/models/product.dart';
 import '../../orders/models/order.dart';
 import '../../orders/providers/orders_provider.dart';
 
-enum _PaymentMethod { card, aba }
+enum _PaymentMethod { card, khqr, aba }
+
+/// Mock riel/dollar rate used only to render a KHQR amount — this app has
+/// no real Bakong integration, so there's no live FX feed to call.
+const _kMockKhrPerUsd = 4100.0;
 
 /// A purchased line item, summarized for the payment/confirmation flow.
 class OrderLineSummary {
@@ -145,7 +152,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _CardDetailsSheet(amount: widget.amount),
+      builder: (context) => _selectedMethod == _PaymentMethod.khqr
+          ? _KhqrPaymentSheet(amount: widget.amount)
+          : _CardDetailsSheet(amount: widget.amount),
     );
 
     if (confirmed == true) {
@@ -285,6 +294,19 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                           ),
                           const SizedBox(height: 12),
                           _PaymentMethodTile(
+                            badgeText: 'KHQR',
+                            badgeColor: const Color(0xFFE21A1A),
+                            title: l10n.paymentKhqrMethodTitle,
+                            subtitle: l10n.paymentKhqrSubtitle,
+                            selected: _selectedMethod == _PaymentMethod.khqr,
+                            onTap: () => setState(
+                              () => _selectedMethod = _PaymentMethod.khqr,
+                            ),
+                            colorScheme: colorScheme,
+                            textTheme: textTheme,
+                          ),
+                          const SizedBox(height: 12),
+                          _PaymentMethodTile(
                             badgeText: 'ABA',
                             title: l10n.paymentAbaMethodTitle,
                             subtitle: l10n.paymentMethodSubtitleVisaMastercard,
@@ -405,6 +427,7 @@ class _PaymentMethodTile extends StatelessWidget {
   const _PaymentMethodTile({
     this.icon,
     this.badgeText,
+    this.badgeColor = const Color(0xFF002E6E),
     required this.title,
     required this.subtitle,
     required this.selected,
@@ -415,6 +438,7 @@ class _PaymentMethodTile extends StatelessWidget {
 
   final IconData? icon;
   final String? badgeText;
+  final Color badgeColor;
   final String title;
   final String subtitle;
   final bool selected;
@@ -446,9 +470,7 @@ class _PaymentMethodTile extends StatelessWidget {
                 height: 44,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: badgeText != null
-                      ? const Color(0xFF002E6E)
-                      : Colors.white,
+                  color: badgeText != null ? badgeColor : Colors.white,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: badgeText != null
@@ -1003,6 +1025,16 @@ class _CardDetailsSheetState extends State<_CardDetailsSheet> {
   final _cvvController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    // Redraws the live card preview as the buyer types.
+    _cardNumberController.addListener(_refreshPreview);
+    _expiryController.addListener(_refreshPreview);
+  }
+
+  void _refreshPreview() => setState(() {});
+
+  @override
   void dispose() {
     _cardNumberController.dispose();
     _expiryController.dispose();
@@ -1081,6 +1113,11 @@ class _CardDetailsSheetState extends State<_CardDetailsSheet> {
                   style: textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
+                ),
+                const SizedBox(height: 16),
+                _VisaCardPreview(
+                  cardNumber: _cardNumberController.text,
+                  expiry: _expiryController.text,
                 ),
                 const SizedBox(height: 20),
                 Text(
@@ -1252,6 +1289,445 @@ class _ExpiryDateFormatter extends TextInputFormatter {
     return TextEditingValue(
       text: buffer.toString(),
       selection: TextSelection.collapsed(offset: buffer.length),
+    );
+  }
+}
+
+/// A live-updating "credit card" visual (gradient, masked digits, VISA
+/// wordmark) mirroring what the buyer is typing into [_CardDetailsSheet] —
+/// there is no real card network/Stripe behind this, purely a UI mock.
+class _VisaCardPreview extends StatelessWidget {
+  const _VisaCardPreview({required this.cardNumber, required this.expiry});
+
+  final String cardNumber;
+  final String expiry;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final digits = cardNumber.replaceAll(' ', '');
+    final groups = List.generate(4, (i) {
+      final start = i * 4;
+      if (start >= digits.length) return '••••';
+      final end = (start + 4).clamp(0, digits.length);
+      return digits.substring(start, end).padRight(4, '•');
+    });
+    final expiryDisplay = expiry.isEmpty ? 'MM/YY' : expiry;
+    final labelStyle = TextStyle(
+      color: Colors.white.withValues(alpha: 0.7),
+      fontSize: 9,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0.6,
+    );
+    const valueStyle = TextStyle(
+      color: Colors.white,
+      fontSize: 13,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0.5,
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.brandCrimson, AppColors.deepBurgundy],
+        ),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x33000000),
+            blurRadius: 16,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                width: 36,
+                height: 26,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.85),
+                  borderRadius: BorderRadius.circular(5),
+                ),
+              ),
+              const Text(
+                'VISA',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  fontStyle: FontStyle.italic,
+                  letterSpacing: 1,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 22),
+          Text(
+            groups.join('  '),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 2,
+            ),
+          ),
+          const SizedBox(height: 18),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.paymentCardHolderLabel, style: labelStyle),
+                    const SizedBox(height: 4),
+                    const Text('BOSDOM MERCHANT', style: valueStyle),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.paymentCardValidThruLabel, style: labelStyle),
+                  const SizedBox(height: 4),
+                  Text(expiryDisplay, style: valueStyle),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// KHQR/Bakong "scan to pay" mock — a bottom sheet showing a generated QR
+/// code on the provided [assets/KHQR_card.svg] template with a countdown,
+/// and a manual "I've paid" confirm button since there's no real Bakong
+/// backend/webhook to detect a scan against.
+class _KhqrPaymentSheet extends StatefulWidget {
+  const _KhqrPaymentSheet({required this.amount});
+
+  final double amount;
+
+  @override
+  State<_KhqrPaymentSheet> createState() => _KhqrPaymentSheetState();
+}
+
+class _KhqrPaymentSheetState extends State<_KhqrPaymentSheet> {
+  static const _initialSeconds = 5 * 60;
+
+  int _secondsLeft = _initialSeconds;
+  late String _qrData;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _qrData = _generateQrPayload();
+    _startTimer();
+  }
+
+  String _generateQrPayload() {
+    final khr = ((widget.amount * _kMockKhrPerUsd) / 100).round() * 100;
+    final stamp = DateTime.now().millisecondsSinceEpoch;
+    return 'KHQR-BOSDOM-$khr-$stamp';
+  }
+
+  void _startTimer() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
+      if (_secondsLeft <= 1) {
+        timer.cancel();
+        setState(() => _secondsLeft = 0);
+      } else {
+        setState(() => _secondsLeft -= 1);
+      }
+    });
+  }
+
+  void _refreshCode() {
+    _timer?.cancel();
+    setState(() {
+      _secondsLeft = _initialSeconds;
+      _qrData = _generateQrPayload();
+    });
+    _startTimer();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  String get _formattedTime {
+    final minutes = (_secondsLeft ~/ 60).toString().padLeft(2, '0');
+    final seconds = (_secondsLeft % 60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
+    final expired = _secondsLeft == 0;
+
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: colorScheme.outlineVariant,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.paymentKhqrSheetTitle,
+                        style: textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () => Navigator.of(context).pop(false),
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: colorScheme.outline),
+                        ),
+                        child: Icon(
+                          Icons.close,
+                          size: 18,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  l10n.paymentKhqrInstructions,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 260),
+                    child: AnimatedOpacity(
+                      opacity: expired ? 0.35 : 1,
+                      duration: const Duration(milliseconds: 250),
+                      child: _KhqrCardVisual(
+                        amountUsd: widget.amount,
+                        qrData: _qrData,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Center(
+                  child: expired
+                      ? Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              l10n.paymentKhqrExpiredLabel,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: colorScheme.error,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            TextButton.icon(
+                              onPressed: _refreshCode,
+                              icon: const Icon(Icons.refresh, size: 18),
+                              label: Text(l10n.paymentKhqrRefreshButton),
+                            ),
+                          ],
+                        )
+                      : Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.timer_outlined,
+                              size: 16,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              l10n.paymentKhqrExpiresLabel(_formattedTime),
+                              style: textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: expired
+                        ? null
+                        : () => Navigator.of(context).pop(true),
+                    child: Text(l10n.paymentKhqrConfirmButton),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Renders [assets/KHQR_card.svg] as a card background and overlays the
+/// merchant name, KHR amount, and a generated QR code on top of it, using
+/// the SVG's fixed viewBox geometry (442x622) to place each element
+/// proportionally regardless of the rendered size.
+class _KhqrCardVisual extends StatelessWidget {
+  const _KhqrCardVisual({required this.amountUsd, required this.qrData});
+
+  final double amountUsd;
+  final String qrData;
+
+  static const _svgWidth = 442.0;
+  static const _svgHeight = 622.0;
+  static const _headerBottomFraction = 90.6 / _svgHeight;
+  static const _dashedLineFraction = 218.5 / _svgHeight;
+  static const _cardLeftFraction = 21.0 / _svgWidth;
+  static const _cardRightFraction = 421.0 / _svgWidth;
+  static const _cardBottomFraction = 601.0 / _svgHeight;
+
+  @override
+  Widget build(BuildContext context) {
+    final khr = ((amountUsd * _kMockKhrPerUsd) / 100).round() * 100;
+    final khrLabel = NumberFormat('#,##0', 'en_US').format(khr);
+
+    return AspectRatio(
+      aspectRatio: _svgWidth / _svgHeight,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final height = constraints.maxHeight;
+          return Stack(
+            children: [
+              SvgPicture.asset(
+                'assets/KHQR_card.svg',
+                width: width,
+                height: height,
+                fit: BoxFit.fill,
+              ),
+              Positioned(
+                top: height * _headerBottomFraction + height * 0.03,
+                left: width * _cardLeftFraction + width * 0.03,
+                right: width * (1 - _cardRightFraction) + width * 0.03,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'BosDom Marketplace',
+                      style: TextStyle(
+                        fontSize: height * 0.026,
+                        color: AppColors.warmTaupe,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    SizedBox(height: height * 0.012),
+                    Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: khrLabel,
+                            style: TextStyle(
+                              fontSize: height * 0.05,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.warmBlack,
+                            ),
+                          ),
+                          TextSpan(
+                            text: '  KHR',
+                            style: TextStyle(
+                              fontSize: height * 0.022,
+                              color: AppColors.warmTaupe,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Positioned(
+                top: height * _dashedLineFraction + height * 0.045,
+                left: 0,
+                right: 0,
+                bottom: height * (1 - _cardBottomFraction) + height * 0.025,
+                child: Center(
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: Padding(
+                      padding: EdgeInsets.all(width * 0.02),
+                      child: QrImageView(
+                        data: qrData,
+                        backgroundColor: Colors.white,
+                        eyeStyle: const QrEyeStyle(
+                          eyeShape: QrEyeShape.square,
+                          color: Colors.black,
+                        ),
+                        dataModuleStyle: const QrDataModuleStyle(
+                          dataModuleShape: QrDataModuleShape.square,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }

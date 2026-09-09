@@ -253,6 +253,14 @@
     "en": "CARD NUMBER",
     "km": "លេខកាត"
   },
+  "paymentCardHolderLabel": {
+    "en": "CARD HOLDER",
+    "km": "ម្ចាស់កាត"
+  },
+  "paymentCardValidThruLabel": {
+    "en": "VALID THRU",
+    "km": "ប្រើបានដល់"
+  },
   "paymentConfirmedSubtitle": {
     "en": "Your order has been placed and paid.",
     "km": "ការបញ្ជាទិញរបស់អ្នកត្រូវបានធ្វើ និងបានទូទាត់ប្រាក់រួចរាល់។"
@@ -294,6 +302,39 @@
   "paymentMethodSubtitleVisaMastercard": {
     "en": "Visa, Mastercard, etc.",
     "km": "Visa, Mastercard ជាដើម"
+  },
+  "paymentKhqrMethodTitle": {
+    "en": "KHQR / Bakong",
+    "km": "KHQR / Bakong"
+  },
+  "paymentKhqrSubtitle": {
+    "en": "Bakong, ABA, ACLEDA & more",
+    "km": "Bakong, ABA, ACLEDA និងផ្សេងទៀត"
+  },
+  "paymentKhqrSheetTitle": {
+    "en": "Scan to Pay",
+    "km": "ស្កេនដើម្បីទូទាត់"
+  },
+  "paymentKhqrInstructions": {
+    "en": "Open your banking app and scan this code to complete payment",
+    "km": "បើកកម្មវិធីធនាគាររបស់អ្នក ហើយស្កេនកូដនេះ ដើម្បីបញ្ចប់ការទូទាត់"
+  },
+  "paymentKhqrExpiresLabel": {
+    "en": "Expires in {time}",
+    "km": "ផុតកំណត់ក្នុងរយៈពេល {time}",
+    "placeholders": ["time"]
+  },
+  "paymentKhqrExpiredLabel": {
+    "en": "QR code expired",
+    "km": "កូដបានផុតកំណត់ហើយ"
+  },
+  "paymentKhqrRefreshButton": {
+    "en": "Refresh Code",
+    "km": "ផ្ទុកកូដឡើងវិញ"
+  },
+  "paymentKhqrConfirmButton": {
+    "en": "I've Completed the Payment",
+    "km": "ខ្ញុំបានទូទាត់រួចរាល់"
   },
   "paymentPayAmountLabel": {
     "en": "Pay {amount}",

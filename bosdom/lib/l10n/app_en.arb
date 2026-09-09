@@ -973,6 +973,8 @@
   "paymentCardDetailsSubtitle": "Securely enter your card details",
   "paymentCardMethodTitle": "Credit/Debit Card",
   "paymentCardNumberLabel": "CARD NUMBER",
+  "paymentCardHolderLabel": "CARD HOLDER",
+  "paymentCardValidThruLabel": "VALID THRU",
   "paymentConfirmedSubtitle": "Your order has been placed and paid.",
   "paymentConfirmedTitle": "You're confirmed!",
   "paymentConfirmingSubtitle": "Confirming your order...",
@@ -997,6 +999,21 @@
     }
   },
   "paymentMethodSubtitleVisaMastercard": "Visa, Mastercard, etc.",
+  "paymentKhqrMethodTitle": "KHQR / Bakong",
+  "paymentKhqrSubtitle": "Bakong, ABA, ACLEDA & more",
+  "paymentKhqrSheetTitle": "Scan to Pay",
+  "paymentKhqrInstructions": "Open your banking app and scan this code to complete payment",
+  "paymentKhqrExpiresLabel": "Expires in {time}",
+  "@paymentKhqrExpiresLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentKhqrExpiredLabel": "QR code expired",
+  "paymentKhqrRefreshButton": "Refresh Code",
+  "paymentKhqrConfirmButton": "I've Completed the Payment",
   "paymentPayAmountLabel": "Pay {amount}",
   "@paymentPayAmountLabel": {
     "placeholders": {

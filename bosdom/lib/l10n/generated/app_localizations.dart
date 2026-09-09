@@ -3333,6 +3333,18 @@ abstract class AppLocalizations {
   /// **'CARD NUMBER'**
   String get paymentCardNumberLabel;
 
+  /// No description provided for @paymentCardHolderLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'CARD HOLDER'**
+  String get paymentCardHolderLabel;
+
+  /// No description provided for @paymentCardValidThruLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'VALID THRU'**
+  String get paymentCardValidThruLabel;
+
   /// No description provided for @paymentConfirmedSubtitle.
   ///
   /// In en, this message translates to:
@@ -3392,6 +3404,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Visa, Mastercard, etc.'**
   String get paymentMethodSubtitleVisaMastercard;
+
+  /// No description provided for @paymentKhqrMethodTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'KHQR / Bakong'**
+  String get paymentKhqrMethodTitle;
+
+  /// No description provided for @paymentKhqrSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bakong, ABA, ACLEDA & more'**
+  String get paymentKhqrSubtitle;
+
+  /// No description provided for @paymentKhqrSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan to Pay'**
+  String get paymentKhqrSheetTitle;
+
+  /// No description provided for @paymentKhqrInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Open your banking app and scan this code to complete payment'**
+  String get paymentKhqrInstructions;
+
+  /// No description provided for @paymentKhqrExpiresLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires in {time}'**
+  String paymentKhqrExpiresLabel(String time);
+
+  /// No description provided for @paymentKhqrExpiredLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'QR code expired'**
+  String get paymentKhqrExpiredLabel;
+
+  /// No description provided for @paymentKhqrRefreshButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh Code'**
+  String get paymentKhqrRefreshButton;
+
+  /// No description provided for @paymentKhqrConfirmButton.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ve Completed the Payment'**
+  String get paymentKhqrConfirmButton;
 
   /// No description provided for @paymentPayAmountLabel.
   ///
