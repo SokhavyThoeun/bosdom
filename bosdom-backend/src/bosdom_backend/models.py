@@ -16,6 +16,7 @@ class Profile(Base):
     phone: Mapped[str] = mapped_column(String, default="")
     role: Mapped[str] = mapped_column(String, default="")
     avatar_url: Mapped[str] = mapped_column(String, default="")
+    verification_status: Mapped[str] = mapped_column(String, default="unverified")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
@@ -23,6 +24,20 @@ class Profile(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+
+class KycDocument(Base):
+    __tablename__ = "kyc_documents"
+
+    id: Mapped[str] = mapped_column(
+        String, primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    profile_id: Mapped[str] = mapped_column(String, index=True)
+    doc_type: Mapped[str] = mapped_column(String)
+    file_url: Mapped[str] = mapped_column(String)
+    uploaded_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
 
 
