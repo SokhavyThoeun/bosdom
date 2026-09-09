@@ -85,8 +85,8 @@ Found via a 2026-09-03 full audit; these are real, fully-built, routed buyer-fac
 - [x] 11.3 Product listing/search endpoints (buyer-facing) — added `GET /listings` (search by `q`/`category`/`seller_id`) and `GET /listings/{id}`
 
 ## Phase 12 — Backend: Feature 1 — Sample Gate
-- [ ] 12.1 `SampleOrder` model with 1-per-account constraint
-- [ ] 12.2 Sample order creation endpoint + enforcement logic
+- [x] 12.1 `SampleOrder` model with 1-per-account constraint — constraint is a rolling 3-day cooldown off the buyer's last sample order, not a lifetime cap (see notes)
+- [x] 12.2 Sample order creation endpoint + enforcement logic
 
 ## Phase 13 — Backend: Feature 2 — Co-Buying Linker
 - [ ] 13.1 `CoBuyPool` + `CoBuyParticipant` models
@@ -127,7 +127,7 @@ Found via a 2026-09-03 full audit; these are real, fully-built, routed buyer-fac
 ---
 
 ## Current status
-**Next task:** Phase 12 (Backend: Feature 1 — Sample Gate). Other open frontend gaps: 5.1, 5.3, 8.3, 8.4 (see their notes above).
+**Next task:** Phase 13 (Backend: Feature 2 — Co-Buying Linker). Other open frontend gaps: 5.1, 5.3, 8.3, 8.4 (see their notes above).
 
 ### Notes
 - Flutter project lives at `bosdom/` (root of this git repo).
@@ -180,6 +180,14 @@ Found via a 2026-09-03 full audit; these are real, fully-built, routed buyer-fac
   - No role/seller check gates listing creation or mutation — consistent with the rest of the backend today (nothing else checks `Profile.role` either, per the 10.1 notes), so any authenticated user can create/edit/delete their own listings for now. Revisit if/when role enforcement is added generally.
   - Verified all 6 endpoints (create/list/update/delete/search/get-one, plus the ownership-404 case) against an in-memory SQLite `TestClient` harness (not the live Supabase DB) since this backend has no test suite of its own yet; the scratch script was discarded after passing, not committed.
   - Not done: nothing in the frontend calls any of this yet (frontend still runs entirely on `kMockProducts`) — that's Phase 16 (Integration) territory.
+- 2026-09-09 (Phase 12): added the `SampleOrder` model (`models.py`) and `routers/sample_orders.py`, at the user's explicit request reinterpreting the checkpoint's literal "1-per-account constraint" (12.1) as a **rolling 3-day cooldown** rather than a lifetime cap — a buyer can claim one sample order at a time, and becomes eligible for another exactly 3 days after their most recent one, not never again. This intentionally diverges from the frontend's current mock behavior (`sample_gate_provider.dart` caps at one claim forever, via local `SharedPreferences`, no expiry) — that's expected to be reconciled in Phase 16 when the frontend gets wired to this endpoint instead of local mock state.
+  - `SampleOrder` fields: `buyer_id`/`listing_id`/`seller_id` (all indexed), plus a denormalized `product_name` and a `price` snapshot of the listing's `sample_price` at order time (mirrors the existing snapshot pattern rather than joining live `Listing` rows, since sample price/name can change after the fact).
+  - `POST /sample-orders` (body: `listing_id`) 404s if the listing doesn't exist, 400s if it doesn't have `sample_testing_enabled`/`sample_price` set, and 409s (with `eligible_at` in the error detail) if the buyer's most recent sample order is still inside its 3-day cooldown. `GET /sample-orders/me` lists a buyer's own sample order history; `GET /sample-orders/me/eligibility` exposes `{eligible, eligible_at, last_sample_order}` up front so the frontend can show a countdown instead of guessing from a failed POST — useful for Phase 16.
+  - No role/seller gating on `POST /sample-orders`, consistent with the rest of the backend (per the 10.1/11.3 notes — nothing checks `Profile.role` today).
+  - Hit one real bug while writing the SQLite test harness: `DateTime(timezone=True)` columns come back **tz-naive** from SQLite even though they're tz-aware on the real Postgres backend, which crashed the `datetime.now(timezone.utc) >= eligible_at` comparison. Fixed by normalizing `last_order.created_at` to UTC if `tzinfo` is `None` before doing the arithmetic — defensive on both backends, not just a SQLite-test workaround.
+  - New migration `supabase/migrations/20260909230000_sample_orders.sql` (`create table if not exists`, three indexes), pushed live via `supabase db push --linked` per the Phase 10 switch to Supabase-CLI-only migrations — no Alembic involved.
+  - Verified against an in-memory SQLite `TestClient` harness covering: no-history eligibility, blocked non-sample-listing/missing-listing orders, first order succeeding, an immediate second order 409ing with `eligible_at`, eligibility reflecting the cooldown, and eligibility/ordering both flipping back to allowed once `created_at` is backdated past 3 days. Scratch script discarded after passing, not committed, matching the 11.3 precedent.
+  - Not done: no frontend wiring yet — `sample_gate_provider.dart` still runs entirely on local `SharedPreferences` with no expiry. That's Phase 16 territory, and will need to replace the local-only cap with a real call to `GET /sample-orders/me/eligibility`.
 
 ---
 

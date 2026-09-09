@@ -91,6 +91,23 @@ class Listing(Base):
     )
 
 
+class SampleOrder(Base):
+    __tablename__ = "sample_orders"
+
+    id: Mapped[str] = mapped_column(
+        String, primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    buyer_id: Mapped[str] = mapped_column(String, index=True)
+    listing_id: Mapped[str] = mapped_column(String, index=True)
+    seller_id: Mapped[str] = mapped_column(String, index=True)
+    product_name: Mapped[str] = mapped_column(String)
+    price: Mapped[float] = mapped_column(Float)
+    status: Mapped[str] = mapped_column(String, default="processing")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+
+
 class OrderReport(Base):
     __tablename__ = "order_reports"
 

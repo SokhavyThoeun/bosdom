@@ -14,6 +14,7 @@ from .routers import (
     orders,
     profile,
     receipts,
+    sample_orders,
     shop,
     wishlist,
 )
@@ -38,6 +39,7 @@ app.include_router(marketing_consent.router)
 app.include_router(profile.router)
 app.include_router(shop.router)
 app.include_router(listings.router)
+app.include_router(sample_orders.router)
 
 _media_dir = Path(__file__).resolve().parent / "media"
 _media_dir.mkdir(exist_ok=True)
