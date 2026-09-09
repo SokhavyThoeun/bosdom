@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
+import '../../profile/services/profile_service.dart';
 import '../models/merchant_role.dart';
 
 class UploadDocumentsScreen extends StatefulWidget {
@@ -22,9 +26,50 @@ class UploadDocumentsScreen extends StatefulWidget {
 }
 
 class _UploadDocumentsScreenState extends State<UploadDocumentsScreen> {
+  static const _nationalId = 'national_id';
+  static const _passport = 'passport';
+  static const _businessCertificate = 'business_certificate';
+
+  final _picker = ImagePicker();
   bool _nationalIdUploaded = false;
   bool _passportUploaded = false;
   bool _businessCertUploaded = false;
+  String? _uploadingDocType;
+
+  Future<void> _pickAndUpload(String docType) async {
+    if (_uploadingDocType != null) return;
+    try {
+      final picked = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1600,
+        imageQuality: 90,
+      );
+      if (picked == null || !mounted) return;
+      setState(() => _uploadingDocType = docType);
+      await ProfileService.uploadKycDocument(
+        docType: docType,
+        file: File(picked.path),
+      );
+      if (!mounted) return;
+      setState(() {
+        switch (docType) {
+          case _nationalId:
+            _nationalIdUploaded = true;
+          case _passport:
+            _passportUploaded = true;
+          case _businessCertificate:
+            _businessCertUploaded = true;
+        }
+      });
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Upload failed: $error')));
+    } finally {
+      if (mounted) setState(() => _uploadingDocType = null);
+    }
+  }
 
   void _goBack() {
     if (widget.standalone) {
@@ -82,9 +127,8 @@ class _UploadDocumentsScreenState extends State<UploadDocumentsScreen> {
                       required: true,
                       subtitle: 'Front and back of your Cambodian National ID',
                       uploaded: _nationalIdUploaded,
-                      onTap: () => setState(
-                        () => _nationalIdUploaded = !_nationalIdUploaded,
-                      ),
+                      uploading: _uploadingDocType == _nationalId,
+                      onTap: () => _pickAndUpload(_nationalId),
                     ),
                     const SizedBox(height: 16),
                     _DocumentCard(
@@ -95,9 +139,8 @@ class _UploadDocumentsScreenState extends State<UploadDocumentsScreen> {
                       optional: true,
                       subtitle: 'Alternative to National ID (optional)',
                       uploaded: _passportUploaded,
-                      onTap: () => setState(
-                        () => _passportUploaded = !_passportUploaded,
-                      ),
+                      uploading: _uploadingDocType == _passport,
+                      onTap: () => _pickAndUpload(_passport),
                     ),
                     const SizedBox(height: 16),
                     _DocumentCard(
@@ -109,9 +152,8 @@ class _UploadDocumentsScreenState extends State<UploadDocumentsScreen> {
                       subtitle:
                           'MOC registration certificate (optional but speeds up verification)',
                       uploaded: _businessCertUploaded,
-                      onTap: () => setState(
-                        () => _businessCertUploaded = !_businessCertUploaded,
-                      ),
+                      uploading: _uploadingDocType == _businessCertificate,
+                      onTap: () => _pickAndUpload(_businessCertificate),
                     ),
                     const SizedBox(height: 32),
                     FilledButton(
@@ -281,6 +323,7 @@ class _DocumentCard extends StatelessWidget {
     required this.subtitle,
     required this.uploaded,
     required this.onTap,
+    this.uploading = false,
     this.required = false,
     this.optional = false,
   });
@@ -292,6 +335,7 @@ class _DocumentCard extends StatelessWidget {
   final String subtitle;
   final bool uploaded;
   final VoidCallback onTap;
+  final bool uploading;
   final bool required;
   final bool optional;
 
@@ -363,7 +407,16 @@ class _DocumentCard extends StatelessWidget {
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
-            child: uploaded
+            child: uploading
+                ? const OutlinedButton(
+                    onPressed: null,
+                    child: SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                : uploaded
                 ? FilledButton.icon(
                     onPressed: onTap,
                     style: FilledButton.styleFrom(

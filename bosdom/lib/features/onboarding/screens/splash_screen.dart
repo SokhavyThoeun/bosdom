@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../profile/services/profile_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -27,21 +28,33 @@ class _SplashScreenState extends State<SplashScreen>
     )..forward();
 
     if (Supabase.instance.client.auth.currentSession != null) {
-      _goToMarketplace();
+      _routeSignedInUser();
     } else {
       // Covers the Google sign-in redirect landing here before
       // supabase_flutter's deep-link listener has finished exchanging the
       // code for a session.
       _authSubscription = Supabase.instance.client.auth.onAuthStateChange
           .listen((data) {
-            if (data.session != null) _goToMarketplace();
+            if (data.session != null) _routeSignedInUser();
           });
     }
   }
 
-  void _goToMarketplace() {
+  /// Mirrors `login_screen._routeAfterSignIn`: a signed-in session isn't
+  /// enough on its own — a Google account (or an interrupted email signup)
+  /// may not have finished the role/personal-details wizard yet, so route
+  /// there instead of straight to the marketplace when the profile has no
+  /// role set.
+  Future<void> _routeSignedInUser() async {
+    var hasRole = true;
+    try {
+      hasRole = (await ProfileService.fetch()).role.isNotEmpty;
+    } catch (_) {
+      // Backend unreachable or similar transient failure: don't bounce an
+      // already-onboarded user into the wizard over a network blip.
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) context.goNamed('marketplace');
+      if (mounted) context.goNamed(hasRole ? 'marketplace' : 'signup');
     });
   }
 
