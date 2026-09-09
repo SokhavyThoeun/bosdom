@@ -731,17 +731,17 @@
     }
   },
   "productDetailSampleAlreadyRequested": "Sample Already Requested",
-  "productDetailSampleLimitReached": "Sample Limit Reached",
+  "productDetailSampleCooldownActive": "Cooldown Active",
   "productDetailRequestSample": "Request Sample",
-  "productDetailSampleUsedNote": "You've already used your 1 free sample on {productName}.",
-  "@productDetailSampleUsedNote": {
+  "productDetailSampleCooldownNote": "You can request another sample after {date}.",
+  "@productDetailSampleCooldownNote": {
     "placeholders": {
-      "productName": {
+      "date": {
         "type": "String"
       }
     }
   },
-  "productDetailSampleLimitNote": "Limited to 1 sample per account",
+  "productDetailSampleLimitNote": "Limited to 1 sample every 3 days",
   "storeProfileStatProducts": "Products",
   "storeProfileStatOrders": "Orders",
   "storeProfileStatRating": "Rating",

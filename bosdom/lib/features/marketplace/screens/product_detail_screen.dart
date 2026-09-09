@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/models/variant_option.dart';
@@ -10,11 +11,15 @@ import '../../../shared/widgets/full_screen_image_viewer.dart';
 import '../../../shared/widgets/variant_selector.dart';
 import '../../wishlist/providers/wishlist_provider.dart';
 import '../models/product.dart';
+import '../models/sample_order.dart';
 import '../providers/listings_provider.dart';
 import '../providers/sample_gate_provider.dart';
 import '../widgets/empty_products_notice.dart';
 
 enum _BuyMode { wholesale, sample }
+
+String _formatEligibleAt(DateTime dateTime) =>
+    DateFormat.yMMMd().add_jm().format(dateTime.toLocal());
 
 class ProductDetailScreen extends ConsumerWidget {
   const ProductDetailScreen({super.key, required this.productId});
@@ -89,7 +94,7 @@ class _ProductDetailBodyState extends ConsumerState<_ProductDetailBody> {
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
     final product = this.product;
-    final claimedSample = ref.watch(sampleGateProvider);
+    final sampleEligibility = ref.watch(sampleGateProvider);
     final wishlistId = productWishlistId(widget.productId);
     final isFavorite = ref.watch(
       wishlistProvider.select(
@@ -257,14 +262,11 @@ class _ProductDetailBodyState extends ConsumerState<_ProductDetailBody> {
                             sampleQty: _sampleQty,
                             onWholesaleQtyChanged: _changeWholesaleQty,
                             onSampleQtyChanged: _changeSampleQty,
-                            claimedSample: claimedSample.value,
-                            isSampleGateLoading: claimedSample.isLoading,
+                            sampleEligibility: sampleEligibility.value,
+                            isSampleGateLoading: sampleEligibility.isLoading,
                             onRequestSample: () => ref
                                 .read(sampleGateProvider.notifier)
-                                .claimSample(
-                                  productId: widget.productId,
-                                  productName: product.name,
-                                ),
+                                .requestSample(widget.productId),
                             colorScheme: colorScheme,
                             textTheme: textTheme,
                           ),
@@ -885,7 +887,7 @@ class _ModeToggleButton extends StatelessWidget {
   }
 }
 
-class _BuyBox extends StatelessWidget {
+class _BuyBox extends StatefulWidget {
   const _BuyBox({
     required this.product,
     required this.productId,
@@ -896,7 +898,7 @@ class _BuyBox extends StatelessWidget {
     required this.sampleQty,
     required this.onWholesaleQtyChanged,
     required this.onSampleQtyChanged,
-    required this.claimedSample,
+    required this.sampleEligibility,
     required this.isSampleGateLoading,
     required this.onRequestSample,
     required this.colorScheme,
@@ -912,14 +914,67 @@ class _BuyBox extends StatelessWidget {
   final int sampleQty;
   final ValueChanged<int> onWholesaleQtyChanged;
   final ValueChanged<int> onSampleQtyChanged;
-  final ClaimedSample? claimedSample;
+  final SampleEligibility? sampleEligibility;
   final bool isSampleGateLoading;
-  final VoidCallback onRequestSample;
+  final Future<SampleOrder> Function() onRequestSample;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
 
   @override
+  State<_BuyBox> createState() => _BuyBoxState();
+}
+
+class _BuyBoxState extends State<_BuyBox> {
+  bool _isSubmittingSample = false;
+
+  Future<void> _handleRequestSample() async {
+    setState(() => _isSubmittingSample = true);
+    final l10n = AppLocalizations.of(context);
+    try {
+      await widget.onRequestSample();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.productDetailSampleRequestedSnackbar)),
+      );
+    } on SampleCooldownException catch (error) {
+      if (!mounted) return;
+      final eligibleAt = error.eligibleAt;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            eligibleAt != null
+                ? l10n.productDetailSampleCooldownNote(
+                    _formatEligibleAt(eligibleAt),
+                  )
+                : error.message,
+          ),
+        ),
+      );
+    } on SampleOrderException catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.message)),
+      );
+    } finally {
+      if (mounted) setState(() => _isSubmittingSample = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final product = widget.product;
+    final productId = widget.productId;
+    final mode = widget.mode;
+    final selectedSize = widget.selectedSize;
+    final selectedColor = widget.selectedColor;
+    final wholesaleQty = widget.wholesaleQty;
+    final sampleQty = widget.sampleQty;
+    final onWholesaleQtyChanged = widget.onWholesaleQtyChanged;
+    final onSampleQtyChanged = widget.onSampleQtyChanged;
+    final sampleEligibility = widget.sampleEligibility;
+    final isSampleGateLoading = widget.isSampleGateLoading;
+    final colorScheme = widget.colorScheme;
+    final textTheme = widget.textTheme;
     final l10n = AppLocalizations.of(context);
     final isWholesale = mode == _BuyMode.wholesale;
     final unitPrice = isWholesale
@@ -930,8 +985,9 @@ class _BuyBox extends StatelessWidget {
         : l10n.productDetailUnitPiece;
     final quantity = isWholesale ? wholesaleQty : sampleQty;
     final total = unitPrice * quantity;
-    final claimedThisProduct = claimedSample?.productId == productId;
-    final claimedOtherProduct = claimedSample != null && !claimedThisProduct;
+    final onCooldown = sampleEligibility != null && !sampleEligibility.eligible;
+    final justRequestedThisProduct =
+        onCooldown && sampleEligibility.lastSampleOrder?.listingId == productId;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -975,10 +1031,11 @@ class _BuyBox extends StatelessWidget {
           const SizedBox(height: 16),
           FilledButton(
             onPressed:
-                !isWholesale && (isSampleGateLoading || claimedSample != null)
+                !isWholesale &&
+                    (isSampleGateLoading || onCooldown || _isSubmittingSample)
                 ? null
-                : () {
-                    if (!isWholesale) onRequestSample();
+                : isWholesale
+                ? () {
                     final variantSuffix = [
                       ?selectedColor?.name,
                       ?selectedSize,
@@ -986,35 +1043,43 @@ class _BuyBox extends StatelessWidget {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          isWholesale
-                              ? l10n.productDetailAddedToCartSnackbar(
-                                      '\$${total.toStringAsFixed(2)}',
-                                    ) +
-                                    (variantSuffix.isEmpty
-                                        ? ''
-                                        : ' · $variantSuffix')
-                              : l10n.productDetailSampleRequestedSnackbar,
+                          l10n.productDetailAddedToCartSnackbar(
+                                '\$${total.toStringAsFixed(2)}',
+                              ) +
+                              (variantSuffix.isEmpty ? '' : ' · $variantSuffix'),
                         ),
                       ),
                     );
-                  },
-            child: Text(
-              isWholesale
-                  ? l10n.productDetailAddToCartButton(
-                      '\$${total.toStringAsFixed(2)}',
-                    )
-                  : claimedThisProduct
-                  ? l10n.productDetailSampleAlreadyRequested
-                  : claimedOtherProduct
-                  ? l10n.productDetailSampleLimitReached
-                  : l10n.productDetailRequestSample,
-            ),
+                  }
+                : _handleRequestSample,
+            child: _isSubmittingSample
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: colorScheme.onPrimary,
+                    ),
+                  )
+                : Text(
+                    isWholesale
+                        ? l10n.productDetailAddToCartButton(
+                            '\$${total.toStringAsFixed(2)}',
+                          )
+                        : justRequestedThisProduct
+                        ? l10n.productDetailSampleAlreadyRequested
+                        : onCooldown
+                        ? l10n.productDetailSampleCooldownActive
+                        : l10n.productDetailRequestSample,
+                  ),
           ),
           if (!isWholesale) ...[
             const SizedBox(height: 8),
             Text(
-              claimedOtherProduct
-                  ? l10n.productDetailSampleUsedNote(claimedSample!.productName)
+              onCooldown
+                  ? l10n.productDetailSampleCooldownNote(
+                      _formatEligibleAt(sampleEligibility.eligibleAt!),
+                    )
                   : l10n.productDetailSampleLimitNote,
               textAlign: TextAlign.center,
               style: textTheme.bodySmall?.copyWith(

@@ -1411,18 +1411,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get productDetailSampleAlreadyRequested => 'Sample Already Requested';
 
   @override
-  String get productDetailSampleLimitReached => 'Sample Limit Reached';
+  String get productDetailSampleCooldownActive => 'Cooldown Active';
 
   @override
   String get productDetailRequestSample => 'Request Sample';
 
   @override
-  String productDetailSampleUsedNote(String productName) {
-    return 'You\'ve already used your 1 free sample on $productName.';
+  String productDetailSampleCooldownNote(String date) {
+    return 'You can request another sample after $date.';
   }
 
   @override
-  String get productDetailSampleLimitNote => 'Limited to 1 sample per account';
+  String get productDetailSampleLimitNote => 'Limited to 1 sample every 3 days';
 
   @override
   String get storeProfileStatProducts => 'Products';

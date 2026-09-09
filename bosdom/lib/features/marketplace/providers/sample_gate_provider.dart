@@ -1,40 +1,30 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-class ClaimedSample {
-  const ClaimedSample({required this.productId, required this.productName});
+import '../models/sample_order.dart';
+import '../services/sample_order_service.dart';
 
-  final String productId;
-  final String productName;
-}
-
-const _kClaimedProductIdKey = 'sample_gate_claimed_product_id';
-const _kClaimedProductNameKey = 'sample_gate_claimed_product_name';
-
-class SampleGateNotifier extends AsyncNotifier<ClaimedSample?> {
+class SampleGateNotifier extends AsyncNotifier<SampleEligibility> {
   @override
-  Future<ClaimedSample?> build() async {
-    final prefs = await SharedPreferences.getInstance();
-    final productId = prefs.getString(_kClaimedProductIdKey);
-    final productName = prefs.getString(_kClaimedProductNameKey);
-    if (productId == null || productName == null) return null;
-    return ClaimedSample(productId: productId, productName: productName);
-  }
+  Future<SampleEligibility> build() => SampleOrderService.fetchEligibility();
 
-  Future<void> claimSample({
-    required String productId,
-    required String productName,
-  }) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_kClaimedProductIdKey, productId);
-    await prefs.setString(_kClaimedProductNameKey, productName);
+  /// Requests a sample for [listingId]. Throws [SampleCooldownException] if
+  /// the buyer is still within the backend's 3-day cooldown, or
+  /// [SampleOrderException] for any other failure — callers should catch
+  /// both and surface them to the user rather than letting them propagate.
+  Future<SampleOrder> requestSample(String listingId) async {
+    final order = await SampleOrderService.requestSample(listingId);
     state = AsyncData(
-      ClaimedSample(productId: productId, productName: productName),
+      SampleEligibility(
+        eligible: false,
+        eligibleAt: order.createdAt.add(const Duration(days: 3)),
+        lastSampleOrder: order,
+      ),
     );
+    return order;
   }
 }
 
 final sampleGateProvider =
-    AsyncNotifierProvider<SampleGateNotifier, ClaimedSample?>(
+    AsyncNotifierProvider<SampleGateNotifier, SampleEligibility>(
       SampleGateNotifier.new,
     );

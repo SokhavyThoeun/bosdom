@@ -28,10 +28,10 @@
   "productDetailSampleRequestedSnackbar": {"en": "Sample requested", "km": "បានស្នើសុំគំរូ"},
   "productDetailAddToCartButton": {"en": "Add to Cart · {price}", "km": "ដាក់ចូលរទេះ · {price}", "placeholders": ["price"]},
   "productDetailSampleAlreadyRequested": {"en": "Sample Already Requested", "km": "បានស្នើសុំគំរូរួចហើយ"},
-  "productDetailSampleLimitReached": {"en": "Sample Limit Reached", "km": "បានដល់កំណត់គំរូ"},
+  "productDetailSampleCooldownActive": {"en": "Cooldown Active", "km": "កំពុងស្ថិតក្នុងរយៈពេលរង់ចាំ"},
   "productDetailRequestSample": {"en": "Request Sample", "km": "សុំគំរូ"},
-  "productDetailSampleUsedNote": {"en": "You've already used your 1 free sample on {productName}.", "km": "អ្នកបានប្រើប្រាស់គំរូឥតគិតថ្លៃចំនួន ១ របស់អ្នករួចហើយលើ {productName}។", "placeholders": ["productName"]},
-  "productDetailSampleLimitNote": {"en": "Limited to 1 sample per account", "km": "កំណត់ត្រឹមគំរូ ១ ក្នុងមួយគណនី"},
+  "productDetailSampleCooldownNote": {"en": "You can request another sample after {date}.", "km": "អ្នកអាចស្នើសុំគំរូម្តងទៀតបន្ទាប់ពី {date}។", "placeholders": ["date"]},
+  "productDetailSampleLimitNote": {"en": "Limited to 1 sample every 3 days", "km": "កំណត់ត្រឹមគំរូ ១ ក្នុងរយៈពេល ៣ ថ្ងៃ"},
 
   "storeProfileStatProducts": {"en": "Products", "km": "ផលិតផល"},
   "storeProfileStatOrders": {"en": "Orders", "km": "ការបញ្ជាទិញ"},

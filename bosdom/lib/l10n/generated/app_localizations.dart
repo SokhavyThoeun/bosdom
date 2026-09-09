@@ -2637,11 +2637,11 @@ abstract class AppLocalizations {
   /// **'Sample Already Requested'**
   String get productDetailSampleAlreadyRequested;
 
-  /// No description provided for @productDetailSampleLimitReached.
+  /// No description provided for @productDetailSampleCooldownActive.
   ///
   /// In en, this message translates to:
-  /// **'Sample Limit Reached'**
-  String get productDetailSampleLimitReached;
+  /// **'Cooldown Active'**
+  String get productDetailSampleCooldownActive;
 
   /// No description provided for @productDetailRequestSample.
   ///
@@ -2649,16 +2649,16 @@ abstract class AppLocalizations {
   /// **'Request Sample'**
   String get productDetailRequestSample;
 
-  /// No description provided for @productDetailSampleUsedNote.
+  /// No description provided for @productDetailSampleCooldownNote.
   ///
   /// In en, this message translates to:
-  /// **'You\'ve already used your 1 free sample on {productName}.'**
-  String productDetailSampleUsedNote(String productName);
+  /// **'You can request another sample after {date}.'**
+  String productDetailSampleCooldownNote(String date);
 
   /// No description provided for @productDetailSampleLimitNote.
   ///
   /// In en, this message translates to:
-  /// **'Limited to 1 sample per account'**
+  /// **'Limited to 1 sample every 3 days'**
   String get productDetailSampleLimitNote;
 
   /// No description provided for @storeProfileStatProducts.

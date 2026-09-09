@@ -1425,18 +1425,19 @@ class AppLocalizationsKm extends AppLocalizations {
   String get productDetailSampleAlreadyRequested => 'បានស្នើសុំគំរូរួចហើយ';
 
   @override
-  String get productDetailSampleLimitReached => 'បានដល់កំណត់គំរូ';
+  String get productDetailSampleCooldownActive => 'កំពុងស្ថិតក្នុងរយៈពេលរង់ចាំ';
 
   @override
   String get productDetailRequestSample => 'សុំគំរូ';
 
   @override
-  String productDetailSampleUsedNote(String productName) {
-    return 'អ្នកបានប្រើប្រាស់គំរូឥតគិតថ្លៃចំនួន ១ របស់អ្នករួចហើយលើ $productName។';
+  String productDetailSampleCooldownNote(String date) {
+    return 'អ្នកអាចស្នើសុំគំរូម្តងទៀតបន្ទាប់ពី $date។';
   }
 
   @override
-  String get productDetailSampleLimitNote => 'កំណត់ត្រឹមគំរូ ១ ក្នុងមួយគណនី';
+  String get productDetailSampleLimitNote =>
+      'កំណត់ត្រឹមគំរូ ១ ក្នុងរយៈពេល ៣ ថ្ងៃ';
 
   @override
   String get storeProfileStatProducts => 'ផលិតផល';
