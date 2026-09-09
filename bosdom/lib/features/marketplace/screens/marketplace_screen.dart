@@ -20,7 +20,7 @@ class MarketplaceScreen extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
-    final coBuySessions = ref.watch(coBuyProvider);
+    final coBuySessions = ref.watch(coBuyProvider).value ?? const [];
     final unreadCount = ref.watch(unreadNotificationCountProvider);
     final listingsAsync = ref.watch(listingsProvider);
 

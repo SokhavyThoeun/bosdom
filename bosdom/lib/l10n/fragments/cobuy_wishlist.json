@@ -88,6 +88,18 @@
       "productName": { "type": "String" }
     }
   },
+  "coBuyingLoadError": {
+    "en": "Couldn't load co-buy deals. Tap to retry.",
+    "km": "មិនអាចផ្ទុកកិច្ចព្រមព្រៀងទិញរួមបានទេ។ ចុចដើម្បីព្យាយាមម្តងទៀត។"
+  },
+  "coBuyingEmptyMessage": {
+    "en": "No co-buy deals yet. Check back soon!",
+    "km": "មិនទាន់មានកិច្ចព្រមព្រៀងទិញរួមនៅឡើយទេ។ សូមពិនិត្យមើលម្តងទៀតឆាប់ៗនេះ!"
+  },
+  "coBuyDealsLoadError": {
+    "en": "Couldn't load your co-buy deals. Tap to retry.",
+    "km": "មិនអាចផ្ទុកកិច្ចព្រមព្រៀងទិញរួមរបស់អ្នកបានទេ។ ចុចដើម្បីព្យាយាមម្តងទៀត។"
+  },
   "coBuyDetailActiveDealLabel": {
     "en": "Active Deal",
     "km": "ការផ្តល់ជូនកំពុងដំណើរការ"

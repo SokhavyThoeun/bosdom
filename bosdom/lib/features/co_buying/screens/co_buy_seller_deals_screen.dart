@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/config/api_config.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../marketplace/widgets/empty_products_notice.dart';
 import '../../profile/models/shop_profile.dart';
 import '../../profile/providers/shop_profile_provider.dart';
 import '../models/co_buy_session.dart';
@@ -20,10 +21,7 @@ class CoBuySellerDealsScreen extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
     final shop = ref.watch(shopProfileProvider).value;
-    final deals = ref
-        .watch(coBuyProvider)
-        .where((s) => s.sellerName == shop?.shopName)
-        .toList();
+    final dealsAsync = ref.watch(coBuySellerPoolsProvider);
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -34,90 +32,111 @@ class CoBuySellerDealsScreen extends ConsumerWidget {
             child: SafeArea(
               top: false,
               bottom: false,
-              child: ListView(
-                padding: EdgeInsets.fromLTRB(
-                  24,
-                  20,
-                  24,
-                  16 + MediaQuery.of(context).padding.bottom,
-                ),
-                children: [
-                  _DealsSummaryCard(
-                    shop: shop,
-                    deals: deals,
-                    colorScheme: colorScheme,
-                    textTheme: textTheme,
+              child: dealsAsync.when(
+                data: (deals) => ListView(
+                  padding: EdgeInsets.fromLTRB(
+                    24,
+                    20,
+                    24,
+                    16 + MediaQuery.of(context).padding.bottom,
                   ),
-                  const SizedBox(height: 24),
-                  FilledButton.icon(
-                    onPressed: () => context.pushNamed('coBuyCreate'),
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size.fromHeight(52),
+                  children: [
+                    _DealsSummaryCard(
+                      shop: shop,
+                      deals: deals,
+                      colorScheme: colorScheme,
+                      textTheme: textTheme,
                     ),
-                    icon: const Icon(Icons.add, color: Colors.white),
-                    label: Text(
-                      l10n.coBuyDealsCreateButtonLabel,
-                      style: textTheme.labelLarge?.copyWith(
-                        color: colorScheme.onPrimary,
-                        fontWeight: FontWeight.bold,
+                    const SizedBox(height: 24),
+                    FilledButton.icon(
+                      onPressed: () async {
+                        await context.pushNamed('coBuyCreate');
+                        ref.invalidate(coBuySellerPoolsProvider);
+                        ref.invalidate(coBuyProvider);
+                      },
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size.fromHeight(52),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        l10n.coBuyDealsListingsSectionTitle,
-                        style: textTheme.titleMedium?.copyWith(
+                      icon: const Icon(Icons.add, color: Colors.white),
+                      label: Text(
+                        l10n.coBuyDealsCreateButtonLabel,
+                        style: textTheme.labelLarge?.copyWith(
+                          color: colorScheme.onPrimary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      InkWell(
-                        borderRadius: BorderRadius.circular(8),
-                        onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              l10n.commonComingSoon(
-                                l10n.sellerDashboardViewAllLabel,
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          l10n.coBuyDealsListingsSectionTitle,
+                          style: textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        InkWell(
+                          borderRadius: BorderRadius.circular(8),
+                          onTap: () =>
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    l10n.commonComingSoon(
+                                      l10n.sellerDashboardViewAllLabel,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 4,
+                            ),
+                            child: Text(
+                              l10n.sellerDashboardViewAllLabel,
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.primary,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 4,
-                          ),
-                          child: Text(
-                            l10n.sellerDashboardViewAllLabel,
-                            style: textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    if (deals.isEmpty)
+                      _EmptyState(colorScheme: colorScheme, textTheme: textTheme)
+                    else
+                      for (var i = 0; i < deals.length; i++) ...[
+                        _DealCard(
+                          session: deals[i],
+                          colorScheme: colorScheme,
+                          textTheme: textTheme,
+                          onEdit: () async {
+                            await context.pushNamed(
+                              'coBuyCreate',
+                              extra: deals[i].id,
+                            );
+                            ref.invalidate(coBuySellerPoolsProvider);
+                            ref.invalidate(coBuyProvider);
+                          },
+                          onDelete: () => _confirmDelete(context, ref, deals[i]),
                         ),
-                      ),
-                    ],
+                        if (i != deals.length - 1) const SizedBox(height: 14),
+                      ],
+                  ],
+                ),
+                loading: () =>
+                    const Center(child: CircularProgressIndicator()),
+                error: (error, stackTrace) => Center(
+                  child: EmptyProductsNotice(
+                    colorScheme: colorScheme,
+                    textTheme: textTheme,
+                    message: l10n.coBuyDealsLoadError,
+                    onRetry: () => ref.invalidate(coBuySellerPoolsProvider),
                   ),
-                  const SizedBox(height: 12),
-                  if (deals.isEmpty)
-                    _EmptyState(colorScheme: colorScheme, textTheme: textTheme)
-                  else
-                    for (var i = 0; i < deals.length; i++) ...[
-                      _DealCard(
-                        session: deals[i],
-                        colorScheme: colorScheme,
-                        textTheme: textTheme,
-                        onEdit: () => context.pushNamed(
-                          'coBuyCreate',
-                          extra: deals[i].id,
-                        ),
-                        onDelete: () => _confirmDelete(context, ref, deals[i]),
-                      ),
-                      if (i != deals.length - 1) const SizedBox(height: 14),
-                    ],
-                ],
+                ),
               ),
             ),
           ),
@@ -155,7 +174,9 @@ class CoBuySellerDealsScreen extends ConsumerWidget {
       ),
     );
     if (confirmed != true || !context.mounted) return;
-    ref.read(coBuyProvider.notifier).delete(session.id);
+    await ref.read(coBuyProvider.notifier).delete(session.id);
+    ref.invalidate(coBuySellerPoolsProvider);
+    if (!context.mounted) return;
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(l10n.coBuyDealsDeletedSnackbar)));

@@ -1949,6 +1949,24 @@ abstract class AppLocalizations {
   /// **'Co-Buy: {productName}'**
   String coBuyingShareSubject(String productName);
 
+  /// No description provided for @coBuyingLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load co-buy deals. Tap to retry.'**
+  String get coBuyingLoadError;
+
+  /// No description provided for @coBuyingEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No co-buy deals yet. Check back soon!'**
+  String get coBuyingEmptyMessage;
+
+  /// No description provided for @coBuyDealsLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your co-buy deals. Tap to retry.'**
+  String get coBuyDealsLoadError;
+
   /// No description provided for @coBuyCreateScreenTitle.
   ///
   /// In en, this message translates to:
@@ -2134,6 +2152,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Co-buy deal updated'**
   String get coBuyCreateUpdatedSnackbar;
+
+  /// No description provided for @coBuyCreateSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save this co-buy deal. Please try again.'**
+  String get coBuyCreateSaveError;
 
   /// No description provided for @coBuyCreateProductInfoSectionTitle.
   ///

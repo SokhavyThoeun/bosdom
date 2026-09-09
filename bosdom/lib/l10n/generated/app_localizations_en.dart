@@ -1022,6 +1022,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get coBuyingLoadError => 'Couldn\'t load co-buy deals. Tap to retry.';
+
+  @override
+  String get coBuyingEmptyMessage => 'No co-buy deals yet. Check back soon!';
+
+  @override
+  String get coBuyDealsLoadError =>
+      'Couldn\'t load your co-buy deals. Tap to retry.';
+
+  @override
   String get coBuyCreateScreenTitle => 'Start a Co-Buy';
 
   @override
@@ -1115,6 +1125,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get coBuyCreateUpdatedSnackbar => 'Co-buy deal updated';
+
+  @override
+  String get coBuyCreateSaveError =>
+      'Couldn\'t save this co-buy deal. Please try again.';
 
   @override
   String get coBuyCreateProductInfoSectionTitle => 'Product Information';

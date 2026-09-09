@@ -470,6 +470,9 @@
       }
     }
   },
+  "coBuyingLoadError": "Couldn't load co-buy deals. Tap to retry.",
+  "coBuyingEmptyMessage": "No co-buy deals yet. Check back soon!",
+  "coBuyDealsLoadError": "Couldn't load your co-buy deals. Tap to retry.",
   "coBuyCreateScreenTitle": "Start a Co-Buy",
   "coBuyCreateEditScreenTitle": "Edit Co-Buy Deal",
   "coBuyCreateProductNameLabel": "Product Name",
@@ -501,6 +504,7 @@
   "coBuyCreateButton": "Launch Co-Buy",
   "coBuyCreateCreatedSnackbar": "Co-Buy created! Invite others to join.",
   "coBuyCreateUpdatedSnackbar": "Co-buy deal updated",
+  "coBuyCreateSaveError": "Couldn't save this co-buy deal. Please try again.",
   "coBuyCreateProductInfoSectionTitle": "Product Information",
   "coBuyCreatePricingSectionTitle": "Pricing & Quantity",
   "coBuyCreateDealSettingsSectionTitle": "Deal Settings",

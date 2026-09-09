@@ -98,6 +98,58 @@ class Listing(Base):
     )
 
 
+class CoBuyPool(Base):
+    # Table is `co_buy_deal_pools`, not `co_buy_pools` — the live DB already
+    # has an unrelated legacy `co_buy_pools` table this backend doesn't own,
+    # same reasoning as `Order`'s `escrow_orders` table name (see its notes).
+    __tablename__ = "co_buy_deal_pools"
+
+    id: Mapped[str] = mapped_column(
+        String, primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    seller_id: Mapped[str] = mapped_column(String, index=True)
+    product_name: Mapped[str] = mapped_column(String)
+    description: Mapped[str] = mapped_column(String, default="")
+    price: Mapped[float] = mapped_column(Float)
+    original_price: Mapped[float] = mapped_column(Float)
+    target_qty: Mapped[int] = mapped_column(Integer)
+    unit_label: Mapped[str] = mapped_column(String)
+    per_unit_label: Mapped[str] = mapped_column(String)
+    min_order_qty: Mapped[int] = mapped_column(Integer)
+    time_left: Mapped[str] = mapped_column(String)
+    auto_renew: Mapped[bool] = mapped_column(Boolean, default=False)
+    photo_urls: Mapped[list[str]] = mapped_column(JSON, default=list)
+    sizes: Mapped[list[str]] = mapped_column(JSON, default=list)
+    colors: Mapped[list[dict]] = mapped_column(JSON, default=list)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+
+class CoBuyParticipant(Base):
+    # Table is `co_buy_deal_participants`, not `co_buy_participants` — same
+    # legacy-table-name collision reasoning as `CoBuyPool` above.
+    __tablename__ = "co_buy_deal_participants"
+
+    id: Mapped[str] = mapped_column(
+        String, primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    pool_id: Mapped[str] = mapped_column(String, index=True)
+    buyer_id: Mapped[str] = mapped_column(String, index=True)
+    quantity: Mapped[int] = mapped_column(Integer)
+    size: Mapped[str | None] = mapped_column(String, nullable=True)
+    color_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    color_hex: Mapped[str | None] = mapped_column(String, nullable=True)
+    joined_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+
+
 class SampleOrder(Base):
     __tablename__ = "sample_orders"
 

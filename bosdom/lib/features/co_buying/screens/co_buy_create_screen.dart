@@ -8,9 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/dotted_border_box.dart';
-import '../../auth/models/merchant_role.dart';
-import '../../profile/providers/profile_provider.dart';
-import '../../profile/providers/shop_profile_provider.dart';
+import '../models/co_buy_session.dart';
 import '../providers/co_buy_provider.dart';
 
 const _kMaxPhotos = 4;
@@ -37,7 +35,7 @@ enum _Duration {
   };
 }
 
-class CoBuyCreateScreen extends ConsumerStatefulWidget {
+class CoBuyCreateScreen extends ConsumerWidget {
   const CoBuyCreateScreen({super.key, this.editSessionId});
 
   /// When set, the form loads and edits this existing deal instead of
@@ -45,10 +43,37 @@ class CoBuyCreateScreen extends ConsumerStatefulWidget {
   final String? editSessionId;
 
   @override
-  ConsumerState<CoBuyCreateScreen> createState() => _CoBuyCreateScreenState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final editId = editSessionId;
+    if (editId == null) {
+      return const _CoBuyCreateForm();
+    }
+    final sessionAsync = ref.watch(coBuyPoolByIdProvider(editId));
+    return sessionAsync.when(
+      data: (session) =>
+          _CoBuyCreateForm(editSessionId: editId, initialSession: session),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (error, stackTrace) => Scaffold(
+        body: Center(
+          child: Text(AppLocalizations.of(context).coBuyDealsLoadError),
+        ),
+      ),
+    );
+  }
 }
 
-class _CoBuyCreateScreenState extends ConsumerState<CoBuyCreateScreen> {
+class _CoBuyCreateForm extends ConsumerStatefulWidget {
+  const _CoBuyCreateForm({this.editSessionId, this.initialSession});
+
+  final String? editSessionId;
+  final CoBuySession? initialSession;
+
+  @override
+  ConsumerState<_CoBuyCreateForm> createState() => _CoBuyCreateFormState();
+}
+
+class _CoBuyCreateFormState extends ConsumerState<_CoBuyCreateForm> {
   final _formKey = GlobalKey<FormState>();
   final _productNameController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -66,13 +91,13 @@ class _CoBuyCreateScreenState extends ConsumerState<CoBuyCreateScreen> {
   String? _existingCoverUrl;
 
   bool get _isEditing => widget.editSessionId != null;
+  String get _editSessionId => widget.editSessionId!;
 
   @override
   void initState() {
     super.initState();
-    final editId = widget.editSessionId;
-    if (editId == null) return;
-    final session = ref.read(coBuyProvider.notifier).byId(editId);
+    final session = widget.initialSession;
+    if (session == null) return;
     _productNameController.text = session.productName;
     _descriptionController.text = session.description;
     _priceController.text = session.price.toStringAsFixed(2);
@@ -85,9 +110,9 @@ class _CoBuyCreateScreenState extends ConsumerState<CoBuyCreateScreen> {
       orElse: () => _Duration.threeDays,
     );
     _autoRenew = session.autoRenew;
-    for (var i = 0; i < session.imagePaths.length && i < _kMaxPhotos; i++) {
-      _photos[i] = XFile(session.imagePaths[i]);
-    }
+    // Existing photos are shown via [_existingCoverUrl]/network image, not
+    // re-picked into [_photos] — only newly picked local files are uploaded
+    // on save, and the backend keeps the existing photos when none are sent.
     _existingCoverUrl = session.imageUrl;
   }
 
@@ -122,18 +147,18 @@ class _CoBuyCreateScreenState extends ConsumerState<CoBuyCreateScreen> {
     setState(() => _photos[index] = null);
   }
 
-  List<String> get _pickedImagePaths => [
+  List<File> get _pickedPhotoFiles => [
     for (final photo in _photos)
-      if (photo != null) photo.path,
+      if (photo != null) File(photo.path),
   ];
 
-  void _submit() {
+  Future<void> _submit() async {
     final l10n = AppLocalizations.of(context);
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     setState(() => _isSaving = true);
 
-    final imagePaths = _pickedImagePaths;
+    final photos = _pickedPhotoFiles;
     final productName = _productNameController.text.trim();
     final description = _descriptionController.text.trim();
     final unitLabel = _unitLabelController.text.trim();
@@ -142,68 +167,62 @@ class _CoBuyCreateScreenState extends ConsumerState<CoBuyCreateScreen> {
     final originalPrice = double.parse(_originalPriceController.text.trim());
     final price = double.parse(_priceController.text.trim());
 
-    if (_isEditing) {
-      ref
-          .read(coBuyProvider.notifier)
-          .update(
-            widget.editSessionId!,
-            productName: productName,
-            targetQty: targetQty,
-            unitLabel: unitLabel,
-            perUnitLabel: 'per $unitLabel',
-            minOrderQty: minOrderQty,
-            timeLeft: _duration.timeLeftText,
-            originalPrice: originalPrice,
-            price: price,
-            description: description,
-            autoRenew: _autoRenew,
-            imagePaths: imagePaths,
-          );
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.coBuyCreateUpdatedSnackbar)));
-    } else {
-      final profile = ref.read(profileProvider).value;
-      final shop = ref.read(shopProfileProvider).value;
-      final isSeller = profile?.role == MerchantRole.supplier.name;
-      final sellerName = shop?.shopName.trim().isNotEmpty == true
-          ? shop!.shopName
-          : (profile?.name.trim().isNotEmpty == true ? profile!.name : 'You');
-      final queryWords = productName
-          .toLowerCase()
-          .split(RegExp(r'\s+'))
-          .where((w) => w.isNotEmpty)
-          .take(2)
-          .join(',');
-
-      ref
-          .read(coBuyProvider.notifier)
-          .create(
-            productName: productName,
-            imageQuery: queryWords.isEmpty ? 'product' : queryWords,
-            icon: Icons.shopping_bag_rounded,
-            sellerName: sellerName,
-            sellerRating: 5.0,
-            sellerLocation: shop?.location.trim().isNotEmpty == true
-                ? shop!.location
-                : 'Cambodia',
-            sellerVerified: isSeller,
-            targetQty: targetQty,
-            unitLabel: unitLabel,
-            perUnitLabel: 'per $unitLabel',
-            minOrderQty: minOrderQty,
-            timeLeft: _duration.timeLeftText,
-            originalPrice: originalPrice,
-            price: price,
-            description: description,
-            autoRenew: _autoRenew,
-            imagePaths: imagePaths,
-          );
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.coBuyCreateCreatedSnackbar)));
+    try {
+      if (_isEditing) {
+        await ref
+            .read(coBuyProvider.notifier)
+            .updateDeal(
+              _editSessionId,
+              productName: productName,
+              targetQty: targetQty,
+              unitLabel: unitLabel,
+              perUnitLabel: 'per $unitLabel',
+              minOrderQty: minOrderQty,
+              timeLeft: _duration.timeLeftText,
+              originalPrice: originalPrice,
+              price: price,
+              description: description,
+              autoRenew: _autoRenew,
+              photos: photos,
+            );
+        if (!mounted) return;
+        ref.invalidate(coBuySellerPoolsProvider);
+        ref.invalidate(coBuyPoolByIdProvider(_editSessionId));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.coBuyCreateUpdatedSnackbar)),
+        );
+      } else {
+        await ref
+            .read(coBuyProvider.notifier)
+            .create(
+              productName: productName,
+              targetQty: targetQty,
+              unitLabel: unitLabel,
+              perUnitLabel: 'per $unitLabel',
+              minOrderQty: minOrderQty,
+              timeLeft: _duration.timeLeftText,
+              originalPrice: originalPrice,
+              price: price,
+              description: description,
+              autoRenew: _autoRenew,
+              photos: photos,
+            );
+        if (!mounted) return;
+        ref.invalidate(coBuySellerPoolsProvider);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.coBuyCreateCreatedSnackbar)),
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isSaving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.coBuyCreateSaveError)),
+      );
+      return;
     }
 
+    if (!mounted) return;
     context.pop();
   }
 

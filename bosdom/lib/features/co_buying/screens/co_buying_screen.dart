@@ -4,9 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
+import '../../marketplace/widgets/empty_products_notice.dart';
 import '../../wishlist/providers/wishlist_provider.dart';
 import '../models/co_buy_session.dart';
 import '../providers/co_buy_provider.dart';
+import '../services/co_buy_pool_service.dart';
 import '../widgets/co_buy_product_image.dart';
 
 class CoBuyingScreen extends ConsumerWidget {
@@ -16,7 +18,8 @@ class CoBuyingScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final sessions = ref.watch(coBuyProvider);
+    final l10n = AppLocalizations.of(context);
+    final sessionsAsync = ref.watch(coBuyProvider);
     final wishlistIds = ref.watch(wishlistProvider).value ?? const {};
 
     return Scaffold(
@@ -28,52 +31,92 @@ class CoBuyingScreen extends ConsumerWidget {
             child: SafeArea(
               top: false,
               bottom: false,
-              child: ListView(
-                padding: EdgeInsets.fromLTRB(
-                  24,
-                  20,
-                  24,
-                  8 + MediaQuery.of(context).padding.bottom,
-                ),
-                children: [
-                  _InfoBanner(colorScheme: colorScheme, textTheme: textTheme),
-                  const SizedBox(height: 24),
-                  _SectionHeader(
-                    count: sessions.length,
-                    colorScheme: colorScheme,
-                    textTheme: textTheme,
+              child: sessionsAsync.when(
+                data: (sessions) => ListView(
+                  padding: EdgeInsets.fromLTRB(
+                    24,
+                    20,
+                    24,
+                    8 + MediaQuery.of(context).padding.bottom,
                   ),
-                  const SizedBox(height: 14),
-                  for (var i = 0; i < sessions.length; i++) ...[
-                    _CoBuyCard(
-                      session: sessions[i],
+                  children: [
+                    _InfoBanner(colorScheme: colorScheme, textTheme: textTheme),
+                    const SizedBox(height: 24),
+                    _SectionHeader(
+                      count: sessions.length,
                       colorScheme: colorScheme,
                       textTheme: textTheme,
-                      isWishlisted: wishlistIds.contains(
-                        coBuyWishlistId(sessions[i].id),
-                      ),
-                      onShare: (shareContext) =>
-                          _shareSession(shareContext, sessions[i]),
-                      onToggleJoin: () => ref
-                          .read(coBuyProvider.notifier)
-                          .toggleJoin(sessions[i].id),
-                      onToggleWishlist: () => ref
-                          .read(wishlistProvider.notifier)
-                          .toggle(coBuyWishlistId(sessions[i].id)),
-                      onOpenDetail: () => context.pushNamed(
-                        'coBuyDetail',
-                        pathParameters: {'id': sessions[i].id},
-                      ),
                     ),
-                    if (i != sessions.length - 1) const SizedBox(height: 14),
+                    const SizedBox(height: 14),
+                    if (sessions.isEmpty)
+                      EmptyProductsNotice(
+                        colorScheme: colorScheme,
+                        textTheme: textTheme,
+                        message: l10n.coBuyingEmptyMessage,
+                      )
+                    else
+                      for (var i = 0; i < sessions.length; i++) ...[
+                        _CoBuyCard(
+                          session: sessions[i],
+                          colorScheme: colorScheme,
+                          textTheme: textTheme,
+                          isWishlisted: wishlistIds.contains(
+                            coBuyWishlistId(sessions[i].id),
+                          ),
+                          onShare: (shareContext) =>
+                              _shareSession(shareContext, sessions[i]),
+                          onToggleJoin: () =>
+                              _handleToggleJoin(context, ref, sessions[i]),
+                          onToggleWishlist: () => ref
+                              .read(wishlistProvider.notifier)
+                              .toggle(coBuyWishlistId(sessions[i].id)),
+                          onOpenDetail: () => context.pushNamed(
+                            'coBuyDetail',
+                            pathParameters: {'id': sessions[i].id},
+                          ),
+                        ),
+                        if (i != sessions.length - 1)
+                          const SizedBox(height: 14),
+                      ],
                   ],
-                ],
+                ),
+                loading: () =>
+                    const Center(child: CircularProgressIndicator()),
+                error: (error, stackTrace) => Center(
+                  child: EmptyProductsNotice(
+                    colorScheme: colorScheme,
+                    textTheme: textTheme,
+                    message: l10n.coBuyingLoadError,
+                    onRetry: () => ref.invalidate(coBuyProvider),
+                  ),
+                ),
               ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _handleToggleJoin(
+    BuildContext context,
+    WidgetRef ref,
+    CoBuySession session,
+  ) async {
+    try {
+      if (session.joined) {
+        await ref.read(coBuyProvider.notifier).leave(session.id);
+      } else {
+        await ref
+            .read(coBuyProvider.notifier)
+            .join(session.id, quantity: session.minOrderQty);
+      }
+    } on CoBuyJoinException catch (error) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
+    }
   }
 
   Future<void> _shareSession(BuildContext context, CoBuySession session) async {

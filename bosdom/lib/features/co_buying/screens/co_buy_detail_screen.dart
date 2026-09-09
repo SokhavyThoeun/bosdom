@@ -10,34 +10,87 @@ import '../../../shared/widgets/app_snack_bar.dart';
 import '../../../shared/widgets/full_screen_image_viewer.dart';
 import '../../../shared/widgets/variant_selector.dart';
 import '../../checkout/screens/checkout_screen.dart' show CheckoutLineItem;
+import '../../marketplace/widgets/empty_products_notice.dart';
 import '../../wishlist/providers/wishlist_provider.dart';
 import '../models/co_buy_session.dart';
 import '../providers/co_buy_provider.dart';
+import '../services/co_buy_pool_service.dart';
 import '../widgets/co_buy_product_image.dart';
 
-class CoBuyDetailScreen extends ConsumerStatefulWidget {
+class CoBuyDetailScreen extends ConsumerWidget {
   const CoBuyDetailScreen({super.key, required this.sessionId});
 
   final String sessionId;
 
   @override
-  ConsumerState<CoBuyDetailScreen> createState() => _CoBuyDetailScreenState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final sessionsAsync = ref.watch(coBuyProvider);
+    return sessionsAsync.when(
+      data: (sessions) {
+        CoBuySession? session;
+        for (final s in sessions) {
+          if (s.id == sessionId) {
+            session = s;
+            break;
+          }
+        }
+        if (session == null) {
+          final colorScheme = Theme.of(context).colorScheme;
+          final textTheme = Theme.of(context).textTheme;
+          return Scaffold(
+            body: Center(
+              child: EmptyProductsNotice(
+                colorScheme: colorScheme,
+                textTheme: textTheme,
+                message: AppLocalizations.of(context).coBuyingLoadError,
+              ),
+            ),
+          );
+        }
+        return _CoBuyDetailBody(session: session);
+      },
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (error, stackTrace) {
+        final colorScheme = Theme.of(context).colorScheme;
+        final textTheme = Theme.of(context).textTheme;
+        return Scaffold(
+          body: Center(
+            child: EmptyProductsNotice(
+              colorScheme: colorScheme,
+              textTheme: textTheme,
+              message: AppLocalizations.of(context).coBuyingLoadError,
+              onRetry: () => ref.invalidate(coBuyProvider),
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
 
-class _CoBuyDetailScreenState extends ConsumerState<CoBuyDetailScreen> {
+class _CoBuyDetailBody extends ConsumerStatefulWidget {
+  const _CoBuyDetailBody({required this.session});
+
+  final CoBuySession session;
+
+  @override
+  ConsumerState<_CoBuyDetailBody> createState() => _CoBuyDetailBodyState();
+}
+
+class _CoBuyDetailBodyState extends ConsumerState<_CoBuyDetailBody> {
   int? _quantity;
   String? _selectedSize;
   ProductColorOption? _selectedColor;
   bool _variantsInitialized = false;
+  bool _isSubmitting = false;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
-    final session = ref
-        .watch(coBuyProvider)
-        .firstWhere((s) => s.id == widget.sessionId);
+    final session = widget.session;
     final quantity = _quantity ??= session.minOrderQty;
     final subtotal = quantity * session.price;
     if (!_variantsInitialized) {
@@ -47,7 +100,7 @@ class _CoBuyDetailScreenState extends ConsumerState<CoBuyDetailScreen> {
           ? session.colorOptions.first
           : null;
     }
-    final wishlistId = coBuyWishlistId(widget.sessionId);
+    final wishlistId = coBuyWishlistId(session.id);
     final isFavorite = ref.watch(
       wishlistProvider.select(
         (ids) => ids.value?.contains(wishlistId) ?? false,
@@ -270,28 +323,11 @@ class _CoBuyDetailScreenState extends ConsumerState<CoBuyDetailScreen> {
                                 },
                               );
                             }
-                          : () {
-                              ref
-                                  .read(coBuyProvider.notifier)
-                                  .toggleJoin(session.id);
-                              // toggleJoin mutates the same session instance in place,
-                              // so `session.joined` already reflects the post-toggle state.
-                              final nowJoined = session.joined;
-                              showAppSnackBar(
-                                context,
-                                type: nowJoined
-                                    ? AppSnackBarType.success
-                                    : AppSnackBarType.info,
-                                message: nowJoined
-                                    ? l10n.coBuyDetailJoinedSnackbar(
-                                        session.productName,
-                                        '\$${subtotal.toStringAsFixed(2)}',
-                                      )
-                                    : l10n.coBuyDetailLeftSnackbar(
-                                        session.productName,
-                                      ),
-                              );
-                            },
+                          : () => _handleToggleJoin(
+                              session: session,
+                              quantity: quantity,
+                              subtotal: subtotal,
+                            ),
                     ),
                   ),
                 ),
@@ -301,6 +337,50 @@ class _CoBuyDetailScreenState extends ConsumerState<CoBuyDetailScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _handleToggleJoin({
+    required CoBuySession session,
+    required int quantity,
+    required double subtotal,
+  }) async {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    final l10n = AppLocalizations.of(context);
+    try {
+      if (session.joined) {
+        await ref.read(coBuyProvider.notifier).leave(session.id);
+        if (!mounted) return;
+        showAppSnackBar(
+          context,
+          type: AppSnackBarType.info,
+          message: l10n.coBuyDetailLeftSnackbar(session.productName),
+        );
+      } else {
+        await ref
+            .read(coBuyProvider.notifier)
+            .join(
+              session.id,
+              quantity: quantity,
+              size: _selectedSize,
+              color: _selectedColor,
+            );
+        if (!mounted) return;
+        showAppSnackBar(
+          context,
+          type: AppSnackBarType.success,
+          message: l10n.coBuyDetailJoinedSnackbar(
+            session.productName,
+            '\$${subtotal.toStringAsFixed(2)}',
+          ),
+        );
+      }
+    } on CoBuyJoinException catch (error) {
+      if (!mounted) return;
+      showAppSnackBar(context, type: AppSnackBarType.error, message: error.message);
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 }
 

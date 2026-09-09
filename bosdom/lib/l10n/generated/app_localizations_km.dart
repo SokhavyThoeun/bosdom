@@ -1034,6 +1034,18 @@ class AppLocalizationsKm extends AppLocalizations {
   }
 
   @override
+  String get coBuyingLoadError =>
+      'មិនអាចផ្ទុកកិច្ចព្រមព្រៀងទិញរួមបានទេ។ ចុចដើម្បីព្យាយាមម្តងទៀត។';
+
+  @override
+  String get coBuyingEmptyMessage =>
+      'មិនទាន់មានកិច្ចព្រមព្រៀងទិញរួមនៅឡើយទេ។ សូមពិនិត្យមើលម្តងទៀតឆាប់ៗនេះ!';
+
+  @override
+  String get coBuyDealsLoadError =>
+      'មិនអាចផ្ទុកកិច្ចព្រមព្រៀងទិញរួមរបស់អ្នកបានទេ។ ចុចដើម្បីព្យាយាមម្តងទៀត។';
+
+  @override
   String get coBuyCreateScreenTitle => 'បង្កើតការទិញរួម';
 
   @override
@@ -1128,6 +1140,10 @@ class AppLocalizationsKm extends AppLocalizations {
   @override
   String get coBuyCreateUpdatedSnackbar =>
       'បានធ្វើបច្ចុប្បន្នភាពកិច្ចព្រមព្រៀងទិញរួម';
+
+  @override
+  String get coBuyCreateSaveError =>
+      'មិនអាចរក្សាទុកកិច្ចព្រមព្រៀងទិញរួមនេះបានទេ។ សូមព្យាយាមម្តងទៀត។';
 
   @override
   String get coBuyCreateProductInfoSectionTitle => 'ព័ត៌មានផលិតផល';
