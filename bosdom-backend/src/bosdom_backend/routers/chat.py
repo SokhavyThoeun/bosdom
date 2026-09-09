@@ -16,7 +16,7 @@ _AUTO_REPLY = (
 )
 
 _SUPPORT_AUTO_REPLY = (
-    "Thanks for reaching out — a BosDom support agent will review your "
+    "Thanks for reaching out. A BosDom support agent will review your "
     "message and reply here shortly."
 )
 

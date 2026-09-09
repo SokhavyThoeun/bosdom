@@ -89,7 +89,7 @@ def _seed() -> list[Notification]:
             35,
             "co_buy",
             "Co-buy target reached",
-            "Fish Sauce 12-pack hit its group buy target — checkout closes soon.",
+            "Fish Sauce 12-pack hit its group buy target. Checkout closes soon.",
             NotificationTarget(
                 route="coBuyDetail", params={"id": "fish-sauce-12pack"}
             ),
@@ -119,7 +119,7 @@ def _seed() -> list[Notification]:
             1440,
             "co_buy",
             "New retailer joined your co-buy",
-            "A retailer joined your Palm Sugar 10kg group buy — 25/25 reached.",
+            "A retailer joined your Palm Sugar 10kg group buy: 25/25 reached.",
             NotificationTarget(route="coBuyDetail", params={"id": "palm-sugar-10kg"}),
             read=True,
         ),

@@ -145,7 +145,7 @@ def toggle_join(session_id: str) -> CoBuySessionOut:
             push_notification(
                 category="co_buy",
                 title="Co-buy target reached",
-                body=f"{session.product_name} hit its group buy target — checkout closes soon.",
+                body=f"{session.product_name} hit its group buy target. Checkout closes soon.",
                 target=NotificationTarget(
                     route="coBuyDetail", params={"id": session.id}
                 ),

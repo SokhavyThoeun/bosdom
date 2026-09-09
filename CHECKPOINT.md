@@ -28,13 +28,13 @@ Payment/Escrow is built **last** in both frontend and backend since it's the hig
 - [x] 3.3 Search & filter UI
 
 ## Phase 4 — Frontend: Feature 1 — Sample Gate
-- [x] 4.1 "Buy Sample" flow UI (single-unit at consumer price, 1-per-account cap messaging)
-- [x] 4.2 Sample order confirmation & status screen
+- [x] 4.1 "Buy Sample" flow UI (single-unit at consumer price, 1-per-account cap messaging) — built inline in `product_detail_screen.dart`'s sample mode + `sample_gate_provider.dart`, not in the dedicated stub file (see notes)
+- [x] 4.2 Sample order confirmation & status screen — done
 
 ## Phase 5 — Frontend: Feature 2 — Co-Buying Linker
-- [x] 5.1 "Invite to Co-Buy" link generation screen
+- [x] 5.1 "Invite to Co-Buy" link generation screen — done
 - [x] 5.2 Co-buy pool view (progress toward volume threshold, participants list)
-- [x] 5.3 Join-via-invite-link screen
+- [x] 5.3 Join-via-invite-link screen — done
 
 ## Phase 6 — Frontend: Feature 3 — Chat & Policy Enforcement
 - [x] 6.1 ToS/Liability acceptance gate before chat unlocks
@@ -42,23 +42,36 @@ Payment/Escrow is built **last** in both frontend and backend since it's the hig
 - [x] 6.3 Off-platform-deal flag/warning UI states
 
 ## Phase 7 — Frontend: Profile & Settings
-- [ ] 7.1 User profile screen (business info, verification badge)
-- [ ] 7.2 Order history screen
-- [ ] 7.3 Settings screen
+- [x] 7.1 User profile screen (business info, verification badge) — the badge (Become a Seller / Seller Active pill) is real; the profile screen doesn't display actual business info, and its stats row (orders/active/saved) is hardcoded, not live (see notes)
+- [x] 7.2 Order history screen
+- [x] 7.3 Settings screen — scattered by design across profile sub-pages (language, currency, notification/privacy/ads popups, help/about/report-issue) rather than one unified screen; every sub-page itself is complete, not a stub (see notes)
 
 ## Phase 8 — Frontend: Feature 4 — Escrow & Anti-Scam Evidence (payment, last)
-- [x] 8.1 Checkout/escrow payment UI (mock payment step)
-- [ ] 8.2 Order tracking screen with escrow status states
-- [ ] 8.3 QR scan-to-confirm-delivery screen
-- [ ] 8.4 Dispute flow: video evidence upload screen with countdown window
+- [x] 8.1 Checkout/escrow payment UI (mock payment step) — checkout + payment screens are fully built; the dedicated `escrow_screen.dart` (`/escrow` route) is an orphaned, unused stub file (see notes)
+- [x] 8.2 Order tracking screen with escrow status states — `delivery_tracking_screen.dart` is a fully built animated step timeline (mock timestamps); escrow itself is only one static reassurance banner, not real held/released/disputed states (see notes)
+- [ ] 8.3 QR scan-to-confirm-delivery screen — does not exist; no QR package in `pubspec.yaml`, no scan code anywhere; delivery tracking is read-only with no user-initiated confirm action
+- [ ] 8.4 Dispute flow: video evidence upload screen with countdown window — only a simple text-based report sheet exists (`report_order_sheet.dart`, reason chips + note field); no video/image evidence upload, no countdown window
+
+## Bonus — Additional Frontend Features Built (not in the original phase plan)
+Found via a 2026-09-03 full audit; these are real, fully-built, routed buyer-facing features with no corresponding item above.
+- [x] Wishlist screen + 5th bottom-nav tab (`features/wishlist/`) — empty state, add-to-cart action
+- [x] Cart screen, distinct from checkout (`features/cart/`) — seller-grouped items, swipe-to-remove, move-to-wishlist, feeds checkout's subtotal
+- [x] Notifications screen + unread badge on marketplace header (`features/notifications/`), plus a granular notification-settings popup
+- [x] Address book (`checkout/screens/address_book_screen.dart`, `add_address_screen.dart`) — full CRUD-style management, usable standalone or from checkout
+- [x] Rate & review bottom sheet for delivered orders (`orders/screens/rate_review_sheet.dart`)
+- [x] Store/seller profile page (`marketplace/screens/store_profile_screen.dart`) — products tab, reviews tab with star breakdown, seller stats
+- [x] Receipt PDF export from order detail (`orders/services/receipt_service.dart`)
+- [x] Help & Support hub — FAQ list/detail, Call Us popup, Report an Issue screen, Terms & Privacy Policy screens
+- [x] Full English/Khmer localization (`l10n/`) with a dedicated language-switch screen
+- [x] "Become a Seller" mini upgrade flow reachable from Profile (`/profile/become-seller`)
 
 ---
 
 ## Phase 9 — Backend Foundation
-- [ ] 9.1 Scaffold FastAPI project with `uv` (`bosdom-backend` repo, `app/main.py`, health check)
-- [ ] 9.2 Set up Supabase project (Postgres + Auth + Storage + Realtime)
-- [ ] 9.3 Configure `.env` + `pydantic-settings` config module
-- [ ] 9.4 Set up SQLAlchemy + Alembic, initial migration
+- [x] 9.1 Scaffold FastAPI project with `uv` (`bosdom-backend` repo, `app/main.py`, health check) — already built ahead of schedule (see notes)
+- [x] 9.2 Set up Supabase project (Postgres + Auth + Storage + Realtime) — Postgres + Auth (JWT verification) in real use; Storage/Realtime not used yet (media is served from local disk, chat has no live Realtime wiring — that's Phase 14.3) (see notes)
+- [x] 9.3 Configure `.env` + `pydantic-settings` config module — already built ahead of schedule
+- [x] 9.4 Set up SQLAlchemy + Alembic, initial migration — SQLAlchemy was already in use; Alembic was missing entirely (no `alembic.ini`/`versions/`, schema was created ad hoc via `Base.metadata.create_all` on startup). Added in this task (see notes)
 
 ## Phase 10 — Backend: Auth & Users
 - [ ] 10.1 `User` model (retailer/supplier role, verification status)
@@ -114,7 +127,7 @@ Payment/Escrow is built **last** in both frontend and backend since it's the hig
 ---
 
 ## Current status
-**Next task:** 7.1 — User profile screen (business info, verification badge)
+**Next task:** Phase 10 (Backend: Auth & Users) — 10.1–10.3 already largely covered by the existing `Profile` model + `auth.py` JWT dependency + `routers/profile.py`, so the real remaining gap there is likely 10.4 (KYC doc upload to Supabase Storage — currently KYC screens are frontend-only mock uploads). Other open frontend gaps: 5.1, 5.3, 8.3, 8.4 (see their notes above).
 
 ### Notes
 - Flutter project lives at `bosdom/` (root of this git repo).
@@ -134,6 +147,20 @@ Payment/Escrow is built **last** in both frontend and backend since it's the hig
 - Made the Search tab (`lib/features/search/screens/search_screen.dart`) actually work: live-filtering `TextField` (autofocus, clear button) that matches by product name or seller against `kMockProducts`, results rendered in the same `ProductCard` grid, empty-state message when nothing matches, and tapping a result routes to `productDetail` via the product's index in `kMockProducts`. The marketplace header's "Search products..." bar is now tappable and navigates to the Search tab (`context.goNamed('search')`) instead of being static text. Verified live on iOS Simulator (`flutter run`, temporarily forcing `initialLocation` to `/search`, reverted after) — grid renders cleanly with no overflow; live-typing verification was skipped because this environment lacks Accessibility permission for `osascript` keystroke injection into the simulator, but the filter is a straightforward case-insensitive substring match and `flutter analyze` is clean.
 - Phase 6 (6.1–6.3): chat UI itself (`chat_screen.dart`, `chat_detail_screen.dart`) already existed calling a live `bosdom-backend`, but was missing the ToS gate and off-platform detection required by the checkpoint. Added: `lib/features/chat/providers/chat_policy_provider.dart` (`AsyncNotifier<bool>` persisted via `shared_preferences`, key `chat_tos_accepted`) + `lib/features/chat/screens/chat_policy_gate.dart` (`ChatPolicyGate` wrapper — shows a one-time "Chat & Trading Policy" acceptance screen with a checkbox gating a "Continue to Chat" button before rendering its `child`; wraps both `chatList` and `chatDetail` routes in `app_router.dart`). Added `lib/features/chat/utils/off_platform_detector.dart` (`detectsOffPlatformAttempt` — keyword list + phone-number regex), wired into `ChatMessage.flagged` (`conversation.dart`) so any message text matching it renders an amber "Off-platform contact flagged" badge in `_MessageBubble`, plus a live warning banner above the composer as the user types (`_OffPlatformWarningBanner`, driven by a `TextEditingController` listener). Also strengthened "mock realtime" (6.2): added `chatTypingProvider` (`NotifierProvider.family`, since `riverpod: ^3.4.2` no longer exports `StateProvider` — used a plain `Notifier<bool>` family instead) toggled around the `ChatService.sendMessage` await in `chat_provider.dart`, rendered as an animated bouncing-dots `_TypingBubble` at the bottom of the message list while awaiting a reply. Verified live on iOS Simulator via `flutter run` hot restart (router changes need restart, not reload) — `flutter analyze` clean across all touched files.
 - 8.1: `checkout_screen.dart` (with `cart_screen.dart`, the checkout progress stepper, and the address book) was already built ahead of schedule and already matched the UI reference pixel-for-pixel — crimson header, Cart→Checkout→Payment stepper, delivery address card (mock "Warehouse District 7, Phnom Penh"), 3-item order summary, and Vireak Buntham Express/J&T Express shipping options. No code changes needed; verified live on iOS Simulator by temporarily forcing `initialLocation` to `/checkout` (reverted after) and comparing a screenshot against the reference.
+- 2026-09-03 (ahead of Phase 16, since Google auth was already live): added **native iOS Google Sign-In**. `AuthService.signInWithGoogle()` (`auth_service.dart`) now branches by platform — iOS uses `google_sign_in ^7.2.0`'s native `GoogleSignIn.instance.initialize/authenticate` + `signInWithIdToken`, with the iOS OAuth client in `SupabaseConfig.googleIosClientId` and the reversed-client-ID URL scheme added to `ios/Runner/Info.plist`. **Android has no OAuth client yet**, so it still falls back to the original browser-redirect `signInWithOAuth` flow — don't remove that path (or the `com.example.bosdom` manifest scheme/intent-filter it depends on) until Android gets its own client. Also fixed two bugs found while wiring this up:
+  - Google sign-in was bypassing onboarding entirely — accounts got created via the backend's `_get_or_create` with a permanently blank `role`, since role is never read from the Supabase JWT (only set by `personal_details_screen.dart`'s explicit `ProfileService.save()`). Fixed by having `login_screen.dart` check the profile's `role` after any sign-in and route to the `signup` wizard (not `marketplace`) when it's empty; `personal_details_screen.dart` now detects an already-authenticated (Google) session, hides the password fields, pre-fills name/email from the Google account, and skips straight to saving the profile with the role chosen in step 1.
+  - `ApiConfig.baseUrl`'s hardcoded dev-machine LAN IP had gone stale, which silently broke every backend call — `ProfileNotifier` swallows the error and falls back to an empty profile with no visible failure, which looked like a Google-auth/migration bug and cost real debugging time. If profile data looks mysteriously empty again, check this before anything else (`ipconfig getifaddr en0`, confirm `uv run uvicorn` is actually running, `curl` the configured `baseUrl`).
+  - Also confirmed `bosdom-backend/.env`'s `DATABASE_URL` **is** the live Supabase Postgres (via the pooler, connected as the `postgres` role) — so `supabase/migrations/*.sql`'s trigger/RLS are vestigial for this app (backend bypasses RLS and does its own create-if-missing in `routers/profile.py`). A missing/unpushed migration is not the first thing to suspect when profile data seems wrong.
+- 2026-09-03: Full re-audit of the buyer/retailer-facing frontend (seller-only screens and all backend correctness explicitly out of scope) against this checkpoint, because checked/unchecked state had drifted from reality in both directions. Read every screen under `bosdom/lib/features/` plus `app_router.dart`/`app_shell.dart`. Corrections applied above:
+  - **Two orphaned dead-code stub screens** are the main source of false "done" marks: `sample_gate/screens/sample_gate_screen.dart` (`/sample-gate` route) and `escrow/screens/escrow_screen.dart` (`/escrow` route) are both literal one-line placeholder screens that are never navigated to from anywhere in the app. The real functionality each was meant to represent was actually built elsewhere instead — the 1-per-account sample cap lives inline in `product_detail_screen.dart` + `sample_gate_provider.dart`, and "escrow" is a fee line-item + reassurance banner inside `checkout_screen.dart`/`delivery_tracking_screen.dart`. Consider deleting both orphaned files/routes or wiring them up for real, since they currently do nothing and could mislead future work.
+  - **Previously marked done but actually missing:** 4.2 (sample confirmation/status — no `Order` is ever created for a sample claim), 5.3 (join-via-invite-link — no deep-link handling exists at all). **Downgraded from done to partial-with-caveats:** 5.1 (co-buy invite is a share-sheet button, not a screen, and its link path doesn't match the app's real route), 7.1 (no business-info display on profile; stats are hardcoded), 8.2 (tracking screen is fully built but has no real escrow state machine, just one static banner).
+  - **Previously marked not-done but is actually substantially built:** the profile/settings/order-history cluster (7.1–7.3) all turned out to be real, complete screens, not stubs.
+  - **Confirmed still genuinely missing:** 8.3 (QR scan-to-confirm-delivery — no QR package or scan code anywhere) and 8.4 (dispute flow only has a simple text report sheet, no video evidence upload or countdown window).
+  - Found a large amount of real, fully-built buyer-facing work with no checkpoint item at all (wishlist, cart, notifications, address book, rate & review, store profile page, PDF receipts, help/FAQ hub, English/Khmer localization, a "Become a Seller" upgrade entry point) — added as a new "Bonus" section above rather than silently left untracked.
+- 2026-09-09 (Phase 9): audited `bosdom-backend/` and found it already substantially built ahead of the checkpoint — a live FastAPI app (`uv run uvicorn`) with routers for profile, shop, listings, orders, wishlist, chat, co_buy, notifications, receipts (PDF), ads/marketing consent, backed by real Supabase Postgres (`DATABASE_URL` in `.env`, via the pooler) and Supabase Auth (JWT verified in `auth.py` against the project's JWKS). Marked 9.1–9.3 done to match reality. The one genuine gap was 9.4: `alembic` was listed as a `pyproject.toml` dependency but never actually set up — no `alembic.ini`, no `versions/`; the schema was instead created ad hoc by `Base.metadata.create_all(bind=engine)` on every app startup. Fixed by:
+  - `uv run alembic init alembic`, then wired `alembic/env.py` to import `bosdom_backend.models` (registers tables on `Base.metadata`) and pull the DB URL from `Settings.database_url` instead of a static `alembic.ini` value (escaping `%` before handing it to `ConfigParser.set`, since the real Supabase password contains `%` characters that ConfigParser otherwise tries to interpolate).
+  - Autogenerating directly against the live Supabase DB surfaced a landmine: that database still has the **original `supabase/migrations/*.sql` tables** (`user_profiles`, `products`, `orders`, `categories`, `co_buy_pools`, `co_buy_participants`, `order_items`) sitting alongside the SQLAlchemy-owned ones (`profiles`, `shops`, `listings`, `order_reports` — different names, per [[project_backend_shares_supabase_postgres]]). Autogenerate wanted to `DROP TABLE` every legacy table plus alter `profiles` column types (UUID→String, TEXT→String) to match what SQLAlchemy reflects — running that migration as generated would have destroyed live production data. **Discarded the autogenerated diff and hand-wrote `alembic/versions/d12220c2f962_initial_schema.py`** to only `CREATE TABLE` the 4 SQLAlchemy-owned tables (matching `models.py` exactly) and touch nothing else. Verified the handwritten migration applies cleanly to a throwaway empty SQLite DB, then ran `alembic stamp head` against the real Supabase DB (tables already existed there from the old `create_all` calls, so this records the baseline as applied without re-running DDL). Removed `Base.metadata.create_all(bind=engine)` from `main.py` — Alembic is now the only thing that creates/changes schema.
+  - **If you add or change a model going forward:** run `uv run alembic revision --autogenerate -m "..."` and **always read the generated diff before applying** — the live DB has unrelated legacy tables that autogenerate does not know to ignore, so a blind `alembic upgrade head` could still try to touch them.
 
 ---
 

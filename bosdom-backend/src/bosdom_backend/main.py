@@ -4,20 +4,19 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from .db import Base, engine
 from .routers import (
     ads_consent,
     chat,
     co_buy,
+    listings,
     marketing_consent,
     notifications,
     orders,
     profile,
     receipts,
+    shop,
     wishlist,
 )
-
-Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Bosdom Backend")
 
@@ -37,6 +36,8 @@ app.include_router(notifications.router)
 app.include_router(ads_consent.router)
 app.include_router(marketing_consent.router)
 app.include_router(profile.router)
+app.include_router(shop.router)
+app.include_router(listings.router)
 
 _media_dir = Path(__file__).resolve().parent / "media"
 _media_dir.mkdir(exist_ok=True)

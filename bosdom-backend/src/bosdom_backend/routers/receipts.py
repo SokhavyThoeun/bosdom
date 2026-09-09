@@ -29,6 +29,7 @@ class ReceiptRequest(BaseModel):
     delivery_method: str = "Standard Delivery"
     subtotal: float
     discount: float = 0
+    discount_label: str = "Wholesale Discount"
     shipping_fee: float = 0
     shipping_fee_label: str = "Free"
     total: float = Field(gt=0)
@@ -133,7 +134,7 @@ def _build_receipt_pdf(receipt: ReceiptRequest) -> bytes:
     pdf.cell(34, 6, f"${receipt.subtotal:,.2f}", align="R", new_x="LMARGIN", new_y="NEXT")
 
     if receipt.discount > 0:
-        pdf.cell(content_w - 34, 6, "Wholesale Discount", new_x="RIGHT", new_y="TOP")
+        pdf.cell(content_w - 34, 6, receipt.discount_label, new_x="RIGHT", new_y="TOP")
         pdf.cell(
             34,
             6,
