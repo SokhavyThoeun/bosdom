@@ -115,6 +115,49 @@ class SampleOrder(Base):
     )
 
 
+class Order(Base):
+    # Table is `escrow_orders`, not `orders` — the live DB already has a
+    # legacy, unrelated `orders` table from `supabase/migrations/*.sql` that
+    # this backend doesn't own (see the Phase 9/10 migration notes).
+    __tablename__ = "escrow_orders"
+
+    id: Mapped[str] = mapped_column(
+        String, primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    buyer_id: Mapped[str] = mapped_column(String, index=True)
+    seller_id: Mapped[str] = mapped_column(String, index=True)
+    listing_id: Mapped[str] = mapped_column(String, index=True)
+    product_name: Mapped[str] = mapped_column(String)
+    unit_price: Mapped[float] = mapped_column(Float)
+    quantity: Mapped[int] = mapped_column(Integer)
+    total_amount: Mapped[float] = mapped_column(Float)
+    shipping_name: Mapped[str] = mapped_column(String, default="")
+    shipping_address: Mapped[str] = mapped_column(String, default="")
+    shipping_phone: Mapped[str] = mapped_column(String, default="")
+    # Escrow state machine: pending_payment -> held -> released
+    #                                       \-> cancelled   held -> disputed -> released/refunded
+    status: Mapped[str] = mapped_column(String, default="pending_payment")
+    payment_method: Mapped[str | None] = mapped_column(String, nullable=True)
+    payment_reference: Mapped[str | None] = mapped_column(String, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+    paid_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    released_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    cancelled_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+
 class Conversation(Base):
     __tablename__ = "conversations"
 
