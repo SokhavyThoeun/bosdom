@@ -103,7 +103,7 @@ Found via a 2026-09-03 full audit; these are real, fully-built, routed buyer-fac
 ## Phase 15 — Backend: Feature 4 — Escrow & Anti-Scam (payment, last)
 - [x] 15.1 `Order` model with escrow status state machine
 - [x] 15.2 Payment gateway integration (Bakong/Stripe) — hold funds in escrow — reinterpreted as a **mock** gateway (no real Stripe/Bakong call), see notes
-- [ ] 15.3 QR generation + QR scan confirm-delivery endpoint
+- [x] 15.3 QR generation + QR scan confirm-delivery endpoint
 - [ ] 15.4 Dispute model + video evidence upload endpoint (Supabase Storage) with time-window enforcement
 - [ ] 15.5 Refund release logic
 
@@ -127,7 +127,7 @@ Found via a 2026-09-03 full audit; these are real, fully-built, routed buyer-fac
 ---
 
 ## Current status
-**Next task:** Phase 15.3 (QR generation + QR scan confirm-delivery endpoint), continuing Phase 15 (Backend: Feature 4 — Escrow & Anti-Scam, payment, last). 15.1/15.2 are done. Phase 13 is checked off but not actually built — deferred at the user's request, see the 2026-09-09 note below. Other open frontend gaps: 5.1, 5.3, 8.3, 8.4 (see their notes above).
+**Next task:** Phase 15.4 (Dispute model + video evidence upload endpoint with time-window enforcement), continuing Phase 15 (Backend: Feature 4 — Escrow & Anti-Scam, payment, last). 15.1/15.2/15.3 are done. Phase 13 is checked off but not actually built — deferred at the user's request, see the 2026-09-09 note below. Other open frontend gaps: 5.1, 5.3, 8.3, 8.4 (see their notes above).
 
 ### Notes
 - Flutter project lives at `bosdom/` (root of this git repo).
@@ -226,6 +226,13 @@ Found via a 2026-09-03 full audit; these are real, fully-built, routed buyer-fac
   - New migration `supabase/migrations/20260909250000_escrow_orders.sql` (`create table if not exists`, three indexes), pushed live via `supabase db push --linked`.
   - Verified against an in-memory SQLite `TestClient` harness (`StaticPool`) covering: order creation/total computation, non-participant 404 vs participant 200, buyer-only enforcement on pay/release/cancel (403 for others), the mock pay setting `payment_reference`/`paid_at` and moving to `held`, rejecting an unsupported payment method (400), rejecting a double-pay and a cancel-after-paid (both 409 — state machine enforcement), a full cancel and a full release lifecycle with their timestamp fields set, and `GET /orders/me`/`GET /orders/me/selling` returning the right counts. All 22 assertions passed; script discarded after passing, not committed, matching the 11.3/12/14 precedent.
   - Not done: no frontend wiring — `payment_screen.dart`'s mock flow still creates a purely local `Order` (`orders/models/order.dart`, a different, frontend-only model) and never calls this backend. That's Phase 16 (Integration) territory, and will need reconciling the frontend's own `OrderStatus` enum (processing/shipped/delivered/cancelled — a *delivery* status) with this backend's *escrow* status (pending_payment/held/released/disputed/refunded/cancelled) — they answer different questions and an order will likely need both, not a merged enum.
+- 2026-09-09 (Phase 15.3): added QR generation + QR scan confirm-delivery to `routers/orders.py`, replacing the manual-only `.../release` tap (that endpoint is kept as a fallback) with a flow where the seller shows a QR at handoff and the buyer scans it to release escrow — proof of a physical handoff rather than a bare self-reported tap.
+  - `Order.delivery_confirmation_code` (`models.py`) — a random 8-char code assigned lazily (`_ensure_delivery_code`) the first time a QR is requested, rather than at order creation, so orders created before this column existed still work without a data backfill.
+  - `GET /orders/{id}/qr` — participant-only (buyer or seller, matching the existing ownership-hiding pattern), 409s unless the order is `held` (nothing to confirm before payment or after release/cancel). Returns a PNG (`qrcode` + Pillow, new dependency) encoding `bosdom://orders/{id}/confirm-delivery?code=...` — reuses the `bosdom://` custom-scheme convention from the 5.3 deep-link work, though the frontend doesn't parse this particular path yet (Phase 16 territory).
+  - `POST /orders/{id}/confirm-delivery` (body `{code}`) — buyer-only like `.../release`, 409s unless `held`, 400s on a wrong/missing code (case-insensitive compare), otherwise drives the same `held → released` transition as the manual release endpoint and sets `released_at` identically — deliberately not a separate state, since "released via QR" vs "released manually" isn't a distinction the checkpoint or the state machine asked for.
+  - New migration `supabase/migrations/20260909260000_order_delivery_confirmation_code.sql` (`alter table ... add column if not exists`), pushed live via `supabase db push --linked`.
+  - Verified against an in-memory SQLite `TestClient` harness (`StaticPool`) covering: QR/confirm both 409ing before payment, a participant (including the seller, not just the buyer) fetching the QR successfully once `held`, a non-participant 404ing, the seller being blocked from confirming (403, buyer-only), a wrong code 400ing, the right code (lowercased, proving case-insensitivity) releasing the order, and both QR and confirm 409ing again once already `released`. All 11 assertions passed; script discarded after passing, not committed, matching the 11.3/12/14/15.1 precedent.
+  - Not done: no frontend wiring — nothing in the Flutter app calls `GET /orders/{id}/qr` or scans a code yet (no QR-scanning package in `pubspec.yaml` either, same gap 8.3 already flagged on the frontend side). That's Phase 16 (16.7) territory.
 - 2026-09-09 (later same day): **Phase 13 (13.1–13.4) checked off at the user's explicit request without actually being built** — no `CoBuyPool`/`CoBuyParticipant` models, no create-pool/join/threshold endpoints exist in `bosdom-backend`. Deferred on purpose, to revisit later; don't trust the checkboxes here as a signal that this backend work is done — this note is the source of truth until it's picked back up. `bosdom-backend`'s co_buy-related pieces today are still whatever existed before this phase (frontend runs entirely on `co_buy_provider.dart`'s mock `CoBuySession` list, see the 2026-09-09 deep-link note above).
 
 ---

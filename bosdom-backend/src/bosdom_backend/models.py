@@ -139,6 +139,10 @@ class Order(Base):
     status: Mapped[str] = mapped_column(String, default="pending_payment")
     payment_method: Mapped[str | None] = mapped_column(String, nullable=True)
     payment_reference: Mapped[str | None] = mapped_column(String, nullable=True)
+    # Random code embedded in the QR the seller shows at handoff (15.3) — the
+    # buyer scans it to confirm delivery, which is what actually releases
+    # escrow, instead of trusting a bare "I got it" tap.
+    delivery_confirmation_code: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )

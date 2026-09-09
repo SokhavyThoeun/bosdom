@@ -1,7 +1,9 @@
+import io
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+import qrcode
+from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -45,6 +47,16 @@ def _transition(order: Order, new_status: str) -> None:
             detail=f"Cannot move order from '{order.status}' to '{new_status}'",
         )
     order.status = new_status
+
+
+def _ensure_delivery_code(order: Order, db: Session) -> str:
+    """Lazily assigns a delivery-confirmation code to orders that predate
+    this column (15.3) instead of requiring a backfill migration."""
+    if not order.delivery_confirmation_code:
+        order.delivery_confirmation_code = uuid.uuid4().hex[:8].upper()
+        db.commit()
+        db.refresh(order)
+    return order.delivery_confirmation_code
 
 
 def _get_participant_order(db: Session, order_id: str, user_id: str) -> Order:
@@ -187,12 +199,72 @@ def release_order(
     user: CurrentUser = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> Order:
-    """Buyer-confirmed release of held funds to the seller. Manual for now —
-    Phase 15.3's QR scan-to-confirm-delivery endpoint will drive this same
-    transition automatically instead of requiring a manual tap."""
+    """Buyer-confirmed release of held funds to the seller — a manual
+    fallback for when scanning isn't possible. `POST .../confirm-delivery`
+    (15.3) drives this same transition automatically off a QR scan instead."""
     order = _get_participant_order(db, order_id, user.id)
     if user.id != order.buyer_id:
         raise HTTPException(status_code=403, detail="Only the buyer can release this order")
+
+    _transition(order, STATUS_RELEASED)
+    order.released_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(order)
+    return order
+
+
+@router.get("/{order_id}/qr")
+def get_delivery_qr(
+    order_id: str,
+    user: CurrentUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> Response:
+    """PNG QR code the seller shows at handoff; the buyer scans it in-app to
+    confirm delivery (`POST .../confirm-delivery`). Only meaningful once
+    funds are actually held — an unpaid or already-settled order has nothing
+    to confirm."""
+    order = _get_participant_order(db, order_id, user.id)
+    if order.status != STATUS_HELD:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Order must be '{STATUS_HELD}' to generate a delivery QR code",
+        )
+
+    code = _ensure_delivery_code(order, db)
+    payload = f"bosdom://orders/{order.id}/confirm-delivery?code={code}"
+
+    image = qrcode.make(payload)
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG")
+    return Response(content=buffer.getvalue(), media_type="image/png")
+
+
+class ConfirmDeliveryRequest(BaseModel):
+    code: str
+
+
+@router.post("/{order_id}/confirm-delivery", response_model=OrderOut)
+def confirm_delivery(
+    order_id: str,
+    payload: ConfirmDeliveryRequest,
+    user: CurrentUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> Order:
+    """Buyer scans the seller's QR (`GET .../qr`) to confirm delivery, which
+    releases escrow the same way a manual `.../release` tap would — proof of
+    a physical handoff rather than a bare self-reported tap."""
+    order = _get_participant_order(db, order_id, user.id)
+    if user.id != order.buyer_id:
+        raise HTTPException(
+            status_code=403, detail="Only the buyer can confirm delivery for this order"
+        )
+    if order.status != STATUS_HELD:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Order must be '{STATUS_HELD}' to confirm delivery",
+        )
+    if not order.delivery_confirmation_code or payload.code.strip().upper() != order.delivery_confirmation_code:
+        raise HTTPException(status_code=400, detail="Invalid delivery confirmation code")
 
     _transition(order, STATUS_RELEASED)
     order.released_at = datetime.now(timezone.utc)
