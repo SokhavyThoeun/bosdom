@@ -1,22 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../models/category.dart';
 import '../models/product.dart';
+import '../providers/listings_provider.dart';
+import '../widgets/empty_products_notice.dart';
 import '../widgets/product_list_tile.dart';
 
-class CategoryResultsScreen extends StatefulWidget {
+class CategoryResultsScreen extends ConsumerStatefulWidget {
   const CategoryResultsScreen({super.key, required this.category});
 
   final Category category;
 
   @override
-  State<CategoryResultsScreen> createState() => _CategoryResultsScreenState();
+  ConsumerState<CategoryResultsScreen> createState() =>
+      _CategoryResultsScreenState();
 }
 
-class _CategoryResultsScreenState extends State<CategoryResultsScreen> {
+class _CategoryResultsScreenState
+    extends ConsumerState<CategoryResultsScreen> {
   final _controller = TextEditingController();
   final Set<String> _selectedCategories = {};
   String _query = '';
@@ -33,9 +38,9 @@ class _CategoryResultsScreenState extends State<CategoryResultsScreen> {
     super.dispose();
   }
 
-  List<Product> get _results {
+  List<Product> _results(List<Product> products) {
     final query = _query.trim().toLowerCase();
-    return kMockProducts.where((product) {
+    return products.where((product) {
       final matchesCategory =
           _selectedCategories.isEmpty ||
           _selectedCategories.contains(product.category);
@@ -73,7 +78,7 @@ class _CategoryResultsScreenState extends State<CategoryResultsScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
-    final results = _results;
+    final listingsAsync = ref.watch(listingsProvider);
 
     return Scaffold(
       body: Column(
@@ -117,50 +122,70 @@ class _CategoryResultsScreenState extends State<CategoryResultsScreen> {
                       ),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-                    child: Text(
-                      l10n.categoryResultsItemsCount('${results.length}'),
-                      style: textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
                   Expanded(
-                    child: results.isEmpty
-                        ? Center(
-                            child: Text(
-                              l10n.categoryResultsNoProducts,
-                              style: textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
+                    child: listingsAsync.when(
+                      data: (products) {
+                        final results = _results(products);
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+                              child: Text(
+                                l10n.categoryResultsItemsCount(
+                                  '${results.length}',
+                                ),
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
                               ),
                             ),
-                          )
-                        : ListView.separated(
-                            padding: EdgeInsets.fromLTRB(
-                              24,
-                              0,
-                              24,
-                              8 + MediaQuery.of(context).padding.bottom,
+                            Expanded(
+                              child: results.isEmpty
+                                  ? Center(
+                                      child: Text(
+                                        l10n.categoryResultsNoProducts,
+                                        style: textTheme.bodyMedium?.copyWith(
+                                          color: colorScheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    )
+                                  : ListView.separated(
+                                      padding: EdgeInsets.fromLTRB(
+                                        24,
+                                        0,
+                                        24,
+                                        8 + MediaQuery.of(context).padding.bottom,
+                                      ),
+                                      itemCount: results.length,
+                                      separatorBuilder: (_, _) =>
+                                          const SizedBox(height: 12),
+                                      itemBuilder: (context, index) {
+                                        final product = results[index];
+                                        return ProductListTile(
+                                          product: product,
+                                          id: product.id,
+                                          onTap: () => context.pushNamed(
+                                            'productDetail',
+                                            pathParameters: {'id': product.id},
+                                          ),
+                                        );
+                                      },
+                                    ),
                             ),
-                            itemCount: results.length,
-                            separatorBuilder: (_, _) =>
-                                const SizedBox(height: 12),
-                            itemBuilder: (context, index) {
-                              final product = results[index];
-                              final productId =
-                                  '${kMockProducts.indexOf(product)}';
-                              return ProductListTile(
-                                product: product,
-                                id: productId,
-                                onTap: () => context.pushNamed(
-                                  'productDetail',
-                                  pathParameters: {'id': productId},
-                                ),
-                              );
-                            },
-                          ),
+                          ],
+                        );
+                      },
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
+                      error: (error, stackTrace) => EmptyProductsNotice(
+                        colorScheme: colorScheme,
+                        textTheme: textTheme,
+                        message: l10n.marketplaceProductsLoadError,
+                        onRetry: () => ref.invalidate(listingsProvider),
+                      ),
+                    ),
                   ),
                 ],
               ),

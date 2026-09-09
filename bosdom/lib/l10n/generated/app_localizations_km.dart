@@ -1335,6 +1335,14 @@ class AppLocalizationsKm extends AppLocalizations {
   String get marketplaceSearchHint => 'ស្វែងរកផលិតផល...';
 
   @override
+  String get marketplaceNoProductsYet =>
+      'មិនទាន់មានផលិតផលនៅឡើយទេ។ សូមពិនិត្យម្តងទៀតឆាប់ៗនេះ!';
+
+  @override
+  String get marketplaceProductsLoadError =>
+      'មិនអាចផ្ទុកផលិតផលបានទេ។ ចុចដើម្បីព្យាយាមម្តងទៀត។';
+
+  @override
   String get marketplaceCoBuyJoinButton => 'ចូលរួមទិញរួមគ្នា';
 
   @override

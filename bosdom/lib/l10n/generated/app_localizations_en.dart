@@ -1321,6 +1321,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get marketplaceSearchHint => 'Search products...';
 
   @override
+  String get marketplaceNoProductsYet =>
+      'No products listed yet. Check back soon!';
+
+  @override
+  String get marketplaceProductsLoadError =>
+      'Couldn\'t load products. Tap to retry.';
+
+  @override
   String get marketplaceCoBuyJoinButton => 'Join Co-Buy';
 
   @override

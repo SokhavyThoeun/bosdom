@@ -2481,6 +2481,18 @@ abstract class AppLocalizations {
   /// **'Search products...'**
   String get marketplaceSearchHint;
 
+  /// No description provided for @marketplaceNoProductsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No products listed yet. Check back soon!'**
+  String get marketplaceNoProductsYet;
+
+  /// No description provided for @marketplaceProductsLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load products. Tap to retry.'**
+  String get marketplaceProductsLoadError;
+
   /// No description provided for @marketplaceCoBuyJoinButton.
   ///
   /// In en, this message translates to:

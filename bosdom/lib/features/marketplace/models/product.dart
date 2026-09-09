@@ -5,6 +5,7 @@ import '../../../shared/utils/mock_images.dart';
 
 class Product {
   const Product({
+    required this.id,
     required this.name,
     required this.price,
     required this.moq,
@@ -25,8 +26,14 @@ class Product {
     this.deliveryFee = 0,
     this.sizes = const [],
     this.colorOptions = const [],
+    this.photoUrl,
+    this.sellerLogoOverride,
   });
 
+  /// Backend listing id for real products, or a stringified index into
+  /// [kMockProducts] for mock ones (matches the existing index-based
+  /// routing/lookup convention still used by cart/wishlist/orders).
+  final String id;
   final String name;
   final String price;
   final String moq;
@@ -58,6 +65,14 @@ class Product {
   /// Selectable colors. Empty when the product has no color variants.
   final List<ProductColorOption> colorOptions;
 
+  /// Real seller-uploaded photo URL for a backend-sourced listing. `null`
+  /// for mock products, which fall back to [imageUrl]'s curated mock photo.
+  final String? photoUrl;
+
+  /// Real shop logo URL for a backend-sourced listing's seller. `null` for
+  /// mock products, which fall back to [sellerLogoUrl]'s generated mock logo.
+  final String? sellerLogoOverride;
+
   bool get hasVariants => sizes.isNotEmpty || colorOptions.isNotEmpty;
 
   bool get hasFreeDelivery => deliveryFee == 0;
@@ -65,11 +80,12 @@ class Product {
   String get deliveryFeeLabel =>
       hasFreeDelivery ? 'Free Delivery' : '\$${deliveryFee.toStringAsFixed(2)} delivery fee';
 
-  /// Category/topic-matched mock product photo.
-  String get imageUrl => mockPhotoUrl(imageQuery, name);
+  /// The listing's real photo when available, else a category/topic-matched
+  /// mock photo.
+  String get imageUrl => photoUrl ?? mockPhotoUrl(imageQuery, name);
 
-  /// Clean mock logo for this product's seller/store.
-  String get sellerLogoUrl => mockStoreLogoUrl(seller);
+  /// The seller's real shop logo when available, else a generated mock logo.
+  String get sellerLogoUrl => sellerLogoOverride ?? mockStoreLogoUrl(seller);
 
   double get priceValue => double.parse(price.replaceFirst('\$', ''));
 
@@ -80,6 +96,7 @@ class Product {
 
 const kMockProducts = [
   Product(
+    id: '0',
     name: 'Premium Jasmine Rice Bulk Bag (25kg)',
     price: '\$18.50',
     samplePrice: '\$22.50',
@@ -97,6 +114,7 @@ const kMockProducts = [
     deliveryFee: 5,
   ),
   Product(
+    id: '1',
     name: 'Biodegradable Paper Hot Cups (1000 Pcs)',
     price: '\$24.00',
     moq: 'MOQ: 5 Boxes',
@@ -107,6 +125,7 @@ const kMockProducts = [
     deliveryFee: 3.5,
   ),
   Product(
+    id: '2',
     name: 'Universal USB-C Fast Charger Bulk Pack',
     price: '\$2.80',
     moq: 'MOQ: 100 Units',
@@ -117,6 +136,7 @@ const kMockProducts = [
     deliveryFee: 8,
   ),
   Product(
+    id: '3',
     name: 'Organic Cold Pressed Coconut Oil (1L)',
     price: '\$6.50',
     moq: 'MOQ: 12 Bottles',
@@ -126,6 +146,7 @@ const kMockProducts = [
     imageQuery: 'coconut,oil',
   ),
   Product(
+    id: '4',
     name: 'Heavy Duty Cotton Canvas Tote Bags',
     price: '\$1.10',
     moq: 'MOQ: 500 Units',
@@ -142,6 +163,7 @@ const kMockProducts = [
     ],
   ),
   Product(
+    id: '5',
     name: 'Industrial Microfiber Cleaning Cloths',
     price: '\$0.45',
     moq: 'MOQ: 1000 Pcs',
@@ -152,6 +174,7 @@ const kMockProducts = [
     deliveryFee: 4,
   ),
   Product(
+    id: '6',
     name: 'Wholesale Assorted Snack Mix (5kg)',
     price: '\$12.90',
     moq: 'MOQ: 10 Bags',
@@ -162,6 +185,7 @@ const kMockProducts = [
     deliveryFee: 2.5,
   ),
   Product(
+    id: '7',
     name: 'Bulk Cotton Face Masks (500 Pcs)',
     price: '\$45.00',
     moq: 'MOQ: 500 Units',
@@ -178,6 +202,7 @@ const kMockProducts = [
     ],
   ),
   Product(
+    id: '8',
     name: 'Stainless Steel Water Bottles (500ml)',
     price: '\$3.20',
     moq: 'MOQ: 200 Units',
@@ -188,6 +213,7 @@ const kMockProducts = [
     deliveryFee: 5,
   ),
   Product(
+    id: '9',
     name: 'Wireless Earbuds Bulk Pack (10 Units)',
     price: '\$19.00',
     moq: 'MOQ: 10 Packs',
@@ -198,6 +224,7 @@ const kMockProducts = [
     deliveryFee: 8,
   ),
   Product(
+    id: '10',
     name: 'Wholesale T-Shirts (Pack of 12)',
     price: '\$36.00',
     moq: 'MOQ: 12 Packs',
@@ -216,6 +243,7 @@ const kMockProducts = [
     ],
   ),
   Product(
+    id: '11',
     name: 'Kitchen Towel Rolls (48 Rolls)',
     price: '\$28.00',
     moq: 'MOQ: 48 Rolls',
@@ -226,6 +254,7 @@ const kMockProducts = [
     deliveryFee: 4.5,
   ),
   Product(
+    id: '12',
     name: 'Natural Raw Brown Sugar (50kg)',
     price: '\$22.00',
     moq: 'MOQ: 15 Bags',
@@ -236,6 +265,7 @@ const kMockProducts = [
     deliveryFee: 5,
   ),
   Product(
+    id: '13',
     name: 'Premium Traditional Fish Sauce (750ml)',
     price: '\$3.80',
     moq: 'MOQ: 50 Bottles',
@@ -246,6 +276,7 @@ const kMockProducts = [
     deliveryFee: 3,
   ),
   Product(
+    id: '14',
     name: 'Organic Green Tea Bulk Pack (500g)',
     price: '\$8.90',
     moq: 'MOQ: 30 Packs',
@@ -255,6 +286,7 @@ const kMockProducts = [
     imageQuery: 'green,tea',
   ),
   Product(
+    id: '15',
     name: 'Dried Organic Mango Slices (1kg)',
     price: '\$12.50',
     moq: 'MOQ: 25 Bags',
@@ -265,6 +297,7 @@ const kMockProducts = [
     deliveryFee: 5,
   ),
   Product(
+    id: '16',
     name: 'Thai Premium Fish Sauce (Case of 12)',
     price: '\$38.50',
     moq: 'MOQ: 10 Cases',
@@ -276,6 +309,7 @@ const kMockProducts = [
     deliveryFee: 5,
   ),
   Product(
+    id: '17',
     name: 'Organic Coconut Milk (Case of 24)',
     price: '\$41.35',
     moq: 'MOQ: 4 Cases',

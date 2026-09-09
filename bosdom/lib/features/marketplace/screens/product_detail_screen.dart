@@ -10,21 +10,55 @@ import '../../../shared/widgets/full_screen_image_viewer.dart';
 import '../../../shared/widgets/variant_selector.dart';
 import '../../wishlist/providers/wishlist_provider.dart';
 import '../models/product.dart';
+import '../providers/listings_provider.dart';
 import '../providers/sample_gate_provider.dart';
+import '../widgets/empty_products_notice.dart';
 
 enum _BuyMode { wholesale, sample }
 
-class ProductDetailScreen extends ConsumerStatefulWidget {
+class ProductDetailScreen extends ConsumerWidget {
   const ProductDetailScreen({super.key, required this.productId});
 
   final String productId;
 
   @override
-  ConsumerState<ProductDetailScreen> createState() =>
-      _ProductDetailScreenState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final productAsync = ref.watch(listingByIdProvider(productId));
+    return productAsync.when(
+      data: (product) =>
+          _ProductDetailBody(product: product, productId: productId),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (error, stackTrace) {
+        final colorScheme = Theme.of(context).colorScheme;
+        final textTheme = Theme.of(context).textTheme;
+        return Scaffold(
+          body: Center(
+            child: EmptyProductsNotice(
+              colorScheme: colorScheme,
+              textTheme: textTheme,
+              message: AppLocalizations.of(context).marketplaceProductsLoadError,
+              onRetry: () => ref.invalidate(listingByIdProvider(productId)),
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
 
-class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
+class _ProductDetailBody extends ConsumerStatefulWidget {
+  const _ProductDetailBody({required this.product, required this.productId});
+
+  final Product product;
+  final String productId;
+
+  @override
+  ConsumerState<_ProductDetailBody> createState() =>
+      _ProductDetailBodyState();
+}
+
+class _ProductDetailBodyState extends ConsumerState<_ProductDetailBody> {
   _BuyMode _mode = _BuyMode.wholesale;
   late int _wholesaleQty = product.moqValue;
   int _sampleQty = 1;
@@ -35,10 +69,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       ? product.colorOptions.first
       : null;
 
-  Product get product {
-    final index = int.tryParse(widget.productId) ?? 0;
-    return kMockProducts[index.clamp(0, kMockProducts.length - 1)];
-  }
+  Product get product => widget.product;
 
   void _changeWholesaleQty(int delta) {
     setState(() {

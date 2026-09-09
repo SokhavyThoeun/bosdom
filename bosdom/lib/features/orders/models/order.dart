@@ -20,6 +20,7 @@ enum OrderStatus {
 // past promotions), so a couple of order-only product records live here
 // instead of pointing at `kMockProducts`.
 const _kJasmineRiceHistorical = Product(
+  id: 'historical-jasmine-rice',
   name: 'Premium Jasmine Rice (25kg Bag)',
   price: '\$45.00',
   moq: 'MOQ: 20 Bags',
@@ -31,6 +32,7 @@ const _kJasmineRiceHistorical = Product(
 );
 
 const _kCashewNutsHistorical = Product(
+  id: 'historical-cashew-nuts',
   name: 'Roasted Cashew Nuts (5kg Bag)',
   price: '\$69.17',
   moq: 'MOQ: 12 Bags',

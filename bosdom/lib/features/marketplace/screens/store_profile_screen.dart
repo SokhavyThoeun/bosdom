@@ -6,18 +6,55 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../../chat/providers/chat_provider.dart';
 import '../models/product.dart';
 import '../models/seller.dart';
+import '../providers/listings_provider.dart';
+import '../widgets/empty_products_notice.dart';
 import '../widgets/product_list_tile.dart';
 
-class StoreProfileScreen extends StatefulWidget {
+class StoreProfileScreen extends ConsumerWidget {
   const StoreProfileScreen({super.key, required this.sellerName});
 
   final String sellerName;
 
   @override
-  State<StoreProfileScreen> createState() => _StoreProfileScreenState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final listingsAsync = ref.watch(listingsProvider);
+
+    return listingsAsync.when(
+      data: (allProducts) {
+        final products = allProducts
+            .where((product) => product.seller == sellerName)
+            .toList();
+        return _StoreProfileBody(sellerName: sellerName, products: products);
+      },
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (error, stackTrace) => Scaffold(
+        body: Center(
+          child: EmptyProductsNotice(
+            colorScheme: colorScheme,
+            textTheme: textTheme,
+            message: AppLocalizations.of(context).marketplaceProductsLoadError,
+            onRetry: () => ref.invalidate(listingsProvider),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _StoreProfileScreenState extends State<StoreProfileScreen>
+class _StoreProfileBody extends StatefulWidget {
+  const _StoreProfileBody({required this.sellerName, required this.products});
+
+  final String sellerName;
+  final List<Product> products;
+
+  @override
+  State<_StoreProfileBody> createState() => _StoreProfileBodyState();
+}
+
+class _StoreProfileBodyState extends State<_StoreProfileBody>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController = TabController(
     length: 3,
@@ -26,10 +63,16 @@ class _StoreProfileScreenState extends State<StoreProfileScreen>
   bool _isFavorite = false;
 
   Seller get seller {
-    final sample = kMockProducts.firstWhere(
-      (product) => product.seller == widget.sellerName,
-      orElse: () => kMockProducts.first,
-    );
+    if (widget.products.isEmpty) {
+      return sellerFor(
+        widget.sellerName,
+        icon: Icons.storefront_outlined,
+        rating: 4.5,
+        location: 'Cambodia',
+        verified: false,
+      );
+    }
+    final sample = widget.products.first;
     return sellerFor(
       widget.sellerName,
       icon: sample.icon,
@@ -39,9 +82,7 @@ class _StoreProfileScreenState extends State<StoreProfileScreen>
     );
   }
 
-  List<Product> get products => kMockProducts
-      .where((product) => product.seller == widget.sellerName)
-      .toList();
+  List<Product> get products => widget.products;
 
   @override
   void dispose() {
@@ -478,13 +519,12 @@ class _ProductsTab extends StatelessWidget {
       separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final product = products[index];
-        final productId = '${kMockProducts.indexOf(product)}';
         return ProductListTile(
           product: product,
-          id: productId,
+          id: product.id,
           onTap: () => context.pushNamed(
             'productDetail',
-            pathParameters: {'id': productId},
+            pathParameters: {'id': product.id},
           ),
         );
       },

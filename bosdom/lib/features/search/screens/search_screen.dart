@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
 import '../../marketplace/models/category.dart';
 import '../../marketplace/models/product.dart';
+import '../../marketplace/providers/listings_provider.dart';
 import '../../marketplace/widgets/category_item.dart';
+import '../../marketplace/widgets/empty_products_notice.dart';
 import '../../marketplace/widgets/product_list_tile.dart';
 
 const _kTrendingSearches = [
@@ -15,14 +18,14 @@ const _kTrendingSearches = [
   'Snack Mix',
 ];
 
-class SearchScreen extends StatefulWidget {
+class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
 
   @override
-  State<SearchScreen> createState() => _SearchScreenState();
+  ConsumerState<SearchScreen> createState() => _SearchScreenState();
 }
 
-class _SearchScreenState extends State<SearchScreen> {
+class _SearchScreenState extends ConsumerState<SearchScreen> {
   final _controller = TextEditingController();
   String _query = '';
   bool _recentExpanded = false;
@@ -40,11 +43,11 @@ class _SearchScreenState extends State<SearchScreen> {
     super.dispose();
   }
 
-  List<Product> get _results {
+  List<Product> _results(List<Product> products) {
     final query = _query.trim().toLowerCase();
     if (query.isEmpty) return const [];
     final terms = query.split(RegExp(r'\s+')).where((t) => t.isNotEmpty);
-    return kMockProducts.where((product) {
+    return products.where((product) {
       final haystack = '${product.name} ${product.seller}'.toLowerCase();
       return terms.every(haystack.contains);
     }).toList();
@@ -78,7 +81,7 @@ class _SearchScreenState extends State<SearchScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final isSearching = _query.trim().isNotEmpty;
-    final results = _results;
+    final listingsAsync = ref.watch(listingsProvider);
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
@@ -102,7 +105,11 @@ class _SearchScreenState extends State<SearchScreen> {
                 child: isSearching
                     ? _SearchResults(
                         query: _query,
-                        results: results,
+                        results: listingsAsync.when(
+                          data: _results,
+                          loading: () => null,
+                          error: (_, _) => const [],
+                        ),
                         colorScheme: colorScheme,
                         textTheme: textTheme,
                       )
@@ -121,6 +128,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           'categoryResults',
                           extra: category,
                         ),
+                        recommended: listingsAsync,
                         colorScheme: colorScheme,
                         textTheme: textTheme,
                       ),
@@ -258,6 +266,7 @@ class _SearchSuggestions extends StatelessWidget {
     required this.onClearAll,
     required this.onTrendingTap,
     required this.onCategoryTap,
+    required this.recommended,
     required this.colorScheme,
     required this.textTheme,
   });
@@ -269,6 +278,7 @@ class _SearchSuggestions extends StatelessWidget {
   final VoidCallback onClearAll;
   final ValueChanged<String> onTrendingTap;
   final ValueChanged<Category> onCategoryTap;
+  final AsyncValue<List<Product>> recommended;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
 
@@ -412,19 +422,39 @@ class _SearchSuggestions extends StatelessWidget {
             style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
-          ListView.separated(
-            shrinkWrap: true,
-            padding: EdgeInsets.zero,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: kMockProducts.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 12),
-            itemBuilder: (context, index) => ProductListTile(
-              product: kMockProducts[index],
-              id: '$index',
-              onTap: () => context.pushNamed(
-                'productDetail',
-                pathParameters: {'id': '$index'},
-              ),
+          recommended.when(
+            data: (products) => products.isEmpty
+                ? EmptyProductsNotice(
+                    colorScheme: colorScheme,
+                    textTheme: textTheme,
+                    message: l10n.marketplaceNoProductsYet,
+                  )
+                : ListView.separated(
+                    shrinkWrap: true,
+                    padding: EdgeInsets.zero,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: products.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final product = products[index];
+                      return ProductListTile(
+                        product: product,
+                        id: product.id,
+                        onTap: () => context.pushNamed(
+                          'productDetail',
+                          pathParameters: {'id': product.id},
+                        ),
+                      );
+                    },
+                  ),
+            loading: () => const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (error, stackTrace) => EmptyProductsNotice(
+              colorScheme: colorScheme,
+              textTheme: textTheme,
+              message: l10n.marketplaceProductsLoadError,
             ),
           ),
         ],
@@ -545,13 +575,19 @@ class _SearchResults extends StatelessWidget {
   });
 
   final String query;
-  final List<Product> results;
+
+  /// `null` while listings are still loading.
+  final List<Product>? results;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final results = this.results;
+    if (results == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
     if (results.isEmpty) {
       return Center(
         child: Padding(
@@ -589,13 +625,12 @@ class _SearchResults extends StatelessWidget {
       separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final product = results[index];
-        final productId = '${kMockProducts.indexOf(product)}';
         return ProductListTile(
           product: product,
-          id: productId,
+          id: product.id,
           onTap: () => context.pushNamed(
             'productDetail',
-            pathParameters: {'id': productId},
+            pathParameters: {'id': product.id},
           ),
         );
       },

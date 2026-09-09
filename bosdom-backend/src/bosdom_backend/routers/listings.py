@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from ..auth import CurrentUser, get_current_user
 from ..db import get_db
-from ..models import Listing
+from ..models import Listing, Profile, Shop
 
 router = APIRouter(prefix="/listings", tags=["listings"])
 
@@ -25,6 +25,11 @@ class ColorOptionOut(BaseModel):
 
 class ListingOut(BaseModel):
     id: str
+    seller_id: str
+    seller_name: str
+    seller_logo_url: str
+    seller_verified: bool
+    seller_location: str
     product_name: str
     category: str
     price: float
@@ -38,6 +43,31 @@ class ListingOut(BaseModel):
     colors: list[ColorOptionOut]
 
     model_config = {"from_attributes": True}
+
+
+def _serialize_listing(listing: Listing, db: Session) -> ListingOut:
+    shop = db.get(Shop, listing.seller_id)
+    profile = db.get(Profile, listing.seller_id)
+    seller_name = (shop.shop_name if shop else "") or (profile.name if profile else "") or "Seller"
+    return ListingOut(
+        id=listing.id,
+        seller_id=listing.seller_id,
+        seller_name=seller_name,
+        seller_logo_url=shop.logo_url if shop else "",
+        seller_verified=bool(profile and profile.verification_status == "verified"),
+        seller_location=shop.location if shop else "",
+        product_name=listing.product_name,
+        category=listing.category,
+        price=listing.price,
+        moq_qty=listing.moq_qty,
+        stock_qty=listing.stock_qty,
+        description=listing.description,
+        sample_testing_enabled=listing.sample_testing_enabled,
+        sample_price=listing.sample_price,
+        photo_urls=listing.photo_urls,
+        sizes=listing.sizes,
+        colors=[ColorOptionOut(**c) for c in listing.colors],
+    )
 
 
 def _parse_sizes(raw: str) -> list[str]:
@@ -93,7 +123,7 @@ def create_listing(
     photos: list[UploadFile] = File(default_factory=list),
     user: CurrentUser = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> Listing:
+) -> ListingOut:
     product_name = product_name.strip()
     category = category.strip()
     if not product_name:
@@ -133,19 +163,20 @@ def create_listing(
     db.add(listing)
     db.commit()
     db.refresh(listing)
-    return listing
+    return _serialize_listing(listing, db)
 
 
 @router.get("/me", response_model=list[ListingOut])
 def list_my_listings(
     user: CurrentUser = Depends(get_current_user), db: Session = Depends(get_db)
-) -> list[Listing]:
-    return (
+) -> list[ListingOut]:
+    listings = (
         db.query(Listing)
         .filter(Listing.seller_id == user.id)
         .order_by(Listing.created_at.desc())
         .all()
     )
+    return [_serialize_listing(listing, db) for listing in listings]
 
 
 def _get_owned_listing(db: Session, user: CurrentUser, listing_id: str) -> Listing:
@@ -171,7 +202,7 @@ def update_listing(
     photos: list[UploadFile] = File(default_factory=list),
     user: CurrentUser = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> Listing:
+) -> ListingOut:
     listing = _get_owned_listing(db, user, listing_id)
 
     product_name = product_name.strip()
@@ -210,7 +241,7 @@ def update_listing(
     listing.colors = _parse_colors(colors)
     db.commit()
     db.refresh(listing)
-    return listing
+    return _serialize_listing(listing, db)
 
 
 @router.delete("/me/{listing_id}", status_code=204)
@@ -230,7 +261,7 @@ def search_listings(
     category: str | None = Query(default=None),
     seller_id: str | None = Query(default=None),
     db: Session = Depends(get_db),
-) -> list[Listing]:
+) -> list[ListingOut]:
     query = db.query(Listing)
     if category:
         query = query.filter(Listing.category == category)
@@ -241,12 +272,13 @@ def search_listings(
         query = query.filter(
             or_(Listing.product_name.ilike(pattern), Listing.description.ilike(pattern))
         )
-    return query.order_by(Listing.created_at.desc()).all()
+    listings = query.order_by(Listing.created_at.desc()).all()
+    return [_serialize_listing(listing, db) for listing in listings]
 
 
 @router.get("/{listing_id}", response_model=ListingOut)
-def get_listing(listing_id: str, db: Session = Depends(get_db)) -> Listing:
+def get_listing(listing_id: str, db: Session = Depends(get_db)) -> ListingOut:
     listing = db.get(Listing, listing_id)
     if listing is None:
         raise HTTPException(status_code=404, detail="Listing not found")
-    return listing
+    return _serialize_listing(listing, db)

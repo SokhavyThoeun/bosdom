@@ -402,6 +402,8 @@
   "marketplaceCoBuyDealsTitle": "ការទិញរួមគ្នា",
   "marketplacePopularProductsTitle": "ផលិតផលលក់ដុំពេញនិយម",
   "marketplaceSearchHint": "ស្វែងរកផលិតផល...",
+  "marketplaceNoProductsYet": "មិនទាន់មានផលិតផលនៅឡើយទេ។ សូមពិនិត្យម្តងទៀតឆាប់ៗនេះ!",
+  "marketplaceProductsLoadError": "មិនអាចផ្ទុកផលិតផលបានទេ។ ចុចដើម្បីព្យាយាមម្តងទៀត។",
   "marketplaceCoBuyJoinButton": "ចូលរួមទិញរួមគ្នា",
   "marketplaceCoBuyProgressToTarget": "{percent}% ទៅគោលដៅ",
   "marketplaceCoBuyRetailersJoined": "អ្នកលក់រាយចូលរួម {count} នាក់",

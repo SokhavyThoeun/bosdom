@@ -670,6 +670,8 @@
   "marketplaceCoBuyDealsTitle": "Co-Buy Deals",
   "marketplacePopularProductsTitle": "Popular wholesale products",
   "marketplaceSearchHint": "Search products...",
+  "marketplaceNoProductsYet": "No products listed yet. Check back soon!",
+  "marketplaceProductsLoadError": "Couldn't load products. Tap to retry.",
   "marketplaceCoBuyJoinButton": "Join Co-Buy",
   "marketplaceCoBuyProgressToTarget": "{percent}% to target",
   "@marketplaceCoBuyProgressToTarget": {

@@ -6,9 +6,10 @@ import '../../co_buying/providers/co_buy_provider.dart';
 import '../../notifications/providers/notification_provider.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../models/category.dart';
-import '../models/product.dart';
+import '../providers/listings_provider.dart';
 import '../widgets/category_item.dart';
 import '../widgets/co_buy_carousel.dart';
+import '../widgets/empty_products_notice.dart';
 import '../widgets/product_list_tile.dart';
 
 class MarketplaceScreen extends ConsumerWidget {
@@ -21,6 +22,7 @@ class MarketplaceScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final coBuySessions = ref.watch(coBuyProvider);
     final unreadCount = ref.watch(unreadNotificationCountProvider);
+    final listingsAsync = ref.watch(listingsProvider);
 
     return Scaffold(
       body: Column(
@@ -121,19 +123,41 @@ class MarketplaceScreen extends ConsumerWidget {
                     const SizedBox(height: 12),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: ListView.separated(
-                        shrinkWrap: true,
-                        padding: EdgeInsets.zero,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: kMockProducts.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) => ProductListTile(
-                          product: kMockProducts[index],
-                          id: '$index',
-                          onTap: () => context.pushNamed(
-                            'productDetail',
-                            pathParameters: {'id': '$index'},
-                          ),
+                      child: listingsAsync.when(
+                        data: (products) => products.isEmpty
+                            ? EmptyProductsNotice(
+                                colorScheme: colorScheme,
+                                textTheme: textTheme,
+                                message: l10n.marketplaceNoProductsYet,
+                              )
+                            : ListView.separated(
+                                shrinkWrap: true,
+                                padding: EdgeInsets.zero,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: products.length,
+                                separatorBuilder: (_, _) =>
+                                    const SizedBox(height: 12),
+                                itemBuilder: (context, index) {
+                                  final product = products[index];
+                                  return ProductListTile(
+                                    product: product,
+                                    id: product.id,
+                                    onTap: () => context.pushNamed(
+                                      'productDetail',
+                                      pathParameters: {'id': product.id},
+                                    ),
+                                  );
+                                },
+                              ),
+                        loading: () => const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24),
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                        error: (error, stackTrace) => EmptyProductsNotice(
+                          colorScheme: colorScheme,
+                          textTheme: textTheme,
+                          message: l10n.marketplaceProductsLoadError,
+                          onRetry: () => ref.invalidate(listingsProvider),
                         ),
                       ),
                     ),

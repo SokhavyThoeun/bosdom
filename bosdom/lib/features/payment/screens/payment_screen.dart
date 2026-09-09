@@ -99,6 +99,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
 
       return OrderLineItem(
         product: Product(
+          id: matchedProduct?.id ?? summary.name,
           name: summary.name,
           price: '\$${unitPrice.toStringAsFixed(2)}',
           moq: '',
@@ -121,6 +122,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           : [
               OrderLineItem(
                 product: Product(
+                  id: 'wholesale-order',
                   name: 'Wholesale Order',
                   price: '\$${widget.amount.toStringAsFixed(2)}',
                   moq: '',

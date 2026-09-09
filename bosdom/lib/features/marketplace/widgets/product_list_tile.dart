@@ -16,8 +16,8 @@ class ProductListTile extends ConsumerWidget {
 
   final Product product;
 
-  /// Index of [product] in `kMockProducts`, used to key the wishlist entry
-  /// and to identify this product across screens.
+  /// [product]'s id, used to key the wishlist entry and to identify this
+  /// product across screens.
   final String id;
 
   final VoidCallback onTap;
