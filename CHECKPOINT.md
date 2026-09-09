@@ -80,9 +80,9 @@ Found via a 2026-09-03 full audit; these are real, fully-built, routed buyer-fac
 - [x] 10.4 KYC document upload endpoint (Supabase Storage) — local-disk storage, matching the app's existing avatar/listing-photo pattern (see notes on why not Supabase Storage)
 
 ## Phase 11 — Backend: Marketplace
-- [ ] 11.1 `Product` model (supplier, sample price, bulk price, volume threshold)
-- [ ] 11.2 Product CRUD endpoints (supplier-facing)
-- [ ] 11.3 Product listing/search endpoints (buyer-facing)
+- [x] 11.1 `Product` model (supplier, sample price, bulk price, volume threshold) — already existed as `Listing` (`seller_id`, `price`, `sample_price`, `moq_qty`), see notes
+- [x] 11.2 Product CRUD endpoints (supplier-facing) — `POST /listings/me` already existed; added `GET /listings/me`, `PUT /listings/me/{id}`, `DELETE /listings/me/{id}`
+- [x] 11.3 Product listing/search endpoints (buyer-facing) — added `GET /listings` (search by `q`/`category`/`seller_id`) and `GET /listings/{id}`
 
 ## Phase 12 — Backend: Feature 1 — Sample Gate
 - [ ] 12.1 `SampleOrder` model with 1-per-account constraint
@@ -127,7 +127,7 @@ Found via a 2026-09-03 full audit; these are real, fully-built, routed buyer-fac
 ---
 
 ## Current status
-**Next task:** Phase 11 (Backend: Marketplace) — `Listing` model + CRUD/search endpoints already exist (`routers/listings.py`), so audit what's actually missing before assuming it's a clean slate, same as Phase 9/10 turned out. Other open frontend gaps: 5.1, 5.3, 8.3, 8.4 (see their notes above).
+**Next task:** Phase 12 (Backend: Feature 1 — Sample Gate). Other open frontend gaps: 5.1, 5.3, 8.3, 8.4 (see their notes above).
 
 ### Notes
 - Flutter project lives at `bosdom/` (root of this git repo).
@@ -172,6 +172,14 @@ Found via a 2026-09-03 full audit; these are real, fully-built, routed buyer-fac
   - Ported both hand-written Alembic migrations (`d12220c2f962`, `e19311b268dc`) into two new idempotent SQL files: `supabase/migrations/20260909210000_shops_listings_order_reports.sql` (the `shops`/`listings`/`order_reports` tables SQLAlchemy owns, which — unlike `profiles` — never had a `supabase/migrations/*.sql` entry at all) and `20260909210100_kyc_documents_and_verification_status.sql` (today's `kyc_documents` table + `profiles.verification_status`). Both use `create table if not exists` / `add column if not exists` since the live DB already has all of this from the now-deleted Alembic runs — ran `supabase db push --linked` and it correctly no-op'd the DDL while still registering both files in the remote migration history (`supabase migration list --linked` now shows all 3 files in sync, local and remote).
   - **Going forward: schema changes are plain SQL files in `supabase/migrations/`, applied with `supabase db push --linked`.** No more `alembic revision --autogenerate` — write the `CREATE TABLE`/`ALTER TABLE` by hand. The same landmine still applies though: the live DB has legacy tables (`user_profiles`, `products`, `orders`, `categories`, `co_buy_pools`, `co_buy_participants`, `order_items`) that are not owned by this backend — never write a migration that touches them, and there's no autogenerate here to accidentally suggest it.
   - SQLAlchemy models (`models.py`) are unchanged and still the ORM layer for queries — only the schema-migration *tooling* changed, not how the backend talks to Postgres.
+- 2026-09-09 (Phase 11): audited `routers/listings.py` per the checkpoint's own hint and found only `POST /listings/me` (create) existed — no list, update, delete, or public browse/search endpoints, and the `Listing` model (`seller_id`, `price`, `sample_price`, `moq_qty`, `stock_qty`, ...) already covered everything 11.1 asked for (`Product` model with supplier/sample price/bulk price/volume threshold) under different field names, so no schema change was needed. Added to `listings.py`:
+  - `GET /listings/me` — list the current seller's own listings.
+  - `PUT /listings/me/{listing_id}` / `DELETE /listings/me/{listing_id}` — full-form update and delete, both scoped by a shared `_get_owned_listing` helper that 404s (not 403) when the listing doesn't exist or isn't owned by the caller, so ownership isn't leaked. `PUT` mirrors `POST`'s multipart/Form shape (photos optional — only replaces `photo_urls` if new files are uploaded, otherwise keeps the existing ones).
+  - `GET /listings` (buyer-facing browse/search, optional `q`/`category`/`seller_id` query params, `q` does a case-insensitive substring match on `product_name`/`description`) and `GET /listings/{listing_id}` (public single-listing fetch). No auth required on either, matching how the frontend's own marketplace/search screens work against mock data today.
+  - Route order matters here: `GET /listings/me` is registered before `GET /listings/{listing_id}` so a request for `/listings/me` doesn't get swallowed by the `{listing_id}` path param.
+  - No role/seller check gates listing creation or mutation — consistent with the rest of the backend today (nothing else checks `Profile.role` either, per the 10.1 notes), so any authenticated user can create/edit/delete their own listings for now. Revisit if/when role enforcement is added generally.
+  - Verified all 6 endpoints (create/list/update/delete/search/get-one, plus the ownership-404 case) against an in-memory SQLite `TestClient` harness (not the live Supabase DB) since this backend has no test suite of its own yet; the scratch script was discarded after passing, not committed.
+  - Not done: nothing in the frontend calls any of this yet (frontend still runs entirely on `kMockProducts`) — that's Phase 16 (Integration) territory.
 
 ---
 
