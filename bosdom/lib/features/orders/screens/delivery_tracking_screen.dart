@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../marketplace/widgets/empty_products_notice.dart';
 import '../models/order.dart';
+import '../providers/orders_provider.dart';
 
 // All statuses share the brand color instead of a traffic-light palette —
 // status is distinguished by icon and label, not by hue.
@@ -25,99 +29,158 @@ class _TrackingStep {
   final IconData icon;
 }
 
-// Mock processing timestamps standing in for real courier webhook events;
-// only the steps up to the order's current status carry a time.
+String _formatTime(DateTime dateTime) =>
+    DateFormat.yMMMd().add_jm().format(dateTime.toLocal());
+
+/// Steps mirror the backend's real escrow state machine (`orders.py`) —
+/// there's no courier webhook data to show a packed/shipped/out-for-delivery
+/// timeline, so each step's timestamp comes straight off the order's own
+/// `paid_at`/`released_at`/`cancelled_at`/`refunded_at` columns.
 List<_TrackingStep> _stepsFor(Order order, AppLocalizations l10n) {
   final placed = _TrackingStep(
     title: l10n.deliveryStepOrderPlaced,
-    timeLabel: '${order.date}, 8:02 AM',
+    timeLabel: _formatTime(order.createdAt),
     state: _StepState.done,
     icon: Icons.receipt_long_outlined,
   );
-  final packed = _TrackingStep(
-    title: l10n.deliveryStepPackedAtWarehouse,
-    timeLabel: '${order.date}, 11:40 AM',
-    state: _StepState.done,
-    icon: Icons.inventory_2_outlined,
-  );
-  final outForDelivery = _TrackingStep(
-    title: l10n.deliveryStepOutForDelivery,
-    timeLabel: '${order.date}, 1:15 PM',
-    state: _StepState.done,
-    icon: Icons.local_shipping_outlined,
-  );
-  final delivered = _TrackingStep(
-    title: l10n.deliveryStepDelivered,
-    timeLabel: order.status == OrderStatus.delivered
-        ? '${order.date}, 4:12 PM'
-        : null,
-    state: order.status == OrderStatus.delivered
-        ? _StepState.done
-        : _StepState.pending,
-    icon: Icons.home_outlined,
-  );
 
-  return switch (order.status) {
-    OrderStatus.processing => [
-      placed,
-      _TrackingStep(
-        title: l10n.deliveryStepPackedAtWarehouse,
-        timeLabel: null,
-        state: _StepState.current,
-        icon: Icons.inventory_2_outlined,
-      ),
-      _TrackingStep(
-        title: l10n.deliveryStepOutForDelivery,
-        timeLabel: null,
-        state: _StepState.pending,
-        icon: Icons.local_shipping_outlined,
-      ),
-      _TrackingStep(
-        title: l10n.deliveryStepDelivered,
-        timeLabel: null,
-        state: _StepState.pending,
-        icon: Icons.home_outlined,
-      ),
-    ],
-    OrderStatus.shipped => [
-      placed,
-      packed,
-      _TrackingStep(
-        title: l10n.deliveryStepOutForDelivery,
-        timeLabel: '${order.date}, 1:15 PM',
-        state: _StepState.current,
-        icon: Icons.local_shipping_outlined,
-      ),
-      _TrackingStep(
-        title: l10n.deliveryStepDelivered,
-        timeLabel: null,
-        state: _StepState.pending,
-        icon: Icons.home_outlined,
-      ),
-    ],
-    OrderStatus.delivered => [placed, packed, outForDelivery, delivered],
-    OrderStatus.cancelled => [
+  if (order.status == OrderStatus.cancelled) {
+    return [
       placed,
       _TrackingStep(
         title: l10n.deliveryStepOrderCancelled,
-        timeLabel: '${order.date}, 9:30 AM',
+        timeLabel: order.cancelledAt != null
+            ? _formatTime(order.cancelledAt!)
+            : null,
         state: _StepState.current,
         icon: Icons.cancel_outlined,
       ),
-    ],
-  };
+    ];
+  }
+
+  final steps = [
+    placed,
+    if (order.status == OrderStatus.pendingPayment)
+      _TrackingStep(
+        title: l10n.deliveryStepPaymentHeld,
+        timeLabel: null,
+        state: _StepState.current,
+        icon: Icons.lock_clock_outlined,
+      )
+    else
+      _TrackingStep(
+        title: l10n.deliveryStepPaymentHeld,
+        timeLabel: order.paidAt != null ? _formatTime(order.paidAt!) : null,
+        state: _StepState.done,
+        icon: Icons.lock_clock_outlined,
+      ),
+  ];
+
+  switch (order.status) {
+    case OrderStatus.pendingPayment:
+      steps.add(
+        _TrackingStep(
+          title: l10n.deliveryStepReleased,
+          timeLabel: null,
+          state: _StepState.pending,
+          icon: Icons.check_circle_outline,
+        ),
+      );
+    case OrderStatus.held:
+      steps.add(
+        _TrackingStep(
+          title: l10n.deliveryStepReleased,
+          timeLabel: null,
+          state: _StepState.current,
+          icon: Icons.check_circle_outline,
+        ),
+      );
+    case OrderStatus.released:
+      steps.add(
+        _TrackingStep(
+          title: l10n.deliveryStepReleased,
+          timeLabel: order.releasedAt != null
+              ? _formatTime(order.releasedAt!)
+              : null,
+          state: _StepState.done,
+          icon: Icons.check_circle_outline,
+        ),
+      );
+    case OrderStatus.disputed:
+      steps.add(
+        _TrackingStep(
+          title: l10n.deliveryStepDisputed,
+          timeLabel: null,
+          state: _StepState.current,
+          icon: Icons.report_problem_outlined,
+        ),
+      );
+    case OrderStatus.refunded:
+      steps.add(
+        _TrackingStep(
+          title: l10n.deliveryStepDisputed,
+          timeLabel: null,
+          state: _StepState.done,
+          icon: Icons.report_problem_outlined,
+        ),
+      );
+      steps.add(
+        _TrackingStep(
+          title: l10n.deliveryStepRefunded,
+          timeLabel: order.refundedAt != null
+              ? _formatTime(order.refundedAt!)
+              : null,
+          state: _StepState.done,
+          icon: Icons.undo_rounded,
+        ),
+      );
+    case OrderStatus.cancelled:
+      break; // handled above
+  }
+
+  return steps;
 }
 
-class DeliveryTrackingScreen extends StatefulWidget {
+class DeliveryTrackingScreen extends ConsumerWidget {
   const DeliveryTrackingScreen({super.key, required this.orderId});
 
   final String orderId;
 
   @override
-  State<DeliveryTrackingScreen> createState() => _DeliveryTrackingScreenState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final orderAsync = ref.watch(orderByIdProvider(orderId));
+    return orderAsync.when(
+      data: (order) => _DeliveryTrackingBody(order: order),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (error, stackTrace) {
+        final colorScheme = Theme.of(context).colorScheme;
+        final textTheme = Theme.of(context).textTheme;
+        return Scaffold(
+          body: Center(
+            child: EmptyProductsNotice(
+              colorScheme: colorScheme,
+              textTheme: textTheme,
+              message: AppLocalizations.of(context).ordersLoadError,
+              onRetry: () => ref.invalidate(orderByIdProvider(orderId)),
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
 
-class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen>
+class _DeliveryTrackingBody extends StatefulWidget {
+  const _DeliveryTrackingBody({required this.order});
+
+  final Order order;
+
+  @override
+  State<_DeliveryTrackingBody> createState() => _DeliveryTrackingBodyState();
+}
+
+class _DeliveryTrackingBodyState extends State<_DeliveryTrackingBody>
     with TickerProviderStateMixin {
   late final AnimationController _entrance = AnimationController(
     vsync: this,
@@ -128,11 +191,6 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen>
     vsync: this,
     duration: const Duration(milliseconds: 1400),
   )..repeat(reverse: true);
-
-  Order get _order => kMockOrders.firstWhere(
-    (order) => order.id == widget.orderId,
-    orElse: () => kMockOrders.first,
-  );
 
   @override
   void dispose() {
@@ -146,7 +204,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen>
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
-    final order = _order;
+    final order = widget.order;
     final statusColor = _statusColor(order.status);
     final steps = _stepsFor(order, l10n);
 
@@ -374,7 +432,7 @@ class _OrderSummaryCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  l10n.deliveryPlacedOnLabel(order.date),
+                  l10n.deliveryPlacedOnLabel(order.dateLabel),
                   style: textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),

@@ -8,6 +8,8 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../../auth/models/merchant_role.dart';
 import '../../auth/services/auth_service.dart';
 import '../../notifications/widgets/notification_settings_popup.dart';
+import '../../orders/providers/orders_provider.dart';
+import '../../wishlist/providers/wishlist_provider.dart';
 import '../providers/profile_provider.dart';
 import '../widgets/data_privacy_popup.dart';
 import '../widgets/marketing_emails_popup.dart';
@@ -493,16 +495,19 @@ class _EditProfileButton extends StatelessWidget {
   }
 }
 
-class _StatsRow extends StatelessWidget {
+class _StatsRow extends ConsumerWidget {
   const _StatsRow({required this.isSeller});
 
   final bool isSeller;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
 
     if (isSeller) {
+      // No backend source for a seller's product count/active-sales
+      // count/revenue is wired up here — seller order/listing screens stay
+      // on their existing mock data for now (see the 16.6 checkpoint note).
       return Row(
         children: [
           Expanded(
@@ -532,11 +537,15 @@ class _StatsRow extends StatelessWidget {
       );
     }
 
+    final orders = ref.watch(ordersProvider).value ?? const [];
+    final activeOrders = orders.where((order) => order.isActive).length;
+    final savedItems = ref.watch(wishlistProvider).value?.length;
+
     return Row(
       children: [
         Expanded(
           child: _StatCard(
-            value: '48',
+            value: '${orders.length}',
             label: l10n.profileStatTotalOrders,
             icon: Icons.receipt_long_rounded,
           ),
@@ -544,7 +553,7 @@ class _StatsRow extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _StatCard(
-            value: '3',
+            value: '$activeOrders',
             label: l10n.profileStatActiveOrders,
             icon: Icons.local_shipping_rounded,
           ),
@@ -552,7 +561,7 @@ class _StatsRow extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _StatCard(
-            value: '12',
+            value: savedItems != null ? '$savedItems' : '-',
             label: l10n.profileStatSavedItems,
             icon: Icons.favorite_rounded,
           ),

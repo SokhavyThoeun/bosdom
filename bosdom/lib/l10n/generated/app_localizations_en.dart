@@ -1589,6 +1589,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ordersEmptyStateMessage => 'No orders in this category';
 
   @override
+  String get ordersLoadError => 'Couldn\'t load your orders. Tap to retry.';
+
+  @override
   String ordersFilterAllLabel(int count) {
     return 'All ($count)';
   }
@@ -1701,6 +1704,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get orderDetailReorderButton => 'Reorder Wholesale Items';
 
   @override
+  String orderDetailReorderFailedSnackbar(String error) {
+    return 'Couldn\'t reorder: $error';
+  }
+
+  @override
   String get orderDetailSaveReceiptButton => 'Save Receipt as PDF';
 
   @override
@@ -1716,13 +1724,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get orderDetailSubtotalLabel => 'Subtotal';
 
   @override
+  String get orderDetailQuantityLabel => 'Quantity';
+
+  @override
+  String get orderDetailUnitPriceLabel => 'Unit Price';
+
+  @override
   String get orderDetailTotalAmountLabel => 'Total Amount';
 
   @override
   String get orderDetailTrackDeliveryButton => 'Track Delivery';
-
-  @override
-  String get orderDetailWholesaleDiscountLabel => 'Wholesale Discount';
 
   @override
   String get deliveryScreenTitle => 'Delivery Tracking';
@@ -1749,19 +1760,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deliveryStatusSectionTitle => 'Delivery Status';
 
   @override
-  String get deliveryStepDelivered => 'Delivered';
-
-  @override
   String get deliveryStepOrderCancelled => 'Order cancelled';
 
   @override
   String get deliveryStepOrderPlaced => 'Order placed';
 
   @override
-  String get deliveryStepOutForDelivery => 'Out for delivery';
+  String get deliveryStepPaymentHeld => 'Payment held in escrow';
 
   @override
-  String get deliveryStepPackedAtWarehouse => 'Packed at warehouse';
+  String get deliveryStepReleased => 'Released to seller';
+
+  @override
+  String get deliveryStepDisputed => 'Under dispute';
+
+  @override
+  String get deliveryStepRefunded => 'Refunded';
 
   @override
   String get reviewSheetTitle => 'Rate & Review';
@@ -1781,18 +1795,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get reviewOfficialBadge => 'OFFICIAL';
-
-  @override
   String reviewPhotoLibraryErrorSnackbar(String error) {
     return 'Could not open photo library: $error';
   }
 
   @override
   String get reviewRateProductLabel => 'RATE PRODUCT';
-
-  @override
-  String get reviewRateStoreLabel => 'RATE STORE';
 
   @override
   String get reviewSubmitButton => 'Submit Review';

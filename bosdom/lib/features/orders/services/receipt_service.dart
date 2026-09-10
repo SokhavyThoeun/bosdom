@@ -51,24 +51,21 @@ abstract final class ReceiptService {
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'order_id': order.id,
-        'date': order.date,
+        'date': order.dateLabel,
         'items': [
-          for (final item in order.items)
-            {
-              'name': item.product.name,
-              'qty_label': item.qtyLabel,
-              'line_total': item.lineTotal,
-            },
+          {
+            'name': order.productName,
+            'qty_label':
+                'Qty: ${order.quantity} × '
+                '\$${order.unitPrice.toStringAsFixed(2)}',
+            'line_total': order.totalAmount,
+          },
         ],
         'shipping_name': order.shippingName,
         'shipping_address': order.shippingAddress,
         'shipping_phone': order.shippingPhone,
-        'delivery_method': order.deliveryMethod,
-        'subtotal': order.subtotal,
-        'discount': order.discount,
-        'shipping_fee': order.shippingFee,
-        'shipping_fee_label': order.shippingFeeLabel,
-        'total': order.total,
+        'subtotal': order.totalAmount,
+        'total': order.totalAmount,
       }),
     );
 

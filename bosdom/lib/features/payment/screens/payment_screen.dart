@@ -11,9 +11,6 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/checkout_progress_stepper.dart';
-import '../../marketplace/models/product.dart';
-import '../../orders/models/order.dart';
-import '../../orders/providers/orders_provider.dart';
 
 enum _PaymentMethod { card, khqr, aba }
 
@@ -56,90 +53,6 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   _PaymentMethod _selectedMethod = _PaymentMethod.card;
   bool _isPaying = false;
   bool _orderConfirmed = false;
-
-  /// Turns the checkout line summaries into a placed [Order] so it shows up
-  /// in order history right after payment succeeds. Each summary only
-  /// carries a display label (e.g. "Qty: 20 Bags"), so a lightweight
-  /// historical [Product] is synthesized per line, mirroring the pattern
-  /// used for past orders in orders/models/order.dart.
-  Order _buildOrderFromPayment() {
-    final now = DateTime.now();
-    const monthNames = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    final date = '${monthNames[now.month - 1]} ${now.day}, ${now.year}';
-    final id = 'BD-${now.millisecondsSinceEpoch % 100000}';
-
-    final qtyPattern = RegExp(r'^Qty:\s*(\d+)\s*(.*)$');
-    final lineItems = widget.items.map((summary) {
-      final match = qtyPattern.firstMatch(summary.qtyLabel);
-      final quantity = match != null ? int.parse(match.group(1)!) : 1;
-      final unitLabel = match != null && match.group(2)!.isNotEmpty
-          ? match.group(2)!
-          : 'Units';
-      final unitPrice = quantity > 0 ? summary.total / quantity : summary.total;
-      Product? matchedProduct;
-      for (final product in kMockProducts) {
-        if (product.name == summary.name) {
-          matchedProduct = product;
-          break;
-        }
-      }
-
-      return OrderLineItem(
-        product: Product(
-          id: matchedProduct?.id ?? summary.name,
-          name: summary.name,
-          price: '\$${unitPrice.toStringAsFixed(2)}',
-          moq: '',
-          seller: 'BosDom Marketplace',
-          icon: summary.icon,
-          category: '',
-          imageQuery: matchedProduct?.imageQuery ?? 'wholesale,shipping,box',
-        ),
-        quantity: quantity,
-        unitLabel: unitLabel,
-      );
-    }).toList();
-
-    return Order(
-      id: id,
-      date: date,
-      status: OrderStatus.processing,
-      items: lineItems.isNotEmpty
-          ? lineItems
-          : [
-              OrderLineItem(
-                product: Product(
-                  id: 'wholesale-order',
-                  name: 'Wholesale Order',
-                  price: '\$${widget.amount.toStringAsFixed(2)}',
-                  moq: '',
-                  seller: 'BosDom Marketplace',
-                  icon: Icons.shopping_bag_outlined,
-                  category: '',
-                  imageQuery: 'wholesale,shipping,box',
-                ),
-                quantity: 1,
-                unitLabel: 'Order',
-              ),
-            ],
-      shippingName: 'Warehouse District 7',
-      shippingAddress: 'Phnom Penh, Cambodia',
-      shippingPhone: '+855 12 345 678',
-    );
-  }
 
   Future<void> _onPayNowPressed() async {
     if (_selectedMethod == _PaymentMethod.aba) {
@@ -190,9 +103,11 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       setState(() => _orderConfirmed = true);
       rootNavigator.pop();
 
-      final order = _buildOrderFromPayment();
-      ref.read(ordersProvider.notifier).addOrder(order);
-
+      // A real backend order isn't created here — this mock payment flow
+      // doesn't call `POST /orders`/`.../pay` yet (that's Phase 16.7's
+      // escrow-checkout wiring), so there's nothing real to add to order
+      // history. `ordersProvider` now reflects the live backend, and a
+      // locally-fabricated order would just vanish on the next refetch.
       final viewOrder = await showGeneralDialog<bool>(
         context: context,
         barrierDismissible: false,
@@ -228,10 +143,12 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       if (!mounted) return;
       if (viewOrder == true) {
         // Clear the checkout/payment stack back to the marketplace first,
-        // then push the order on top — so the order detail's back button
-        // returns to the marketplace instead of back into payment/checkout.
+        // then push order history on top — so its back button returns to
+        // the marketplace instead of back into payment/checkout. This mock
+        // flow doesn't create a real backend order (see the note above), so
+        // there's no specific order id to jump straight to a detail view of.
         context.go('/marketplace');
-        context.pushNamed('orderDetail', pathParameters: {'id': order.id});
+        context.pushNamed('orders');
       } else {
         context.go('/marketplace');
       }

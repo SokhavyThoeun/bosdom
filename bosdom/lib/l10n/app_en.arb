@@ -840,6 +840,7 @@
   },
   "ordersScreenTitle": "View Orders",
   "ordersEmptyStateMessage": "No orders in this category",
+  "ordersLoadError": "Couldn't load your orders. Tap to retry.",
   "ordersFilterAllLabel": "All ({count})",
   "@ordersFilterAllLabel": {
     "placeholders": {
@@ -928,14 +929,23 @@
   },
   "orderDetailReceiptSavedSnackbar": "Receipt saved to your device",
   "orderDetailReorderButton": "Reorder Wholesale Items",
+  "orderDetailReorderFailedSnackbar": "Couldn't reorder: {error}",
+  "@orderDetailReorderFailedSnackbar": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "orderDetailSaveReceiptButton": "Save Receipt as PDF",
   "orderDetailSavingLabel": "Saving...",
   "orderDetailShippingFeeLabel": "Shipping Fee",
   "orderDetailShippingSection": "Shipping & Delivery",
   "orderDetailSubtotalLabel": "Subtotal",
+  "orderDetailQuantityLabel": "Quantity",
+  "orderDetailUnitPriceLabel": "Unit Price",
   "orderDetailTotalAmountLabel": "Total Amount",
   "orderDetailTrackDeliveryButton": "Track Delivery",
-  "orderDetailWholesaleDiscountLabel": "Wholesale Discount",
   "deliveryScreenTitle": "Delivery Tracking",
   "deliveryCurrentStatusLabel": "Current status",
   "deliveryEscrowNoteText": "Funds held securely in escrow until you confirm receipt.",
@@ -950,11 +960,12 @@
     }
   },
   "deliveryStatusSectionTitle": "Delivery Status",
-  "deliveryStepDelivered": "Delivered",
   "deliveryStepOrderCancelled": "Order cancelled",
   "deliveryStepOrderPlaced": "Order placed",
-  "deliveryStepOutForDelivery": "Out for delivery",
-  "deliveryStepPackedAtWarehouse": "Packed at warehouse",
+  "deliveryStepPaymentHeld": "Payment held in escrow",
+  "deliveryStepReleased": "Released to seller",
+  "deliveryStepDisputed": "Under dispute",
+  "deliveryStepRefunded": "Refunded",
   "reviewSheetTitle": "Rate & Review",
   "reviewAddPhotosButton": "Add Photos",
   "reviewAddPhotosLabel": "ADD PHOTOS OF RECEIVED ITEMS",
@@ -967,7 +978,6 @@
       }
     }
   },
-  "reviewOfficialBadge": "OFFICIAL",
   "reviewPhotoLibraryErrorSnackbar": "Could not open photo library: {error}",
   "@reviewPhotoLibraryErrorSnackbar": {
     "placeholders": {
@@ -977,7 +987,6 @@
     }
   },
   "reviewRateProductLabel": "RATE PRODUCT",
-  "reviewRateStoreLabel": "RATE STORE",
   "reviewSubmitButton": "Submit Review",
   "reviewSubmittedSnackbar": "Thanks! Your review has been submitted.",
   "reviewWriteReviewLabel": "WRITE A REVIEW",

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../marketplace/widgets/empty_products_notice.dart';
 import '../models/order.dart';
 import '../providers/orders_provider.dart';
 import 'rate_review_sheet.dart';
@@ -16,9 +17,11 @@ const _kFilters = [null, ...OrderStatus.values];
 Color _statusColor(OrderStatus status) => AppColors.brandCrimson;
 
 IconData _statusIcon(OrderStatus status) => switch (status) {
-  OrderStatus.processing => Icons.hourglass_top_rounded,
-  OrderStatus.shipped => Icons.local_shipping_rounded,
-  OrderStatus.delivered => Icons.check_circle_rounded,
+  OrderStatus.pendingPayment => Icons.hourglass_top_rounded,
+  OrderStatus.held => Icons.lock_clock_rounded,
+  OrderStatus.released => Icons.check_circle_rounded,
+  OrderStatus.disputed => Icons.report_problem_rounded,
+  OrderStatus.refunded => Icons.undo_rounded,
   OrderStatus.cancelled => Icons.cancel_rounded,
 };
 
@@ -40,8 +43,8 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final orders = ref.watch(ordersProvider);
-    final filteredOrders = _filteredOrders(orders);
+    final l10n = AppLocalizations.of(context);
+    final ordersAsync = ref.watch(ordersProvider);
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -52,64 +55,89 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
             child: SafeArea(
               top: false,
               bottom: false,
-              child: CustomScrollView(
-                slivers: [
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-                    sliver: SliverToBoxAdapter(
-                      child: _FilterRow(
-                        selected: _filter,
-                        onSelected: (status) =>
-                            setState(() => _filter = status),
-                        orderCount: orders.length,
-                        colorScheme: colorScheme,
-                        textTheme: textTheme,
-                      ),
-                    ),
+              child: ordersAsync.when(
+                loading: () =>
+                    const Center(child: CircularProgressIndicator()),
+                error: (error, stackTrace) => Center(
+                  child: EmptyProductsNotice(
+                    colorScheme: colorScheme,
+                    textTheme: textTheme,
+                    message: l10n.ordersLoadError,
+                    onRetry: () => ref.read(ordersProvider.notifier).refresh(),
                   ),
-                  if (filteredOrders.isEmpty)
-                    SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: _EmptyState(
-                        colorScheme: colorScheme,
-                        textTheme: textTheme,
-                      ),
-                    )
-                  else
-                    SliverPadding(
-                      padding: EdgeInsets.fromLTRB(
-                        24,
-                        16,
-                        24,
-                        8 + MediaQuery.of(context).padding.bottom,
-                      ),
-                      sliver: SliverList.separated(
-                        itemCount: filteredOrders.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 16),
-                        itemBuilder: (context, index) => _OrderCard(
-                          order: filteredOrders[index],
-                          colorScheme: colorScheme,
-                          textTheme: textTheme,
-                          onViewDetails: () => context.pushNamed(
-                            'orderDetail',
-                            pathParameters: {'id': filteredOrders[index].id},
-                          ),
-                          onReport: () => showReportOrderSheet(
-                            context,
-                            filteredOrders[index],
-                          ),
-                          onRate: () => showRateReviewSheet(
-                            context,
-                            filteredOrders[index],
-                          ),
-                          onTrack: () => context.pushNamed(
-                            'deliveryTracking',
-                            pathParameters: {'id': filteredOrders[index].id},
+                ),
+                data: (orders) {
+                  final filteredOrders = _filteredOrders(orders);
+                  return RefreshIndicator(
+                    onRefresh: () =>
+                        ref.read(ordersProvider.notifier).refresh(),
+                    color: colorScheme.primary,
+                    child: CustomScrollView(
+                      slivers: [
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+                          sliver: SliverToBoxAdapter(
+                            child: _FilterRow(
+                              selected: _filter,
+                              onSelected: (status) =>
+                                  setState(() => _filter = status),
+                              orderCount: orders.length,
+                              colorScheme: colorScheme,
+                              textTheme: textTheme,
+                            ),
                           ),
                         ),
-                      ),
+                        if (filteredOrders.isEmpty)
+                          SliverFillRemaining(
+                            hasScrollBody: false,
+                            child: _EmptyState(
+                              colorScheme: colorScheme,
+                              textTheme: textTheme,
+                            ),
+                          )
+                        else
+                          SliverPadding(
+                            padding: EdgeInsets.fromLTRB(
+                              24,
+                              16,
+                              24,
+                              8 + MediaQuery.of(context).padding.bottom,
+                            ),
+                            sliver: SliverList.separated(
+                              itemCount: filteredOrders.length,
+                              separatorBuilder: (_, _) =>
+                                  const SizedBox(height: 16),
+                              itemBuilder: (context, index) => _OrderCard(
+                                order: filteredOrders[index],
+                                colorScheme: colorScheme,
+                                textTheme: textTheme,
+                                onViewDetails: () => context.pushNamed(
+                                  'orderDetail',
+                                  pathParameters: {
+                                    'id': filteredOrders[index].id,
+                                  },
+                                ),
+                                onReport: () => showReportOrderSheet(
+                                  context,
+                                  filteredOrders[index],
+                                ),
+                                onRate: () => showRateReviewSheet(
+                                  context,
+                                  filteredOrders[index],
+                                ),
+                                onTrack: () => context.pushNamed(
+                                  'deliveryTracking',
+                                  pathParameters: {
+                                    'id': filteredOrders[index].id,
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
-                ],
+                  );
+                },
               ),
             ),
           ),
@@ -355,7 +383,7 @@ class _OrderCard extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 1),
                                   Text(
-                                    order.date,
+                                    order.dateLabel,
                                     style: textTheme.bodySmall?.copyWith(
                                       color: colorScheme.onSurfaceVariant,
                                     ),
@@ -433,16 +461,8 @@ class _OrderCard extends StatelessWidget {
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
-                                        order.sellerName,
-                                        style: textTheme.bodySmall?.copyWith(
-                                          color: colorScheme.primary,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
                                         l10n.ordersItemCountLabel(
-                                          order.itemCount,
+                                          order.quantity,
                                         ),
                                         style: textTheme.bodySmall?.copyWith(
                                           color: colorScheme.onSurfaceVariant,
@@ -452,7 +472,7 @@ class _OrderCard extends StatelessWidget {
                                   ),
                                 ),
                                 Text(
-                                  '\$${order.total.toStringAsFixed(2)}',
+                                  '\$${order.totalAmount.toStringAsFixed(2)}',
                                   style: textTheme.titleMedium?.copyWith(
                                     color: colorScheme.primary,
                                     fontWeight: FontWeight.bold,
@@ -481,7 +501,7 @@ class _OrderCard extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            if (order.status == OrderStatus.delivered) ...[
+                            if (order.status == OrderStatus.released) ...[
                               const SizedBox(height: 10),
                               _SecondaryActionButton(
                                 icon: Icons.star_outline_rounded,
@@ -492,9 +512,7 @@ class _OrderCard extends StatelessWidget {
                                 expand: true,
                                 accent: true,
                               ),
-                            ] else if (order.status ==
-                                    OrderStatus.processing ||
-                                order.status == OrderStatus.shipped) ...[
+                            ] else if (order.isActive) ...[
                               const SizedBox(height: 10),
                               _SecondaryActionButton(
                                 icon: Icons.location_on_outlined,

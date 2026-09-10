@@ -1606,6 +1606,10 @@ class AppLocalizationsKm extends AppLocalizations {
   String get ordersEmptyStateMessage => 'មិនមានការបញ្ជាទិញនៅក្នុងប្រភេទនេះទេ';
 
   @override
+  String get ordersLoadError =>
+      'មិនអាចផ្ទុកការបញ្ជាទិញរបស់អ្នកបានទេ។ ចុចដើម្បីព្យាយាមម្តងទៀត។';
+
+  @override
   String ordersFilterAllLabel(int count) {
     return 'ទាំងអស់ ($count)';
   }
@@ -1720,6 +1724,11 @@ class AppLocalizationsKm extends AppLocalizations {
   String get orderDetailReorderButton => 'បញ្ជាទិញឡើងវិញនូវទំនិញលក់ដុំ';
 
   @override
+  String orderDetailReorderFailedSnackbar(String error) {
+    return 'មិនអាចបញ្ជាទិញឡើងវិញបានទេ៖ $error';
+  }
+
+  @override
   String get orderDetailSaveReceiptButton => 'រក្សាទុកបង្កាន់ដៃជា PDF';
 
   @override
@@ -1735,13 +1744,16 @@ class AppLocalizationsKm extends AppLocalizations {
   String get orderDetailSubtotalLabel => 'សរុបរង';
 
   @override
+  String get orderDetailQuantityLabel => 'បរិមាណ';
+
+  @override
+  String get orderDetailUnitPriceLabel => 'តម្លៃឯកតា';
+
+  @override
   String get orderDetailTotalAmountLabel => 'ចំនួនទឹកប្រាក់សរុប';
 
   @override
   String get orderDetailTrackDeliveryButton => 'តាមដានការដឹកជញ្ជូន';
-
-  @override
-  String get orderDetailWholesaleDiscountLabel => 'បញ្ចុះតម្លៃលក់ដុំ';
 
   @override
   String get deliveryScreenTitle => 'តាមដានការដឹកជញ្ជូន';
@@ -1768,19 +1780,22 @@ class AppLocalizationsKm extends AppLocalizations {
   String get deliveryStatusSectionTitle => 'ស្ថានភាពការដឹកជញ្ជូន';
 
   @override
-  String get deliveryStepDelivered => 'បានដឹកជញ្ជូនរួច';
-
-  @override
   String get deliveryStepOrderCancelled => 'បញ្ជាទិញត្រូវបានលុបចោល';
 
   @override
   String get deliveryStepOrderPlaced => 'បានធ្វើការបញ្ជាទិញ';
 
   @override
-  String get deliveryStepOutForDelivery => 'កំពុងដឹកជញ្ជូន';
+  String get deliveryStepPaymentHeld => 'ថវិកាត្រូវបានរក្សាទុកក្នុងអេស្គ្រូ';
 
   @override
-  String get deliveryStepPackedAtWarehouse => 'បានវេចខ្ចប់នៅឃ្លាំង';
+  String get deliveryStepReleased => 'ថវិកាត្រូវបានប្រគល់ជូនអ្នកលក់';
+
+  @override
+  String get deliveryStepDisputed => 'កំពុងជាប់វិវាទ';
+
+  @override
+  String get deliveryStepRefunded => 'ថវិកាត្រូវបានប្រគល់សងវិញ';
 
   @override
   String get reviewSheetTitle => 'វាយតម្លៃ និងផ្តល់មតិ';
@@ -1800,18 +1815,12 @@ class AppLocalizationsKm extends AppLocalizations {
   }
 
   @override
-  String get reviewOfficialBadge => 'ផ្លូវការ';
-
-  @override
   String reviewPhotoLibraryErrorSnackbar(String error) {
     return 'មិនអាចបើកបណ្ណាល័យរូបភាពបានទេ៖ $error';
   }
 
   @override
   String get reviewRateProductLabel => 'វាយតម្លៃផលិតផល';
-
-  @override
-  String get reviewRateStoreLabel => 'វាយតម្លៃហាង';
 
   @override
   String get reviewSubmitButton => 'ដាក់ស្នើមតិវាយតម្លៃ';

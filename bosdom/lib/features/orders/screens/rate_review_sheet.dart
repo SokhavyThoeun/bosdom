@@ -8,8 +8,10 @@ import '../models/order.dart';
 
 const _kMaxPhotos = 6;
 
-/// Opens the "Rate & Review" bottom sheet for [order]'s first line item and
-/// its seller. Resolves once the sheet is dismissed.
+/// Opens the "Rate & Review" bottom sheet for [order]'s product. Resolves
+/// once the sheet is dismissed. There's no seller display name on a real
+/// order (`OrderOut` only carries `seller_id`), so this only rates the
+/// product, not a separate "rate the store" card.
 Future<void> showRateReviewSheet(BuildContext context, Order order) {
   return showModalBottomSheet<void>(
     context: context,
@@ -29,7 +31,6 @@ class _RateReviewSheet extends StatefulWidget {
 }
 
 class _RateReviewSheetState extends State<_RateReviewSheet> {
-  int _storeRating = 4;
   int _productRating = 5;
   final _reviewController = TextEditingController();
   final _picker = ImagePicker();
@@ -79,7 +80,7 @@ class _RateReviewSheetState extends State<_RateReviewSheet> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
-    final product = widget.order.items.first.product;
+    final order = widget.order;
 
     return Padding(
       padding: EdgeInsets.only(
@@ -142,20 +143,9 @@ class _RateReviewSheetState extends State<_RateReviewSheet> {
                 ),
                 const SizedBox(height: 18),
                 _RatingCard(
-                  label: l10n.reviewRateStoreLabel,
-                  icon: Icons.storefront_outlined,
-                  name: product.seller,
-                  badge: product.verified ? l10n.reviewOfficialBadge : null,
-                  rating: _storeRating,
-                  onChanged: (value) => setState(() => _storeRating = value),
-                  colorScheme: colorScheme,
-                  textTheme: textTheme,
-                ),
-                const SizedBox(height: 12),
-                _RatingCard(
                   label: l10n.reviewRateProductLabel,
-                  icon: product.icon,
-                  name: product.name,
+                  icon: order.icon,
+                  name: order.productName,
                   badge: null,
                   rating: _productRating,
                   onChanged: (value) => setState(() => _productRating = value),

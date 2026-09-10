@@ -5,9 +5,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
-import '../../../shared/utils/delivery_carrier.dart';
 import '../../../shared/widgets/app_snack_bar.dart';
 import '../../cart/providers/cart_provider.dart';
+import '../../marketplace/providers/listings_provider.dart';
+import '../../marketplace/widgets/empty_products_notice.dart';
 import '../models/order.dart';
 import '../providers/orders_provider.dart';
 import '../services/receipt_service.dart';
@@ -16,22 +17,48 @@ import '../services/receipt_service.dart';
 // status is distinguished by icon and label, not by hue.
 Color _statusColor(OrderStatus status) => AppColors.brandCrimson;
 
-class OrderDetailScreen extends ConsumerStatefulWidget {
+class OrderDetailScreen extends ConsumerWidget {
   const OrderDetailScreen({super.key, required this.orderId});
 
   final String orderId;
 
   @override
-  ConsumerState<OrderDetailScreen> createState() => _OrderDetailScreenState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final orderAsync = ref.watch(orderByIdProvider(orderId));
+    return orderAsync.when(
+      data: (order) => _OrderDetailBody(order: order),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (error, stackTrace) {
+        final colorScheme = Theme.of(context).colorScheme;
+        final textTheme = Theme.of(context).textTheme;
+        return Scaffold(
+          body: Center(
+            child: EmptyProductsNotice(
+              colorScheme: colorScheme,
+              textTheme: textTheme,
+              message: AppLocalizations.of(context).ordersLoadError,
+              onRetry: () => ref.invalidate(orderByIdProvider(orderId)),
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
 
-class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
-  bool _isSavingReceipt = false;
+class _OrderDetailBody extends ConsumerStatefulWidget {
+  const _OrderDetailBody({required this.order});
 
-  Order _order(List<Order> orders) => orders.firstWhere(
-    (order) => order.id == widget.orderId,
-    orElse: () => orders.first,
-  );
+  final Order order;
+
+  @override
+  ConsumerState<_OrderDetailBody> createState() => _OrderDetailBodyState();
+}
+
+class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
+  bool _isSavingReceipt = false;
+  bool _isReordering = false;
 
   Future<void> _saveReceipt(Order order) async {
     final l10n = AppLocalizations.of(context);
@@ -62,24 +89,43 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
     }
   }
 
+  /// The order only snapshots the listing's id, not a full [Product], so
+  /// reordering re-fetches the live listing rather than reusing anything
+  /// carried on the order itself.
+  Future<void> _reorder(Order order) async {
+    final l10n = AppLocalizations.of(context);
+    setState(() => _isReordering = true);
+    try {
+      final product = await ref.read(
+        listingByIdProvider(order.listingId).future,
+      );
+      if (!mounted) return;
+      ref
+          .read(cartProvider.notifier)
+          .addItems([(product, order.quantity)]);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.orderDetailItemsAddedSnackbar)),
+      );
+      context.goNamed('cart');
+    } catch (e) {
+      if (!mounted) return;
+      showAppSnackBar(
+        context,
+        message: l10n.orderDetailReorderFailedSnackbar('$e'),
+        type: AppSnackBarType.error,
+      );
+    } finally {
+      if (mounted) setState(() => _isReordering = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
-    final order = _order(ref.watch(ordersProvider));
+    final order = widget.order;
     final statusColor = _statusColor(order.status);
-    final carrierLogoAsset = deliveryLogoAsset(order.deliveryMethod);
-
-    void reorder() {
-      ref.read(cartProvider.notifier).addItems([
-        for (final item in order.items) (item.product, item.quantity),
-      ]);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.orderDetailItemsAddedSnackbar)),
-      );
-      context.goNamed('cart');
-    }
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -109,92 +155,74 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                     title: l10n.orderDetailItemsOrderedSection,
                     colorScheme: colorScheme,
                     textTheme: textTheme,
-                    child: Column(
-                      children: [
-                        for (final item in order.items) ...[
+                    child: Container(
+                      margin: const EdgeInsets.only(top: 10),
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerLowest,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: colorScheme.outlineVariant),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Container(
-                            margin: const EdgeInsets.only(top: 10),
-                            padding: const EdgeInsets.all(10),
+                            width: 44,
+                            height: 44,
+                            clipBehavior: Clip.antiAlias,
                             decoration: BoxDecoration(
-                              color: colorScheme.surfaceContainerLowest,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: colorScheme.outlineVariant,
-                              ),
+                              color: colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                            child: Row(
+                            child: Image.network(
+                              order.imageUrl,
+                              fit: BoxFit.cover,
+                              loadingBuilder: (context, child, progress) =>
+                                  progress == null
+                                  ? child
+                                  : Icon(
+                                      order.icon,
+                                      color: colorScheme.primary,
+                                      size: 20,
+                                    ),
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Icon(
+                                    order.icon,
+                                    color: colorScheme.primary,
+                                    size: 20,
+                                  ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Container(
-                                  width: 44,
-                                  height: 44,
-                                  clipBehavior: Clip.antiAlias,
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.primaryContainer,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Image.network(
-                                    item.product.imageUrl,
-                                    fit: BoxFit.cover,
-                                    loadingBuilder:
-                                        (context, child, progress) =>
-                                            progress == null
-                                            ? child
-                                            : Icon(
-                                                item.product.icon,
-                                                color: colorScheme.primary,
-                                                size: 20,
-                                              ),
-                                    errorBuilder:
-                                        (context, error, stackTrace) => Icon(
-                                          item.product.icon,
-                                          color: colorScheme.primary,
-                                          size: 20,
-                                        ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        item.product.name,
-                                        style: textTheme.bodyMedium?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        item.product.seller,
-                                        style: textTheme.bodySmall?.copyWith(
-                                          color: colorScheme.primary,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        item.qtyLabel,
-                                        style: textTheme.bodySmall?.copyWith(
-                                          color: colorScheme.onSurfaceVariant,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
                                 Text(
-                                  '\$${item.lineTotal.toStringAsFixed(2)}',
+                                  order.productName,
                                   style: textTheme.bodyMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  l10n.ordersItemCountLabel(order.quantity),
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
                                   ),
                                 ),
                               ],
                             ),
                           ),
+                          const SizedBox(width: 12),
+                          Text(
+                            '\$${order.totalAmount.toStringAsFixed(2)}',
+                            style: textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ],
-                      ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -231,58 +259,6 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                   ),
                   const SizedBox(height: 16),
                   _SectionCard(
-                    title: l10n.orderDetailDeliveryMethodSection,
-                    colorScheme: colorScheme,
-                    textTheme: textTheme,
-                    child: Row(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: carrierLogoAsset != null
-                              ? Image.asset(
-                                  carrierLogoAsset,
-                                  width: 56,
-                                  height: 42,
-                                  fit: BoxFit.cover,
-                                )
-                              : Container(
-                                  width: 56,
-                                  height: 42,
-                                  alignment: Alignment.center,
-                                  color: colorScheme.primaryContainer,
-                                  child: Icon(
-                                    Icons.local_shipping_outlined,
-                                    color: colorScheme.primary,
-                                    size: 20,
-                                  ),
-                                ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                l10n.orderDetailCarrierLabel,
-                                style: textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                order.deliveryMethod,
-                                style: textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _SectionCard(
                     title: l10n.orderDetailPaymentSummarySection,
                     colorScheme: colorScheme,
                     textTheme: textTheme,
@@ -290,25 +266,16 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         _SummaryRow(
-                          label: l10n.orderDetailSubtotalLabel,
-                          valueLabel: '\$${order.subtotal.toStringAsFixed(2)}',
+                          label: l10n.orderDetailUnitPriceLabel,
+                          valueLabel:
+                              '\$${order.unitPrice.toStringAsFixed(2)}',
                           colorScheme: colorScheme,
                           textTheme: textTheme,
                         ),
-                        if (order.discount > 0) ...[
-                          const SizedBox(height: 8),
-                          _SummaryRow(
-                            label: l10n.orderDetailWholesaleDiscountLabel,
-                            valueLabel:
-                                '-\$${order.discount.toStringAsFixed(2)}',
-                            colorScheme: colorScheme,
-                            textTheme: textTheme,
-                          ),
-                        ],
                         const SizedBox(height: 8),
                         _SummaryRow(
-                          label: l10n.orderDetailShippingFeeLabel,
-                          valueLabel: order.shippingFeeLabel,
+                          label: l10n.orderDetailQuantityLabel,
+                          valueLabel: '${order.quantity}',
                           colorScheme: colorScheme,
                           textTheme: textTheme,
                         ),
@@ -323,7 +290,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                             ),
                             const Spacer(),
                             Text(
-                              '\$${order.total.toStringAsFixed(2)}',
+                              '\$${order.totalAmount.toStringAsFixed(2)}',
                               style: textTheme.titleLarge?.copyWith(
                                 color: colorScheme.primary,
                                 fontWeight: FontWeight.bold,
@@ -373,8 +340,17 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                   ),
                   const SizedBox(height: 12),
                   FilledButton(
-                    onPressed: reorder,
-                    child: Text(l10n.orderDetailReorderButton),
+                    onPressed: _isReordering ? null : () => _reorder(order),
+                    child: _isReordering
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(l10n.orderDetailReorderButton),
                   ),
                 ],
               ),
@@ -483,7 +459,7 @@ class _OrderSummaryHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  l10n.orderDetailPlacedOnLabel(order.date),
+                  l10n.orderDetailPlacedOnLabel(order.dateLabel),
                   style: textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),

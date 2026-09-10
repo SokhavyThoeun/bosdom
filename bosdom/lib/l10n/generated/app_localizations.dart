@@ -2955,6 +2955,12 @@ abstract class AppLocalizations {
   /// **'No orders in this category'**
   String get ordersEmptyStateMessage;
 
+  /// No description provided for @ordersLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your orders. Tap to retry.'**
+  String get ordersLoadError;
+
   /// No description provided for @ordersFilterAllLabel.
   ///
   /// In en, this message translates to:
@@ -3147,6 +3153,12 @@ abstract class AppLocalizations {
   /// **'Reorder Wholesale Items'**
   String get orderDetailReorderButton;
 
+  /// No description provided for @orderDetailReorderFailedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t reorder: {error}'**
+  String orderDetailReorderFailedSnackbar(String error);
+
   /// No description provided for @orderDetailSaveReceiptButton.
   ///
   /// In en, this message translates to:
@@ -3177,6 +3189,18 @@ abstract class AppLocalizations {
   /// **'Subtotal'**
   String get orderDetailSubtotalLabel;
 
+  /// No description provided for @orderDetailQuantityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity'**
+  String get orderDetailQuantityLabel;
+
+  /// No description provided for @orderDetailUnitPriceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit Price'**
+  String get orderDetailUnitPriceLabel;
+
   /// No description provided for @orderDetailTotalAmountLabel.
   ///
   /// In en, this message translates to:
@@ -3188,12 +3212,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Track Delivery'**
   String get orderDetailTrackDeliveryButton;
-
-  /// No description provided for @orderDetailWholesaleDiscountLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Wholesale Discount'**
-  String get orderDetailWholesaleDiscountLabel;
 
   /// No description provided for @deliveryScreenTitle.
   ///
@@ -3237,12 +3255,6 @@ abstract class AppLocalizations {
   /// **'Delivery Status'**
   String get deliveryStatusSectionTitle;
 
-  /// No description provided for @deliveryStepDelivered.
-  ///
-  /// In en, this message translates to:
-  /// **'Delivered'**
-  String get deliveryStepDelivered;
-
   /// No description provided for @deliveryStepOrderCancelled.
   ///
   /// In en, this message translates to:
@@ -3255,17 +3267,29 @@ abstract class AppLocalizations {
   /// **'Order placed'**
   String get deliveryStepOrderPlaced;
 
-  /// No description provided for @deliveryStepOutForDelivery.
+  /// No description provided for @deliveryStepPaymentHeld.
   ///
   /// In en, this message translates to:
-  /// **'Out for delivery'**
-  String get deliveryStepOutForDelivery;
+  /// **'Payment held in escrow'**
+  String get deliveryStepPaymentHeld;
 
-  /// No description provided for @deliveryStepPackedAtWarehouse.
+  /// No description provided for @deliveryStepReleased.
   ///
   /// In en, this message translates to:
-  /// **'Packed at warehouse'**
-  String get deliveryStepPackedAtWarehouse;
+  /// **'Released to seller'**
+  String get deliveryStepReleased;
+
+  /// No description provided for @deliveryStepDisputed.
+  ///
+  /// In en, this message translates to:
+  /// **'Under dispute'**
+  String get deliveryStepDisputed;
+
+  /// No description provided for @deliveryStepRefunded.
+  ///
+  /// In en, this message translates to:
+  /// **'Refunded'**
+  String get deliveryStepRefunded;
 
   /// No description provided for @reviewSheetTitle.
   ///
@@ -3297,12 +3321,6 @@ abstract class AppLocalizations {
   /// **'You can add up to {count} photos'**
   String reviewMaxPhotosSnackbar(int count);
 
-  /// No description provided for @reviewOfficialBadge.
-  ///
-  /// In en, this message translates to:
-  /// **'OFFICIAL'**
-  String get reviewOfficialBadge;
-
   /// No description provided for @reviewPhotoLibraryErrorSnackbar.
   ///
   /// In en, this message translates to:
@@ -3314,12 +3332,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'RATE PRODUCT'**
   String get reviewRateProductLabel;
-
-  /// No description provided for @reviewRateStoreLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'RATE STORE'**
-  String get reviewRateStoreLabel;
 
   /// No description provided for @reviewSubmitButton.
   ///

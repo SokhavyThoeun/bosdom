@@ -7,6 +7,10 @@
     "en": "No orders in this category",
     "km": "មិនមានការបញ្ជាទិញនៅក្នុងប្រភេទនេះទេ"
   },
+  "ordersLoadError": {
+    "en": "Couldn't load your orders. Tap to retry.",
+    "km": "មិនអាចផ្ទុកការបញ្ជាទិញរបស់អ្នកបានទេ។ ចុចដើម្បីព្យាយាមម្តងទៀត។"
+  },
   "ordersFilterAllLabel": {
     "en": "All ({count})",
     "km": "ទាំងអស់ ({count})",
@@ -94,6 +98,11 @@
     "en": "Reorder Wholesale Items",
     "km": "បញ្ជាទិញឡើងវិញនូវទំនិញលក់ដុំ"
   },
+  "orderDetailReorderFailedSnackbar": {
+    "en": "Couldn't reorder: {error}",
+    "km": "មិនអាចបញ្ជាទិញឡើងវិញបានទេ៖ {error}",
+    "placeholders": ["error"]
+  },
   "orderDetailSaveReceiptButton": {
     "en": "Save Receipt as PDF",
     "km": "រក្សាទុកបង្កាន់ដៃជា PDF"
@@ -114,6 +123,14 @@
     "en": "Subtotal",
     "km": "សរុបរង"
   },
+  "orderDetailQuantityLabel": {
+    "en": "Quantity",
+    "km": "បរិមាណ"
+  },
+  "orderDetailUnitPriceLabel": {
+    "en": "Unit Price",
+    "km": "តម្លៃឯកតា"
+  },
   "orderDetailTotalAmountLabel": {
     "en": "Total Amount",
     "km": "ចំនួនទឹកប្រាក់សរុប"
@@ -121,10 +138,6 @@
   "orderDetailTrackDeliveryButton": {
     "en": "Track Delivery",
     "km": "តាមដានការដឹកជញ្ជូន"
-  },
-  "orderDetailWholesaleDiscountLabel": {
-    "en": "Wholesale Discount",
-    "km": "បញ្ចុះតម្លៃលក់ដុំ"
   },
   "deliveryScreenTitle": {
     "en": "Delivery Tracking",
@@ -155,10 +168,6 @@
     "en": "Delivery Status",
     "km": "ស្ថានភាពការដឹកជញ្ជូន"
   },
-  "deliveryStepDelivered": {
-    "en": "Delivered",
-    "km": "បានដឹកជញ្ជូនរួច"
-  },
   "deliveryStepOrderCancelled": {
     "en": "Order cancelled",
     "km": "បញ្ជាទិញត្រូវបានលុបចោល"
@@ -167,13 +176,21 @@
     "en": "Order placed",
     "km": "បានធ្វើការបញ្ជាទិញ"
   },
-  "deliveryStepOutForDelivery": {
-    "en": "Out for delivery",
-    "km": "កំពុងដឹកជញ្ជូន"
+  "deliveryStepPaymentHeld": {
+    "en": "Payment held in escrow",
+    "km": "ថវិកាត្រូវបានរក្សាទុកក្នុងអេស្គ្រូ"
   },
-  "deliveryStepPackedAtWarehouse": {
-    "en": "Packed at warehouse",
-    "km": "បានវេចខ្ចប់នៅឃ្លាំង"
+  "deliveryStepReleased": {
+    "en": "Released to seller",
+    "km": "ថវិកាត្រូវបានប្រគល់ជូនអ្នកលក់"
+  },
+  "deliveryStepDisputed": {
+    "en": "Under dispute",
+    "km": "កំពុងជាប់វិវាទ"
+  },
+  "deliveryStepRefunded": {
+    "en": "Refunded",
+    "km": "ថវិកាត្រូវបានប្រគល់សងវិញ"
   },
   "reviewSheetTitle": {
     "en": "Rate & Review",
@@ -196,10 +213,6 @@
     "km": "អ្នកអាចបន្ថែមរូបភាពបានច្រើនបំផុត {count} សន្លឹក",
     "placeholders": ["count"]
   },
-  "reviewOfficialBadge": {
-    "en": "OFFICIAL",
-    "km": "ផ្លូវការ"
-  },
   "reviewPhotoLibraryErrorSnackbar": {
     "en": "Could not open photo library: {error}",
     "km": "មិនអាចបើកបណ្ណាល័យរូបភាពបានទេ៖ {error}",
@@ -208,10 +221,6 @@
   "reviewRateProductLabel": {
     "en": "RATE PRODUCT",
     "km": "វាយតម្លៃផលិតផល"
-  },
-  "reviewRateStoreLabel": {
-    "en": "RATE STORE",
-    "km": "វាយតម្លៃហាង"
   },
   "reviewSubmitButton": {
     "en": "Submit Review",
