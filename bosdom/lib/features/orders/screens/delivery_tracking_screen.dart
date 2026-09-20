@@ -5,13 +5,14 @@ import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../../shared/widgets/hourglass_icon.dart';
+import '../../../shared/widgets/order_review_card.dart';
+import '../../../shared/widgets/order_status_badge.dart';
 import '../../marketplace/widgets/empty_products_notice.dart';
 import '../models/order.dart';
 import '../providers/orders_provider.dart';
-
-// All statuses share the brand color instead of a traffic-light palette —
-// status is distinguished by icon and label, not by hue.
-Color _statusColor(OrderStatus status) => AppColors.brandCrimson;
+import '../widgets/order_hold_card.dart';
+import 'rate_review_sheet.dart';
 
 enum _StepState { done, current, pending }
 
@@ -32,10 +33,14 @@ class _TrackingStep {
 String _formatTime(DateTime dateTime) =>
     DateFormat.yMMMd().add_jm().format(dateTime.toLocal());
 
-/// Steps mirror the backend's real escrow state machine (`orders.py`) —
-/// there's no courier webhook data to show a packed/shipped/out-for-delivery
+/// Steps mirror the backend's real escrow state machine (`orders.py`), but
+/// are worded around order fulfillment (has the seller started working on
+/// it yet?) rather than the escrow ledger — that money-processing framing
+/// belongs to the seller's earnings screen, not the buyer's tracking view.
+/// There's no courier webhook data to show a packed/shipped/out-for-delivery
 /// timeline, so each step's timestamp comes straight off the order's own
-/// `paid_at`/`released_at`/`cancelled_at`/`refunded_at` columns.
+/// `paid_at`/`seller_confirmed_at`/`released_at`/`cancelled_at`/`refunded_at`
+/// columns.
 List<_TrackingStep> _stepsFor(Order order, AppLocalizations l10n) {
   final placed = _TrackingStep(
     title: l10n.deliveryStepOrderPlaced,
@@ -58,40 +63,79 @@ List<_TrackingStep> _stepsFor(Order order, AppLocalizations l10n) {
     ];
   }
 
-  final steps = [
-    placed,
-    if (order.status == OrderStatus.pendingPayment)
+  final steps = [placed];
+
+  if (order.status == OrderStatus.pendingPayment) {
+    steps.add(
       _TrackingStep(
-        title: l10n.deliveryStepPaymentHeld,
+        title: l10n.deliveryStepAwaitingSellerConfirmation,
         timeLabel: null,
-        state: _StepState.current,
-        icon: Icons.lock_clock_outlined,
-      )
-    else
-      _TrackingStep(
-        title: l10n.deliveryStepPaymentHeld,
-        timeLabel: order.paidAt != null ? _formatTime(order.paidAt!) : null,
-        state: _StepState.done,
-        icon: Icons.lock_clock_outlined,
+        state: _StepState.pending,
+        icon: Icons.hourglass_top_rounded,
       ),
-  ];
+    );
+    steps.add(
+      _TrackingStep(
+        title: l10n.deliveryStepDelivery,
+        timeLabel: null,
+        state: _StepState.pending,
+        icon: Icons.local_shipping_outlined,
+      ),
+    );
+    steps.add(
+      _TrackingStep(
+        title: l10n.deliveryStepReleased,
+        timeLabel: null,
+        state: _StepState.pending,
+        icon: Icons.check_circle_outline,
+      ),
+    );
+    return steps;
+  }
+
+  // Only held/released/disputed/refunded reach here (pendingPayment and
+  // cancelled both return above).
+  final confirmationState = order.isSellerConfirmed
+      ? _StepState.done
+      : _StepState.current;
+  steps.add(
+    _TrackingStep(
+      title: order.isSellerConfirmed
+          ? l10n.deliveryStepSellerProcessing
+          : l10n.deliveryStepAwaitingSellerConfirmation,
+      timeLabel: order.sellerConfirmedAt != null
+          ? _formatTime(order.sellerConfirmedAt!)
+          : null,
+      state: confirmationState,
+      icon: order.isSellerConfirmed
+          ? Icons.task_alt_rounded
+          : Icons.hourglass_top_rounded,
+    ),
+  );
+
+  final deliveryState = switch (order.status) {
+    OrderStatus.held =>
+      order.isSellerConfirmed ? _StepState.current : _StepState.pending,
+    OrderStatus.released || OrderStatus.disputed || OrderStatus.refunded =>
+      order.isSellerConfirmed ? _StepState.done : _StepState.pending,
+    _ => _StepState.pending,
+  };
+  steps.add(
+    _TrackingStep(
+      title: l10n.deliveryStepDelivery,
+      timeLabel: null,
+      state: deliveryState,
+      icon: Icons.local_shipping_outlined,
+    ),
+  );
 
   switch (order.status) {
-    case OrderStatus.pendingPayment:
-      steps.add(
-        _TrackingStep(
-          title: l10n.deliveryStepReleased,
-          timeLabel: null,
-          state: _StepState.pending,
-          icon: Icons.check_circle_outline,
-        ),
-      );
     case OrderStatus.held:
       steps.add(
         _TrackingStep(
           title: l10n.deliveryStepReleased,
           timeLabel: null,
-          state: _StepState.current,
+          state: _StepState.pending,
           icon: Icons.check_circle_outline,
         ),
       );
@@ -134,6 +178,7 @@ List<_TrackingStep> _stepsFor(Order order, AppLocalizations l10n) {
           icon: Icons.undo_rounded,
         ),
       );
+    case OrderStatus.pendingPayment:
     case OrderStatus.cancelled:
       break; // handled above
   }
@@ -171,16 +216,17 @@ class DeliveryTrackingScreen extends ConsumerWidget {
   }
 }
 
-class _DeliveryTrackingBody extends StatefulWidget {
+class _DeliveryTrackingBody extends ConsumerStatefulWidget {
   const _DeliveryTrackingBody({required this.order});
 
   final Order order;
 
   @override
-  State<_DeliveryTrackingBody> createState() => _DeliveryTrackingBodyState();
+  ConsumerState<_DeliveryTrackingBody> createState() =>
+      _DeliveryTrackingBodyState();
 }
 
-class _DeliveryTrackingBodyState extends State<_DeliveryTrackingBody>
+class _DeliveryTrackingBodyState extends ConsumerState<_DeliveryTrackingBody>
     with TickerProviderStateMixin {
   late final AnimationController _entrance = AnimationController(
     vsync: this,
@@ -205,7 +251,6 @@ class _DeliveryTrackingBodyState extends State<_DeliveryTrackingBody>
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
     final order = widget.order;
-    final statusColor = _statusColor(order.status);
     final steps = _stepsFor(order, l10n);
 
     return Scaffold(
@@ -231,7 +276,6 @@ class _DeliveryTrackingBodyState extends State<_DeliveryTrackingBody>
                     end: 0.6,
                     child: _OrderSummaryCard(
                       order: order,
-                      statusColor: statusColor,
                       colorScheme: colorScheme,
                       textTheme: textTheme,
                     ),
@@ -260,6 +304,11 @@ class _DeliveryTrackingBodyState extends State<_DeliveryTrackingBody>
                       textTheme: textTheme,
                     ),
                   ),
+                  if (order.status == OrderStatus.disputed &&
+                      order.holdSource != null) ...[
+                    const SizedBox(height: 16),
+                    OrderHoldCard(order: order),
+                  ],
                   const SizedBox(height: 16),
                   _AnimatedSection(
                     animation: _entrance,
@@ -270,11 +319,109 @@ class _DeliveryTrackingBodyState extends State<_DeliveryTrackingBody>
                       textTheme: textTheme,
                     ),
                   ),
+                  if (order.status == OrderStatus.released) ...[
+                    const SizedBox(height: 16),
+                    _AnimatedSection(
+                      animation: _entrance,
+                      start: 0.55,
+                      end: 1,
+                      child: order.review != null
+                          ? _ReviewSummaryCard(
+                              review: order.review!,
+                              colorScheme: colorScheme,
+                              textTheme: textTheme,
+                            )
+                          : _RateOrderButton(
+                              onTap: () => showRateReviewSheet(context, order),
+                              colorScheme: colorScheme,
+                              textTheme: textTheme,
+                            ),
+                    ),
+                  ],
                 ],
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Replaces [_RateOrderButton] once the buyer has already left a review —
+/// same card the seller's order detail screen shows, so "what did I say"
+/// looks the same wherever the buyer checks back on it.
+class _ReviewSummaryCard extends StatelessWidget {
+  const _ReviewSummaryCard({
+    required this.review,
+    required this.colorScheme,
+    required this.textTheme,
+  });
+
+  final OrderReview review;
+  final ColorScheme colorScheme;
+  final TextTheme textTheme;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: colorScheme.outline),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.reviewSectionTitle.toUpperCase(),
+            style: textTheme.labelMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.4,
+            ),
+          ),
+          OrderReviewCard(review: review),
+        ],
+      ),
+    );
+  }
+}
+
+class _RateOrderButton extends StatelessWidget {
+  const _RateOrderButton({
+    required this.onTap,
+    required this.colorScheme,
+    required this.textTheme,
+  });
+
+  final VoidCallback onTap;
+  final ColorScheme colorScheme;
+  final TextTheme textTheme;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return SizedBox(
+      width: double.infinity,
+      child: FilledButton.icon(
+        onPressed: onTap,
+        style: FilledButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+        icon: const Icon(Icons.star_outline_rounded),
+        label: Text(
+          l10n.ordersRateReviewButton,
+          style: textTheme.bodyMedium?.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
     );
   }
@@ -318,7 +465,7 @@ class _AnimatedSection extends StatelessWidget {
   }
 }
 
-const _kHeaderContentHeight = 96.0;
+const _kHeaderContentHeight = 68.0;
 
 class _Header extends StatelessWidget {
   const _Header({required this.colorScheme, required this.textTheme});
@@ -334,9 +481,9 @@ class _Header extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
-          MediaQuery.of(context).padding.top + 16,
+          MediaQuery.of(context).padding.top + 10,
           24,
-          20,
+          14,
         ),
         child: SizedBox(
           height: _kHeaderContentHeight,
@@ -378,13 +525,11 @@ class _Header extends StatelessWidget {
 class _OrderSummaryCard extends StatelessWidget {
   const _OrderSummaryCard({
     required this.order,
-    required this.statusColor,
     required this.colorScheme,
     required this.textTheme,
   });
 
   final Order order;
-  final Color statusColor;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
 
@@ -425,7 +570,7 @@ class _OrderSummaryCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '#${order.id}',
+                  '#${order.displayNumber}',
                   style: textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -440,32 +585,10 @@ class _OrderSummaryCard extends StatelessWidget {
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: statusColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 7,
-                  height: 7,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: statusColor,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  order.status.label,
-                  style: textTheme.labelMedium?.copyWith(
-                    color: statusColor,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+          OrderStatusBadge(
+            label: buyerOrderStatusLabel(
+              order.status,
+              isSellerConfirmed: order.isSellerConfirmed,
             ),
           ),
         ],
@@ -538,50 +661,22 @@ class _ProgressBanner extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           SizedBox(
-            height: 40,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final trackWidth = constraints.maxWidth - 34;
-                return Stack(
-                  alignment: Alignment.centerLeft,
-                  children: [
-                    Positioned(
-                      left: 17,
-                      child: Container(
-                        height: 3,
-                        width: trackWidth,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.25),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
+            height: 34,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                for (var i = 0; i < steps.length; i++) ...[
+                  _StepIcon(step: steps[i], pulse: pulse),
+                  if (i != steps.length - 1)
+                    Expanded(
+                      child: _StepLine(
+                        fraction: fraction,
+                        index: i,
+                        segmentCount: steps.length - 1,
                       ),
                     ),
-                    Positioned(
-                      left: 17,
-                      child: TweenAnimationBuilder<double>(
-                        tween: Tween(begin: 0, end: fraction.clamp(0.0, 1.0)),
-                        duration: const Duration(milliseconds: 1000),
-                        curve: Curves.easeOutCubic,
-                        builder: (context, value, _) => Container(
-                          height: 3,
-                          width: trackWidth * value,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        for (final step in steps)
-                          _StepIcon(step: step, pulse: pulse),
-                      ],
-                    ),
-                  ],
-                );
-              },
+                ],
+              ],
             ),
           ),
         ],
@@ -601,6 +696,8 @@ class _StepIcon extends StatelessWidget {
     final isDone = step.state == _StepState.done;
     final isCurrent = step.state == _StepState.current;
     final isActive = isDone || isCurrent;
+    final isFlippingHourglass =
+        isCurrent && step.icon == Icons.hourglass_top_rounded;
 
     final core = Container(
       width: 34,
@@ -609,13 +706,15 @@ class _StepIcon extends StatelessWidget {
         shape: BoxShape.circle,
         color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.18),
       ),
-      child: Icon(
-        isDone ? Icons.check_rounded : step.icon,
-        size: 18,
-        color: isActive
-            ? AppColors.brandCrimson
-            : Colors.white.withValues(alpha: 0.75),
-      ),
+      child: isFlippingHourglass
+          ? HourglassIcon(size: 18, color: AppColors.brandCrimson)
+          : Icon(
+              isDone ? Icons.check_rounded : step.icon,
+              size: 18,
+              color: isActive
+                  ? AppColors.brandCrimson
+                  : Colors.white.withValues(alpha: 0.75),
+            ),
     );
 
     if (!isCurrent) return core;
@@ -650,6 +749,58 @@ class _StepIcon extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _StepLine extends StatelessWidget {
+  const _StepLine({
+    required this.fraction,
+    required this.index,
+    required this.segmentCount,
+  });
+
+  final double fraction;
+  final int index;
+  final int segmentCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final segmentFraction = segmentCount <= 0
+        ? 0.0
+        : ((fraction * segmentCount) - index).clamp(0.0, 1.0);
+
+    return SizedBox(
+      height: 3,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.25),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: segmentFraction),
+            duration: const Duration(milliseconds: 1000),
+            curve: Curves.easeOutCubic,
+            builder: (context, value, _) => Align(
+              alignment: Alignment.centerLeft,
+              child: FractionallySizedBox(
+                widthFactor: value,
+                heightFactor: 1,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -733,6 +884,8 @@ class _StepRow extends StatelessWidget {
         : isDone
         ? colorScheme.onSurface
         : colorScheme.onSurfaceVariant;
+    final isFlippingHourglass =
+        isCurrent && step.icon == Icons.hourglass_top_rounded;
 
     final iconCircle = Container(
       width: 30,
@@ -746,21 +899,20 @@ class _StepRow extends StatelessWidget {
             ? Border.all(color: colorScheme.primary, width: 1.5)
             : null,
       ),
-      child: Icon(
-        isDone ? Icons.check_rounded : step.icon,
-        size: 15,
-        color: iconColor,
-      ),
+      child: isFlippingHourglass
+          ? HourglassIcon(size: 15, color: iconColor)
+          : Icon(
+              isDone ? Icons.check_rounded : step.icon,
+              size: 15,
+              color: iconColor,
+            ),
     );
 
     return IntrinsicHeight(
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         margin: const EdgeInsets.only(bottom: 2),
-        padding: EdgeInsets.symmetric(
-          horizontal: isCurrent ? 8 : 0,
-          vertical: isCurrent ? 6 : 0,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         decoration: BoxDecoration(
           color: isCurrent
               ? AppColors.blushSurface.withValues(alpha: 0.6)
@@ -870,12 +1022,13 @@ class _EscrowNote extends StatelessWidget {
           Container(
             width: 32,
             height: 32,
-            decoration: BoxDecoration(
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
+              shape: BoxShape.circle,
             ),
             child: Icon(
-              Icons.shield_outlined,
+              Icons.gpp_good_outlined,
               color: colorScheme.primary,
               size: 18,
             ),

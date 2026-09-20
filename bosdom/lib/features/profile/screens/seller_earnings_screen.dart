@@ -1,15 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../../shared/utils/currency_format.dart';
+import '../../../shared/widgets/app_snack_bar.dart';
+import '../../../shared/widgets/hourglass_icon.dart';
+import '../../../shared/widgets/price_display.dart';
+import '../../marketplace/widgets/empty_products_notice.dart';
+import '../../orders/models/order.dart';
+import '../../orders/providers/orders_provider.dart';
+import '../../orders/services/order_service.dart';
 import '../models/earnings.dart';
 import 'success_dialog.dart';
 import 'withdraw_funds_sheet.dart';
 
 // Same header size/shape as the other seller screens so moving between
 // the dashboard, orders, and earnings feels like the same app.
-const _kHeaderContentHeight = 96.0;
+const _kHeaderContentHeight = 68.0;
 
 const _kFilters = [
   null,
@@ -18,53 +27,71 @@ const _kFilters = [
   EarningsStatus.disputed,
 ];
 
-class SellerEarningsScreen extends StatefulWidget {
+class SellerEarningsScreen extends ConsumerStatefulWidget {
   const SellerEarningsScreen({super.key});
 
   @override
-  State<SellerEarningsScreen> createState() => _SellerEarningsScreenState();
+  ConsumerState<SellerEarningsScreen> createState() =>
+      _SellerEarningsScreenState();
 }
 
-class _SellerEarningsScreenState extends State<SellerEarningsScreen> {
+class _SellerEarningsScreenState extends ConsumerState<SellerEarningsScreen> {
   EarningsStatus? _filter;
-  late double _availableBalance = kMockAvailableBalance;
-  late final List<EarningsTransaction> _transactions = List.of(
-    kMockEarningsTransactions,
-  );
+  bool _isRequestingRelease = false;
 
-  List<EarningsTransaction> _filtered(List<EarningsTransaction> all) =>
-      _filter == null
-      ? all
-      : all.where((transaction) => transaction.status == _filter).toList();
+  bool _matchesFilter(EarningsTransaction transaction) => switch (_filter) {
+    null => true,
+    EarningsStatus.inEscrow => transaction.isHeld,
+    final status => transaction.status == status,
+  };
 
-  Future<void> _withdraw() async {
+  /// Withdraws the whole released balance (money from orders the buyer has
+  /// already received) to a bank account the seller fills in first. The
+  /// transfer lands 1 to 3 hours later.
+  Future<void> _requestRelease(EarningsSummary summary) async {
     final l10n = AppLocalizations.of(context);
-    final result = await showWithdrawFundsSheet(
-      context,
-      availableBalance: _availableBalance,
-    );
-    if (result == null || !mounted) return;
-    setState(() {
-      _availableBalance -= result.amount;
-      _transactions.insert(
-        0,
-        EarningsTransaction.withdrawal(
-          id: 'WD-${DateTime.now().millisecondsSinceEpoch}',
-          date: l10n.sellerEarningsWithdrawJustNowLabel,
-          amount: result.amount,
-          withdrawalMethod: result.methodLabel,
-        ),
+    if (summary.availableBalance <= 0) {
+      showAppSnackBar(
+        context,
+        message: l10n.sellerEarningsPayoutNothingMessage,
+        type: AppSnackBarType.error,
       );
-    });
-    if (!mounted) return;
-    await showSuccessDialog(
+      return;
+    }
+
+    final bank = await showWithdrawFundsSheet(
       context,
-      title: l10n.sellerEarningsWithdrawSuccessTitle,
-      message: l10n.sellerEarningsWithdrawSuccessMessage(
-        '\$${result.amount.toStringAsFixed(2)}',
-      ),
-      buttonLabel: l10n.sellerEarningsWithdrawSuccessOkButton,
+      balanceLabel: formatPrice(ref, summary.availableBalance),
     );
+    if (bank == null || !mounted) return;
+
+    setState(() => _isRequestingRelease = true);
+    try {
+      final payout = await OrderService.requestPayout(
+        bankName: bank.bankName,
+        accountHolder: bank.accountHolder,
+        accountNumber: bank.accountNumber,
+      );
+      ref.invalidate(sellerOrdersProvider);
+      if (!mounted) return;
+      setState(() => _isRequestingRelease = false);
+      await showSuccessDialog(
+        context,
+        title: l10n.sellerEarningsWithdrawSuccessTitle,
+        message: l10n.sellerEarningsPayoutSuccessMessage(
+          formatPrice(ref, payout),
+        ),
+        buttonLabel: l10n.sellerEarningsWithdrawSuccessOkButton,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isRequestingRelease = false);
+      showAppSnackBar(
+        context,
+        message: l10n.sellerEarningsPayoutFailedSnackbar('$e'),
+        type: AppSnackBarType.error,
+      );
+    }
   }
 
   @override
@@ -72,11 +99,7 @@ class _SellerEarningsScreenState extends State<SellerEarningsScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
-    final filtered = _filtered(_transactions);
-    final filteredTotal = filtered.fold<double>(
-      0,
-      (sum, transaction) => sum + transaction.signedAmount,
-    );
+    final ordersAsync = ref.watch(sellerOrdersProvider);
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -87,67 +110,106 @@ class _SellerEarningsScreenState extends State<SellerEarningsScreen> {
             child: SafeArea(
               top: false,
               bottom: false,
-              child: ListView(
-                padding: EdgeInsets.fromLTRB(
-                  24,
-                  20,
-                  24,
-                  16 + MediaQuery.of(context).padding.bottom,
+              child: ordersAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stackTrace) => Center(
+                  child: EmptyProductsNotice(
+                    colorScheme: colorScheme,
+                    textTheme: textTheme,
+                    message: l10n.ordersLoadError,
+                    onRetry: () =>
+                        ref.read(sellerOrdersProvider.notifier).refresh(),
+                  ),
                 ),
-                children: [
-                  _BalanceCard(
-                    availableBalance: _availableBalance,
-                    onWithdraw: _withdraw,
-                    colorScheme: colorScheme,
-                    textTheme: textTheme,
-                  ),
-                  const SizedBox(height: 16),
-                  _StatsRow(colorScheme: colorScheme, textTheme: textTheme),
-                  const SizedBox(height: 16),
-                  _FilterRow(
-                    selected: _filter,
-                    onSelected: (status) => setState(() => _filter = status),
-                    colorScheme: colorScheme,
-                    textTheme: textTheme,
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        l10n.sellerEarningsTransactionsCountLabel(
-                          filtered.length,
-                        ),
-                        style: textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        '\$${filteredTotal.abs().toStringAsFixed(2)}',
-                        style: textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  if (filtered.isEmpty)
-                    _EmptyState(colorScheme: colorScheme, textTheme: textTheme)
-                  else
-                    for (var i = 0; i < filtered.length; i++) ...[
-                      _TransactionCard(
-                        transaction: filtered[i],
-                        colorScheme: colorScheme,
-                        textTheme: textTheme,
-                      ),
-                      if (i != filtered.length - 1) const SizedBox(height: 12),
-                    ],
-                  const SizedBox(height: 16),
-                  _EscrowNotice(colorScheme: colorScheme, textTheme: textTheme),
-                ],
+                data: (orders) => _buildContent(context, orders),
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, List<Order> orders) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
+    final summary = EarningsSummary([
+      for (final order in orders) ?EarningsTransaction.fromOrder(order),
+    ]);
+    final filtered = summary.transactions.where(_matchesFilter).toList();
+    final filteredTotal = filtered.fold<double>(
+      0,
+      (sum, transaction) => sum + transaction.netAmount,
+    );
+
+    return RefreshIndicator(
+      onRefresh: () => ref.read(sellerOrdersProvider.notifier).refresh(),
+      color: colorScheme.primary,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.fromLTRB(
+          24,
+          20,
+          24,
+          16 + MediaQuery.of(context).padding.bottom,
+        ),
+        children: [
+          _BalanceCard(
+            availableBalance: summary.availableBalance,
+            completedSalesPercent: summary.completedSalesPercent,
+            isBusy: _isRequestingRelease,
+            onWithdraw: () => _requestRelease(summary),
+            colorScheme: colorScheme,
+            textTheme: textTheme,
+          ),
+          const SizedBox(height: 16),
+          _StatsRow(
+            releasedTotal: summary.releasedTotal,
+            inEscrowTotal: summary.inEscrowTotal,
+            refundedTotal: summary.refundedTotal,
+            colorScheme: colorScheme,
+            textTheme: textTheme,
+          ),
+          const SizedBox(height: 16),
+          _FilterRow(
+            selected: _filter,
+            onSelected: (status) => setState(() => _filter = status),
+            colorScheme: colorScheme,
+            textTheme: textTheme,
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                l10n.sellerEarningsTransactionsCountLabel(filtered.length),
+                style: textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                formatPrice(ref, filteredTotal),
+                style: textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (filtered.isEmpty)
+            _EmptyState(colorScheme: colorScheme, textTheme: textTheme)
+          else
+            for (var i = 0; i < filtered.length; i++) ...[
+              _TransactionCard(
+                transaction: filtered[i],
+                colorScheme: colorScheme,
+                textTheme: textTheme,
+              ),
+              if (i != filtered.length - 1) const SizedBox(height: 12),
+            ],
+          const SizedBox(height: 16),
+          _EscrowNotice(colorScheme: colorScheme, textTheme: textTheme),
         ],
       ),
     );
@@ -168,9 +230,9 @@ class _Header extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
-          MediaQuery.of(context).padding.top + 16,
+          MediaQuery.of(context).padding.top + 10,
           24,
-          20,
+          14,
         ),
         child: SizedBox(
           height: _kHeaderContentHeight,
@@ -211,21 +273,25 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _BalanceCard extends StatelessWidget {
+class _BalanceCard extends ConsumerWidget {
   const _BalanceCard({
     required this.availableBalance,
+    required this.completedSalesPercent,
+    required this.isBusy,
     required this.onWithdraw,
     required this.colorScheme,
     required this.textTheme,
   });
 
   final double availableBalance;
+  final int completedSalesPercent;
+  final bool isBusy;
   final VoidCallback onWithdraw;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     return Container(
       width: double.infinity,
@@ -251,8 +317,9 @@ class _BalanceCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            '\$${availableBalance.toStringAsFixed(2)}',
+          PriceDisplay(
+            availableBalance,
+            crossAxisAlignment: CrossAxisAlignment.center,
             style: textTheme.headlineMedium?.copyWith(
               color: AppColors.brandCrimson,
               fontWeight: FontWeight.bold,
@@ -261,7 +328,7 @@ class _BalanceCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             l10n.sellerEarningsCompletedSalesPercentLabel(
-              kMockCompletedSalesPercent,
+              completedSalesPercent,
             ),
             style: textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurfaceVariant,
@@ -278,7 +345,7 @@ class _BalanceCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(14),
                 ),
               ),
-              onPressed: onWithdraw,
+              onPressed: isBusy ? null : onWithdraw,
               child: Text(
                 l10n.sellerEarningsWithdrawButton,
                 style: textTheme.bodyMedium?.copyWith(
@@ -294,23 +361,62 @@ class _BalanceCard extends StatelessWidget {
   }
 }
 
-class _StatsRow extends StatelessWidget {
-  const _StatsRow({required this.colorScheme, required this.textTheme});
+class _StatsRow extends StatefulWidget {
+  const _StatsRow({
+    required this.releasedTotal,
+    required this.inEscrowTotal,
+    required this.refundedTotal,
+    required this.colorScheme,
+    required this.textTheme,
+  });
 
+  final double releasedTotal;
+  final double inEscrowTotal;
+  final double refundedTotal;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
 
   @override
+  State<_StatsRow> createState() => _StatsRowState();
+}
+
+class _StatsRowState extends State<_StatsRow>
+    with SingleTickerProviderStateMixin {
+  // One controller drives all three tiles; each gets a later, overlapping
+  // slice of it so they cascade in left to right.
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1100),
+  )..forward();
+
+  Animation<double> _slice(int index) => CurvedAnimation(
+    parent: _controller,
+    curve: Interval(
+      index * 0.14,
+      0.58 + index * 0.14,
+      curve: Curves.easeOutCubic,
+    ),
+  );
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final colorScheme = widget.colorScheme;
+    final textTheme = widget.textTheme;
     return Row(
       children: [
         Expanded(
           child: _StatTile(
-            icon: Icons.check_circle_rounded,
+            animation: _slice(0),
+            icon: const Icon(Icons.check_circle_rounded, size: 20),
             label: l10n.sellerEarningsReleasedLabel,
-            amount: kMockReleasedTotal,
-            accentColor: colorScheme.primary,
+            amount: widget.releasedTotal,
             colorScheme: colorScheme,
             textTheme: textTheme,
           ),
@@ -318,10 +424,10 @@ class _StatsRow extends StatelessWidget {
         const SizedBox(width: 10),
         Expanded(
           child: _StatTile(
-            icon: Icons.hourglass_top_rounded,
+            animation: _slice(1),
+            icon: HourglassIcon(size: 20, color: colorScheme.primary),
             label: l10n.sellerEarningsInEscrowLabel,
-            amount: kMockInEscrowTotal,
-            accentColor: colorScheme.primary,
+            amount: widget.inEscrowTotal,
             colorScheme: colorScheme,
             textTheme: textTheme,
           ),
@@ -329,10 +435,10 @@ class _StatsRow extends StatelessWidget {
         const SizedBox(width: 10),
         Expanded(
           child: _StatTile(
-            icon: Icons.undo_rounded,
+            animation: _slice(2),
+            icon: const Icon(Icons.undo_rounded, size: 20),
             label: l10n.sellerEarningsRefundedLabel,
-            amount: kMockRefundedTotal,
-            accentColor: colorScheme.primary,
+            amount: widget.refundedTotal,
             colorScheme: colorScheme,
             textTheme: textTheme,
           ),
@@ -342,60 +448,135 @@ class _StatsRow extends StatelessWidget {
   }
 }
 
-class _StatTile extends StatelessWidget {
+class _StatTile extends ConsumerStatefulWidget {
   const _StatTile({
+    required this.animation,
     required this.icon,
     required this.label,
     required this.amount,
-    required this.accentColor,
     required this.colorScheme,
     required this.textTheme,
   });
 
-  final IconData icon;
+  final Animation<double> animation;
+  final Widget icon;
   final String label;
   final double amount;
-  final Color accentColor;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
 
   @override
+  ConsumerState<_StatTile> createState() => _StatTileState();
+}
+
+class _StatTileState extends ConsumerState<_StatTile> {
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (_pressed != value) setState(() => _pressed = value);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: colorScheme.outline),
-      ),
-      child: Column(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            alignment: Alignment.center,
+    final colorScheme = widget.colorScheme;
+    final textTheme = widget.textTheme;
+    final accent = colorScheme.primary;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => _setPressed(true),
+      onTapUp: (_) => _setPressed(false),
+      onTapCancel: () => _setPressed(false),
+      child: AnimatedScale(
+        scale: _pressed ? 0.95 : 1,
+        duration: const Duration(milliseconds: 140),
+        curve: Curves.easeOut,
+        child: AnimatedBuilder(
+          animation: widget.animation,
+          builder: (context, child) {
+            final t = widget.animation.value;
+            return Opacity(
+              opacity: t,
+              child: Transform.translate(
+                offset: Offset(0, 24 * (1 - t)),
+                child: child,
+              ),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
             decoration: BoxDecoration(
-              color: accentColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(14),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: colorScheme.outline),
+              boxShadow: [
+                BoxShadow(
+                  color: accent.withValues(alpha: _pressed ? 0.02 : 0.07),
+                  blurRadius: _pressed ? 6 : 14,
+                  offset: Offset(0, _pressed ? 2 : 6),
+                ),
+              ],
             ),
-            child: Icon(icon, size: 20, color: accentColor),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label.toUpperCase(),
-            textAlign: TextAlign.center,
-            style: textTheme.labelSmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.3,
+            child: Column(
+              children: [
+                // Icon badge springs in slightly after the card lands.
+                AnimatedBuilder(
+                  animation: widget.animation,
+                  builder: (context, child) {
+                    final pop = Curves.elasticOut.transform(
+                      ((widget.animation.value - 0.3) / 0.7).clamp(0.0, 1.0),
+                    );
+                    return Transform.scale(scale: pop, child: child);
+                  },
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: accent.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: IconTheme(
+                      data: IconThemeData(color: accent),
+                      child: widget.icon,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  widget.label.toUpperCase(),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.labelSmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                // Amount counts up from zero as the tile settles in.
+                AnimatedBuilder(
+                  animation: widget.animation,
+                  // Single line that shrinks to fit so big totals never wrap
+                  // and all three tiles keep the same height.
+                  builder: (context, _) => FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      formatPrice(ref, widget.amount * widget.animation.value),
+                      maxLines: 1,
+                      softWrap: false,
+                      style: textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            '\$${amount.toStringAsFixed(2)}',
-            style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -492,7 +673,7 @@ class _FilterChip extends StatelessWidget {
   }
 }
 
-class _TransactionCard extends StatelessWidget {
+class _TransactionCard extends ConsumerWidget {
   const _TransactionCard({
     required this.transaction,
     required this.colorScheme,
@@ -504,10 +685,9 @@ class _TransactionCard extends StatelessWidget {
   final TextTheme textTheme;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final positive = transaction.signedAmount >= 0;
-    final amountColor = positive ? AppColors.trustGreen : colorScheme.onSurface;
+    final amountColor = colorScheme.onSurface;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -527,21 +707,17 @@ class _TransactionCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      transaction.isWithdrawal
-                          ? l10n.sellerEarningsWithdrawalLabel
-                          : l10n.sellerEarningsOrderBuyerLabel(
-                              transaction.id,
-                              transaction.buyerName!,
-                            ),
+                      l10n.sellerEarningsOrderBuyerLabel(
+                        transaction.displayNumber,
+                        transaction.buyerName,
+                      ),
                       style: textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      transaction.isWithdrawal
-                          ? transaction.withdrawalMethod!
-                          : transaction.date,
+                      transaction.date,
                       style: textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -554,7 +730,7 @@ class _TransactionCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '${positive ? '+' : '-'}\$${transaction.signedAmount.abs().toStringAsFixed(2)}',
+                    '+${formatPrice(ref, transaction.netAmount)}',
                     style: textTheme.titleSmall?.copyWith(
                       color: amountColor,
                       fontWeight: FontWeight.bold,
@@ -563,28 +739,20 @@ class _TransactionCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   _Badge(
                     label: earningsStatusLabel(l10n, transaction.status),
-                    color: earningsStatusColor(transaction.status),
+                    color: colorScheme.primary,
                   ),
                 ],
               ),
             ],
           ),
-          if (transaction.isWithdrawal) ...[
-            const SizedBox(height: 8),
-            Text(
-              transaction.date,
-              style: textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ] else ...[
+          ...[
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 10),
               child: Divider(height: 1),
             ),
             _SummaryRow(
               label: l10n.sellerEarningsSaleAmountLabel,
-              value: transaction.saleAmount!,
+              value: transaction.saleAmount,
               textTheme: textTheme,
             ),
             const SizedBox(height: 4),
@@ -593,13 +761,12 @@ class _TransactionCard extends StatelessWidget {
                 (transaction.platformFeeRate * 100).round(),
               ),
               value: -transaction.platformFee,
-              valueColor: AppColors.brandCrimson,
               textTheme: textTheme,
             ),
             const SizedBox(height: 4),
             _SummaryRow(
               label: l10n.sellerEarningsYourEarningsLabel,
-              value: transaction.signedAmount,
+              value: transaction.netAmount,
               bold: true,
               textTheme: textTheme,
             ),
@@ -610,23 +777,21 @@ class _TransactionCard extends StatelessWidget {
   }
 }
 
-class _SummaryRow extends StatelessWidget {
+class _SummaryRow extends ConsumerWidget {
   const _SummaryRow({
     required this.label,
     required this.value,
     required this.textTheme,
-    this.valueColor,
     this.bold = false,
   });
 
   final String label;
   final double value;
-  final Color? valueColor;
   final bool bold;
   final TextTheme textTheme;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final sign = value < 0 ? '-' : '';
     final style = bold
@@ -641,10 +806,7 @@ class _SummaryRow extends StatelessWidget {
               ? style
               : style?.copyWith(color: colorScheme.onSurfaceVariant),
         ),
-        Text(
-          '$sign\$${value.abs().toStringAsFixed(2)}',
-          style: style?.copyWith(color: valueColor),
-        ),
+        Text('$sign${formatPrice(ref, value.abs())}', style: style),
       ],
     );
   }
@@ -686,22 +848,34 @@ class _EscrowNotice extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.infoBlue.withValues(alpha: 0.07),
+        color: AppColors.blushSurface.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.infoBlue.withValues(alpha: 0.18)),
+        border: Border.all(color: AppColors.roseDivider),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.info_outline, color: AppColors.infoBlue, size: 18),
+          Container(
+            width: 32,
+            height: 32,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.gpp_good_outlined,
+              color: AppColors.brandCrimson,
+              size: 18,
+            ),
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               l10n.sellerEarningsEscrowNoticeText,
               style: textTheme.bodySmall?.copyWith(
-                color: AppColors.infoBlue,
+                color: AppColors.brandCrimson,
                 height: 1.4,
               ),
             ),

@@ -49,7 +49,8 @@ const Map<String, String> _curatedPhotoUrls = {
       'https://commons.wikimedia.org/wiki/Special:FilePath/Cardboard_boxes_in_different_sizes_for_sale_-_Thailand_Post.JPG?width=600',
 };
 
-const _fallbackPhotoUrl = 'https://commons.wikimedia.org/wiki/Special:FilePath/Cardboard_boxes_in_different_sizes_for_sale_-_Thailand_Post.JPG?width=600';
+const _fallbackPhotoUrl =
+    'https://commons.wikimedia.org/wiki/Special:FilePath/Cardboard_boxes_in_different_sizes_for_sale_-_Thailand_Post.JPG?width=600';
 
 /// Real, topic-matched mock photo for [query] (e.g. 'rice,sack'). Falls back
 /// to a generic wholesale-box photo for any tag not in the curated set (e.g.

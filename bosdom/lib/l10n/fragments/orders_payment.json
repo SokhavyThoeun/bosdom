@@ -14,21 +14,31 @@
   "ordersFilterAllLabel": {
     "en": "All ({count})",
     "km": "ទាំងអស់ ({count})",
-    "placeholders": ["count"]
+    "placeholders": [
+      "count"
+    ]
   },
   "ordersItemCountLabel": {
     "en": "{count} items",
     "km": "{count} ធាតុ",
-    "placeholders": ["count"]
+    "placeholders": [
+      "count"
+    ]
   },
   "ordersOrderNumberLabel": {
     "en": "Order #{orderId}",
     "km": "លេខបញ្ជាទិញ #{orderId}",
-    "placeholders": ["orderId"]
+    "placeholders": [
+      "orderId"
+    ]
   },
   "ordersRateReviewButton": {
     "en": "Rate & Review",
     "km": "វាយតម្លៃ និងផ្តល់មតិ"
+  },
+  "ordersAlreadyReviewedLabel": {
+    "en": "Reviewed",
+    "km": "បានវាយតម្លៃរួច"
   },
   "ordersReportButton": {
     "en": "Report",
@@ -61,7 +71,9 @@
   "orderDetailOrderNumberLabel": {
     "en": "Order #{orderId}",
     "km": "លេខបញ្ជាទិញ #{orderId}",
-    "placeholders": ["orderId"]
+    "placeholders": [
+      "orderId"
+    ]
   },
   "orderDetailDeliveryMethodSection": {
     "en": "Delivery Method",
@@ -78,17 +90,23 @@
   "orderDetailPhoneLabel": {
     "en": "Phone: {phone}",
     "km": "ទូរស័ព្ទ៖ {phone}",
-    "placeholders": ["phone"]
+    "placeholders": [
+      "phone"
+    ]
   },
   "orderDetailPlacedOnLabel": {
     "en": "Placed on {date}",
     "km": "បានបញ្ជាទិញនៅថ្ងៃទី {date}",
-    "placeholders": ["date"]
+    "placeholders": [
+      "date"
+    ]
   },
   "orderDetailReceiptSaveFailedSnackbar": {
     "en": "Failed to save receipt: {error}",
     "km": "រក្សាទុកបង្កាន់ដៃមិនបានសម្រេច៖ {error}",
-    "placeholders": ["error"]
+    "placeholders": [
+      "error"
+    ]
   },
   "orderDetailReceiptSavedSnackbar": {
     "en": "Receipt saved to your device",
@@ -101,7 +119,9 @@
   "orderDetailReorderFailedSnackbar": {
     "en": "Couldn't reorder: {error}",
     "km": "មិនអាចបញ្ជាទិញឡើងវិញបានទេ៖ {error}",
-    "placeholders": ["error"]
+    "placeholders": [
+      "error"
+    ]
   },
   "orderDetailSaveReceiptButton": {
     "en": "Save Receipt as PDF",
@@ -162,7 +182,9 @@
   "deliveryPlacedOnLabel": {
     "en": "Placed on {date}",
     "km": "បានបញ្ជាទិញនៅថ្ងៃទី {date}",
-    "placeholders": ["date"]
+    "placeholders": [
+      "date"
+    ]
   },
   "deliveryStatusSectionTitle": {
     "en": "Delivery Status",
@@ -181,8 +203,8 @@
     "km": "ថវិកាត្រូវបានរក្សាទុកក្នុងអេស្គ្រូ"
   },
   "deliveryStepReleased": {
-    "en": "Released to seller",
-    "km": "ថវិកាត្រូវបានប្រគល់ជូនអ្នកលក់"
+    "en": "Order completed",
+    "km": "បញ្ជាទិញបានបញ្ចប់"
   },
   "deliveryStepDisputed": {
     "en": "Under dispute",
@@ -211,12 +233,16 @@
   "reviewMaxPhotosSnackbar": {
     "en": "You can add up to {count} photos",
     "km": "អ្នកអាចបន្ថែមរូបភាពបានច្រើនបំផុត {count} សន្លឹក",
-    "placeholders": ["count"]
+    "placeholders": [
+      "count"
+    ]
   },
   "reviewPhotoLibraryErrorSnackbar": {
     "en": "Could not open photo library: {error}",
     "km": "មិនអាចបើកបណ្ណាល័យរូបភាពបានទេ៖ {error}",
-    "placeholders": ["error"]
+    "placeholders": [
+      "error"
+    ]
   },
   "reviewRateProductLabel": {
     "en": "RATE PRODUCT",
@@ -301,12 +327,16 @@
   "paymentFailedSnackbar": {
     "en": "Payment failed: {error}",
     "km": "ការទូទាត់មិនបានសម្រេច៖ {error}",
-    "placeholders": ["error"]
+    "placeholders": [
+      "error"
+    ]
   },
   "paymentItemsPurchasedLabel": {
     "en": "{count} items purchased",
     "km": "បានទិញ {count} ធាតុ",
-    "placeholders": ["count"]
+    "placeholders": [
+      "count"
+    ]
   },
   "paymentMethodSubtitleVisaMastercard": {
     "en": "Visa, Mastercard, etc.",
@@ -331,7 +361,9 @@
   "paymentKhqrExpiresLabel": {
     "en": "Expires in {time}",
     "km": "ផុតកំណត់ក្នុងរយៈពេល {time}",
-    "placeholders": ["time"]
+    "placeholders": [
+      "time"
+    ]
   },
   "paymentKhqrExpiredLabel": {
     "en": "QR code expired",
@@ -348,7 +380,9 @@
   "paymentPayAmountLabel": {
     "en": "Pay {amount}",
     "km": "ទូទាត់ {amount}",
-    "placeholders": ["amount"]
+    "placeholders": [
+      "amount"
+    ]
   },
   "paymentPayNowButton": {
     "en": "Pay Now",
@@ -380,6 +414,231 @@
   },
   "escrowPlaceholderText": {
     "en": "Payment, QR confirm, dispute evidence. UI comes in phase 8",
-    "km": "ការទូទាត់ប្រាក់ ការបញ្ជាក់ QR ភស្តុតាងវិវាទ។ UI នឹងមកដល់នៅដំណាក់កាលទី ៨"
+    "km": "ការទូទាត់ប្រាក់ ការបញ្ជាក់ QR ភស្តុតាងវិវាទ. UI នឹងមកដល់នៅដំណាក់កាលទី ៨"
+  },
+  "reviewRatingRequiredSnackbar": {
+    "en": "Please rate the product before submitting.",
+    "km": "សូមវាយតម្លៃផលិតផលមុននឹងដាក់ស្នើ។"
+  },
+  "reviewSubmitFailedSnackbar": {
+    "en": "Couldn't submit your review: {error}",
+    "km": "មិនអាចដាក់ស្នើមតិវាយតម្លៃរបស់អ្នកបានទេ៖ {error}"
+  },
+  "reviewSectionTitle": {
+    "en": "Buyer Review",
+    "km": "មតិវាយតម្លៃពីអ្នកទិញ"
+  },
+  "reviewEmptyStateMessage": {
+    "en": "No review yet from the buyer.",
+    "km": "មិនទាន់មានមតិវាយតម្លៃពីអ្នកទិញនៅឡើយទេ។"
+  },
+  "escrowFlowTitle": {
+    "en": "How your payment is released",
+    "km": "របៀបដែលប្រាក់ត្រូវបានបញ្ចេញ"
+  },
+  "escrowStepPaidTitle": {
+    "en": "Order placed",
+    "km": "បានបញ្ជាទិញ"
+  },
+  "escrowStepPaidDetail": {
+    "en": "Payment held in escrow",
+    "km": "ប្រាក់ត្រូវបានរក្សាទុកក្នុង Escrow"
+  },
+  "escrowStepPreparesTitle": {
+    "en": "Seller prepares",
+    "km": "អ្នកលក់កំពុងរៀបចំ"
+  },
+  "escrowStepPreparesDetail": {
+    "en": "Getting the order ready",
+    "km": "កំពុងរៀបចំការបញ្ជាទិញ"
+  },
+  "escrowStepShippedTitle": {
+    "en": "Shipped",
+    "km": "កំពុងដឹកជញ្ជូន"
+  },
+  "escrowStepShippedDetail": {
+    "en": "Photo + tracking",
+    "km": "រូបថត + លេខតាមដាន"
+  },
+  "escrowStepTimerTitle": {
+    "en": "Timer starts",
+    "km": "ចាប់ផ្តើមកម្មវិធីរាប់ថយក្រោយ"
+  },
+  "escrowStepTimerDetail": {
+    "en": "Buyer review window",
+    "km": "រយៈពេលពិនិត្យរបស់អ្នកទិញ"
+  },
+  "escrowStepReleaseTitle": {
+    "en": "Auto released to seller",
+    "km": "បញ្ចេញទៅអ្នកលក់ដោយស្វ័យប្រវត្តិ"
+  },
+  "escrowStepReleaseDetail": {
+    "en": "Fee taken, seller paid",
+    "km": "កាត់ថ្លៃសេវា បង់ប្រាក់អ្នកលក់"
+  },
+  "escrowTimerLeft": {
+    "en": "{time} left to report a problem",
+    "km": "នៅសល់ {time} ដើម្បីរាយការណ៍បញ្ហា",
+    "placeholders": [
+      "time"
+    ]
+  },
+  "escrowTimerFrozen": {
+    "en": "Timer paused while an admin reviews the report",
+    "km": "កម្មវិធីរាប់ថយក្រោយត្រូវបានផ្អាក អ្នកគ្រប់គ្រងកំពុងពិនិត្យ"
+  },
+  "escrowTrackingLabel": {
+    "en": "{courier} · {number}",
+    "km": "{courier} · {number}",
+    "placeholders": [
+      "courier",
+      "number"
+    ]
+  },
+  "escrowReportProblemButton": {
+    "en": "Report a problem",
+    "km": "រាយការណ៍បញ្ហា"
+  },
+  "escrowReportSubmittedFrozen": {
+    "en": "Problem reported. The timer is frozen while an admin reviews it.",
+    "km": "បានរាយការណ៍បញ្ហា។ កម្មវិធីរាប់ថយក្រោយត្រូវបានផ្អាកពេលអ្នកគ្រប់គ្រងពិនិត្យ។"
+  },
+  "escrowShipButton": {
+    "en": "Ship order",
+    "km": "ដឹកជញ្ជូនការបញ្ជាទិញ"
+  },
+  "escrowShipSheetTitle": {
+    "en": "Ship order",
+    "km": "ដឹកជញ្ជូនការបញ្ជាទិញ"
+  },
+  "escrowCourierLabel": {
+    "en": "Courier",
+    "km": "ក្រុមហ៊ុនដឹកជញ្ជូន"
+  },
+  "escrowCourierHint": {
+    "en": "e.g. VET, J&T, Cambodia Post",
+    "km": "ឧ. VET, J&T, Cambodia Post"
+  },
+  "escrowTrackingNumberLabel": {
+    "en": "Tracking number",
+    "km": "លេខតាមដាន"
+  },
+  "escrowParcelPhotoLabel": {
+    "en": "Photo of the parcel",
+    "km": "រូបថតកញ្ចប់ឥវ៉ាន់"
+  },
+  "escrowAddPhoto": {
+    "en": "Add photo",
+    "km": "បន្ថែមរូបថត"
+  },
+  "escrowPhotoRequired": {
+    "en": "Please add a photo",
+    "km": "សូមបន្ថែមរូបថត"
+  },
+  "escrowShipSubmit": {
+    "en": "Confirm shipment",
+    "km": "បញ្ជាក់ការដឹកជញ្ជូន"
+  },
+  "escrowMarkDeliveredButton": {
+    "en": "Upload proof of delivery",
+    "km": "បញ្ចូលភស្តុតាងនៃការដឹកជញ្ជូន"
+  },
+  "escrowDeliverySheetTitle": {
+    "en": "Proof of delivery",
+    "km": "ភស្តុតាងនៃការដឹកជញ្ជូន"
+  },
+  "escrowDeliverySheetNote": {
+    "en": "Upload the courier's receipt or a handover photo. The buyer's review timer starts when you submit.",
+    "km": "បញ្ចូលបង្កាន់ដៃរបស់អ្នកដឹកជញ្ជូន ឬរូបថតពេលប្រគល់។ កម្មវិធីរាប់ថយក្រោយរបស់អ្នកទិញចាប់ផ្តើមពេលអ្នកដាក់ស្នើ។"
+  },
+  "escrowDeliverySubmit": {
+    "en": "Mark as delivered",
+    "km": "សម្គាល់ថាបានដឹកជញ្ជូនដល់"
+  },
+  "escrowActionFailed": {
+    "en": "Something went wrong: {error}",
+    "km": "មានបញ្ហាកើតឡើង៖ {error}",
+    "placeholders": [
+      "error"
+    ]
+  },
+  "escrowSellerWaitingTimer": {
+    "en": "Delivered. Funds release automatically when the buyer's review window ends.",
+    "km": "បានដឹកជញ្ជូនដល់។ ប្រាក់នឹងត្រូវបានបញ្ចេញដោយស្វ័យប្រវត្តិនៅពេលរយៈពេលពិនិត្យរបស់អ្នកទិញបញ្ចប់។"
+  },
+  "escrowSellerWaitingDelivery": {
+    "en": "Shipped.",
+    "km": "បានដឹកជញ្ជូន។"
+  },
+  "escrowSellerDisputed": {
+    "en": "A problem was reported on this order. Funds are on hold while an admin reviews.",
+    "km": "បញ្ហាត្រូវបានរាយការណ៍លើការបញ្ជាទិញនេះ។ ប្រាក់ត្រូវបានផ្អាកខណៈអ្នកគ្រប់គ្រងពិនិត្យ។"
+  },
+  "escrowSellerReplyTitle": {
+    "en": "Admin case",
+    "km": "សំណុំរឿងរបស់អ្នកគ្រប់គ្រង"
+  },
+  "escrowSellerReplyReported": {
+    "en": "Reported: {reason}",
+    "km": "បានរាយការណ៍៖ {reason}",
+    "placeholders": [
+      "reason"
+    ]
+  },
+  "escrowSellerReplyWaiting": {
+    "en": "Waiting for an admin to open the case.",
+    "km": "កំពុងរង់ចាំអ្នកគ្រប់គ្រងបើកសំណុំរឿង។"
+  },
+  "escrowSellerReplyHint": {
+    "en": "Your reply to the admin",
+    "km": "ចម្លើយរបស់អ្នកទៅអ្នកគ្រប់គ្រង"
+  },
+  "escrowSellerReplyButton": {
+    "en": "Send reply",
+    "km": "ផ្ញើចម្លើយ"
+  },
+  "escrowSellerReplySent": {
+    "en": "Your reply",
+    "km": "ចម្លើយរបស់អ្នក"
+  },
+  "sellerReportButton": {
+    "en": "Report a delivery problem",
+    "km": "រាយការណ៍បញ្ហាដឹកជញ្ជូន"
+  },
+  "sellerReportSheetTitle": {
+    "en": "Report a delivery problem",
+    "km": "រាយការណ៍បញ្ហាដឹកជញ្ជូន"
+  },
+  "sellerReportIntro": {
+    "en": "Tell us what went wrong. An admin will look into it and keep the buyer updated.",
+    "km": "សូមប្រាប់យើងអំពីអ្វីដែលមានបញ្ហា។ អ្នកគ្រប់គ្រងនឹងពិនិត្យ ហើយជូនដំណឹងអ្នកទិញ។"
+  },
+  "sellerReportReasonDelayed": {
+    "en": "Delivery delayed",
+    "km": "ដឹកជញ្ជូនយឺត"
+  },
+  "sellerReportReasonLost": {
+    "en": "Parcel lost or damaged",
+    "km": "កញ្ចប់បាត់ ឬខូច"
+  },
+  "sellerReportReasonUnreachable": {
+    "en": "Buyer unreachable",
+    "km": "ទាក់ទងអ្នកទិញមិនបាន"
+  },
+  "sellerReportReasonAddress": {
+    "en": "Address problem",
+    "km": "បញ្ហាអាសយដ្ឋាន"
+  },
+  "sellerReportSubmittedSnackbar": {
+    "en": "Report sent. An admin will follow up and update the buyer.",
+    "km": "បានផ្ញើរបាយការណ៍។ អ្នកគ្រប់គ្រងនឹងតាមដាន ហើយជូនដំណឹងអ្នកទិញ។"
+  },
+  "sellerReportFailedSnackbar": {
+    "en": "Couldn't send the report: {error}",
+    "km": "មិនអាចផ្ញើរបាយការណ៍បានទេ: {error}"
+  },
+  "sellerReportPhotosLabel": {
+    "en": "Screenshots (optional, up to 3)",
+    "km": "រូបថតអេក្រង់ (ស្រេចចិត្ត រហូតដល់ ៣)"
   }
 }

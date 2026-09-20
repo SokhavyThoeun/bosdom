@@ -1,26 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../../shared/utils/currency_format.dart';
+import '../../marketplace/widgets/empty_products_notice.dart';
 import '../models/seller_listing.dart';
+import '../providers/my_inventory_provider.dart';
 
 enum _InventoryFilter { all, active, inactive }
 
 // Same header size/shape as the seller dashboard/orders screens so moving
 // between seller screens feels like the same app.
-const _kHeaderContentHeight = 96.0;
+const _kHeaderContentHeight = 68.0;
 
-class MyInventoryScreen extends StatefulWidget {
+class MyInventoryScreen extends ConsumerStatefulWidget {
   const MyInventoryScreen({super.key});
 
   @override
-  State<MyInventoryScreen> createState() => _MyInventoryScreenState();
+  ConsumerState<MyInventoryScreen> createState() => _MyInventoryScreenState();
 }
 
-class _MyInventoryScreenState extends State<MyInventoryScreen> {
+class _MyInventoryScreenState extends ConsumerState<MyInventoryScreen> {
   final _searchController = TextEditingController();
-  var _listings = kMockSellerListings;
   var _filter = _InventoryFilter.all;
   var _query = '';
 
@@ -30,43 +33,50 @@ class _MyInventoryScreenState extends State<MyInventoryScreen> {
     super.dispose();
   }
 
-  List<SellerListing> get _filteredListings => _listings.where((listing) {
-    final matchesFilter = switch (_filter) {
-      _InventoryFilter.all => true,
-      _InventoryFilter.active => listing.active,
-      _InventoryFilter.inactive => !listing.active,
-    };
-    final matchesQuery = listing.name.toLowerCase().contains(
-      _query.trim().toLowerCase(),
-    );
-    return matchesFilter && matchesQuery;
-  }).toList();
+  List<SellerListing> _filteredListings(List<SellerListing> listings) =>
+      listings.where((listing) {
+        final matchesFilter = switch (_filter) {
+          _InventoryFilter.all => true,
+          _InventoryFilter.active => listing.active,
+          _InventoryFilter.inactive => !listing.active,
+        };
+        final matchesQuery = listing.name.toLowerCase().contains(
+          _query.trim().toLowerCase(),
+        );
+        return matchesFilter && matchesQuery;
+      }).toList();
 
-  void _toggleActive(SellerListing listing) {
+  Future<void> _toggleActive(SellerListing listing) async {
     final l10n = AppLocalizations.of(context);
     final activated = !listing.active;
-    setState(() {
-      _listings = [
-        for (final item in _listings)
-          if (item == listing) item.copyWith(active: activated) else item,
-      ];
-    });
+    final succeeded = await ref
+        .read(myInventoryProvider.notifier)
+        .toggleActive(listing);
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          activated
-              ? l10n.myInventoryListingActivatedSnackbar(listing.name)
-              : l10n.myInventoryListingDeactivatedSnackbar(listing.name),
+          succeeded
+              ? (activated
+                    ? l10n.myInventoryListingActivatedSnackbar(listing.name)
+                    : l10n.myInventoryListingDeactivatedSnackbar(listing.name))
+              : l10n.myInventoryUpdateErrorSnackbar,
         ),
       ),
     );
+  }
+
+  Future<void> _addListing() async {
+    await context.pushNamed('addListing');
+    ref.invalidate(myInventoryProvider);
   }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final filteredListings = _filteredListings;
+    final l10n = AppLocalizations.of(context);
+    final listingsAsync = ref.watch(myInventoryProvider);
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -91,36 +101,54 @@ class _MyInventoryScreenState extends State<MyInventoryScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: _FilterRow(
                       selected: _filter,
-                      onSelected: (filter) =>
-                          setState(() => _filter = filter),
+                      onSelected: (filter) => setState(() => _filter = filter),
                       colorScheme: colorScheme,
                       textTheme: textTheme,
                     ),
                   ),
                   const SizedBox(height: 16),
                   Expanded(
-                    child: filteredListings.isEmpty
-                        ? _EmptyState(colorScheme: colorScheme, textTheme: textTheme)
-                        : ListView.separated(
-                            padding: EdgeInsets.fromLTRB(
-                              24,
-                              0,
-                              24,
-                              16 + MediaQuery.of(context).padding.bottom,
-                            ),
-                            itemCount: filteredListings.length,
-                            separatorBuilder: (_, _) =>
-                                const SizedBox(height: 12),
-                            itemBuilder: (context, index) {
-                              final listing = filteredListings[index];
-                              return _ListingCard(
-                                listing: listing,
+                    child: listingsAsync.when(
+                      data: (listings) {
+                        final filteredListings = _filteredListings(listings);
+                        return filteredListings.isEmpty
+                            ? _EmptyState(
                                 colorScheme: colorScheme,
                                 textTheme: textTheme,
-                                onToggleActive: () => _toggleActive(listing),
+                              )
+                            : ListView.separated(
+                                padding: EdgeInsets.fromLTRB(
+                                  24,
+                                  0,
+                                  24,
+                                  16 + MediaQuery.of(context).padding.bottom,
+                                ),
+                                itemCount: filteredListings.length,
+                                separatorBuilder: (_, _) =>
+                                    const SizedBox(height: 12),
+                                itemBuilder: (context, index) {
+                                  final listing = filteredListings[index];
+                                  return _ListingCard(
+                                    listing: listing,
+                                    colorScheme: colorScheme,
+                                    textTheme: textTheme,
+                                    onToggleActive: () =>
+                                        _toggleActive(listing),
+                                  );
+                                },
                               );
-                            },
-                          ),
+                      },
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
+                      error: (error, stackTrace) => Center(
+                        child: EmptyProductsNotice(
+                          colorScheme: colorScheme,
+                          textTheme: textTheme,
+                          message: l10n.myInventoryLoadErrorMessage,
+                          onRetry: () => ref.invalidate(myInventoryProvider),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -129,7 +157,7 @@ class _MyInventoryScreenState extends State<MyInventoryScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => context.pushNamed('addListing'),
+        onPressed: _addListing,
         backgroundColor: colorScheme.primary,
         child: const Icon(Icons.add, color: Colors.white),
       ),
@@ -151,9 +179,9 @@ class _Header extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
-          MediaQuery.of(context).padding.top + 16,
+          MediaQuery.of(context).padding.top + 10,
           24,
-          20,
+          14,
         ),
         child: SizedBox(
           height: _kHeaderContentHeight,
@@ -332,7 +360,7 @@ class _FilterChip extends StatelessWidget {
   }
 }
 
-class _ListingCard extends StatelessWidget {
+class _ListingCard extends ConsumerWidget {
   const _ListingCard({
     required this.listing,
     required this.colorScheme,
@@ -346,7 +374,7 @@ class _ListingCard extends StatelessWidget {
   final VoidCallback onToggleActive;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
 
     return Container(
@@ -392,7 +420,7 @@ class _ListingCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '\$${listing.price.toStringAsFixed(2)}',
+                  formatPrice(ref, listing.price),
                   style: textTheme.bodyMedium?.copyWith(
                     color: AppColors.brandCrimson,
                     fontWeight: FontWeight.bold,
@@ -400,7 +428,7 @@ class _ListingCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  l10n.myInventoryStockLabel(listing.stockLabel),
+                  l10n.myInventoryStockLabel(listing.stockQty.toString()),
                   style: textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),

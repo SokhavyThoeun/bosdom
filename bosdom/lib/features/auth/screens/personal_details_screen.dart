@@ -9,6 +9,7 @@ import '../../profile/models/user_profile.dart';
 import '../../profile/services/profile_service.dart';
 import '../models/merchant_role.dart';
 import '../services/auth_service.dart';
+import '../services/signup_draft.dart';
 
 class PersonalDetailsScreen extends StatefulWidget {
   const PersonalDetailsScreen({required this.role, super.key});
@@ -31,15 +32,42 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
   // True once Google sign-in has completed (either before this screen was
   // reached, e.g. via the login screen, or from tapping the Google button
   // below). Password fields and the Google button hide once this is set,
-  // since the account is already authenticated.
+  // since the account is already authenticated. Deliberately narrower than
+  // "there's an active session" — an email/password account also ends up
+  // with a session (signUpWithEmail signs the user in), but that account
+  // still needs its password field, so this only turns true for a Google
+  // identity specifically. See AuthService.isSignedInWithGoogle.
   bool _isAuthenticated = false;
   StreamSubscription<AuthState>? _authSubscription;
+
+  // Arms the onAuthStateChange listener below to treat the next sign-in
+  // event as a completed Google sign-in. Only _continueWithGoogle() sets
+  // this — email/password signup (via _continue()) also signs the user in
+  // as a side effect and fires the same event, but must NOT be mistaken for
+  // Google, or the form loses its password fields for an account that was
+  // never actually linked to Google. A simple "not currently mid-email-signup"
+  // guard isn't reliable here since the event can arrive slightly after that
+  // call's await resolves; gating on an explicit Google attempt instead
+  // avoids that race entirely.
+  bool _expectingGoogleSignIn = false;
 
   @override
   void initState() {
     super.initState();
-    _isAuthenticated = AuthService.isSignedIn;
-    if (_isAuthenticated) _prefillFromAccount();
+    _fullNameController.text = SignupDraft.fullName;
+    _phoneController.text = SignupDraft.phone;
+    _emailController.text = SignupDraft.email;
+    _passwordController.text = SignupDraft.password;
+    _confirmPasswordController.text = SignupDraft.confirmPassword;
+
+    _isAuthenticated =
+        AuthService.isSignedIn && AuthService.isSignedInWithGoogle;
+    // Also prefill for a resumed (non-Google) session — e.g. the app was
+    // killed right after this step created the account, and the signup
+    // wizard is now being re-entered from splash/login instead of carrying
+    // over SignupDraft, which is in-memory only and doesn't survive a
+    // process restart.
+    if (AuthService.isSignedIn) _prefillFromAccount();
 
     // Google sign-in via the button below completes synchronously on iOS,
     // but on Android it only resolves here, once the browser sheet redirects
@@ -51,8 +79,10 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
     ) {
       final isNewSignIn =
           data.event == AuthChangeEvent.signedIn &&
-          data.session?.accessToken != tokenAtMount;
+          data.session?.accessToken != tokenAtMount &&
+          _expectingGoogleSignIn;
       if (isNewSignIn && mounted) {
+        _expectingGoogleSignIn = false;
         setState(() => _isAuthenticated = true);
         _prefillFromAccount();
       }
@@ -68,10 +98,20 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
     if (_emailController.text.isEmpty && user?.email != null) {
       _emailController.text = user!.email!;
     }
+    final phone = user?.userMetadata?['phone'] as String?;
+    if (_phoneController.text.isEmpty && phone != null) {
+      _phoneController.text = phone;
+    }
   }
 
   @override
   void dispose() {
+    SignupDraft.fullName = _fullNameController.text;
+    SignupDraft.phone = _phoneController.text;
+    SignupDraft.email = _emailController.text;
+    SignupDraft.password = _passwordController.text;
+    SignupDraft.confirmPassword = _confirmPasswordController.text;
+
     _authSubscription?.cancel();
     _fullNameController.dispose();
     _phoneController.dispose();
@@ -115,19 +155,55 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
     );
   }
 
+  /// Signs up with the entered details, unless this email already has an
+  /// account — which happens when a previous signup attempt reached this
+  /// step (creating the account) but the app lost its session before the
+  /// wizard was finished (e.g. it was closed, the user signed out, or the
+  /// device/simulator was reset). In that case, sign in with the password
+  /// just typed instead of erroring out, so resuming with the same
+  /// credentials continues the same account rather than treating it as a
+  /// hard failure. A genuinely wrong password (someone else's email, or a
+  /// forgotten password) still surfaces as a sign-in error.
+  Future<void> _signUpOrResume() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    try {
+      await AuthService.signUpWithEmail(
+        email: email,
+        password: password,
+        name: _fullNameController.text.trim(),
+        phone: _phoneController.text.trim(),
+        role: widget.role.name,
+      );
+    } on AuthException catch (error) {
+      if (error is! AuthApiException || error.code != 'user_already_exists') {
+        rethrow;
+      }
+      await AuthService.signInWithEmail(email: email, password: password);
+    }
+  }
+
   Future<void> _continue() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (_isSubmitting) return;
     setState(() => _isSubmitting = true);
     try {
       if (!_isAuthenticated) {
-        await AuthService.signUpWithEmail(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-          name: _fullNameController.text.trim(),
-          phone: _phoneController.text.trim(),
-          role: widget.role.name,
-        );
+        // Cancel any earlier Google attempt the user abandoned (e.g.
+        // backed out of the browser sheet on Android without completing
+        // it) so its eventual — or now-orphaned — sign-in event can't be
+        // misattributed to this email signup.
+        _expectingGoogleSignIn = false;
+        if (AuthService.isSignedIn) {
+          // The account was already created from an earlier Continue tap
+          // in this same signup attempt (e.g. the user backed out and
+          // returned) — signing up again would fail as "already
+          // registered", so just apply whatever password they have typed
+          // now instead.
+          await AuthService.updatePassword(_passwordController.text);
+        } else {
+          await _signUpOrResume();
+        }
       }
       await _saveProfile();
       if (mounted) _navigateNext();
@@ -145,9 +221,11 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
   Future<void> _continueWithGoogle() async {
     if (_isSubmitting) return;
     setState(() => _isSubmitting = true);
+    _expectingGoogleSignIn = true;
     try {
       await AuthService.signInWithGoogle();
     } catch (error) {
+      _expectingGoogleSignIn = false;
       _showError(error);
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
@@ -172,6 +250,7 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
           Expanded(
             child: SafeArea(
               top: false,
+              bottom: false,
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
                 child: Form(
@@ -315,15 +394,13 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
-          MediaQuery.of(context).padding.top + 16,
+          MediaQuery.of(context).padding.top + 10,
           24,
-          24,
+          18,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -433,11 +510,15 @@ class _FormField extends StatelessWidget {
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: colorScheme.primary.withValues(alpha: 0.5)),
+          borderSide: BorderSide(
+            color: colorScheme.primary.withValues(alpha: 0.5),
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: colorScheme.primary.withValues(alpha: 0.5)),
+          borderSide: BorderSide(
+            color: colorScheme.primary.withValues(alpha: 0.5),
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),

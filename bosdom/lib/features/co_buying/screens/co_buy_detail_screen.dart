@@ -8,8 +8,9 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/models/variant_option.dart';
 import '../../../shared/widgets/app_snack_bar.dart';
 import '../../../shared/widgets/full_screen_image_viewer.dart';
+import '../../../shared/widgets/hourglass_icon.dart';
 import '../../../shared/widgets/variant_selector.dart';
-import '../../checkout/screens/checkout_screen.dart' show CheckoutLineItem;
+import '../../payment/screens/payment_screen.dart' show OrderLineSummary;
 import '../../marketplace/widgets/empty_products_notice.dart';
 import '../../wishlist/providers/wishlist_provider.dart';
 import '../models/co_buy_session.dart';
@@ -84,6 +85,23 @@ class _CoBuyDetailBodyState extends ConsumerState<_CoBuyDetailBody> {
   ProductColorOption? _selectedColor;
   bool _variantsInitialized = false;
   bool _isSubmitting = false;
+  Timer? _refreshTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Keep progress and the leave-request decision fresh without a manual
+    // pull-to-refresh.
+    _refreshTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (mounted && !_isSubmitting) ref.invalidate(coBuyProvider);
+    });
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -291,43 +309,39 @@ class _CoBuyDetailBodyState extends ConsumerState<_CoBuyDetailBody> {
                         double.infinity,
                       ),
                     ),
-                    child: _JoinCoBuyButton(
-                      joined: session.joined,
-                      isFull: session.isFull,
-                      subtotal: subtotal,
-                      colorScheme: colorScheme,
-                      textTheme: textTheme,
-                      onTap: session.isFull
-                          ? () {
-                              final variantSuffix = [
-                                ?_selectedColor?.name,
-                                ?_selectedSize,
-                              ].join(', ');
-                              context.pushNamed(
-                                'checkout',
-                                extra: {
-                                  'items': [
-                                    CheckoutLineItem(
-                                      icon: session.icon,
-                                      name: session.productName,
-                                      qtyLabel: variantSuffix.isEmpty
-                                          ? l10n.coBuyDetailQtyLabel(
-                                              quantity,
-                                              session.unitLabel,
-                                            )
-                                          : '${l10n.coBuyDetailQtyLabel(quantity, session.unitLabel)} · $variantSuffix',
-                                      total: subtotal,
-                                      seller: session.sellerName,
-                                    ),
-                                  ],
-                                },
-                              );
-                            }
-                          : () => _handleToggleJoin(
-                              session: session,
-                              quantity: quantity,
-                              subtotal: subtotal,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (session.joined &&
+                            !session.leavePending &&
+                            session.myLeaveAdminNote != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Text(
+                              l10n.coBuyDetailLeaveRejectedNote(
+                                session.myLeaveAdminNote!,
+                              ),
+                              textAlign: TextAlign.center,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
                             ),
+                          ),
+                        _JoinCoBuyButton(
+                          joined: session.joined,
+                          leavePending: session.leavePending,
+                          subtotal: subtotal,
+                          colorScheme: colorScheme,
+                          textTheme: textTheme,
+                          onTap: session.joined
+                              ? () => _handleRequestLeave(session: session)
+                              : () => _handleJoin(
+                                  session: session,
+                                  quantity: quantity,
+                                  subtotal: subtotal,
+                                ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -339,7 +353,9 @@ class _CoBuyDetailBodyState extends ConsumerState<_CoBuyDetailBody> {
     );
   }
 
-  Future<void> _handleToggleJoin({
+  /// Reserves a spot, then sends the buyer to pay — they only count as
+  /// joined once the payment goes through.
+  Future<void> _handleJoin({
     required CoBuySession session,
     required int quantity,
     required double subtotal,
@@ -348,39 +364,162 @@ class _CoBuyDetailBodyState extends ConsumerState<_CoBuyDetailBody> {
     setState(() => _isSubmitting = true);
     final l10n = AppLocalizations.of(context);
     try {
-      if (session.joined) {
-        await ref.read(coBuyProvider.notifier).leave(session.id);
-        if (!mounted) return;
-        showAppSnackBar(
-          context,
-          type: AppSnackBarType.info,
-          message: l10n.coBuyDetailLeftSnackbar(session.productName),
-        );
-      } else {
-        await ref
-            .read(coBuyProvider.notifier)
-            .join(
-              session.id,
+      await ref
+          .read(coBuyProvider.notifier)
+          .join(
+            session.id,
+            quantity: quantity,
+            size: _selectedSize,
+            color: _selectedColor,
+          );
+      if (!mounted) return;
+      final variantSuffix = [?_selectedColor?.name, ?_selectedSize].join(', ');
+      final qtyLabel = l10n.coBuyDetailQtyLabel(quantity, session.unitLabel);
+      await context.pushNamed(
+        'payment',
+        extra: {
+          'amount': subtotal,
+          'itemCount': 1,
+          'coBuyPoolId': session.id,
+          'items': [
+            OrderLineSummary(
+              icon: session.icon,
+              imageUrl: session.imageUrl,
+              name: session.productName,
+              qtyLabel: variantSuffix.isEmpty
+                  ? qtyLabel
+                  : '$qtyLabel · $variantSuffix',
+              total: subtotal,
+              seller: session.sellerName,
+              sellerLogoOverride: session.sellerLogoOverride,
               quantity: quantity,
-              size: _selectedSize,
-              color: _selectedColor,
-            );
-        if (!mounted) return;
-        showAppSnackBar(
-          context,
-          type: AppSnackBarType.success,
-          message: l10n.coBuyDetailJoinedSnackbar(
-            session.productName,
-            '\$${subtotal.toStringAsFixed(2)}',
-          ),
-        );
-      }
+            ),
+          ],
+        },
+      );
+      if (mounted) ref.invalidate(coBuyProvider);
     } on CoBuyJoinException catch (error) {
       if (!mounted) return;
-      showAppSnackBar(context, type: AppSnackBarType.error, message: error.message);
+      showAppSnackBar(
+        context,
+        type: AppSnackBarType.error,
+        message: error.message,
+      );
+    } catch (_) {
+      if (!mounted) return;
+      showAppSnackBar(
+        context,
+        type: AppSnackBarType.error,
+        message: l10n.cartUpdateErrorSnackbar,
+      );
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
+  }
+
+  /// A paid buyer can't just leave: they send a reason and an admin decides.
+  Future<void> _handleRequestLeave({required CoBuySession session}) async {
+    if (_isSubmitting || session.leavePending) return;
+    final l10n = AppLocalizations.of(context);
+    final reason = await showDialog<String>(
+      context: context,
+      builder: (_) => const _LeaveReasonDialog(),
+    );
+    if (reason == null || !mounted) return;
+
+    setState(() => _isSubmitting = true);
+    try {
+      await ref.read(coBuyProvider.notifier).requestLeave(session.id, reason);
+      if (!mounted) return;
+      showAppSnackBar(
+        context,
+        type: AppSnackBarType.info,
+        message: l10n.coBuyDetailLeaveSentSnackbar,
+      );
+    } on CoBuyJoinException catch (error) {
+      if (!mounted) return;
+      showAppSnackBar(
+        context,
+        type: AppSnackBarType.error,
+        message: error.message,
+      );
+    } catch (_) {
+      if (!mounted) return;
+      showAppSnackBar(
+        context,
+        type: AppSnackBarType.error,
+        message: l10n.cartUpdateErrorSnackbar,
+      );
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+}
+
+class _LeaveReasonDialog extends StatefulWidget {
+  const _LeaveReasonDialog();
+
+  @override
+  State<_LeaveReasonDialog> createState() => _LeaveReasonDialogState();
+}
+
+class _LeaveReasonDialogState extends State<_LeaveReasonDialog> {
+  final _controller = TextEditingController();
+  String? _error;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final reason = _controller.text.trim();
+    if (reason.length < 5) {
+      setState(
+        () => _error = AppLocalizations.of(
+          context,
+        ).coBuyDetailLeaveReasonTooShort,
+      );
+      return;
+    }
+    Navigator.of(context).pop(reason);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return AlertDialog(
+      title: Text(l10n.coBuyDetailLeaveTitle),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.coBuyDetailLeaveBody),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _controller,
+            maxLines: 3,
+            maxLength: 300,
+            decoration: InputDecoration(
+              hintText: l10n.coBuyDetailLeaveReasonHint,
+              errorText: _error,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.commonCancel),
+        ),
+        FilledButton(
+          onPressed: _submit,
+          child: Text(l10n.coBuyDetailLeaveSubmit),
+        ),
+      ],
+    );
   }
 }
 
@@ -1049,7 +1188,7 @@ class _StepperButton extends StatelessWidget {
 class _JoinCoBuyButton extends StatelessWidget {
   const _JoinCoBuyButton({
     required this.joined,
-    required this.isFull,
+    required this.leavePending,
     required this.subtotal,
     required this.colorScheme,
     required this.textTheme,
@@ -1057,7 +1196,7 @@ class _JoinCoBuyButton extends StatelessWidget {
   });
 
   final bool joined;
-  final bool isFull;
+  final bool leavePending;
   final double subtotal;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
@@ -1066,18 +1205,14 @@ class _JoinCoBuyButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    // Once the group hits its target, joined members check out and
-    // everyone else is locked out — the button can no longer join/leave.
-    final checkoutReady = isFull && joined;
-    final lockedOut = isFull && !joined;
-
     final Color background;
     final Color foreground;
-    if (checkoutReady) {
-      background = colorScheme.primary;
-      foreground = colorScheme.onPrimary;
-    } else if (lockedOut) {
-      background = colorScheme.onSurfaceVariant.withValues(alpha: 0.12);
+    if (leavePending) {
+      // Opaque, so the content scrolling underneath doesn't show through.
+      background = Color.alphaBlend(
+        colorScheme.onSurfaceVariant.withValues(alpha: 0.12),
+        colorScheme.surface,
+      );
       foreground = colorScheme.onSurfaceVariant;
     } else if (joined) {
       background = Colors.white;
@@ -1087,19 +1222,13 @@ class _JoinCoBuyButton extends StatelessWidget {
       foreground = colorScheme.onPrimary;
     }
 
-    final icon = checkoutReady
-        ? Icons.shopping_cart_checkout_rounded
-        : lockedOut
-        ? Icons.lock_outline_rounded
-        : joined
+    final icon = joined
         ? Icons.check_circle_rounded
         : Icons.shopping_bag_rounded;
 
     final formattedSubtotal = '\$${subtotal.toStringAsFixed(2)}';
-    final label = checkoutReady
-        ? l10n.coBuyDetailCheckoutLabel(formattedSubtotal)
-        : lockedOut
-        ? l10n.coBuyDetailFullLabel
+    final label = leavePending
+        ? l10n.coBuyDetailLeavePendingLabel
         : joined
         ? l10n.coBuyDetailJoinedLabel
         : l10n.coBuyDetailJoinLabel(formattedSubtotal);
@@ -1123,9 +1252,9 @@ class _JoinCoBuyButton extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           borderRadius: BorderRadius.circular(pillRadius),
-          onTap: lockedOut ? null : onTap,
+          onTap: leavePending ? null : onTap,
           child: Container(
-            decoration: joined && !checkoutReady
+            decoration: joined && !leavePending
                 ? BoxDecoration(
                     borderRadius: BorderRadius.circular(pillRadius),
                     border: Border.all(color: colorScheme.tertiary),
@@ -1135,7 +1264,10 @@ class _JoinCoBuyButton extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(icon, size: 18, color: foreground),
+                if (leavePending)
+                  HourglassIcon(size: 18, color: foreground)
+                else
+                  Icon(icon, size: 18, color: foreground),
                 const SizedBox(width: 8),
                 Text(
                   label,

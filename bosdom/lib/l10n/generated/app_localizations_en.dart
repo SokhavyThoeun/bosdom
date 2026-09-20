@@ -517,6 +517,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cartEmptyState => 'Your cart is empty';
 
   @override
+  String get cartLoadErrorMessage => 'Couldn\'t load your cart. Tap to retry.';
+
+  @override
+  String get cartUpdateErrorSnackbar =>
+      'Couldn\'t update your cart. Please try again.';
+
+  @override
   String get checkoutDeliveryAddressLabel => 'Delivery Address';
 
   @override
@@ -588,10 +595,22 @@ class AppLocalizationsEn extends AppLocalizations {
       'e.g. Building B, Zone 3, Veng Sreng Blvd';
 
   @override
-  String get addressSangkatFieldLabel => 'SANGKAT / DISTRICT';
+  String get addressDistrictFieldLabel => 'DISTRICT (KHAN)';
 
   @override
-  String get addressSangkatFieldHint => 'e.g. Sangkat Choam Chao';
+  String get addressDistrictFieldHint => 'Select district...';
+
+  @override
+  String get addressDistrictFreeTextHint => 'e.g. District name';
+
+  @override
+  String get addressSangkatFieldLabel => 'SANGKAT';
+
+  @override
+  String get addressSangkatFieldHint => 'Select sangkat...';
+
+  @override
+  String get addressSangkatFreeTextHint => 'e.g. Sangkat / commune name';
 
   @override
   String get addressLandmarkFieldLabel => 'NEAREST LANDMARK (OPTIONAL)';
@@ -730,10 +749,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatScreenTitle => 'Chat';
 
   @override
+  String get chatSellerScreenTitle => 'Customer Messages';
+
+  @override
   String get chatSearchHint => 'Search conversations...';
 
   @override
   String get chatEmptyTitle => 'No conversations yet';
+
+  @override
+  String get chatSellerEmptyTitle => 'No messages from customers yet';
 
   @override
   String chatEmptyQuery(String query) {
@@ -751,6 +776,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatSendError => 'Couldn\'t send message. Try again.';
+
+  @override
+  String get chatPhotoSendError => 'Couldn\'t send photo. Try again.';
 
   @override
   String get chatStartConversationError =>
@@ -788,10 +816,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatAttachPhotoGallery => 'Choose from gallery';
 
   @override
-  String get liveChatTitle => 'Live Chat';
+  String get chatPhotoPreviewTitle => 'Send this photo?';
 
   @override
-  String get liveChatStatusOnline => 'Online • Usually replies instantly';
+  String get chatPhotoPreviewSend => 'Send';
+
+  @override
+  String get liveChatTitle => 'BosDom';
+
+  @override
+  String get liveChatStatusOnline =>
+      'Support team • Replies Mon-Fri, 8 AM - 6 PM';
 
   @override
   String get liveChatStatusOffline =>
@@ -1075,16 +1110,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'Original price must be higher than the co-buy price';
 
   @override
-  String get coBuyCreateTargetQtyLabel => 'Target Retailers';
+  String get coBuyCreateTargetQtyLabel => 'Target Quantity';
 
   @override
-  String get coBuyCreateTargetQtyHint => 'e.g. 20';
+  String get coBuyCreateTargetQtyHint => 'e.g. 1000 kg';
 
   @override
-  String get coBuyCreateTargetQtyRequired => 'Target retailers is required';
+  String get coBuyCreateTargetQtyRequired => 'Target quantity is required';
 
   @override
   String get coBuyCreateTargetQtyInvalid => 'Enter a valid number';
+
+  @override
+  String get coBuyCreateTargetQtyTooLow =>
+      'Target quantity must be at least the minimum order';
 
   @override
   String get coBuyCreateUnitLabelLabel => 'Unit';
@@ -1310,12 +1349,91 @@ class AppLocalizationsEn extends AppLocalizations {
   String get coBuyDetailFullLabel => 'Co-Buy Full';
 
   @override
-  String get coBuyDetailJoinedLabel => 'You\'re in · tap to leave';
+  String get coBuyDetailOwnListingLabel => 'Your Listing';
+
+  @override
+  String get coBuyDetailJoinedLabel => 'You\'re in · request to leave';
+
+  @override
+  String get coBuyDetailLeavePendingLabel => 'Leave request pending review';
+
+  @override
+  String get coBuyDetailLeaveTitle => 'Request to leave?';
+
+  @override
+  String get coBuyDetailLeaveBody =>
+      'Your payment is held in escrow. An admin will review your request and refund you if it\'s approved.';
+
+  @override
+  String get coBuyDetailLeaveReasonHint => 'Why do you want to leave?';
+
+  @override
+  String get coBuyDetailLeaveReasonTooShort => 'Please give a short reason.';
+
+  @override
+  String get coBuyDetailLeaveSubmit => 'Send request';
+
+  @override
+  String get coBuyDetailLeaveSentSnackbar =>
+      'Leave request sent. An admin will review it.';
+
+  @override
+  String coBuyDetailLeaveRejectedNote(String note) {
+    return 'Your leave request was rejected: $note';
+  }
 
   @override
   String coBuyDetailJoinLabel(String amount) {
     return 'Join Co-Buy · $amount';
   }
+
+  @override
+  String get coBuyDetailPendingPaymentLabel => 'Continue to Payment';
+
+  @override
+  String get coBuyDetailReleasedLabel => 'Order Placed';
+
+  @override
+  String get coBuyDetailRefundPendingLabel => 'Refund Pending';
+
+  @override
+  String get coBuyDetailLeaveConfirmTitle => 'Leave this Co-Buy?';
+
+  @override
+  String coBuyDetailLeaveConfirmBody(String amount) {
+    return 'Your $amount payment will stay held until an admin releases your refund. This isn\'t instant.';
+  }
+
+  @override
+  String get coBuyDetailLeaveConfirmButton => 'Leave & Request Refund';
+
+  @override
+  String coBuyDetailLeaveRequestedSnackbar(String productName) {
+    return 'Refund pending for $productName. An admin will release your payment soon.';
+  }
+
+  @override
+  String get coBuyDealsFulfillButtonLabel => 'Mark Fulfilled';
+
+  @override
+  String get coBuyDealsFulfillConfirmTitle => 'Mark this deal fulfilled?';
+
+  @override
+  String get coBuyDealsFulfillConfirmBody =>
+      'This releases every buyer\'s held payment to you. Only confirm after you\'ve shipped the pooled order to them.';
+
+  @override
+  String get coBuyDealsFulfilledSnackbar =>
+      'Deal marked fulfilled. Payments released.';
+
+  @override
+  String get coBuyingPendingPaymentPillLabel => 'Complete Payment';
+
+  @override
+  String get coBuyingRefundPendingPillLabel => 'Refund Pending';
+
+  @override
+  String get coBuyingOrderPlacedPillLabel => 'Order Placed';
 
   @override
   String get wishlistScreenTitle => 'Wishlist';
@@ -1330,6 +1448,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get wishlistAddToCartButton => 'Add to Cart';
+
+  @override
+  String wishlistAddedToWishlistSnackbar(String productName) {
+    return '$productName added to wishlist';
+  }
+
+  @override
+  String wishlistRemovedFromWishlistSnackbar(String productName) {
+    return '$productName removed from wishlist';
+  }
+
+  @override
+  String get wishlistToggleErrorSnackbar =>
+      'Couldn\'t update your wishlist. Please try again.';
+
+  @override
+  String get wishlistLoadErrorMessage =>
+      'Couldn\'t load your wishlist. Tap to retry.';
 
   @override
   String get marketplaceCategoriesTitle => 'Product Categories';
@@ -1350,6 +1486,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get marketplaceProductsLoadError =>
       'Couldn\'t load products. Tap to retry.';
+
+  @override
+  String get marketplaceNoCoBuyDealsYet =>
+      'No co-buy deals yet. Check back soon!';
+
+  @override
+  String get marketplaceCoBuyDealsLoadError =>
+      'Couldn\'t load co-buy deals. Tap to retry.';
 
   @override
   String get marketplaceCoBuyJoinButton => 'Join Co-Buy';
@@ -1423,7 +1567,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get productDetailSampleRequestedSnackbar => 'Sample requested';
+  String get productDetailSampleRequestedSnackbar => 'Sample purchased';
 
   @override
   String productDetailAddToCartButton(String price) {
@@ -1431,21 +1575,25 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get productDetailSampleAlreadyRequested => 'Sample Already Requested';
+  String get productDetailSampleAlreadyRequested => 'Sample Already Bought';
 
   @override
   String get productDetailSampleCooldownActive => 'Cooldown Active';
 
   @override
-  String get productDetailRequestSample => 'Request Sample';
+  String get productDetailRequestSample => 'Buy Sample';
 
   @override
   String productDetailSampleCooldownNote(String date) {
-    return 'You can request another sample after $date.';
+    return 'You can buy another sample after $date.';
   }
 
   @override
   String get productDetailSampleLimitNote => 'Limited to 1 sample every 3 days';
+
+  @override
+  String get productDetailOwnListingNote =>
+      'You can\'t buy or sample your own listing';
 
   @override
   String get storeProfileStatProducts => 'Products';
@@ -1472,6 +1620,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeProfileAboutSectionTitle => 'About';
 
   @override
+  String get storeProfileNoDescriptionYet =>
+      'This seller hasn\'t added a shop description yet.';
+
+  @override
   String get storeProfileBusinessDetailsTitle => 'Business Details';
 
   @override
@@ -1482,6 +1634,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storeProfileLabelLocation => 'Location';
+
+  @override
+  String get storeProfileContactTitle => 'Contact Information';
+
+  @override
+  String get storeProfileLabelPhone => 'Phone Number';
+
+  @override
+  String get storeProfileLabelEmail => 'Email Address';
 
   @override
   String get storeProfileLabelMinimumOrder => 'Minimum Order';
@@ -1526,6 +1687,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storeProfileTopSellerChip => 'Top Seller';
+
+  @override
+  String get storePowerSellerBadge => 'Power Seller';
 
   @override
   String get storeProfileRatingBreakdownTitle => 'Rating breakdown';
@@ -1610,10 +1774,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ordersRateReviewButton => 'Rate & Review';
 
   @override
+  String get ordersAlreadyReviewedLabel => 'Reviewed';
+
+  @override
   String get ordersReportButton => 'Report';
 
   @override
   String get ordersReportLabel => 'Report order';
+
+  @override
+  String get sellerReportButton => 'Report a delivery problem';
+
+  @override
+  String get sellerReportPhotosLabel => 'Screenshots (optional, up to 3)';
+
+  @override
+  String get sellerReportSheetTitle => 'Report a delivery problem';
+
+  @override
+  String get sellerReportIntro =>
+      'Tell us what went wrong. An admin will look into it and keep the buyer updated.';
+
+  @override
+  String get sellerReportReasonDelayed => 'Delivery delayed';
+
+  @override
+  String get sellerReportReasonLost => 'Parcel lost or damaged';
+
+  @override
+  String get sellerReportReasonUnreachable => 'Buyer unreachable';
+
+  @override
+  String get sellerReportReasonAddress => 'Address problem';
+
+  @override
+  String get sellerReportSubmittedSnackbar =>
+      'Report sent. An admin will follow up and update the buyer.';
+
+  @override
+  String sellerReportFailedSnackbar(String error) {
+    return 'Couldn\'t send the report: $error';
+  }
 
   @override
   String get ordersReportSheetTitle => 'Report Order';
@@ -1766,10 +1967,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deliveryStepOrderPlaced => 'Order placed';
 
   @override
-  String get deliveryStepPaymentHeld => 'Payment held in escrow';
+  String get deliveryStepAwaitingSellerConfirmation =>
+      'Awaiting seller confirmation';
 
   @override
-  String get deliveryStepReleased => 'Released to seller';
+  String get deliveryStepSellerProcessing => 'Seller is processing your order';
+
+  @override
+  String get deliveryStepDelivery => 'Delivery';
+
+  @override
+  String get deliveryStepReleased => 'Order completed';
 
   @override
   String get deliveryStepDisputed => 'Under dispute';
@@ -1813,6 +2021,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reviewWriteReviewLabel => 'WRITE A REVIEW';
 
   @override
+  String get reviewRatingRequiredSnackbar =>
+      'Please rate the product before submitting.';
+
+  @override
+  String reviewSubmitFailedSnackbar(String error) {
+    return 'Couldn\'t submit your review: $error';
+  }
+
+  @override
+  String get reviewSectionTitle => 'Buyer Review';
+
+  @override
+  String get reviewEmptyStateMessage => 'No review yet from the buyer.';
+
+  @override
   String get paymentScreenTitle => 'Payment Method';
 
   @override
@@ -1835,6 +2058,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paymentCardHolderLabel => 'CARD HOLDER';
+
+  @override
+  String get paymentCardHolderNameHint => 'Full name on card';
+
+  @override
+  String get paymentCardHolderPlaceholder => 'YOUR NAME';
 
   @override
   String get paymentCardValidThruLabel => 'VALID THRU';
@@ -2138,10 +2367,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sellerDashboardViewAllLabel => 'View All';
 
   @override
+  String get sellerApprovalPendingTitle => 'Approval Pending';
+
+  @override
+  String get sellerApprovalPendingMessage =>
+      'Your shop is being reviewed by our team. You\'ll be notified once it\'s approved and you can start listing products. In the meantime, feel free to shop around!';
+
+  @override
+  String get sellerApprovalRejectedTitle => 'Verification Rejected';
+
+  @override
+  String get sellerApprovalRejectedMessage =>
+      'Your KYC documents didn\'t pass review. Resubmit them to continue setting up your shop.';
+
+  @override
+  String get sellerApprovalResubmitAction => 'Resubmit Documents';
+
+  @override
+  String get sellerApprovalGotItAction => 'Got It';
+
+  @override
+  String sellerApprovalSubmittedOnLabel(String date) {
+    return 'Submitted on $date';
+  }
+
+  @override
+  String sellerApprovalReviewedOnLabel(String date) {
+    return 'Reviewed on $date';
+  }
+
+  @override
   String get sellerEarningsScreenTitle => 'Earnings';
 
   @override
-  String get sellerEarningsAvailableBalanceLabel => 'Available Balance';
+  String get sellerEarningsAvailableBalanceLabel => 'Released Balance';
 
   @override
   String sellerEarningsCompletedSalesPercentLabel(int percent) {
@@ -2149,7 +2408,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get sellerEarningsWithdrawButton => 'Withdraw';
+  String get sellerEarningsWithdrawButton => 'Request Release';
 
   @override
   String get sellerEarningsReleasedLabel => 'Released';
@@ -2213,7 +2472,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sellerEarningsEscrowNoticeText =>
-      'Funds are held in escrow for 48 hours after purchase. Once released, tap Withdraw to transfer earnings to your bank account.';
+      'Funds stay in escrow until the buyer confirms delivery. Once you confirm an order, tap Request Release and the admin will review and release it.';
 
   @override
   String get sellerEarningsEmptyStateMessage =>
@@ -2285,6 +2544,81 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sellerEarningsWithdrawSuccessOkButton => 'OK';
 
   @override
+  String get sellerEarningsBankNameLabel => 'Bank Name';
+
+  @override
+  String get sellerEarningsBankNameHint => 'e.g. ABA Bank, ACLEDA, Wing';
+
+  @override
+  String get sellerEarningsAccountNumberInvalidError => 'Digits only';
+
+  @override
+  String get sellerEarningsPayoutNoticeText =>
+      'Your request goes to the admin for approval. Once approved, the money reaches this account in around 1 to 3 hours. Only money from orders the buyer has already received is included.';
+
+  @override
+  String get sellerEarningsPayoutNothingMessage =>
+      'Your released balance is empty. Money shows up here once a buyer receives their item.';
+
+  @override
+  String sellerEarningsPayoutSuccessMessage(String amount) {
+    return 'Your request to withdraw $amount was sent to the admin for approval. Once approved, it may take around 1 to 3 hours to reach your bank account.';
+  }
+
+  @override
+  String sellerEarningsPayoutFailedSnackbar(String error) {
+    return 'Couldn\'t request payout: $error';
+  }
+
+  @override
+  String sellerEarningsPayoutArrivingLabel(String amount) {
+    return '$amount on its way to your bank';
+  }
+
+  @override
+  String get sellerEarningsPayoutArrivingBy => 'May take around 1 to 3 hours';
+
+  @override
+  String sellerEarningsPayoutPendingLabel(String amount) {
+    return '$amount awaiting admin approval';
+  }
+
+  @override
+  String get sellerEarningsPayoutPendingHint =>
+      'Sent to your bank 1 to 3 hours after approval';
+
+  @override
+  String get sellerEarningsStatusReleaseRequested => 'Release Requested';
+
+  @override
+  String get sellerEarningsRequestReleaseTitle => 'Request Fund Release';
+
+  @override
+  String sellerEarningsRequestReleaseMessage(int count, String amount) {
+    return 'Ask the admin to release $amount from $count confirmed orders now?';
+  }
+
+  @override
+  String get sellerEarningsRequestReleaseConfirmButton => 'Send Request';
+
+  @override
+  String get sellerEarningsRequestReleaseCancelButton => 'Cancel';
+
+  @override
+  String get sellerEarningsRequestReleaseNothingMessage =>
+      'No confirmed orders are waiting in escrow. Confirm an order first, then request its release.';
+
+  @override
+  String sellerEarningsRequestReleaseSuccessMessage(int count, String amount) {
+    return 'Release requested for $count orders ($amount). The admin will review it shortly.';
+  }
+
+  @override
+  String sellerEarningsRequestReleaseFailedSnackbar(String error) {
+    return 'Couldn\'t request release: $error';
+  }
+
+  @override
   String get sellerOrdersScreenTitle => 'Orders';
 
   @override
@@ -2345,6 +2679,50 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sellerOrderDetailDeclineConfirmConfirm => 'Decline';
 
   @override
+  String get sellerOrderDetailConfirmButton => 'Confirm Order';
+
+  @override
+  String get sellerOrderDetailConfirmingLabel => 'Confirming...';
+
+  @override
+  String get sellerOrderDetailConfirmedLabel => 'Order Confirmed';
+
+  @override
+  String get sellerOrderDetailRequestReleaseButton => 'Request Fund Release';
+
+  @override
+  String get sellerOrderDetailReleaseRequestedLabel =>
+      'Release requested, waiting for admin approval';
+
+  @override
+  String sellerOrderDetailRequestReleaseFailedSnackbar(String error) {
+    return 'Couldn\'t request release: $error';
+  }
+
+  @override
+  String sellerOrderDetailConfirmFailedSnackbar(String error) {
+    return 'Couldn\'t confirm order: $error';
+  }
+
+  @override
+  String get orderDetailSellerConfirmedLabel => 'Seller confirmed';
+
+  @override
+  String get orderDetailAwaitingSellerConfirmationLabel =>
+      'Awaiting seller confirmation';
+
+  @override
+  String get orderDetailConfirmReceivedButton => 'Confirm Item Received';
+
+  @override
+  String get orderDetailConfirmReceivingLabel => 'Confirming...';
+
+  @override
+  String orderDetailConfirmReceivedFailedSnackbar(String error) {
+    return 'Couldn\'t confirm receipt: $error';
+  }
+
+  @override
   String get myInventoryScreenTitle => 'My Inventory';
 
   @override
@@ -2368,6 +2746,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get myInventoryEmptyStateMessage => 'No products found.';
 
   @override
+  String get myInventoryLoadErrorMessage =>
+      'Couldn\'t load your inventory. Tap to retry.';
+
+  @override
   String myInventoryListingActivatedSnackbar(String product) {
     return '$product is now active';
   }
@@ -2376,6 +2758,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String myInventoryListingDeactivatedSnackbar(String product) {
     return '$product is now inactive';
   }
+
+  @override
+  String get myInventoryUpdateErrorSnackbar =>
+      'Couldn\'t update the listing. Please try again.';
 
   @override
   String get profileEditProfileRoleLabel => 'Role Profile';
@@ -2563,6 +2949,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addListingStockInvalid => 'Please enter a valid quantity';
+
+  @override
+  String get addListingSpecsLabel => 'Wholesale Specifications';
+
+  @override
+  String get addListingSpecsHelper => 'Help buyers know what they\'re ordering';
+
+  @override
+  String get addListingWeightLabel => 'Weight';
+
+  @override
+  String get addListingWeightHint => 'e.g. 25kg per bag';
+
+  @override
+  String get addListingWeightRequired => 'Please enter a weight';
+
+  @override
+  String get addListingOriginLabel => 'Origin';
+
+  @override
+  String get addListingOriginHint => 'e.g. Cambodia';
+
+  @override
+  String get addListingOriginRequired => 'Please enter an origin';
+
+  @override
+  String get addListingGradeLabel => 'Grade';
+
+  @override
+  String get addListingGradeHint => 'e.g. Premium AA';
+
+  @override
+  String get addListingGradeRequired => 'Please enter a grade';
+
+  @override
+  String get addListingPackagingLabel => 'Packaging';
+
+  @override
+  String get addListingPackagingHint => 'e.g. Woven PP bag';
+
+  @override
+  String get addListingPackagingRequired => 'Please enter a packaging type';
 
   @override
   String get addListingPhotosLabel => 'Product Photos';
@@ -3608,7 +4036,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutStoryBody =>
-      'Founded to solve trust deficiencies in Cambodia\'s B2B retail supply chain, Bosdom deploys an independent secure digital procurement ecosystem to empower small-to-medium retail owners.';
+      'Bosdom was started to fix the trust problem in Cambodia\'s wholesale supply chain. It gives small and medium retail owners a safe way to buy and sell in bulk.';
 
   @override
   String get aboutStatRetailers => 'Retailers';
@@ -3642,4 +4070,182 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get variantColorLabel => 'Color';
+
+  @override
+  String get escrowFlowTitle => 'How your payment is released';
+
+  @override
+  String get escrowStepPaidTitle => 'Order placed';
+
+  @override
+  String get escrowStepPaidDetail => 'Payment held in escrow';
+
+  @override
+  String get escrowStepPreparesTitle => 'Seller prepares';
+
+  @override
+  String get escrowStepPreparesDetail => 'Getting the order ready';
+
+  @override
+  String get escrowStepShippedTitle => 'Shipped';
+
+  @override
+  String get escrowStepShippedDetail => 'Photo + tracking';
+
+  @override
+  String get escrowStepTimerTitle => 'Timer starts';
+
+  @override
+  String get escrowStepTimerDetail => 'Buyer review window';
+
+  @override
+  String get escrowStepReleaseTitle => 'Auto released to seller';
+
+  @override
+  String get escrowStepReleaseDetail => 'Fee taken, seller paid';
+
+  @override
+  String escrowTimerLeft(String time) {
+    return '$time left to report a problem';
+  }
+
+  @override
+  String get escrowTimerFrozen =>
+      'Timer paused while an admin reviews the report';
+
+  @override
+  String escrowTrackingLabel(String courier, String number) {
+    return '$courier · $number';
+  }
+
+  @override
+  String get escrowReportProblemButton => 'Report a problem';
+
+  @override
+  String get escrowReportSubmittedFrozen =>
+      'Problem reported. The timer is frozen while an admin reviews it.';
+
+  @override
+  String get escrowShipButton => 'Ship order';
+
+  @override
+  String get escrowShipSheetTitle => 'Ship order';
+
+  @override
+  String get escrowCourierLabel => 'Courier';
+
+  @override
+  String get escrowCourierHint => 'e.g. VET, J&T, Cambodia Post';
+
+  @override
+  String get escrowTrackingNumberLabel => 'Tracking number';
+
+  @override
+  String get escrowParcelPhotoLabel => 'Photo of the parcel';
+
+  @override
+  String get escrowAddPhoto => 'Add photo';
+
+  @override
+  String get escrowPhotoRequired => 'Please add a photo';
+
+  @override
+  String get escrowShipSubmit => 'Confirm shipment';
+
+  @override
+  String get escrowMarkDeliveredButton => 'Upload proof of delivery';
+
+  @override
+  String get escrowDeliverySheetTitle => 'Proof of delivery';
+
+  @override
+  String get escrowDeliverySheetNote =>
+      'Upload the courier\'s receipt or a handover photo. The buyer\'s review timer starts when you submit.';
+
+  @override
+  String get escrowDeliverySubmit => 'Mark as delivered';
+
+  @override
+  String escrowActionFailed(String error) {
+    return 'Something went wrong: $error';
+  }
+
+  @override
+  String get escrowSellerWaitingTimer =>
+      'Delivered. Funds release automatically when the buyer\'s review window ends.';
+
+  @override
+  String get escrowSellerWaitingDelivery => 'Shipped.';
+
+  @override
+  String get escrowSellerDisputed =>
+      'A problem was reported on this order. Funds are on hold while an admin reviews.';
+
+  @override
+  String get escrowSellerReplyTitle => 'Admin case';
+
+  @override
+  String escrowSellerReplyReported(String reason) {
+    return 'Reported: $reason';
+  }
+
+  @override
+  String get escrowSellerReplyWaiting =>
+      'Waiting for an admin to open the case.';
+
+  @override
+  String get escrowSellerReplyHint => 'Your reply to the admin';
+
+  @override
+  String get escrowSellerReplyButton => 'Send reply';
+
+  @override
+  String get escrowSellerReplySent => 'Your reply';
+
+  @override
+  String get orderHoldTitle => 'What happened';
+
+  @override
+  String get orderHoldReasonDeliveryDelayed => 'Delivery delayed';
+
+  @override
+  String get orderHoldReasonLostOrDamaged => 'Parcel lost or damaged';
+
+  @override
+  String get orderHoldReasonBuyerUnreachable => 'Delivery could not reach you';
+
+  @override
+  String get orderHoldReasonAddress => 'Address problem';
+
+  @override
+  String get orderHoldReasonWrongItem => 'Wrong item received';
+
+  @override
+  String get orderHoldReasonDamaged => 'Item damaged';
+
+  @override
+  String get orderHoldReasonMissing => 'Item missing';
+
+  @override
+  String get orderHoldReasonLate => 'Late delivery';
+
+  @override
+  String get orderHoldReasonOther => 'Other problem';
+
+  @override
+  String get orderHoldReasonBuyerUnreachableSeller =>
+      'Recipient could not be reached';
+
+  @override
+  String get orderHoldSellerBody =>
+      'This order was cancelled by the BosDom Support Team following a delivery issue reported by the courier. No further action is required from you.';
+
+  @override
+  String get orderHoldBuyerBody =>
+      'You reported an issue with this order. Our support team is reviewing your case, and your payment remains safely held in escrow. If the decision is in your favour, your refund will be issued within 2 to 3 days.';
+
+  @override
+  String orderHoldDeliveryBody(String date) {
+    return 'The delivery service reported an issue with your parcel, so the BosDom Support Team has cancelled this order. Your payment is fully protected, and your refund will be issued to you by $date.';
+  }
 }

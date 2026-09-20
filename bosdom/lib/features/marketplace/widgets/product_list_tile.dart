@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
+import '../../../shared/utils/currency_format.dart';
+import '../../../shared/widgets/adaptive_network_image.dart';
 import '../../cart/providers/cart_provider.dart';
 import '../../wishlist/providers/wishlist_provider.dart';
 import '../models/product.dart';
@@ -34,11 +36,33 @@ class ProductListTile extends ConsumerWidget {
       ),
     );
 
-    void addToCart() {
-      ref.read(cartProvider.notifier).addItems([(product, product.moqValue)]);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.wishlistAddedToCartSnackbar(product.name))),
-      );
+    Future<void> addToCart() async {
+      final succeeded = await ref.read(cartProvider.notifier).addItems([
+        (product, product.moqValue),
+      ]);
+      if (!context.mounted) return;
+      final message = succeeded
+          ? l10n.wishlistAddedToCartSnackbar(product.name)
+          : l10n.cartUpdateErrorSnackbar;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    }
+
+    Future<void> toggleWishlist() async {
+      final wasFavorite = isFavorite;
+      final succeeded = await ref
+          .read(wishlistProvider.notifier)
+          .toggle(wishlistId);
+      if (!context.mounted) return;
+      final message = !succeeded
+          ? l10n.wishlistToggleErrorSnackbar
+          : wasFavorite
+          ? l10n.wishlistRemovedFromWishlistSnackbar(product.name)
+          : l10n.wishlistAddedToWishlistSnackbar(product.name);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     }
 
     return InkWell(
@@ -68,7 +92,7 @@ class ProductListTile extends ConsumerWidget {
                       color: colorScheme.outline.withValues(alpha: 0.6),
                     ),
                   ),
-                  child: Image.network(
+                  child: AdaptiveNetworkImage(
                     product.imageUrl,
                     fit: BoxFit.cover,
                     loadingBuilder: (context, child, progress) =>
@@ -102,7 +126,7 @@ class ProductListTile extends ConsumerWidget {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        product.price,
+                        formatPrice(ref, product.priceValue),
                         style: textTheme.titleMedium?.copyWith(
                           color: colorScheme.primary,
                           fontWeight: FontWeight.bold,
@@ -148,22 +172,14 @@ class ProductListTile extends ConsumerWidget {
           Positioned(
             top: 6,
             right: 6,
-            child: Material(
-              color: colorScheme.primary.withValues(alpha: 0.1),
-              shape: const CircleBorder(),
-              child: InkWell(
-                onTap: () =>
-                    ref.read(wishlistProvider.notifier).toggle(wishlistId),
-                customBorder: const CircleBorder(),
-                child: Padding(
-                  padding: const EdgeInsets.all(2),
-                  child: Icon(
-                    isFavorite ? Icons.favorite : Icons.favorite_border,
-                    color: colorScheme.primary,
-                    size: 20,
-                  ),
-                ),
-              ),
+            child: _CircleIconButton(
+              icon: isFavorite ? Icons.favorite : Icons.favorite_border,
+              iconColor: colorScheme.primary,
+              backgroundColor: Colors.white,
+              shadowColor: colorScheme.shadow.withValues(alpha: 0.15),
+              size: 32,
+              iconSize: 16,
+              onTap: toggleWishlist,
             ),
           ),
           Positioned(
@@ -174,8 +190,8 @@ class ProductListTile extends ConsumerWidget {
               iconColor: Colors.white,
               backgroundColor: colorScheme.primary,
               shadowColor: colorScheme.primary.withValues(alpha: 0.45),
-              size: 34,
-              iconSize: 17,
+              size: 32,
+              iconSize: 16,
               onTap: addToCart,
             ),
           ),

@@ -2,8 +2,8 @@
 /// Flip [_useUniversity] and hot-reload when you switch networks — no
 /// in-app UI, no persisted state.
 abstract final class ApiConfig {
-  static const _homeIp = 'http://192.168.18.53:8000';
-  static const _universityIp = 'http://192.168.3.25:8000';
+  static const _homeIp = 'http://192.168.18.45:8000';
+  static const _universityIp = 'http://192.168.1.63:8000';
 
   static const _useUniversity = false;
 

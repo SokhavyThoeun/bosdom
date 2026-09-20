@@ -3,17 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
+import '../../../shared/utils/cambodia_locations.dart';
 import '../models/address.dart';
 import '../providers/address_provider.dart';
-
-const _kProvinces = [
-  'Phnom Penh',
-  'Kandal',
-  'Siem Reap',
-  'Battambang',
-  'Kampong Cham',
-  'Preah Sihanouk',
-];
 
 class AddAddressScreen extends ConsumerStatefulWidget {
   const AddAddressScreen({super.key, this.selectionMode = false});
@@ -30,20 +22,38 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
   final _formKey = GlobalKey<FormState>();
   final _labelController = TextEditingController();
   final _houseController = TextEditingController();
-  final _sangkatController = TextEditingController();
   final _landmarkController = TextEditingController();
   final _phoneController = TextEditingController();
-  String? _province = _kProvinces.first;
+  String? _province = kCambodiaProvinces.first;
+  String? _district;
+  String? _sangkat;
   bool _isDefault = true;
+
+  Map<String, List<String>>? get _districtsForProvince =>
+      kCambodiaDistricts[_province];
 
   @override
   void dispose() {
     _labelController.dispose();
     _houseController.dispose();
-    _sangkatController.dispose();
     _landmarkController.dispose();
     _phoneController.dispose();
     super.dispose();
+  }
+
+  void _onProvinceChanged(String? value) {
+    setState(() {
+      _province = value;
+      _district = null;
+      _sangkat = null;
+    });
+  }
+
+  void _onDistrictChanged(String? value) {
+    setState(() {
+      _district = value;
+      _sangkat = null;
+    });
   }
 
   void _goBack() {
@@ -56,6 +66,10 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
 
   void _saveAddress() {
     if (!_formKey.currentState!.validate()) return;
+    final sangkatLine = [
+      if (_sangkat != null) 'Sangkat $_sangkat',
+      if (_district != null) 'Khan $_district',
+    ].join(', ');
     ref
         .read(addressBookProvider.notifier)
         .addAddress(
@@ -63,8 +77,8 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
             id: DateTime.now().microsecondsSinceEpoch.toString(),
             label: _labelController.text.trim(),
             houseNumber: _houseController.text.trim(),
-            sangkat: _sangkatController.text.trim(),
-            province: _province ?? _kProvinces.first,
+            sangkat: sangkatLine,
+            province: _province ?? kCambodiaProvinces.first,
             phone: _phoneController.text.trim(),
             landmark: _landmarkController.text.trim().isEmpty
                 ? null
@@ -120,15 +134,27 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
                         hintText: l10n.addressHouseFieldHint,
                       ),
                       const SizedBox(height: 18),
-                      _AddressFormField(
-                        label: l10n.addressSangkatFieldLabel,
-                        controller: _sangkatController,
-                        hintText: l10n.addressSangkatFieldHint,
-                      ),
-                      const SizedBox(height: 18),
                       _ProvinceField(
                         value: _province,
-                        onChanged: (value) => setState(() => _province = value),
+                        onChanged: _onProvinceChanged,
+                      ),
+                      const SizedBox(height: 18),
+                      _SelectField(
+                        label: l10n.addressDistrictFieldLabel,
+                        hintText: l10n.addressDistrictFieldHint,
+                        value: _district,
+                        items: _districtsForProvince?.keys.toList() ?? const [],
+                        onChanged: _onDistrictChanged,
+                      ),
+                      const SizedBox(height: 18),
+                      _SelectField(
+                        label: l10n.addressSangkatFieldLabel,
+                        hintText: l10n.addressSangkatFieldHint,
+                        value: _sangkat,
+                        items: _district == null
+                            ? const []
+                            : _districtsForProvince?[_district] ?? const [],
+                        onChanged: (value) => setState(() => _sangkat = value),
                       ),
                       const SizedBox(height: 18),
                       _AddressFormField(
@@ -191,12 +217,12 @@ class _AddAddressHeader extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
-          MediaQuery.of(context).padding.top + 16,
+          MediaQuery.of(context).padding.top + 10,
           24,
-          20,
+          14,
         ),
         child: SizedBox(
-          height: 96,
+          height: 68,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -315,23 +341,52 @@ class _ProvinceField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return _SelectField(
+      label: l10n.addressProvinceFieldLabel,
+      hintText: l10n.addressProvinceFieldHint,
+      value: value,
+      items: kCambodiaProvinces,
+      onChanged: onChanged,
+    );
+  }
+}
+
+class _SelectField extends StatelessWidget {
+  const _SelectField({
+    required this.label,
+    required this.hintText,
+    required this.value,
+    required this.items,
+    required this.onChanged,
+  });
+
+  final String label;
+  final String hintText;
+  final String? value;
+  final List<String> items;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
 
     return DropdownButtonFormField<String>(
-      initialValue: value,
+      initialValue: items.contains(value) ? value : null,
       icon: Icon(Icons.keyboard_arrow_down, color: colorScheme.primary),
       style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface),
       decoration: _addressFieldDecoration(
         context,
-        label: l10n.addressProvinceFieldLabel,
-        hintText: l10n.addressProvinceFieldHint,
+        label: label,
+        hintText: hintText,
       ),
-      items: _kProvinces
-          .map((p) => DropdownMenuItem(value: p, child: Text(p)))
+      items: items
+          .map((item) => DropdownMenuItem(value: item, child: Text(item)))
           .toList(),
-      onChanged: onChanged,
+      validator: (v) => v == null ? l10n.addressFieldRequiredError : null,
+      onChanged: items.isEmpty ? null : onChanged,
     );
   }
 }

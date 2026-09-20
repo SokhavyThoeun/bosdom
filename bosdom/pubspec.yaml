@@ -42,6 +42,7 @@ dependencies:
   dio: ^5.11.0
   http: ^1.6.0
   http_parser: ^4.1.2
+  mime: ^2.0.0
   flutter_svg: ^2.3.0
   flutter_slidable: ^4.0.3
   shared_preferences: ^2.3.3
@@ -82,6 +83,7 @@ flutter:
     - assets/images/shipping/
     - assets/icons/categories/
     - assets/KHQR_card.svg
+    - assets/mock_products/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

@@ -4,11 +4,23 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
-import '../../../shared/utils/mock_images.dart';
+import '../../../shared/utils/currency_format.dart';
 import '../../../shared/widgets/checkout_progress_stepper.dart';
-import '../../marketplace/models/product.dart';
+import '../../../shared/widgets/price_display.dart';
+import '../../checkout/screens/checkout_screen.dart' show CheckoutLineItem;
+import '../../marketplace/widgets/empty_products_notice.dart';
 import '../../wishlist/providers/wishlist_provider.dart';
 import '../providers/cart_provider.dart';
+
+/// Human-readable unit suffix (e.g. "Bags", "Boxes") parsed out of a
+/// product's `moq` string (e.g. "MOQ: 20 Bags") — falls back to a generic
+/// "Units" for products whose MOQ text doesn't follow that shape.
+final _kMoqUnitPattern = RegExp(r'^MOQ:\s*\d+\s*(.+)$');
+
+String _qtyLabelFor(CartLine line) {
+  final unit = _kMoqUnitPattern.firstMatch(line.product.moq)?.group(1);
+  return 'Qty: ${line.quantity} ${unit ?? 'Units'}';
+}
 
 class CartScreen extends ConsumerWidget {
   const CartScreen({super.key});
@@ -18,29 +30,14 @@ class CartScreen extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
-    ref.watch(cartProvider);
+    final cartAsync = ref.watch(cartProvider);
     final notifier = ref.read(cartProvider.notifier);
-    final groups = notifier.groups;
-
-    final totalItems = groups.fold(0, (sum, group) => sum + group.lines.length);
-    final allSelected =
-        groups.isNotEmpty && groups.every((group) => group.allSelected);
-    final subtotal = groups
-        .expand((group) => group.lines)
-        .where((line) => line.selected)
-        .fold(0.0, (sum, line) => sum + line.lineTotal);
-    const shipping = 45.0;
-    final escrowFee = subtotal * 0.02;
-    final total = subtotal + (subtotal > 0 ? shipping : 0) + escrowFee;
 
     void moveToWishlist(CartLine line) {
-      final productId = kMockProducts.indexOf(line.product);
-      if (productId != -1) {
-        final wishlistNotifier = ref.read(wishlistProvider.notifier);
-        final wishlistId = productWishlistId('$productId');
-        if (!wishlistNotifier.contains(wishlistId)) {
-          wishlistNotifier.toggle(wishlistId);
-        }
+      final wishlistNotifier = ref.read(wishlistProvider.notifier);
+      final wishlistId = productWishlistId(line.product.id);
+      if (!wishlistNotifier.contains(wishlistId)) {
+        wishlistNotifier.toggle(wishlistId);
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -58,59 +55,117 @@ class CartScreen extends ConsumerWidget {
             child: SafeArea(
               top: false,
               bottom: false,
-              child: groups.isEmpty
-                  ? _EmptyState(colorScheme: colorScheme, textTheme: textTheme)
-                  : ListView(
-                      padding: EdgeInsets.fromLTRB(
-                        24,
-                        24,
-                        24,
-                        8 + MediaQuery.of(context).padding.bottom,
+              child: cartAsync.when(
+                data: (_) {
+                  final groups = notifier.groups;
+                  final totalItems = groups.fold(
+                    0,
+                    (sum, group) => sum + group.lines.length,
+                  );
+                  final allSelected =
+                      groups.isNotEmpty &&
+                      groups.every((group) => group.allSelected);
+                  final subtotal = groups
+                      .expand((group) => group.lines)
+                      .where((line) => line.selected)
+                      .fold(0.0, (sum, line) => sum + line.lineTotal);
+                  const shipping = 45.0;
+                  final escrowFee = subtotal * 0.02;
+                  final total =
+                      subtotal + (subtotal > 0 ? shipping : 0) + escrowFee;
+
+                  if (groups.isEmpty) {
+                    return _EmptyState(
+                      colorScheme: colorScheme,
+                      textTheme: textTheme,
+                    );
+                  }
+                  return ListView(
+                    padding: EdgeInsets.fromLTRB(
+                      24,
+                      24,
+                      24,
+                      24 + MediaQuery.of(context).padding.bottom,
+                    ),
+                    children: [
+                      const CheckoutProgressStepper(
+                        currentStep: CheckoutStep.cart,
                       ),
-                      children: [
-                        const CheckoutProgressStepper(
-                          currentStep: CheckoutStep.cart,
-                        ),
-                        const SizedBox(height: 20),
-                        _SelectAllBar(
-                          allSelected: allSelected,
-                          itemCount: totalItems,
-                          onChanged: notifier.toggleAll,
+                      const SizedBox(height: 20),
+                      _SelectAllBar(
+                        allSelected: allSelected,
+                        itemCount: totalItems,
+                        onChanged: notifier.toggleAll,
+                        colorScheme: colorScheme,
+                        textTheme: textTheme,
+                      ),
+                      const SizedBox(height: 16),
+                      for (final group in groups) ...[
+                        _CartGroupCard(
+                          group: group,
+                          onGroupToggle: (value) =>
+                              notifier.toggleGroup(group, value),
+                          onLineToggle: notifier.toggleLine,
+                          onQuantityChanged: notifier.changeQuantity,
+                          onWishlist: moveToWishlist,
+                          onDelete: notifier.removeLine,
                           colorScheme: colorScheme,
                           textTheme: textTheme,
                         ),
                         const SizedBox(height: 16),
-                        for (final group in groups) ...[
-                          _CartGroupCard(
-                            group: group,
-                            onGroupToggle: (value) =>
-                                notifier.toggleGroup(group, value),
-                            onLineToggle: notifier.toggleLine,
-                            onQuantityChanged: notifier.changeQuantity,
-                            onWishlist: moveToWishlist,
-                            onDelete: notifier.removeLine,
-                            colorScheme: colorScheme,
-                            textTheme: textTheme,
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-                        _OrderSummary(
-                          subtotal: subtotal,
-                          shipping: subtotal > 0 ? shipping : 0,
-                          escrowFee: escrowFee,
-                          total: total,
-                          colorScheme: colorScheme,
-                          textTheme: textTheme,
-                        ),
-                        const SizedBox(height: 20),
-                        FilledButton(
-                          onPressed: subtotal > 0
-                              ? () => context.pushNamed('checkout')
-                              : null,
-                          child: Text(l10n.cartProceedToCheckout),
-                        ),
                       ],
-                    ),
+                      _OrderSummary(
+                        subtotal: subtotal,
+                        shipping: subtotal > 0 ? shipping : 0,
+                        escrowFee: escrowFee,
+                        total: total,
+                        colorScheme: colorScheme,
+                        textTheme: textTheme,
+                      ),
+                      const SizedBox(height: 32),
+                      FilledButton(
+                        onPressed: subtotal > 0
+                            ? () => context.pushNamed(
+                                'checkout',
+                                extra: {
+                                  'items': [
+                                    for (final line
+                                        in groups
+                                            .expand((g) => g.lines)
+                                            .where((l) => l.selected))
+                                      CheckoutLineItem(
+                                        icon: line.product.icon,
+                                        imageUrl: line.product.imageUrl,
+                                        name: line.product.name,
+                                        qtyLabel: _qtyLabelFor(line),
+                                        quantity: line.quantity,
+                                        total: line.lineTotal,
+                                        seller: line.product.seller,
+                                        sellerLogoOverride:
+                                            line.product.sellerLogoOverride,
+                                        listingId: line.product.isRealListing
+                                            ? line.product.id
+                                            : null,
+                                      ),
+                                  ],
+                                },
+                              )
+                            : null,
+                        child: Text(l10n.cartProceedToCheckout),
+                      ),
+                    ],
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stackTrace) => Center(
+                  child: EmptyProductsNotice(
+                    colorScheme: colorScheme,
+                    textTheme: textTheme,
+                    message: l10n.cartLoadErrorMessage,
+                    onRetry: () => ref.invalidate(cartProvider),
+                  ),
+                ),
+              ),
             ),
           ),
         ],
@@ -119,7 +174,7 @@ class CartScreen extends ConsumerWidget {
   }
 }
 
-const _kHeaderContentHeight = 96.0;
+const _kHeaderContentHeight = 48.0;
 
 class _Header extends StatelessWidget {
   const _Header({required this.colorScheme, required this.textTheme});
@@ -131,15 +186,13 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
-          MediaQuery.of(context).padding.top + 16,
+          MediaQuery.of(context).padding.top + 10,
           24,
-          20,
+          14,
         ),
         child: SizedBox(
           height: _kHeaderContentHeight,
@@ -260,7 +313,7 @@ class _CartGroupCard extends StatelessWidget {
                 backgroundColor: colorScheme.primaryContainer,
                 child: ClipOval(
                   child: Image.network(
-                    mockStoreLogoUrl(group.seller),
+                    group.sellerLogoUrl,
                     width: 22,
                     height: 22,
                     fit: BoxFit.cover,
@@ -325,7 +378,7 @@ class _CartGroupCard extends StatelessWidget {
   }
 }
 
-class _CartLineTile extends StatelessWidget {
+class _CartLineTile extends ConsumerWidget {
   const _CartLineTile({
     required this.line,
     required this.onToggle,
@@ -345,7 +398,7 @@ class _CartLineTile extends StatelessWidget {
   final TextTheme textTheme;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final product = line.product;
     final l10n = AppLocalizations.of(context);
 
@@ -415,7 +468,7 @@ class _CartLineTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  l10n.cartUnitPrice(product.price),
+                  l10n.cartUnitPrice(formatPrice(ref, product.priceValue)),
                   style: textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -424,7 +477,7 @@ class _CartLineTile extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      '\$${line.lineTotal.toStringAsFixed(2)}',
+                      formatPrice(ref, line.lineTotal),
                       style: textTheme.titleMedium?.copyWith(
                         color: colorScheme.primary,
                         fontWeight: FontWeight.bold,
@@ -530,7 +583,7 @@ class _StepperButton extends StatelessWidget {
   }
 }
 
-class _OrderSummary extends StatelessWidget {
+class _OrderSummary extends ConsumerWidget {
   const _OrderSummary({
     required this.subtotal,
     required this.shipping,
@@ -548,7 +601,7 @@ class _OrderSummary extends StatelessWidget {
   final TextTheme textTheme;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
@@ -590,8 +643,9 @@ class _OrderSummary extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              Text(
-                '\$${total.toStringAsFixed(2)}',
+              PriceDisplay(
+                total,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 style: textTheme.titleLarge?.copyWith(
                   color: colorScheme.primary,
                   fontWeight: FontWeight.bold,
@@ -605,7 +659,7 @@ class _OrderSummary extends StatelessWidget {
   }
 }
 
-class _SummaryRow extends StatelessWidget {
+class _SummaryRow extends ConsumerWidget {
   const _SummaryRow({
     required this.label,
     required this.value,
@@ -619,7 +673,7 @@ class _SummaryRow extends StatelessWidget {
   final TextTheme textTheme;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Row(
       children: [
         Text(
@@ -630,7 +684,7 @@ class _SummaryRow extends StatelessWidget {
         ),
         const Spacer(),
         Text(
-          '\$${value.toStringAsFixed(2)}',
+          formatPrice(ref, value),
           style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
       ],

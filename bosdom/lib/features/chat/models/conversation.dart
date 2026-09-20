@@ -4,6 +4,10 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
 
+/// Reserved counterpart id of the BosDom Support inbox (mirrors the backend's
+/// `SUPPORT_AGENT_ID`); that thread lives in Live Chat, not the chat list.
+const kSupportAgentId = 'bosdom-support';
+
 class ChatMessage {
   const ChatMessage({
     required this.id,
@@ -13,6 +17,7 @@ class ChatMessage {
     this.text,
     this.flagged = false,
     this.imageFile,
+    this.imageUrl,
     this.sending = false,
   });
 
@@ -27,6 +32,7 @@ class ChatMessage {
       isMine: senderId == currentUserId,
       createdAt: DateTime.parse(json['created_at'] as String),
       text: json['text'] as String?,
+      imageUrl: json['image_url'] as String?,
       flagged: json['flagged'] as bool? ?? false,
     );
   }
@@ -38,10 +44,13 @@ class ChatMessage {
   final String? text;
   final bool flagged;
 
-  /// Locally attached photo (picked from camera/gallery). There is no
-  /// image-message endpoint on the backend, so this never leaves the
-  /// device — same known limitation as before this screen was wired up.
+  /// Locally attached photo, shown immediately while [imageUrl] is still
+  /// uploading .
   final File? imageFile;
+
+  /// The uploaded photo's URL once the backend has it — relative, resolve
+  /// with `ApiConfig.resolveAvatarUrl` before loading.
+  final String? imageUrl;
 
   /// True while an optimistically-appended message is awaiting the
   /// server's response.
@@ -55,9 +64,11 @@ class Conversation {
     required this.id,
     required this.counterpartId,
     required this.counterpartName,
+    this.counterpartAvatarUrl,
     required this.counterpartVerified,
     required this.listingId,
     required this.unreadCount,
+    required this.isSeller,
     required List<ChatMessage> messages,
   }) : messages = [...messages];
 
@@ -71,9 +82,11 @@ class Conversation {
       id: json['id'] as String,
       counterpartId: json['counterpart_id'] as String,
       counterpartName: json['counterpart_name'] as String,
+      counterpartAvatarUrl: json['counterpart_avatar_url'] as String?,
       counterpartVerified: json['counterpart_verified'] as bool,
       listingId: json['listing_id'] as String?,
       unreadCount: json['unread_count'] as int,
+      isSeller: json['is_seller'] as bool? ?? false,
       messages: [
         if (preview.isNotEmpty && lastAt != null)
           ChatMessage(
@@ -99,9 +112,11 @@ class Conversation {
       id: json['id'] as String,
       counterpartId: json['counterpart_id'] as String,
       counterpartName: json['counterpart_name'] as String,
+      counterpartAvatarUrl: json['counterpart_avatar_url'] as String?,
       counterpartVerified: json['counterpart_verified'] as bool,
       listingId: json['listing_id'] as String?,
       unreadCount: 0,
+      isSeller: json['is_seller'] as bool? ?? false,
       messages: (json['messages'] as List)
           .cast<Map<String, dynamic>>()
           .map((m) => ChatMessage.fromJson(m, currentUserId: currentUserId))
@@ -112,10 +127,17 @@ class Conversation {
   final String id;
   final String counterpartId;
   final String counterpartName;
+  final String? counterpartAvatarUrl;
   final bool counterpartVerified;
   final String? listingId;
   int unreadCount;
+
+  /// True when the current user is the seller side of this conversation
+  /// (a customer messaging their shop).
+  final bool isSeller;
   final List<ChatMessage> messages;
+
+  bool get isSupport => counterpartId == kSupportAgentId;
 
   IconData get avatarIcon => avatarIconFor(counterpartName);
   Color get avatarColor => avatarColorFor(counterpartName);
@@ -125,8 +147,8 @@ class Conversation {
   String get lastMessagePreview {
     final last = lastMessage;
     if (last == null) return '';
-    if (last.text != null) return last.text!;
-    if (last.imageFile != null) return '📷 Photo';
+    if (last.text != null && last.text!.isNotEmpty) return last.text!;
+    if (last.imageFile != null || last.imageUrl != null) return '📷 Photo';
     return '';
   }
 }
@@ -163,7 +185,9 @@ String formatChatTime(DateTime dateTime) {
   final local = dateTime.toLocal();
   final now = DateTime.now();
   final isToday =
-      local.year == now.year && local.month == now.month && local.day == now.day;
+      local.year == now.year &&
+      local.month == now.month &&
+      local.day == now.day;
   final yesterday = now.subtract(const Duration(days: 1));
   final isYesterday =
       local.year == yesterday.year &&
@@ -179,8 +203,18 @@ String formatChatTime(DateTime dateTime) {
   if (isYesterday) return 'Yesterday';
 
   const months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ];
   return '${months[local.month - 1]} ${local.day}';
 }

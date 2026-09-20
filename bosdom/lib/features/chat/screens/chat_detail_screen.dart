@@ -6,8 +6,13 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/config/api_config.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../../shared/widgets/verified_badge_icon.dart';
+import '../../auth/models/merchant_role.dart';
+import '../../profile/providers/profile_provider.dart';
+import '../../profile/providers/shop_profile_provider.dart';
 import '../models/conversation.dart';
 import '../providers/chat_policy_provider.dart';
 import '../providers/chat_provider.dart';
@@ -126,16 +131,94 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
     try {
       final picked = await _picker.pickImage(source: source, imageQuality: 85);
       if (picked == null || !mounted) return;
+      final file = File(picked.path);
+      final confirmed = await _confirmPhotoPreview(file);
+      if (confirmed != true || !mounted) return;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
       await ref
           .read(chatProvider.notifier)
-          .sendImage(widget.conversationId, File(picked.path));
-      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+          .sendImage(widget.conversationId, file);
+    } on ChatTosNotAcceptedException {
+      if (!mounted) return;
+      ref.invalidate(chatPolicyProvider);
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.chatPhotoAttachmentComingSoon)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.chatPhotoSendError)));
     }
+  }
+
+  Future<bool?> _confirmPhotoPreview(File file) {
+    final l10n = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    return showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                l10n.chatPhotoPreviewTitle,
+                textAlign: TextAlign.center,
+                style: Theme.of(
+                  dialogContext,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 16),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: Image.file(
+                  file,
+                  fit: BoxFit.contain,
+                  width: double.infinity,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(dialogContext, false),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: colorScheme.primary,
+                        side: BorderSide(color: colorScheme.primary),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                      ),
+                      child: Text(l10n.commonCancel),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(dialogContext, true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                      ),
+                      child: Text(l10n.chatPhotoPreviewSend),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _scrollToBottom() {
@@ -160,6 +243,13 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
         break;
       }
     }
+
+    final myProfile = ref.watch(profileProvider).value;
+    final isSeller = myProfile?.role == MerchantRole.supplier.name;
+    final myShop = isSeller ? ref.watch(shopProfileProvider).value : null;
+    final myAvatarUrl = isSeller
+        ? ApiConfig.resolveAvatarUrl(myShop?.logoUrl)
+        : ApiConfig.resolveAvatarUrl(myProfile?.avatarUrl);
 
     final loadedConversation = conversation;
     if (loadedConversation == null) {
@@ -223,6 +313,17 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                           message: message,
                           colorScheme: colorScheme,
                           textTheme: textTheme,
+                          avatarUrl: message.isMine
+                              ? myAvatarUrl
+                              : ApiConfig.resolveAvatarUrl(
+                                  loadedConversation.counterpartAvatarUrl,
+                                ),
+                          avatarIcon: message.isMine
+                              ? Icons.person
+                              : loadedConversation.avatarIcon,
+                          avatarColor: message.isMine
+                              ? colorScheme.primary
+                              : loadedConversation.avatarColor,
                         );
                       },
                     ),
@@ -264,9 +365,9 @@ class _Header extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           16,
-          MediaQuery.of(context).padding.top + 12,
+          MediaQuery.of(context).padding.top + 8,
           16,
-          16,
+          12,
         ),
         child: SizedBox(
           height: _kHeaderContentHeight,
@@ -294,15 +395,7 @@ class _Header extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    CircleAvatar(
-                      radius: 24,
-                      backgroundColor: Colors.white,
-                      child: Icon(
-                        conversation.avatarIcon,
-                        color: conversation.avatarColor,
-                        size: 22,
-                      ),
-                    ),
+                    _Avatar(conversation: conversation),
                     const SizedBox(height: 6),
                     Row(
                       mainAxisSize: MainAxisSize.min,
@@ -316,19 +409,7 @@ class _Header extends StatelessWidget {
                         ),
                         if (conversation.counterpartVerified) ...[
                           const SizedBox(width: 6),
-                          Container(
-                            width: 16,
-                            height: 16,
-                            decoration: const BoxDecoration(
-                              color: AppColors.trustGreen,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.check,
-                              size: 11,
-                              color: Colors.white,
-                            ),
-                          ),
+                          const VerifiedBadgeIcon(),
                         ],
                       ],
                     ),
@@ -338,6 +419,41 @@ class _Header extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _Avatar extends StatelessWidget {
+  const _Avatar({required this.conversation});
+
+  final Conversation conversation;
+
+  @override
+  Widget build(BuildContext context) {
+    final avatarUrl = ApiConfig.resolveAvatarUrl(
+      conversation.counterpartAvatarUrl,
+    );
+    final fallbackIcon = Icon(
+      conversation.avatarIcon,
+      color: conversation.avatarColor,
+      size: 22,
+    );
+    return CircleAvatar(
+      radius: 24,
+      backgroundColor: Colors.white,
+      child: ClipOval(
+        child: avatarUrl != null
+            ? Image.network(
+                avatarUrl,
+                width: 48,
+                height: 48,
+                fit: BoxFit.cover,
+                loadingBuilder: (context, child, progress) =>
+                    progress == null ? child : fallbackIcon,
+                errorBuilder: (context, error, stackTrace) => fallbackIcon,
+              )
+            : fallbackIcon,
       ),
     );
   }
@@ -415,9 +531,9 @@ class _PolicyBannerState extends State<_PolicyBanner> {
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeOut,
       decoration: BoxDecoration(
-        color: AppColors.infoBlue.withValues(alpha: 0.07),
+        color: AppColors.blushSurface.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.infoBlue.withValues(alpha: 0.18)),
+        border: Border.all(color: AppColors.roseDivider),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
@@ -432,14 +548,14 @@ class _PolicyBannerState extends State<_PolicyBanner> {
                   Icon(
                     Icons.verified_user_outlined,
                     size: 16,
-                    color: AppColors.infoBlue,
+                    color: AppColors.brandCrimson,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       l10n.chatPolicySecurePayTitle,
                       style: textTheme.labelMedium?.copyWith(
-                        color: AppColors.infoBlue,
+                        color: AppColors.brandCrimson,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -450,7 +566,7 @@ class _PolicyBannerState extends State<_PolicyBanner> {
                     child: Icon(
                       Icons.keyboard_arrow_down,
                       size: 18,
-                      color: AppColors.infoBlue.withValues(alpha: 0.7),
+                      color: AppColors.brandCrimson.withValues(alpha: 0.7),
                     ),
                   ),
                 ],

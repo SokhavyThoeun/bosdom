@@ -190,10 +190,50 @@
     "en": "Co-Buy Full",
     "km": "ការទិញរួមពេញ"
   },
-  "coBuyDetailJoinedLabel": {
-    "en": "You're in · tap to leave",
-    "km": "អ្នកបានចូលរួម · ចុចដើម្បីចាកចេញ"
+  "coBuyDetailOwnListingLabel": {
+    "en": "Your Listing",
+    "km": "ការផ្សាយរបស់អ្នក"
   },
+  "coBuyDetailJoinedLabel": {
+    "en": "You're in · request to leave",
+    "km": "អ្នកបានចូលរួម · ស្នើសុំចាកចេញ"
+  },
+  "coBuyDetailLeavePendingLabel": {
+    "en": "Leave request pending review",
+    "km": "ការស្នើសុំចាកចេញកំពុងរង់ចាំការពិនិត្យ"
+  },
+  "coBuyDetailLeaveTitle": {
+    "en": "Request to leave?",
+    "km": "ស្នើសុំចាកចេញ?"
+  },
+  "coBuyDetailLeaveBody": {
+    "en": "Your payment is held in escrow. An admin will review your request and refund you if it's approved.",
+    "km": "ការទូទាត់របស់អ្នកត្រូវបានរក្សាទុកក្នុង escrow។ អ្នកគ្រប់គ្រងនឹងពិនិត្យសំណើរបស់អ្នក ហើយសងប្រាក់វិញប្រសិនបើអនុម័ត។"
+  },
+  "coBuyDetailLeaveReasonHint": {
+    "en": "Why do you want to leave?",
+    "km": "ហេតុអ្វីអ្នកចង់ចាកចេញ?"
+  },
+  "coBuyDetailLeaveReasonTooShort": {
+    "en": "Please give a short reason.",
+    "km": "សូមផ្តល់ហេតុផលខ្លីមួយ។"
+  },
+  "coBuyDetailLeaveSubmit": {
+    "en": "Send request",
+    "km": "ផ្ញើសំណើ"
+  },
+  "coBuyDetailLeaveSentSnackbar": {
+    "en": "Leave request sent. An admin will review it.",
+    "km": "បានផ្ញើសំណើចាកចេញ។ អ្នកគ្រប់គ្រងនឹងពិនិត្យវា។"
+  },
+  "coBuyDetailLeaveRejectedNote": {
+    "en": "Your leave request was rejected: {note}",
+    "km": "សំណើចាកចេញរបស់អ្នកត្រូវបានបដិសេធ៖ {note}",
+    "placeholders": {
+      "note": { "type": "String" }
+    }
+  },
+
   "coBuyDetailJoinLabel": {
     "en": "Join Co-Buy · {amount}",
     "km": "ចូលរួមទិញរួម · {amount}",

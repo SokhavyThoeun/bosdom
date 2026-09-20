@@ -15,7 +15,9 @@ abstract final class AdsConsentService {
       throw Exception('Failed to load ads consent: ${response.body}');
     }
 
-    return AdsConsent.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+    return AdsConsent.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
   }
 
   static Future<AdsConsent> save(String userId, AdsConsent consent) async {
@@ -29,6 +31,8 @@ abstract final class AdsConsentService {
       throw Exception('Failed to save ads consent: ${response.body}');
     }
 
-    return AdsConsent.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+    return AdsConsent.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
   }
 }

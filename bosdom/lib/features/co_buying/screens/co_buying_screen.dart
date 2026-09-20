@@ -80,8 +80,7 @@ class CoBuyingScreen extends ConsumerWidget {
                       ],
                   ],
                 ),
-                loading: () =>
-                    const Center(child: CircularProgressIndicator()),
+                loading: () => const Center(child: CircularProgressIndicator()),
                 error: (error, stackTrace) => Center(
                   child: EmptyProductsNotice(
                     colorScheme: colorScheme,

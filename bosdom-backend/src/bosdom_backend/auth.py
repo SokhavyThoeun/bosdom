@@ -1,7 +1,10 @@
 import jwt
-from fastapi import Header, HTTPException
+from fastapi import Depends, Header, HTTPException
+from sqlalchemy.orm import Session
 
 from .config import settings
+from .db import get_db
+from .models import Profile
 
 _jwks_client = jwt.PyJWKClient(f"{settings.supabase_url}/auth/v1/.well-known/jwks.json")
 
@@ -20,7 +23,27 @@ class CurrentUser:
         self.avatar_url = avatar_url
 
 
-def get_current_user(authorization: str = Header(...)) -> CurrentUser:
+def require_verified_seller(user: CurrentUser, db: Session) -> None:
+    """Blocks a seller action until admin KYC review clears the account.
+
+    Registering as a seller (role="supplier") doesn't grant selling rights
+    by itself — the profile stays "unverified"/"pending"/"rejected" until an
+    admin approves it (see routers/admin.py). Buying/browsing is unaffected.
+    """
+    profile = db.get(Profile, user.id)
+    if profile is None or profile.verification_status != "verified":
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                "Your seller account is pending admin approval. "
+                "You can still browse and shop while you wait."
+            ),
+        )
+
+
+def get_current_user(
+    authorization: str = Header(...), db: Session = Depends(get_db)
+) -> CurrentUser:
     if not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing bearer token")
 
@@ -35,6 +58,13 @@ def get_current_user(authorization: str = Header(...)) -> CurrentUser:
         )
     except jwt.PyJWTError as exc:
         raise HTTPException(status_code=401, detail="Invalid or expired token") from exc
+
+    # Blocks a suspended account (set via the admin panel, see routers/admin.py)
+    # from calling any endpoint that identifies the caller, without touching
+    # the Supabase session itself.
+    profile = db.get(Profile, payload["sub"])
+    if profile is not None and profile.is_suspended:
+        raise HTTPException(status_code=403, detail="This account has been suspended")
 
     # Populated from our own email signup's `data` payload, or (for Google)
     # by Supabase itself from the provider's profile info.

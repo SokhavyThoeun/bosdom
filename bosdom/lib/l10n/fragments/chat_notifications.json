@@ -3,6 +3,10 @@
     "en": "Chat",
     "km": "ជជែក"
   },
+  "chatSellerScreenTitle": {
+    "en": "Customer Messages",
+    "km": "សារពីអតិថិជន"
+  },
   "chatSearchHint": {
     "en": "Search conversations...",
     "km": "ស្វែងរកការសន្ទនា..."
@@ -10,6 +14,10 @@
   "chatEmptyTitle": {
     "en": "No conversations yet",
     "km": "មិនទាន់មានការសន្ទនាទេ"
+  },
+  "chatSellerEmptyTitle": {
+    "en": "No messages from customers yet",
+    "km": "មិនទាន់មានសារពីអតិថិជនទេ"
   },
   "chatEmptyQuery": {
     "en": "No conversations match \"{query}\"",
@@ -65,6 +73,10 @@
     "en": "Photo attachment coming soon",
     "km": "ការភ្ជាប់រូបថតនឹងមកដល់ឆាប់ៗនេះ"
   },
+  "chatPhotoSendError": {
+    "en": "Couldn't send photo. Try again.",
+    "km": "មិនអាចផ្ញើរូបថតបានទេ។ សូមព្យាយាមម្តងទៀត។"
+  },
   "chatComposerHint": {
     "en": "Type a message...",
     "km": "វាយសារ..."
@@ -78,12 +90,12 @@
     "km": "ជ្រើសរើសពីវិចិត្រសាល"
   },
   "liveChatTitle": {
-    "en": "Live Chat",
-    "km": "ជជែកផ្ទាល់"
+    "en": "BosDom",
+    "km": "BosDom"
   },
   "liveChatStatusOnline": {
-    "en": "Online • Usually replies instantly",
-    "km": "កំពុងអនឡាញ • ឆ្លើយតបភ្លាមៗ"
+    "en": "Support team • Replies Mon-Fri, 8 AM - 6 PM",
+    "km": "ក្រុមគាំទ្រ • ឆ្លើយតបថ្ងៃច័ន្ទ-សុក្រ ម៉ោង ៨ ព្រឹក - ៦ ល្ងាច"
   },
   "liveChatStatusOffline": {
     "en": "Offline • We'll reply as soon as we're back",

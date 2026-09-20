@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
@@ -41,6 +42,11 @@ class CoBuyPoolOut(BaseModel):
     sizes: list[str]
     colors: list[ColorOptionOut]
     joined: bool
+    # The viewer's own escrow state on this deal: None (not paid in),
+    # "held", "leave_requested", or "released". `leave_admin_note` carries the
+    # admin's reason when their last leave request was rejected.
+    my_status: str | None = None
+    my_leave_admin_note: str | None = None
     is_full: bool
 
 
@@ -63,14 +69,43 @@ def _save_photos(seller_id: str, photos: list[UploadFile]) -> list[str]:
     return urls
 
 
+# Only paid participants count toward the pool. A pending leave request still
+# counts until an admin approves it (-> `refunded`); an unpaid
+# `pending_payment` reservation never does.
+_COUNTED_STATUSES = ("held", "leave_requested", "released")
+
+
+def _active_participants(db: Session, pool_id: str) -> list[CoBuyParticipant]:
+    return (
+        db.query(CoBuyParticipant)
+        .filter(
+            CoBuyParticipant.pool_id == pool_id,
+            CoBuyParticipant.status.in_(_COUNTED_STATUSES),
+        )
+        .all()
+    )
+
+
+def _own_participant(
+    db: Session, pool_id: str, buyer_id: str
+) -> CoBuyParticipant | None:
+    return (
+        db.query(CoBuyParticipant)
+        .filter(
+            CoBuyParticipant.pool_id == pool_id,
+            CoBuyParticipant.buyer_id == buyer_id,
+        )
+        .first()
+    )
+
+
 def _serialize_pool(pool: CoBuyPool, db: Session, viewer_id: str) -> CoBuyPoolOut:
     shop = db.get(Shop, pool.seller_id)
     profile = db.get(Profile, pool.seller_id)
     seller_name = (shop.shop_name if shop else "") or (profile.name if profile else "") or "Seller"
-    participants = (
-        db.query(CoBuyParticipant).filter(CoBuyParticipant.pool_id == pool.id).all()
-    )
+    participants = _active_participants(db, pool.id)
     current_qty = sum(p.quantity for p in participants)
+    mine = next((p for p in participants if p.buyer_id == viewer_id), None)
     return CoBuyPoolOut(
         id=pool.id,
         seller_id=pool.seller_id,
@@ -93,7 +128,9 @@ def _serialize_pool(pool: CoBuyPool, db: Session, viewer_id: str) -> CoBuyPoolOu
         photo_urls=pool.photo_urls,
         sizes=pool.sizes,
         colors=[ColorOptionOut(**c) for c in pool.colors],
-        joined=any(p.buyer_id == viewer_id for p in participants),
+        joined=mine is not None,
+        my_status=mine.status if mine else None,
+        my_leave_admin_note=mine.leave_admin_note if mine else None,
         is_full=current_qty >= pool.target_qty,
     )
 
@@ -272,6 +309,14 @@ class JoinPoolRequest(BaseModel):
     color_hex: str | None = None
 
 
+def _others_qty(db: Session, pool_id: str, buyer_id: str) -> int:
+    return sum(
+        p.quantity
+        for p in _active_participants(db, pool_id)
+        if p.buyer_id != buyer_id
+    )
+
+
 @router.post("/pools/{pool_id}/join", response_model=CoBuyPoolOut)
 def join_pool(
     pool_id: str,
@@ -279,6 +324,8 @@ def join_pool(
     user: CurrentUser = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> CoBuyPoolOut:
+    """Reserves a spot pending payment. The buyer only counts toward the pool
+    (and shows as joined) once `/pay` moves the reservation into escrow."""
     pool = db.get(CoBuyPool, pool_id)
     if pool is None:
         raise HTTPException(status_code=404, detail="Co-buy deal not found")
@@ -288,14 +335,18 @@ def join_pool(
             detail=f"Quantity must be at least {pool.min_order_qty}",
         )
 
-    participants = (
-        db.query(CoBuyParticipant).filter(CoBuyParticipant.pool_id == pool.id).all()
-    )
-    current_qty_before = sum(p.quantity for p in participants)
-    was_full = current_qty_before >= pool.target_qty
-    existing = next((p for p in participants if p.buyer_id == user.id), None)
-    others_qty = current_qty_before - (existing.quantity if existing else 0)
+    mine = _own_participant(db, pool.id, user.id)
+    if mine is not None and mine.status == "leave_requested":
+        raise HTTPException(
+            status_code=409,
+            detail="Your leave request is awaiting admin review.",
+        )
+    if mine is not None and mine.status in ("held", "released"):
+        raise HTTPException(
+            status_code=409, detail="You've already joined and paid for this deal."
+        )
 
+    others_qty = _others_qty(db, pool.id, user.id)
     if others_qty + body.quantity > pool.target_qty:
         remaining = max(0, pool.target_qty - others_qty)
         raise HTTPException(
@@ -303,34 +354,27 @@ def join_pool(
             detail=f"Only {remaining} {pool.unit_label} left in this deal",
         )
 
-    if existing is not None:
-        existing.quantity = body.quantity
-        existing.size = body.size
-        existing.color_name = body.color_name
-        existing.color_hex = body.color_hex
-    else:
-        db.add(
-            CoBuyParticipant(
-                pool_id=pool.id,
-                buyer_id=user.id,
-                quantity=body.quantity,
-                size=body.size,
-                color_name=body.color_name,
-                color_hex=body.color_hex,
-            )
-        )
+    if mine is None:
+        mine = CoBuyParticipant(pool_id=pool.id, buyer_id=user.id, quantity=body.quantity)
+        db.add(mine)
+    # A fresh reservation, or a re-join after an approved refund: reset the
+    # row's escrow trail so it starts clean.
+    mine.status = "pending_payment"
+    mine.quantity = body.quantity
+    mine.size = body.size
+    mine.color_name = body.color_name
+    mine.color_hex = body.color_hex
+    mine.payment_method = None
+    mine.payment_reference = None
+    mine.paid_at = None
+    mine.leave_requested_at = None
+    mine.refunded_at = None
+    mine.leave_reason = None
+    mine.leave_admin_note = None
+    mine.leave_resolved_at = None
     db.commit()
     db.refresh(pool)
-
-    result = _serialize_pool(pool, db, user.id)
-    if not was_full and result.is_full:
-        push_notification(
-            category="co_buy",
-            title="Co-buy target reached",
-            body=f"{pool.product_name} hit its group buy target. Checkout closes soon.",
-            target=NotificationTarget(route="coBuyDetail", params={"id": pool.id}),
-        )
-    return result
+    return _serialize_pool(pool, db, user.id)
 
 
 @router.delete("/pools/{pool_id}/join", response_model=CoBuyPoolOut)
@@ -339,12 +383,105 @@ def leave_pool(
     user: CurrentUser = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> CoBuyPoolOut:
+    """Drops an *unpaid* reservation (e.g. backing out of checkout). Once
+    paid, leaving needs an admin's approval — see `/leave-request`."""
     pool = db.get(CoBuyPool, pool_id)
     if pool is None:
         raise HTTPException(status_code=404, detail="Co-buy deal not found")
-    db.query(CoBuyParticipant).filter(
-        CoBuyParticipant.pool_id == pool.id, CoBuyParticipant.buyer_id == user.id
-    ).delete()
+    participant = _own_participant(db, pool.id, user.id)
+    if participant is not None:
+        if participant.status == "pending_payment":
+            db.delete(participant)
+        elif participant.status != "refunded":
+            raise HTTPException(
+                status_code=409,
+                detail="You've paid for this deal. Request to leave with a reason instead.",
+            )
     db.commit()
     db.refresh(pool)
     return _serialize_pool(pool, db, user.id)
+
+
+class LeaveRequest(BaseModel):
+    reason: str
+
+
+@router.post("/pools/{pool_id}/leave-request", response_model=CoBuyPoolOut)
+def request_leave(
+    pool_id: str,
+    body: LeaveRequest,
+    user: CurrentUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> CoBuyPoolOut:
+    pool = db.get(CoBuyPool, pool_id)
+    if pool is None:
+        raise HTTPException(status_code=404, detail="Co-buy deal not found")
+    reason = body.reason.strip()
+    if len(reason) < 5:
+        raise HTTPException(
+            status_code=400, detail="Please tell us why you want to leave."
+        )
+    participant = _own_participant(db, pool.id, user.id)
+    if participant is None or participant.status not in ("held", "leave_requested"):
+        raise HTTPException(status_code=404, detail="You haven't paid into this deal")
+    if participant.status == "leave_requested":
+        raise HTTPException(
+            status_code=409, detail="Your leave request is awaiting admin review."
+        )
+
+    participant.status = "leave_requested"
+    participant.leave_reason = reason
+    participant.leave_requested_at = datetime.now(timezone.utc)
+    participant.leave_admin_note = None
+    participant.leave_resolved_at = None
+    db.commit()
+    db.refresh(pool)
+    return _serialize_pool(pool, db, user.id)
+
+
+class PayJoinRequest(BaseModel):
+    payment_method: str
+
+
+@router.post("/pools/{pool_id}/pay", response_model=CoBuyPoolOut)
+def pay_join(
+    pool_id: str,
+    body: PayJoinRequest,
+    user: CurrentUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> CoBuyPoolOut:
+    pool = db.get(CoBuyPool, pool_id)
+    if pool is None:
+        raise HTTPException(status_code=404, detail="Co-buy deal not found")
+    participant = _own_participant(db, pool.id, user.id)
+    if participant is None:
+        raise HTTPException(status_code=404, detail="Join this deal before paying")
+    if participant.status != "pending_payment":
+        raise HTTPException(status_code=409, detail="This join is already paid")
+
+    # Others may have filled the deal while this buyer was at checkout.
+    before = sum(p.quantity for p in _active_participants(db, pool.id))
+    if before + participant.quantity > pool.target_qty:
+        db.delete(participant)
+        db.commit()
+        raise HTTPException(
+            status_code=409,
+            detail=f"Only {max(0, pool.target_qty - before)} {pool.unit_label} left in this deal",
+        )
+
+    participant.status = "held"
+    participant.payment_method = body.payment_method
+    participant.payment_reference = f"COBUY-{uuid.uuid4().hex[:10].upper()}"
+    participant.paid_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(pool)
+
+    result = _serialize_pool(pool, db, user.id)
+    if before < pool.target_qty and result.is_full:
+        push_notification(
+            category="co_buy",
+            title="Co-buy target reached",
+            body=f"{pool.product_name} hit its group buy target. Checkout closes soon.",
+            target=NotificationTarget(route="coBuyDetail", params={"id": pool.id}),
+        )
+    return result

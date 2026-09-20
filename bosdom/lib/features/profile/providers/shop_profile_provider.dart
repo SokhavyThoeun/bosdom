@@ -9,6 +9,12 @@ class ShopProfileNotifier extends AsyncNotifier<ShopProfile> {
   @override
   Future<ShopProfile> build() => ShopProfileService.fetch();
 
+  /// Re-fetches without flipping to a loading state, so the dashboard keeps
+  /// showing the current shop while a pull-to-refresh is in flight.
+  Future<void> refresh() async {
+    state = AsyncData(await ShopProfileService.fetch());
+  }
+
   Future<void> save(ShopProfile shop) async {
     final previous = state.value;
     state = AsyncData(shop);
@@ -26,9 +32,20 @@ class ShopProfileNotifier extends AsyncNotifier<ShopProfile> {
     final updated = await ShopProfileService.uploadLogo(file);
     state = AsyncData(updated);
   }
+
+  Future<void> uploadStorePhotos(List<File> files) async {
+    final updated = await ShopProfileService.uploadStorePhotos(files);
+    state = AsyncData(updated);
+  }
 }
 
 final shopProfileProvider =
     AsyncNotifierProvider<ShopProfileNotifier, ShopProfile>(
       ShopProfileNotifier.new,
     );
+
+/// Another seller's public shop info, keyed by their user id — used by the
+/// storefront ("View Shop") screen's About tab.
+final shopProfileByIdProvider = FutureProvider.family<ShopProfile, String>(
+  (ref, sellerId) => ShopProfileService.fetchById(sellerId),
+);

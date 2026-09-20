@@ -1,5 +1,9 @@
 import 'package:go_router/go_router.dart';
 
+import '../../features/co_buying/screens/co_buy_create_screen.dart';
+import '../../features/co_buying/screens/co_buy_detail_screen.dart';
+import '../../features/co_buying/screens/co_buy_seller_deals_screen.dart';
+import '../../features/co_buying/screens/co_buying_screen.dart';
 import '../../features/auth/models/merchant_role.dart';
 import '../config/supabase_config.dart';
 import '../../features/auth/screens/business_info_screen.dart';
@@ -16,10 +20,6 @@ import '../../features/chat/screens/live_chat_screen.dart';
 import '../../features/checkout/screens/add_address_screen.dart';
 import '../../features/checkout/screens/address_book_screen.dart';
 import '../../features/checkout/screens/checkout_screen.dart';
-import '../../features/co_buying/screens/co_buy_create_screen.dart';
-import '../../features/co_buying/screens/co_buy_detail_screen.dart';
-import '../../features/co_buying/screens/co_buy_seller_deals_screen.dart';
-import '../../features/co_buying/screens/co_buying_screen.dart';
 import '../../features/escrow/screens/escrow_screen.dart';
 import '../../features/marketplace/models/category.dart';
 import '../../features/marketplace/screens/category_results_screen.dart';
@@ -177,7 +177,11 @@ abstract final class AppRouter {
       GoRoute(
         path: '/chat',
         name: 'chatList',
-        builder: (context, state) => const ChatPolicyGate(child: ChatScreen()),
+        builder: (context, state) => ChatPolicyGate(
+          child: ChatScreen(
+            sellerMode: state.uri.queryParameters['seller'] == 'true',
+          ),
+        ),
       ),
       GoRoute(
         path: '/live-chat',
@@ -239,6 +243,11 @@ abstract final class AppRouter {
             AddAddressScreen(selectionMode: state.extra as bool? ?? false),
       ),
       GoRoute(
+        path: '/profile/co-buy-deals',
+        name: 'coBuyDeals',
+        builder: (context, state) => const CoBuySellerDealsScreen(),
+      ),
+      GoRoute(
         path: '/profile/edit',
         name: 'editProfile',
         builder: (context, state) => const EditProfileScreen(),
@@ -252,11 +261,6 @@ abstract final class AppRouter {
         path: '/profile/shop-profile',
         name: 'shopProfile',
         builder: (context, state) => const ShopProfileScreen(),
-      ),
-      GoRoute(
-        path: '/profile/co-buy-deals',
-        name: 'coBuyDeals',
-        builder: (context, state) => const CoBuySellerDealsScreen(),
       ),
       GoRoute(
         path: '/profile/add-listing',
@@ -371,6 +375,10 @@ abstract final class AppRouter {
               items:
                   (extra['items'] as List?)?.cast<OrderLineSummary>() ??
                   const [],
+              shippingName: extra['shippingName'] as String? ?? '',
+              shippingAddress: extra['shippingAddress'] as String? ?? '',
+              shippingPhone: extra['shippingPhone'] as String? ?? '',
+              coBuyPoolId: extra['coBuyPoolId'] as String?,
             );
           }
           return PaymentScreen(amount: extra as double);

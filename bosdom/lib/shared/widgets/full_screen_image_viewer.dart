@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'adaptive_network_image.dart';
+
 /// Opens a full-screen, swipeable, pinch-to-zoom gallery over a black
 /// backdrop, starting at [initialIndex] out of [imageCount] pages (all
 /// currently rendered from the single [imageUrl] mock photo). Shows a
@@ -43,8 +45,7 @@ class _FullScreenImageViewer extends StatefulWidget {
   final IconData icon;
 
   @override
-  State<_FullScreenImageViewer> createState() =>
-      _FullScreenImageViewerState();
+  State<_FullScreenImageViewer> createState() => _FullScreenImageViewerState();
 }
 
 class _FullScreenImageViewerState extends State<_FullScreenImageViewer> {
@@ -74,22 +75,15 @@ class _FullScreenImageViewerState extends State<_FullScreenImageViewer> {
                 minScale: 1,
                 maxScale: 4,
                 child: Center(
-                  child: Image.network(
+                  child: AdaptiveNetworkImage(
                     widget.imageUrl,
                     fit: BoxFit.contain,
                     loadingBuilder: (context, child, progress) =>
                         progress == null
                         ? child
-                        : Icon(
-                            widget.icon,
-                            size: 96,
-                            color: Colors.white54,
-                          ),
-                    errorBuilder: (context, error, stackTrace) => Icon(
-                      widget.icon,
-                      size: 96,
-                      color: Colors.white54,
-                    ),
+                        : Icon(widget.icon, size: 96, color: Colors.white54),
+                    errorBuilder: (context, error, stackTrace) =>
+                        Icon(widget.icon, size: 96, color: Colors.white54),
                   ),
                 ),
               ),

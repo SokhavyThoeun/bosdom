@@ -17,6 +17,8 @@ class Profile(Base):
     role: Mapped[str] = mapped_column(String, default="")
     avatar_url: Mapped[str] = mapped_column(String, default="")
     verification_status: Mapped[str] = mapped_column(String, default="unverified")
+    onboarding_complete: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_suspended: Mapped[bool] = mapped_column(Boolean, default=False)
     chat_tos_accepted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
@@ -54,12 +56,15 @@ class Shop(Base):
     id: Mapped[str] = mapped_column(String, primary_key=True)
     shop_name: Mapped[str] = mapped_column(String, default="")
     business_type: Mapped[str] = mapped_column(String, default="")
+    store_type: Mapped[str] = mapped_column(String, default="")
     year_established: Mapped[str] = mapped_column(String, default="")
     location: Mapped[str] = mapped_column(String, default="")
     phone: Mapped[str] = mapped_column(String, default="")
     email: Mapped[str] = mapped_column(String, default="")
     description: Mapped[str] = mapped_column(String, default="")
+    store_url: Mapped[str] = mapped_column(String, default="")
     logo_url: Mapped[str] = mapped_column(String, default="")
+    photo_urls: Mapped[list[str]] = mapped_column(JSON, default=list)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
@@ -88,6 +93,11 @@ class Listing(Base):
     photo_urls: Mapped[list[str]] = mapped_column(JSON, default=list)
     sizes: Mapped[list[str]] = mapped_column(JSON, default=list)
     colors: Mapped[list[dict]] = mapped_column(JSON, default=list)
+    weight: Mapped[str] = mapped_column(String, default="")
+    origin: Mapped[str] = mapped_column(String, default="")
+    grade: Mapped[str] = mapped_column(String, default="")
+    packaging: Mapped[str] = mapped_column(String, default="")
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
@@ -145,8 +155,34 @@ class CoBuyParticipant(Base):
     size: Mapped[str | None] = mapped_column(String, nullable=True)
     color_name: Mapped[str | None] = mapped_column(String, nullable=True)
     color_hex: Mapped[str | None] = mapped_column(String, nullable=True)
+    # Escrow state machine, mirroring `Order`'s (see its notes):
+    # pending_payment -> held -> released
+    #                          \-> leave_requested -> refunded (admin approves)
+    #                                              \-> held (admin rejects)
+    # Only paid rows (held/leave_requested/released) count toward the pool.
+    status: Mapped[str] = mapped_column(String, default="pending_payment")
+    payment_method: Mapped[str | None] = mapped_column(String, nullable=True)
+    payment_reference: Mapped[str | None] = mapped_column(String, nullable=True)
     joined_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+    paid_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    leave_requested_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    released_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    refunded_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    # Why the buyer asked to leave, and the admin's decision on it.
+    leave_reason: Mapped[str | None] = mapped_column(String, nullable=True)
+    leave_admin_note: Mapped[str | None] = mapped_column(String, nullable=True)
+    leave_resolved_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
     )
 
 
@@ -191,10 +227,6 @@ class Order(Base):
     status: Mapped[str] = mapped_column(String, default="pending_payment")
     payment_method: Mapped[str | None] = mapped_column(String, nullable=True)
     payment_reference: Mapped[str | None] = mapped_column(String, nullable=True)
-    # Random code embedded in the QR the seller shows at handoff (15.3) — the
-    # buyer scans it to confirm delivery, which is what actually releases
-    # escrow, instead of trusting a bare "I got it" tap.
-    delivery_confirmation_code: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
@@ -206,7 +238,17 @@ class Order(Base):
     paid_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    # Seller acknowledging they've seen/accepted a held order — not a status
+    # transition, just a flag the buyer can see while the order stays `held`.
+    seller_confirmed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     released_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    # Seller asking the admin to release the held funds early — the admin
+    # panel's payout queue is `held` orders with this set.
+    release_requested_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
     cancelled_at: Mapped[datetime | None] = mapped_column(
@@ -215,6 +257,45 @@ class Order(Base):
     refunded_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    # Seller withdrawing a released order's earnings to their bank: set on
+    # every released order swept up by one `POST /orders/request-payout`.
+    # That is only a request: it waits for the admin to approve it, which
+    # sets `payout_eta_at`. The money "arrives" once that passes.
+    payout_requested_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    payout_eta_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    payout_bank_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    payout_account_holder: Mapped[str | None] = mapped_column(String, nullable=True)
+    payout_account_number: Mapped[str | None] = mapped_column(String, nullable=True)
+    # Fulfilment proof: the seller ships with a parcel photo + tracking
+    # number, then uploads proof of delivery, which starts the buyer's
+    # review-window timer (`review_deadline_at`). Still `held` throughout.
+    shipped_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    courier: Mapped[str | None] = mapped_column(String, nullable=True)
+    tracking_number: Mapped[str | None] = mapped_column(String, nullable=True)
+    shipping_photo_url: Mapped[str | None] = mapped_column(String, nullable=True)
+    delivered_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    delivery_proof_url: Mapped[str | None] = mapped_column(String, nullable=True)
+    # When the timer ends and funds auto-release. Frozen (nulled, with the
+    # time left saved in `review_remaining_seconds`) if the buyer reports a
+    # problem.
+    review_deadline_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    review_remaining_seconds: Mapped[int | None] = mapped_column(
+        Integer, nullable=True
+    )
+    # Set on release: the platform's cut and what the seller is owed.
+    platform_fee: Mapped[float | None] = mapped_column(Float, nullable=True)
+    seller_amount: Mapped[float | None] = mapped_column(Float, nullable=True)
+    auto_released: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
 class Dispute(Base):
@@ -237,6 +318,20 @@ class Dispute(Base):
     resolved_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    # Admin-run case: the admin opens it, the seller and the courier each
+    # reply, then the admin decides who is at fault (seller/courier/buyer).
+    case_opened_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    seller_response: Mapped[str | None] = mapped_column(String, nullable=True)
+    seller_responded_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    courier_response: Mapped[str | None] = mapped_column(String, nullable=True)
+    courier_responded_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    fault: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
@@ -244,6 +339,31 @@ class Dispute(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+
+class SellerReport(Base):
+    __tablename__ = "seller_reports"
+
+    id: Mapped[str] = mapped_column(
+        String, primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    order_id: Mapped[str] = mapped_column(String, index=True)
+    seller_id: Mapped[str] = mapped_column(String, index=True)
+    reason: Mapped[str] = mapped_column(String)
+    note: Mapped[str] = mapped_column(String, default="")
+    photo_urls: Mapped[list[str]] = mapped_column(JSON, default=list)
+    # open -> refund_pending (admin cancelled the order, refund scheduled)
+    # -> resolved. A report can also go straight open -> resolved (dismissed).
+    status: Mapped[str] = mapped_column(String, default="open")
+    # When a scheduled refund to the buyer becomes due (refund_pending only).
+    refund_due_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    # dismissed | refunded — how the report was closed.
+    resolution: Mapped[str | None] = mapped_column(String, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
 
 
@@ -288,7 +408,8 @@ class Message(Base):
     )
     conversation_id: Mapped[str] = mapped_column(String, index=True)
     sender_id: Mapped[str] = mapped_column(String, index=True)
-    text: Mapped[str] = mapped_column(String)
+    text: Mapped[str | None] = mapped_column(String, nullable=True)
+    image_url: Mapped[str | None] = mapped_column(String, nullable=True)
     flagged: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
@@ -304,6 +425,25 @@ class OrderReport(Base):
     order_id: Mapped[str] = mapped_column(String, index=True)
     reason: Mapped[str] = mapped_column(String)
     note: Mapped[str] = mapped_column(String, default="")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+
+
+class OrderReview(Base):
+    __tablename__ = "order_reviews"
+
+    id: Mapped[str] = mapped_column(
+        String, primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    # One review per order — a buyer can only rate/review a released order
+    # once (resubmitting edits the existing row instead of creating a new
+    # one, see submit_order_review in routers/orders.py).
+    order_id: Mapped[str] = mapped_column(String, unique=True, index=True)
+    buyer_id: Mapped[str] = mapped_column(String, index=True)
+    rating: Mapped[int] = mapped_column(Integer)
+    comment: Mapped[str] = mapped_column(String, default="")
+    photo_urls: Mapped[list[str]] = mapped_column(JSON, default=list)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )

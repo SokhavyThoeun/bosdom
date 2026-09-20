@@ -146,93 +146,129 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           Expanded(
             child: SafeArea(
               top: false,
+              bottom: false,
               child: profileState.isLoading && !_initialized
                   ? const Center(child: CircularProgressIndicator())
                   : Form(
                       key: _formKey,
-                      child: ListView(
-                        padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
-                        children: [
-                          Center(
-                            child: _AvatarPicker(
-                              file: _avatarFile,
-                              networkAvatarUrl: profileState.value?.avatarUrl,
-                              isUploading: _isUploadingAvatar,
-                              onTap: _pickAvatar,
-                            ),
-                          ),
-                          const SizedBox(height: 32),
-                          _ReadOnlyField(
-                            label: l10n.profileEditProfileRoleLabel,
-                            icon: Icons.person_outline,
-                            value: _role.title,
-                          ),
-                          const SizedBox(height: 20),
-                          _AppTextField(
-                            label: l10n.profileEditProfileNameLabel,
-                            controller: _nameController,
-                            icon: Icons.edit_outlined,
-                            hintText: l10n.profileEditProfileNameHint,
-                            textCapitalization: TextCapitalization.words,
-                            validator: (value) =>
-                                (value == null || value.trim().isEmpty)
-                                ? l10n.profileEditProfileNameRequired
-                                : null,
-                          ),
-                          const SizedBox(height: 20),
-                          _AppTextField(
-                            label: l10n.profileEditProfilePhoneLabel,
-                            controller: _phoneController,
-                            icon: Icons.phone_outlined,
-                            hintText: l10n.profileEditProfilePhoneHint,
-                            keyboardType: TextInputType.phone,
-                            validator: (value) =>
-                                (value == null || value.trim().isEmpty)
-                                ? l10n.profileEditProfilePhoneRequired
-                                : null,
-                          ),
-                          const SizedBox(height: 20),
-                          _AppTextField(
-                            label: l10n.profileEditProfileEmailLabel,
-                            controller: _emailController,
-                            icon: Icons.mail_outline,
-                            hintText: l10n.profileEditProfileEmailHint,
-                            keyboardType: TextInputType.emailAddress,
-                            validator: (value) {
-                              final trimmed = value?.trim() ?? '';
-                              if (trimmed.isEmpty) {
-                                return l10n.profileEditProfileEmailRequired;
-                              }
-                              if (!_kEmailPattern.hasMatch(trimmed)) {
-                                return l10n.profileEditProfileEmailInvalid;
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 28),
-                          FilledButton(
-                            onPressed: _isSaving ? null : _submit,
-                            style: FilledButton.styleFrom(
-                              minimumSize: const Size.fromHeight(52),
-                            ),
-                            child: _isSaving
-                                ? const SizedBox(
-                                    width: 22,
-                                    height: 22,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2.4,
-                                      color: Colors.white,
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          // Matches the floating nav bar's bottom offset
+                          // (AppShell) so the button sits at the same height
+                          // app-wide.
+                          final bottomPad =
+                              (MediaQuery.of(context).padding.bottom - 12)
+                                  .clamp(0.0, double.infinity)
+                                  .toDouble() +
+                              12;
+                          return SingleChildScrollView(
+                            padding: EdgeInsets.fromLTRB(20, 24, 20, bottomPad),
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minHeight:
+                                    constraints.maxHeight - 24 - bottomPad,
+                              ),
+                              child: IntrinsicHeight(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    Center(
+                                      child: _AvatarPicker(
+                                        file: _avatarFile,
+                                        networkAvatarUrl:
+                                            profileState.value?.avatarUrl,
+                                        isUploading: _isUploadingAvatar,
+                                        onTap: _pickAvatar,
+                                      ),
                                     ),
-                                  )
-                                : Text(
-                                    l10n.profileEditProfileSaveButton,
-                                    style: textTheme.labelLarge?.copyWith(
-                                      color: colorScheme.onPrimary,
-                                      fontWeight: FontWeight.bold,
+                                    const SizedBox(height: 32),
+                                    _ReadOnlyField(
+                                      label: l10n.profileEditProfileRoleLabel,
+                                      icon: Icons.person_outline,
+                                      value: _role.title,
                                     ),
-                                  ),
-                          ),
-                        ],
+                                    const SizedBox(height: 20),
+                                    _AppTextField(
+                                      label: l10n.profileEditProfileNameLabel,
+                                      controller: _nameController,
+                                      icon: Icons.edit_outlined,
+                                      hintText: l10n.profileEditProfileNameHint,
+                                      textCapitalization:
+                                          TextCapitalization.words,
+                                      validator: (value) =>
+                                          (value == null ||
+                                              value.trim().isEmpty)
+                                          ? l10n.profileEditProfileNameRequired
+                                          : null,
+                                    ),
+                                    const SizedBox(height: 20),
+                                    _AppTextField(
+                                      label: l10n.profileEditProfilePhoneLabel,
+                                      controller: _phoneController,
+                                      icon: Icons.phone_outlined,
+                                      hintText:
+                                          l10n.profileEditProfilePhoneHint,
+                                      keyboardType: TextInputType.phone,
+                                      validator: (value) =>
+                                          (value == null ||
+                                              value.trim().isEmpty)
+                                          ? l10n.profileEditProfilePhoneRequired
+                                          : null,
+                                    ),
+                                    const SizedBox(height: 20),
+                                    _AppTextField(
+                                      label: l10n.profileEditProfileEmailLabel,
+                                      controller: _emailController,
+                                      icon: Icons.mail_outline,
+                                      hintText:
+                                          l10n.profileEditProfileEmailHint,
+                                      keyboardType: TextInputType.emailAddress,
+                                      validator: (value) {
+                                        final trimmed = value?.trim() ?? '';
+                                        if (trimmed.isEmpty) {
+                                          return l10n
+                                              .profileEditProfileEmailRequired;
+                                        }
+                                        if (!_kEmailPattern.hasMatch(trimmed)) {
+                                          return l10n
+                                              .profileEditProfileEmailInvalid;
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                    const SizedBox(height: 28),
+                                    const Spacer(),
+                                    FilledButton(
+                                      onPressed: _isSaving ? null : _submit,
+                                      style: FilledButton.styleFrom(
+                                        minimumSize: const Size.fromHeight(52),
+                                      ),
+                                      child: _isSaving
+                                          ? const SizedBox(
+                                              width: 22,
+                                              height: 22,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2.4,
+                                                color: Colors.white,
+                                              ),
+                                            )
+                                          : Text(
+                                              l10n.profileEditProfileSaveButton,
+                                              style: textTheme.labelLarge
+                                                  ?.copyWith(
+                                                    color:
+                                                        colorScheme.onPrimary,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                            ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
             ),
@@ -261,12 +297,12 @@ class _EditProfileHeader extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
-          MediaQuery.of(context).padding.top + 16,
+          MediaQuery.of(context).padding.top + 10,
           24,
-          20,
+          14,
         ),
         child: SizedBox(
-          height: 96,
+          height: 68,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisAlignment: MainAxisAlignment.center,

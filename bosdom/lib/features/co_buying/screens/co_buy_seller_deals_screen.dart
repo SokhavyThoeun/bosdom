@@ -106,7 +106,10 @@ class CoBuySellerDealsScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     if (deals.isEmpty)
-                      _EmptyState(colorScheme: colorScheme, textTheme: textTheme)
+                      _EmptyState(
+                        colorScheme: colorScheme,
+                        textTheme: textTheme,
+                      )
                     else
                       for (var i = 0; i < deals.length; i++) ...[
                         _DealCard(
@@ -121,14 +124,14 @@ class CoBuySellerDealsScreen extends ConsumerWidget {
                             ref.invalidate(coBuySellerPoolsProvider);
                             ref.invalidate(coBuyProvider);
                           },
-                          onDelete: () => _confirmDelete(context, ref, deals[i]),
+                          onDelete: () =>
+                              _confirmDelete(context, ref, deals[i]),
                         ),
                         if (i != deals.length - 1) const SizedBox(height: 14),
                       ],
                   ],
                 ),
-                loading: () =>
-                    const Center(child: CircularProgressIndicator()),
+                loading: () => const Center(child: CircularProgressIndicator()),
                 error: (error, stackTrace) => Center(
                   child: EmptyProductsNotice(
                     colorScheme: colorScheme,
@@ -155,9 +158,7 @@ class CoBuySellerDealsScreen extends ConsumerWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(l10n.coBuyDealsDeleteConfirmTitle),
-        content: Text(
-          l10n.coBuyDealsDeleteConfirmBody(session.productName),
-        ),
+        content: Text(l10n.coBuyDealsDeleteConfirmBody(session.productName)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
@@ -282,62 +283,60 @@ class _DealsSummaryCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CircleAvatar(
-                  radius: 26,
-                  backgroundColor: colorScheme.primaryContainer,
-                  backgroundImage: logoUrl != null
-                      ? NetworkImage(logoUrl)
-                      : null,
-                  child: logoUrl == null
-                      ? Icon(
-                          Icons.storefront_rounded,
-                          color: colorScheme.primary,
-                          size: 26,
-                        )
-                      : null,
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              shop?.shopName.isNotEmpty == true
-                                  ? shop!.shopName
-                                  : l10n.coBuyDealsShopNamePlaceholder,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                radius: 26,
+                backgroundColor: colorScheme.primaryContainer,
+                backgroundImage: logoUrl != null ? NetworkImage(logoUrl) : null,
+                child: logoUrl == null
+                    ? Icon(
+                        Icons.storefront_rounded,
+                        color: colorScheme.primary,
+                        size: 26,
+                      )
+                    : null,
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            shop?.shopName.isNotEmpty == true
+                                ? shop!.shopName
+                                : l10n.coBuyDealsShopNamePlaceholder,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Icon(
-                            Icons.verified_rounded,
-                            size: 18,
-                            color: AppColors.trustGreen,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        l10n.coBuyDealsWelcomeMessage,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                          height: 1.35,
                         ),
+                        const SizedBox(width: 8),
+                        Icon(
+                          Icons.verified_rounded,
+                          size: 18,
+                          color: AppColors.trustGreen,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.coBuyDealsWelcomeMessage,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        height: 1.35,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
+          ),
           const SizedBox(height: 18),
           Row(
             children: [
@@ -591,7 +590,11 @@ class _DealCard extends StatelessWidget {
               ),
               if (session.autoRenew) ...[
                 const SizedBox(width: 10),
-                Icon(Icons.autorenew_rounded, size: 14, color: AppColors.infoBlue),
+                Icon(
+                  Icons.autorenew_rounded,
+                  size: 14,
+                  color: AppColors.infoBlue,
+                ),
                 const SizedBox(width: 3),
                 Text(
                   l10n.coBuyDealsAutoRenewBadge,

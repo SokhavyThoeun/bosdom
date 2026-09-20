@@ -523,6 +523,14 @@ class AppLocalizationsKm extends AppLocalizations {
   String get cartEmptyState => 'កន្ត្រករបស់អ្នកទទេ';
 
   @override
+  String get cartLoadErrorMessage =>
+      'មិនអាចផ្ទុកកន្ត្រករបស់អ្នកបានទេ។ ចុចដើម្បីព្យាយាមម្តងទៀត។';
+
+  @override
+  String get cartUpdateErrorSnackbar =>
+      'មិនអាចធ្វើបច្ចុប្បន្នភាពកន្ត្រករបស់អ្នកបានទេ។ សូមព្យាយាមម្តងទៀត។';
+
+  @override
   String get checkoutDeliveryAddressLabel => 'អាសយដ្ឋានដឹកជញ្ជូន';
 
   @override
@@ -593,10 +601,22 @@ class AppLocalizationsKm extends AppLocalizations {
   String get addressHouseFieldHint => 'ឧ. អគារ B, តំបន់ ៣, មហាវិថីវេងស្រេង';
 
   @override
-  String get addressSangkatFieldLabel => 'សង្កាត់ / ស្រុក';
+  String get addressDistrictFieldLabel => 'ខណ្ឌ';
 
   @override
-  String get addressSangkatFieldHint => 'ឧ. សង្កាត់ជាំចារ';
+  String get addressDistrictFieldHint => 'ជ្រើសរើសខណ្ឌ...';
+
+  @override
+  String get addressDistrictFreeTextHint => 'ឧ. ឈ្មោះស្រុក/ខណ្ឌ';
+
+  @override
+  String get addressSangkatFieldLabel => 'សង្កាត់';
+
+  @override
+  String get addressSangkatFieldHint => 'ជ្រើសរើសសង្កាត់...';
+
+  @override
+  String get addressSangkatFreeTextHint => 'ឧ. ឈ្មោះសង្កាត់/ឃុំ';
 
   @override
   String get addressLandmarkFieldLabel => 'ចំណុចសម្គាល់ជិតបំផុត (ស្រេចចិត្ត)';
@@ -737,10 +757,16 @@ class AppLocalizationsKm extends AppLocalizations {
   String get chatScreenTitle => 'ជជែក';
 
   @override
+  String get chatSellerScreenTitle => 'សារពីអតិថិជន';
+
+  @override
   String get chatSearchHint => 'ស្វែងរកការសន្ទនា...';
 
   @override
   String get chatEmptyTitle => 'មិនទាន់មានការសន្ទនាទេ';
+
+  @override
+  String get chatSellerEmptyTitle => 'មិនទាន់មានសារពីអតិថិជនទេ';
 
   @override
   String chatEmptyQuery(String query) {
@@ -758,6 +784,9 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get chatSendError => 'មិនអាចផ្ញើសារបានទេ។ សូមព្យាយាមម្តងទៀត។';
+
+  @override
+  String get chatPhotoSendError => 'មិនអាចផ្ញើរូបថតបានទេ។ សូមព្យាយាមម្តងទៀត។';
 
   @override
   String get chatStartConversationError =>
@@ -796,10 +825,17 @@ class AppLocalizationsKm extends AppLocalizations {
   String get chatAttachPhotoGallery => 'ជ្រើសរើសពីវិចិត្រសាល';
 
   @override
-  String get liveChatTitle => 'ជជែកផ្ទាល់';
+  String get chatPhotoPreviewTitle => 'ផ្ញើរូបថតនេះមែនទេ?';
 
   @override
-  String get liveChatStatusOnline => 'កំពុងអនឡាញ • ឆ្លើយតបភ្លាមៗ';
+  String get chatPhotoPreviewSend => 'ផ្ញើ';
+
+  @override
+  String get liveChatTitle => 'BosDom';
+
+  @override
+  String get liveChatStatusOnline =>
+      'ក្រុមគាំទ្រ • ឆ្លើយតបថ្ងៃច័ន្ទ-សុក្រ ម៉ោង ៨ ព្រឹក - ៦ ល្ងាច';
 
   @override
   String get liveChatStatusOffline =>
@@ -1101,6 +1137,10 @@ class AppLocalizationsKm extends AppLocalizations {
   String get coBuyCreateTargetQtyInvalid => 'សូមបញ្ចូលបរិមាណត្រឹមត្រូវ';
 
   @override
+  String get coBuyCreateTargetQtyTooLow =>
+      'បរិមាណគោលដៅត្រូវតែធំជាងឬស្មើនឹងបញ្ជាទិញអប្បបរមា';
+
+  @override
   String get coBuyCreateUnitLabelLabel => 'ឯកតា';
 
   @override
@@ -1325,12 +1365,93 @@ class AppLocalizationsKm extends AppLocalizations {
   String get coBuyDetailFullLabel => 'ការទិញរួមពេញ';
 
   @override
-  String get coBuyDetailJoinedLabel => 'អ្នកបានចូលរួម · ចុចដើម្បីចាកចេញ';
+  String get coBuyDetailOwnListingLabel => 'ការផ្សាយរបស់អ្នក';
+
+  @override
+  String get coBuyDetailJoinedLabel => 'អ្នកបានចូលរួម · ស្នើសុំចាកចេញ';
+
+  @override
+  String get coBuyDetailLeavePendingLabel =>
+      'ការស្នើសុំចាកចេញកំពុងរង់ចាំការពិនិត្យ';
+
+  @override
+  String get coBuyDetailLeaveTitle => 'ស្នើសុំចាកចេញ?';
+
+  @override
+  String get coBuyDetailLeaveBody =>
+      'ការទូទាត់របស់អ្នកត្រូវបានរក្សាទុកក្នុង escrow។ អ្នកគ្រប់គ្រងនឹងពិនិត្យសំណើរបស់អ្នក ហើយសងប្រាក់វិញប្រសិនបើអនុម័ត។';
+
+  @override
+  String get coBuyDetailLeaveReasonHint => 'ហេតុអ្វីអ្នកចង់ចាកចេញ?';
+
+  @override
+  String get coBuyDetailLeaveReasonTooShort => 'សូមផ្តល់ហេតុផលខ្លីមួយ។';
+
+  @override
+  String get coBuyDetailLeaveSubmit => 'ផ្ញើសំណើ';
+
+  @override
+  String get coBuyDetailLeaveSentSnackbar =>
+      'បានផ្ញើសំណើចាកចេញ។ អ្នកគ្រប់គ្រងនឹងពិនិត្យវា។';
+
+  @override
+  String coBuyDetailLeaveRejectedNote(String note) {
+    return 'សំណើចាកចេញរបស់អ្នកត្រូវបានបដិសេធ៖ $note';
+  }
 
   @override
   String coBuyDetailJoinLabel(String amount) {
     return 'ចូលរួមទិញរួម · $amount';
   }
+
+  @override
+  String get coBuyDetailPendingPaymentLabel => 'បន្តទៅការទូទាត់';
+
+  @override
+  String get coBuyDetailReleasedLabel => 'បានដាក់ការបញ្ជាទិញ';
+
+  @override
+  String get coBuyDetailRefundPendingLabel => 'កំពុងរង់ចាំសងប្រាក់ត្រឡប់';
+
+  @override
+  String get coBuyDetailLeaveConfirmTitle => 'ចាកចេញពីការទិញរួមនេះ?';
+
+  @override
+  String coBuyDetailLeaveConfirmBody(String amount) {
+    return 'ការទូទាត់ $amount របស់អ្នកនឹងនៅតែជាប់រហូតដល់អ្នកគ្រប់គ្រងដោះលែងការសងប្រាក់ត្រឡប់របស់អ្នក។ វាមិនមែនភ្លាមៗទេ។';
+  }
+
+  @override
+  String get coBuyDetailLeaveConfirmButton => 'ចាកចេញ និងស្នើសុំសងប្រាក់ត្រឡប់';
+
+  @override
+  String coBuyDetailLeaveRequestedSnackbar(String productName) {
+    return 'កំពុងរង់ចាំសងប្រាក់ត្រឡប់សម្រាប់ $productName។ អ្នកគ្រប់គ្រងនឹងដោះលែងការទូទាត់របស់អ្នកឆាប់ៗនេះ។';
+  }
+
+  @override
+  String get coBuyDealsFulfillButtonLabel => 'សម្គាល់ថាបានបំពេញ';
+
+  @override
+  String get coBuyDealsFulfillConfirmTitle =>
+      'សម្គាល់កិច្ចព្រមព្រៀងនេះថាបានបំពេញ?';
+
+  @override
+  String get coBuyDealsFulfillConfirmBody =>
+      'សកម្មភាពនេះនឹងដោះលែងការទូទាត់ដែលបានរក្សាទុករបស់អ្នកទិញគ្រប់រូបទៅឱ្យអ្នក។ សូមបញ្ជាក់តែក្រោយពេលអ្នកបានដឹកជញ្ជូនការបញ្ជាទិញរួមទៅពួកគេរួចហើយ។';
+
+  @override
+  String get coBuyDealsFulfilledSnackbar =>
+      'កិច្ចព្រមព្រៀងត្រូវបានសម្គាល់ថាបានបំពេញ។ ការទូទាត់ត្រូវបានដោះលែង។';
+
+  @override
+  String get coBuyingPendingPaymentPillLabel => 'បញ្ចប់ការទូទាត់';
+
+  @override
+  String get coBuyingRefundPendingPillLabel => 'កំពុងរង់ចាំសងប្រាក់ត្រឡប់';
+
+  @override
+  String get coBuyingOrderPlacedPillLabel => 'បានដាក់ការបញ្ជាទិញ';
 
   @override
   String get wishlistScreenTitle => 'បញ្ជីចង់បាន';
@@ -1346,6 +1467,24 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get wishlistAddToCartButton => 'បញ្ចូលទៅកន្ត្រក';
+
+  @override
+  String wishlistAddedToWishlistSnackbar(String productName) {
+    return 'បានបន្ថែម $productName ទៅបញ្ជីចង់បាន';
+  }
+
+  @override
+  String wishlistRemovedFromWishlistSnackbar(String productName) {
+    return 'បានដក $productName ចេញពីបញ្ជីចង់បាន';
+  }
+
+  @override
+  String get wishlistToggleErrorSnackbar =>
+      'មិនអាចធ្វើបច្ចុប្បន្នភាពបញ្ជីចង់បានទេ។ សូមព្យាយាមម្តងទៀត។';
+
+  @override
+  String get wishlistLoadErrorMessage =>
+      'មិនអាចផ្ទុកបញ្ជីចង់បានរបស់អ្នកបានទេ។ ចុចដើម្បីព្យាយាមម្តងទៀត។';
 
   @override
   String get marketplaceCategoriesTitle => 'ប្រភេទផលិតផល';
@@ -1366,6 +1505,14 @@ class AppLocalizationsKm extends AppLocalizations {
   @override
   String get marketplaceProductsLoadError =>
       'មិនអាចផ្ទុកផលិតផលបានទេ។ ចុចដើម្បីព្យាយាមម្តងទៀត។';
+
+  @override
+  String get marketplaceNoCoBuyDealsYet =>
+      'មិនទាន់មានកិច្ចព្រមព្រៀងទិញរួមនៅឡើយទេ។ សូមពិនិត្យម្តងទៀតឆាប់ៗនេះ!';
+
+  @override
+  String get marketplaceCoBuyDealsLoadError =>
+      'មិនអាចផ្ទុកកិច្ចព្រមព្រៀងទិញរួមបានទេ។ ចុចដើម្បីព្យាយាមម្តងទៀត។';
 
   @override
   String get marketplaceCoBuyJoinButton => 'ចូលរួមទិញរួមគ្នា';
@@ -1439,7 +1586,7 @@ class AppLocalizationsKm extends AppLocalizations {
   }
 
   @override
-  String get productDetailSampleRequestedSnackbar => 'បានស្នើសុំគំរូ';
+  String get productDetailSampleRequestedSnackbar => 'បានទិញគំរូ';
 
   @override
   String productDetailAddToCartButton(String price) {
@@ -1447,22 +1594,26 @@ class AppLocalizationsKm extends AppLocalizations {
   }
 
   @override
-  String get productDetailSampleAlreadyRequested => 'បានស្នើសុំគំរូរួចហើយ';
+  String get productDetailSampleAlreadyRequested => 'បានទិញគំរូរួចហើយ';
 
   @override
   String get productDetailSampleCooldownActive => 'កំពុងស្ថិតក្នុងរយៈពេលរង់ចាំ';
 
   @override
-  String get productDetailRequestSample => 'សុំគំរូ';
+  String get productDetailRequestSample => 'ទិញគំរូ';
 
   @override
   String productDetailSampleCooldownNote(String date) {
-    return 'អ្នកអាចស្នើសុំគំរូម្តងទៀតបន្ទាប់ពី $date។';
+    return 'អ្នកអាចទិញគំរូម្តងទៀតបន្ទាប់ពី $date។';
   }
 
   @override
   String get productDetailSampleLimitNote =>
       'កំណត់ត្រឹមគំរូ ១ ក្នុងរយៈពេល ៣ ថ្ងៃ';
+
+  @override
+  String get productDetailOwnListingNote =>
+      'អ្នកមិនអាចទិញ ឬសុំគំរូពីការផ្សាយរបស់អ្នកផ្ទាល់បានទេ';
 
   @override
   String get storeProfileStatProducts => 'ផលិតផល';
@@ -1489,6 +1640,10 @@ class AppLocalizationsKm extends AppLocalizations {
   String get storeProfileAboutSectionTitle => 'អំពី';
 
   @override
+  String get storeProfileNoDescriptionYet =>
+      'អ្នកលក់នេះមិនទាន់បន្ថែមការពិពណ៌នាហាងនៅឡើយទេ។';
+
+  @override
   String get storeProfileBusinessDetailsTitle => 'ព័ត៌មានលម្អិតអាជីវកម្ម';
 
   @override
@@ -1499,6 +1654,15 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get storeProfileLabelLocation => 'ទីតាំង';
+
+  @override
+  String get storeProfileContactTitle => 'ព័ត៌មានទំនាក់ទំនង';
+
+  @override
+  String get storeProfileLabelPhone => 'លេខទូរស័ព្ទ';
+
+  @override
+  String get storeProfileLabelEmail => 'អាសយដ្ឋានអ៊ីមែល';
 
   @override
   String get storeProfileLabelMinimumOrder => 'ការបញ្ជាទិញអប្បបរមា';
@@ -1543,6 +1707,9 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get storeProfileTopSellerChip => 'អ្នកលក់កំពូល';
+
+  @override
+  String get storePowerSellerBadge => 'អ្នកលក់កម្រិតខ្ពស់';
 
   @override
   String get storeProfileRatingBreakdownTitle => 'ការបំបែកការវាយតម្លៃ';
@@ -1628,10 +1795,47 @@ class AppLocalizationsKm extends AppLocalizations {
   String get ordersRateReviewButton => 'វាយតម្លៃ និងផ្តល់មតិ';
 
   @override
+  String get ordersAlreadyReviewedLabel => 'បានវាយតម្លៃរួច';
+
+  @override
   String get ordersReportButton => 'រាយការណ៍';
 
   @override
   String get ordersReportLabel => 'រាយការណ៍បញ្ជាទិញ';
+
+  @override
+  String get sellerReportButton => 'រាយការណ៍បញ្ហាដឹកជញ្ជូន';
+
+  @override
+  String get sellerReportPhotosLabel => 'រូបថតអេក្រង់ (ស្រេចចិត្ត រហូតដល់ ៣)';
+
+  @override
+  String get sellerReportSheetTitle => 'រាយការណ៍បញ្ហាដឹកជញ្ជូន';
+
+  @override
+  String get sellerReportIntro =>
+      'សូមប្រាប់យើងអំពីអ្វីដែលមានបញ្ហា។ អ្នកគ្រប់គ្រងនឹងពិនិត្យ ហើយជូនដំណឹងអ្នកទិញ។';
+
+  @override
+  String get sellerReportReasonDelayed => 'ដឹកជញ្ជូនយឺត';
+
+  @override
+  String get sellerReportReasonLost => 'កញ្ចប់បាត់ ឬខូច';
+
+  @override
+  String get sellerReportReasonUnreachable => 'ទាក់ទងអ្នកទិញមិនបាន';
+
+  @override
+  String get sellerReportReasonAddress => 'បញ្ហាអាសយដ្ឋាន';
+
+  @override
+  String get sellerReportSubmittedSnackbar =>
+      'បានផ្ញើរបាយការណ៍។ អ្នកគ្រប់គ្រងនឹងតាមដាន ហើយជូនដំណឹងអ្នកទិញ។';
+
+  @override
+  String sellerReportFailedSnackbar(String error) {
+    return 'មិនអាចផ្ញើរបាយការណ៍បានទេ: $error';
+  }
 
   @override
   String get ordersReportSheetTitle => 'រាយការណ៍បញ្ជាទិញ';
@@ -1786,10 +1990,18 @@ class AppLocalizationsKm extends AppLocalizations {
   String get deliveryStepOrderPlaced => 'បានធ្វើការបញ្ជាទិញ';
 
   @override
-  String get deliveryStepPaymentHeld => 'ថវិកាត្រូវបានរក្សាទុកក្នុងអេស្គ្រូ';
+  String get deliveryStepAwaitingSellerConfirmation =>
+      'កំពុងរង់ចាំការបញ្ជាក់ពីអ្នកលក់';
 
   @override
-  String get deliveryStepReleased => 'ថវិកាត្រូវបានប្រគល់ជូនអ្នកលក់';
+  String get deliveryStepSellerProcessing =>
+      'អ្នកលក់កំពុងរៀបចំការបញ្ជាទិញរបស់អ្នក';
+
+  @override
+  String get deliveryStepDelivery => 'ការដឹកជញ្ជូន';
+
+  @override
+  String get deliveryStepReleased => 'បញ្ជាទិញបានបញ្ចប់';
 
   @override
   String get deliveryStepDisputed => 'កំពុងជាប់វិវាទ';
@@ -1833,6 +2045,21 @@ class AppLocalizationsKm extends AppLocalizations {
   String get reviewWriteReviewLabel => 'សរសេរមតិវាយតម្លៃ';
 
   @override
+  String get reviewRatingRequiredSnackbar => 'សូមវាយតម្លៃផលិតផលមុននឹងដាក់ស្នើ។';
+
+  @override
+  String reviewSubmitFailedSnackbar(String error) {
+    return 'មិនអាចដាក់ស្នើមតិវាយតម្លៃរបស់អ្នកបានទេ៖ $error';
+  }
+
+  @override
+  String get reviewSectionTitle => 'មតិវាយតម្លៃពីអ្នកទិញ';
+
+  @override
+  String get reviewEmptyStateMessage =>
+      'មិនទាន់មានមតិវាយតម្លៃពីអ្នកទិញនៅឡើយទេ។';
+
+  @override
   String get paymentScreenTitle => 'វិធីទូទាត់ប្រាក់';
 
   @override
@@ -1857,6 +2084,12 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get paymentCardHolderLabel => 'ម្ចាស់កាត';
+
+  @override
+  String get paymentCardHolderNameHint => 'ឈ្មោះពេញនៅលើកាត';
+
+  @override
+  String get paymentCardHolderPlaceholder => 'ឈ្មោះរបស់អ្នក';
 
   @override
   String get paymentCardValidThruLabel => 'ប្រើបានដល់';
@@ -2161,10 +2394,40 @@ class AppLocalizationsKm extends AppLocalizations {
   String get sellerDashboardViewAllLabel => 'មើលទាំងអស់';
 
   @override
+  String get sellerApprovalPendingTitle => 'កំពុងរង់ចាំការអនុម័ត';
+
+  @override
+  String get sellerApprovalPendingMessage =>
+      'ហាងរបស់អ្នកកំពុងត្រូវបានត្រួតពិនិត្យដោយក្រុមការងាររបស់យើង។ អ្នកនឹងទទួលបានការជូនដំណឹងនៅពេលវាត្រូវបានអនុម័ត ហើយអាចចាប់ផ្តើមបន្ថែមទំនិញបាន។ ចន្លោះពេលនេះ សូមរីករាយនឹងការទិញទំនិញ!';
+
+  @override
+  String get sellerApprovalRejectedTitle => 'ការផ្ទៀងផ្ទាត់មិនបានអនុម័ត';
+
+  @override
+  String get sellerApprovalRejectedMessage =>
+      'ឯកសារ KYC របស់អ្នកមិនបានអនុម័តទេ។ សូមបញ្ជូនឯកសារឡើងវិញដើម្បីបន្តដំឡើងហាងរបស់អ្នក។';
+
+  @override
+  String get sellerApprovalResubmitAction => 'បញ្ជូនឯកសារឡើងវិញ';
+
+  @override
+  String get sellerApprovalGotItAction => 'យល់ហើយ';
+
+  @override
+  String sellerApprovalSubmittedOnLabel(String date) {
+    return 'បានបញ្ជូននៅ $date';
+  }
+
+  @override
+  String sellerApprovalReviewedOnLabel(String date) {
+    return 'បានពិនិត្យនៅ $date';
+  }
+
+  @override
   String get sellerEarningsScreenTitle => 'ចំណូល';
 
   @override
-  String get sellerEarningsAvailableBalanceLabel => 'សមតុល្យដែលអាចដកបាន';
+  String get sellerEarningsAvailableBalanceLabel => 'សមតុល្យដែលបានដោះលែង';
 
   @override
   String sellerEarningsCompletedSalesPercentLabel(int percent) {
@@ -2172,7 +2435,7 @@ class AppLocalizationsKm extends AppLocalizations {
   }
 
   @override
-  String get sellerEarningsWithdrawButton => 'ដកប្រាក់';
+  String get sellerEarningsWithdrawButton => 'ស្នើសុំដោះលែងប្រាក់';
 
   @override
   String get sellerEarningsReleasedLabel => 'បានផ្តល់ជូន';
@@ -2236,7 +2499,7 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get sellerEarningsEscrowNoticeText =>
-      'ប្រាក់ត្រូវបានរក្សាទុករយៈពេល 48 ម៉ោងបន្ទាប់ពីការទិញ។ នៅពេលបានផ្តល់ជូន សូមចុច \"ដកប្រាក់\" ដើម្បីផ្ទេរចំណូលទៅគណនីធនាគាររបស់អ្នក។';
+      'ប្រាក់ត្រូវបានរក្សាទុកក្នុង escrow រហូតដល់អ្នកទិញបញ្ជាក់ការដឹកជញ្ជូន។ បន្ទាប់ពីអ្នកបញ្ជាក់ការបញ្ជាទិញ សូមចុច ស្នើសុំដោះលែងប្រាក់ ហើយអ្នកគ្រប់គ្រងនឹងពិនិត្យ និងដោះលែង។';
 
   @override
   String get sellerEarningsEmptyStateMessage =>
@@ -2309,6 +2572,81 @@ class AppLocalizationsKm extends AppLocalizations {
   String get sellerEarningsWithdrawSuccessOkButton => 'យល់ព្រម';
 
   @override
+  String get sellerEarningsBankNameLabel => 'ឈ្មោះធនាគារ';
+
+  @override
+  String get sellerEarningsBankNameHint => 'ឧ. ABA, ACLEDA, Wing';
+
+  @override
+  String get sellerEarningsAccountNumberInvalidError => 'លេខប៉ុណ្ណោះ';
+
+  @override
+  String get sellerEarningsPayoutNoticeText =>
+      'សមតុល្យរបស់អ្នកនឹងត្រូវផ្ញើទៅគណនីនេះក្នុងរយៈពេល 1 ដល់ 3 ម៉ោងបន្ទាប់ពីអ្នកដាក់ស្នើ។ រួមបញ្ចូលតែប្រាក់ពីការបញ្ជាទិញដែលអ្នកទិញបានទទួលទំនិញរួចហើយប៉ុណ្ណោះ។';
+
+  @override
+  String get sellerEarningsPayoutNothingMessage =>
+      'សមតុល្យដែលបានដោះលែងរបស់អ្នកទទេ។ ប្រាក់នឹងបង្ហាញនៅទីនេះនៅពេលអ្នកទិញទទួលបានទំនិញ។';
+
+  @override
+  String sellerEarningsPayoutSuccessMessage(String amount) {
+    return 'សំណើដកប្រាក់ $amount របស់អ្នកត្រូវបានផ្ញើទៅអ្នកគ្រប់គ្រងដើម្បីអនុម័ត។ បន្ទាប់ពីអនុម័ត អាចចំណាយពេលប្រហែល ១ ទៅ ៣ ម៉ោងទើបប្រាក់មកដល់គណនីធនាគាររបស់អ្នក។';
+  }
+
+  @override
+  String sellerEarningsPayoutFailedSnackbar(String error) {
+    return 'មិនអាចស្នើសុំការទូទាត់បានទេ: $error';
+  }
+
+  @override
+  String sellerEarningsPayoutArrivingLabel(String amount) {
+    return '$amount កំពុងធ្វើដំណើរទៅធនាគាររបស់អ្នក';
+  }
+
+  @override
+  String get sellerEarningsPayoutArrivingBy => 'អាចចំណាយពេលប្រហែល ១ ទៅ ៣ ម៉ោង';
+
+  @override
+  String sellerEarningsPayoutPendingLabel(String amount) {
+    return '$amount កំពុងរង់ចាំការអនុម័តពីអ្នកគ្រប់គ្រង';
+  }
+
+  @override
+  String get sellerEarningsPayoutPendingHint =>
+      'ផ្ញើទៅធនាគាររបស់អ្នកក្នុងរយៈពេល ១ ដល់ ៣ ម៉ោងបន្ទាប់ពីអនុម័ត';
+
+  @override
+  String get sellerEarningsStatusReleaseRequested => 'បានស្នើសុំដោះលែង';
+
+  @override
+  String get sellerEarningsRequestReleaseTitle => 'ស្នើសុំដោះលែងប្រាក់';
+
+  @override
+  String sellerEarningsRequestReleaseMessage(int count, String amount) {
+    return 'ស្នើសុំអ្នកគ្រប់គ្រងដោះលែង $amount ពីការបញ្ជាទិញដែលបានបញ្ជាក់ $count ឥឡូវនេះ?';
+  }
+
+  @override
+  String get sellerEarningsRequestReleaseConfirmButton => 'ផ្ញើសំណើ';
+
+  @override
+  String get sellerEarningsRequestReleaseCancelButton => 'បោះបង់';
+
+  @override
+  String get sellerEarningsRequestReleaseNothingMessage =>
+      'គ្មានការបញ្ជាទិញដែលបានបញ្ជាក់កំពុងរង់ចាំក្នុង escrow ទេ។ សូមបញ្ជាក់ការបញ្ជាទិញជាមុនសិន រួចស្នើសុំដោះលែង។';
+
+  @override
+  String sellerEarningsRequestReleaseSuccessMessage(int count, String amount) {
+    return 'បានស្នើសុំដោះលែងសម្រាប់ការបញ្ជាទិញ $count ($amount)។ អ្នកគ្រប់គ្រងនឹងពិនិត្យក្នុងពេលឆាប់ៗ។';
+  }
+
+  @override
+  String sellerEarningsRequestReleaseFailedSnackbar(String error) {
+    return 'មិនអាចស្នើសុំដោះលែងបានទេ៖ $error';
+  }
+
+  @override
   String get sellerOrdersScreenTitle => 'ការបញ្ជាទិញ';
 
   @override
@@ -2370,6 +2708,50 @@ class AppLocalizationsKm extends AppLocalizations {
   String get sellerOrderDetailDeclineConfirmConfirm => 'បដិសេធ';
 
   @override
+  String get sellerOrderDetailConfirmButton => 'បញ្ជាក់ការបញ្ជាទិញ';
+
+  @override
+  String get sellerOrderDetailConfirmingLabel => 'កំពុងបញ្ជាក់...';
+
+  @override
+  String get sellerOrderDetailConfirmedLabel => 'បានបញ្ជាក់ការបញ្ជាទិញ';
+
+  @override
+  String get sellerOrderDetailRequestReleaseButton => 'ស្នើសុំដោះលែងប្រាក់';
+
+  @override
+  String get sellerOrderDetailReleaseRequestedLabel =>
+      'បានស្នើសុំដោះលែង កំពុងរង់ចាំការអនុម័តពីអ្នកគ្រប់គ្រង';
+
+  @override
+  String sellerOrderDetailRequestReleaseFailedSnackbar(String error) {
+    return 'មិនអាចស្នើសុំដោះលែងបានទេ៖ $error';
+  }
+
+  @override
+  String sellerOrderDetailConfirmFailedSnackbar(String error) {
+    return 'មិនអាចបញ្ជាក់ការបញ្ជាទិញបានទេ៖ $error';
+  }
+
+  @override
+  String get orderDetailSellerConfirmedLabel => 'អ្នកលក់បានបញ្ជាក់ហើយ';
+
+  @override
+  String get orderDetailAwaitingSellerConfirmationLabel =>
+      'កំពុងរង់ចាំការបញ្ជាក់ពីអ្នកលក់';
+
+  @override
+  String get orderDetailConfirmReceivedButton => 'បញ្ជាក់ថាបានទទួលទំនិញ';
+
+  @override
+  String get orderDetailConfirmReceivingLabel => 'កំពុងបញ្ជាក់...';
+
+  @override
+  String orderDetailConfirmReceivedFailedSnackbar(String error) {
+    return 'មិនអាចបញ្ជាក់ការទទួលបានទេ៖ $error';
+  }
+
+  @override
   String get myInventoryScreenTitle => 'ស្តុកទំនិញរបស់ខ្ញុំ';
 
   @override
@@ -2393,6 +2775,10 @@ class AppLocalizationsKm extends AppLocalizations {
   String get myInventoryEmptyStateMessage => 'រកមិនឃើញទំនិញទេ។';
 
   @override
+  String get myInventoryLoadErrorMessage =>
+      'មិនអាចផ្ទុកស្តុកទំនិញរបស់អ្នកបានទេ។ ចុចដើម្បីព្យាយាមម្តងទៀត។';
+
+  @override
   String myInventoryListingActivatedSnackbar(String product) {
     return '$product កំពុងលក់ហើយ';
   }
@@ -2401,6 +2787,10 @@ class AppLocalizationsKm extends AppLocalizations {
   String myInventoryListingDeactivatedSnackbar(String product) {
     return '$product ត្រូវបានផ្អាក';
   }
+
+  @override
+  String get myInventoryUpdateErrorSnackbar =>
+      'មិនអាចធ្វើបច្ចុប្បន្នភាពទំនិញនេះបានទេ។ សូមព្យាយាមម្តងទៀត។';
 
   @override
   String get profileEditProfileRoleLabel => 'តួនាទីគណនី';
@@ -2589,6 +2979,49 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get addListingStockInvalid => 'សូមបញ្ចូលចំនួនដែលត្រឹមត្រូវ';
+
+  @override
+  String get addListingSpecsLabel => 'ព័ត៌មានលម្អិតលក់ដុំ';
+
+  @override
+  String get addListingSpecsHelper =>
+      'ជួយអ្នកទិញឱ្យដឹងពីអ្វីដែលពួកគេកំពុងបញ្ជាទិញ';
+
+  @override
+  String get addListingWeightLabel => 'ទម្ងន់';
+
+  @override
+  String get addListingWeightHint => 'ឧ. 25kg ក្នុងមួយថង់';
+
+  @override
+  String get addListingWeightRequired => 'សូមបញ្ចូលទម្ងន់';
+
+  @override
+  String get addListingOriginLabel => 'ប្រភពដើម';
+
+  @override
+  String get addListingOriginHint => 'ឧ. កម្ពុជា';
+
+  @override
+  String get addListingOriginRequired => 'សូមបញ្ចូលប្រភពដើម';
+
+  @override
+  String get addListingGradeLabel => 'កម្រិតគុណភាព';
+
+  @override
+  String get addListingGradeHint => 'ឧ. Premium AA';
+
+  @override
+  String get addListingGradeRequired => 'សូមបញ្ចូលកម្រិតគុណភាព';
+
+  @override
+  String get addListingPackagingLabel => 'កញ្ចប់ខ្ចប់';
+
+  @override
+  String get addListingPackagingHint => 'ឧ. ថង់ PP ត្បាញ';
+
+  @override
+  String get addListingPackagingRequired => 'សូមបញ្ចូលប្រភេទកញ្ចប់ខ្ចប់';
 
   @override
   String get addListingPhotosLabel => 'រូបភាពផលិតផល';
@@ -3667,4 +4100,181 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get variantColorLabel => 'ពណ៌';
+
+  @override
+  String get escrowFlowTitle => 'របៀបដែលប្រាក់ត្រូវបានបញ្ចេញ';
+
+  @override
+  String get escrowStepPaidTitle => 'បានបញ្ជាទិញ';
+
+  @override
+  String get escrowStepPaidDetail => 'ប្រាក់ត្រូវបានរក្សាទុកក្នុង Escrow';
+
+  @override
+  String get escrowStepPreparesTitle => 'អ្នកលក់កំពុងរៀបចំ';
+
+  @override
+  String get escrowStepPreparesDetail => 'កំពុងរៀបចំការបញ្ជាទិញ';
+
+  @override
+  String get escrowStepShippedTitle => 'កំពុងដឹកជញ្ជូន';
+
+  @override
+  String get escrowStepShippedDetail => 'រូបថត + លេខតាមដាន';
+
+  @override
+  String get escrowStepTimerTitle => 'ចាប់ផ្តើមកម្មវិធីរាប់ថយក្រោយ';
+
+  @override
+  String get escrowStepTimerDetail => 'រយៈពេលពិនិត្យរបស់អ្នកទិញ';
+
+  @override
+  String get escrowStepReleaseTitle => 'បញ្ចេញទៅអ្នកលក់ដោយស្វ័យប្រវត្តិ';
+
+  @override
+  String get escrowStepReleaseDetail => 'កាត់ថ្លៃសេវា បង់ប្រាក់អ្នកលក់';
+
+  @override
+  String escrowTimerLeft(String time) {
+    return 'នៅសល់ $time ដើម្បីរាយការណ៍បញ្ហា';
+  }
+
+  @override
+  String get escrowTimerFrozen =>
+      'កម្មវិធីរាប់ថយក្រោយត្រូវបានផ្អាក អ្នកគ្រប់គ្រងកំពុងពិនិត្យ';
+
+  @override
+  String escrowTrackingLabel(String courier, String number) {
+    return '$courier · $number';
+  }
+
+  @override
+  String get escrowReportProblemButton => 'រាយការណ៍បញ្ហា';
+
+  @override
+  String get escrowReportSubmittedFrozen =>
+      'បានរាយការណ៍បញ្ហា។ កម្មវិធីរាប់ថយក្រោយត្រូវបានផ្អាកពេលអ្នកគ្រប់គ្រងពិនិត្យ។';
+
+  @override
+  String get escrowShipButton => 'ដឹកជញ្ជូនការបញ្ជាទិញ';
+
+  @override
+  String get escrowShipSheetTitle => 'ដឹកជញ្ជូនការបញ្ជាទិញ';
+
+  @override
+  String get escrowCourierLabel => 'ក្រុមហ៊ុនដឹកជញ្ជូន';
+
+  @override
+  String get escrowCourierHint => 'ឧ. VET, J&T, Cambodia Post';
+
+  @override
+  String get escrowTrackingNumberLabel => 'លេខតាមដាន';
+
+  @override
+  String get escrowParcelPhotoLabel => 'រូបថតកញ្ចប់ឥវ៉ាន់';
+
+  @override
+  String get escrowAddPhoto => 'បន្ថែមរូបថត';
+
+  @override
+  String get escrowPhotoRequired => 'សូមបន្ថែមរូបថត';
+
+  @override
+  String get escrowShipSubmit => 'បញ្ជាក់ការដឹកជញ្ជូន';
+
+  @override
+  String get escrowMarkDeliveredButton => 'បញ្ចូលភស្តុតាងនៃការដឹកជញ្ជូន';
+
+  @override
+  String get escrowDeliverySheetTitle => 'ភស្តុតាងនៃការដឹកជញ្ជូន';
+
+  @override
+  String get escrowDeliverySheetNote =>
+      'បញ្ចូលបង្កាន់ដៃរបស់អ្នកដឹកជញ្ជូន ឬរូបថតពេលប្រគល់។ កម្មវិធីរាប់ថយក្រោយរបស់អ្នកទិញចាប់ផ្តើមពេលអ្នកដាក់ស្នើ។';
+
+  @override
+  String get escrowDeliverySubmit => 'សម្គាល់ថាបានដឹកជញ្ជូនដល់';
+
+  @override
+  String escrowActionFailed(String error) {
+    return 'មានបញ្ហាកើតឡើង៖ $error';
+  }
+
+  @override
+  String get escrowSellerWaitingTimer =>
+      'បានដឹកជញ្ជូនដល់។ ប្រាក់នឹងត្រូវបានបញ្ចេញដោយស្វ័យប្រវត្តិនៅពេលរយៈពេលពិនិត្យរបស់អ្នកទិញបញ្ចប់។';
+
+  @override
+  String get escrowSellerWaitingDelivery => 'បានដឹកជញ្ជូន។';
+
+  @override
+  String get escrowSellerDisputed =>
+      'បញ្ហាត្រូវបានរាយការណ៍លើការបញ្ជាទិញនេះ។ ប្រាក់ត្រូវបានផ្អាកខណៈអ្នកគ្រប់គ្រងពិនិត្យ។';
+
+  @override
+  String get escrowSellerReplyTitle => 'សំណុំរឿងរបស់អ្នកគ្រប់គ្រង';
+
+  @override
+  String escrowSellerReplyReported(String reason) {
+    return 'បានរាយការណ៍៖ $reason';
+  }
+
+  @override
+  String get escrowSellerReplyWaiting => 'កំពុងរង់ចាំអ្នកគ្រប់គ្រងបើកសំណុំរឿង។';
+
+  @override
+  String get escrowSellerReplyHint => 'ចម្លើយរបស់អ្នកទៅអ្នកគ្រប់គ្រង';
+
+  @override
+  String get escrowSellerReplyButton => 'ផ្ញើចម្លើយ';
+
+  @override
+  String get escrowSellerReplySent => 'ចម្លើយរបស់អ្នក';
+
+  @override
+  String get orderHoldTitle => 'អ្វីបានកើតឡើង';
+
+  @override
+  String get orderHoldReasonDeliveryDelayed => 'ការដឹកជញ្ជូនយឺត';
+
+  @override
+  String get orderHoldReasonLostOrDamaged => 'កញ្ចប់បាត់ ឬខូច';
+
+  @override
+  String get orderHoldReasonBuyerUnreachable =>
+      'ក្រុមដឹកជញ្ជូនមិនអាចទាក់ទងអ្នកបាន';
+
+  @override
+  String get orderHoldReasonAddress => 'បញ្ហាអាសយដ្ឋាន';
+
+  @override
+  String get orderHoldReasonWrongItem => 'ទទួលបានទំនិញខុស';
+
+  @override
+  String get orderHoldReasonDamaged => 'ទំនិញខូច';
+
+  @override
+  String get orderHoldReasonMissing => 'ទំនិញបាត់';
+
+  @override
+  String get orderHoldReasonLate => 'ការដឹកជញ្ជូនយឺត';
+
+  @override
+  String get orderHoldReasonOther => 'បញ្ហាផ្សេងៗ';
+
+  @override
+  String get orderHoldReasonBuyerUnreachableSeller => 'មិនអាចទាក់ទងអ្នកទទួលបាន';
+
+  @override
+  String get orderHoldSellerBody =>
+      'ការបញ្ជាទិញនេះត្រូវបានលុបចោលដោយក្រុមគាំទ្រ BosDom បន្ទាប់ពីក្រុមដឹកជញ្ជូនបានរាយការណ៍បញ្ហាដឹកជញ្ជូន។ អ្នកមិនចាំបាច់ធ្វើអ្វីបន្ថែមទេ។';
+
+  @override
+  String get orderHoldBuyerBody =>
+      'អ្នកបានរាយការណ៍បញ្ហាលើការបញ្ជាទិញនេះ។ ក្រុមគាំទ្ររបស់យើងកំពុងពិនិត្យករណីរបស់អ្នក ហើយប្រាក់របស់អ្នកនៅតែត្រូវបានរក្សាទុកដោយសុវត្ថិភាពក្នុង escrow។ ប្រសិនបើការសម្រេចជាប្រយោជន៍ដល់អ្នក អ្នកនឹងទទួលបានប្រាក់សងវិញក្នុងរយៈពេល 2 ទៅ 3 ថ្ងៃ។';
+
+  @override
+  String orderHoldDeliveryBody(String date) {
+    return 'សេវាដឹកជញ្ជូនបានរាយការណ៍បញ្ហាលើកញ្ចប់របស់អ្នក ដូច្នេះក្រុមគាំទ្រ BosDom បានលុបចោលការបញ្ជាទិញនេះ។ ប្រាក់របស់អ្នកត្រូវបានការពារពេញលេញ ហើយអ្នកនឹងទទួលបានប្រាក់សងវិញត្រឹមថ្ងៃទី $date។';
+  }
 }

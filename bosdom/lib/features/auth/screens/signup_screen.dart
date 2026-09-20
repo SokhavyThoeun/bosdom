@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../models/merchant_role.dart';
+import '../services/auth_service.dart';
+import '../services/signup_draft.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -13,12 +15,26 @@ class SignupScreen extends StatefulWidget {
 class _SignupScreenState extends State<SignupScreen> {
   MerchantRole _selectedRole = MerchantRole.retailer;
 
-  void _goBack() {
+  Future<void> _goBack() async {
+    // Choose Role is the entry point of the signup wizard, so backing out
+    // of it means abandoning the attempt entirely — not just this step.
+    // An interrupted signup (a password already set via Continue on
+    // Personal Details, or a completed Google sign-in) can leave a
+    // dangling session with no role saved yet, so sign it out and drop the
+    // draft form values too, or a later "Create Account" would start
+    // half-bound to this abandoned attempt instead of clean.
+    if (AuthService.isSignedIn) {
+      await AuthService.signOut();
+    }
+    SignupDraft.clear();
+    if (!mounted) return;
     if (context.canPop()) {
       context.pop();
-    } else {
-      context.goNamed('splash');
+      return;
     }
+    // No back stack to pop to (e.g. splash routed a dangling session
+    // straight here) — let splash re-route now that the session is clear.
+    context.goNamed('splash');
   }
 
   void _continue() {
@@ -42,6 +58,7 @@ class _SignupScreenState extends State<SignupScreen> {
           Expanded(
             child: SafeArea(
               top: false,
+              bottom: false,
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
                 child: Column(
@@ -55,17 +72,15 @@ class _SignupScreenState extends State<SignupScreen> {
                     _RoleCard(
                       role: MerchantRole.retailer,
                       selected: _selectedRole == MerchantRole.retailer,
-                      onTap: () => setState(
-                        () => _selectedRole = MerchantRole.retailer,
-                      ),
+                      onTap: () =>
+                          setState(() => _selectedRole = MerchantRole.retailer),
                     ),
                     const SizedBox(height: 16),
                     _RoleCard(
                       role: MerchantRole.supplier,
                       selected: _selectedRole == MerchantRole.supplier,
-                      onTap: () => setState(
-                        () => _selectedRole = MerchantRole.supplier,
-                      ),
+                      onTap: () =>
+                          setState(() => _selectedRole = MerchantRole.supplier),
                     ),
                     const SizedBox(height: 48),
                     FilledButton(
@@ -102,15 +117,13 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
-          MediaQuery.of(context).padding.top + 16,
+          MediaQuery.of(context).padding.top + 10,
           24,
-          24,
+          18,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

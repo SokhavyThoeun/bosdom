@@ -78,7 +78,7 @@ class NotificationsScreen extends ConsumerWidget {
   }
 }
 
-const _kHeaderContentHeight = 96.0;
+const _kHeaderContentHeight = 68.0;
 
 class _Header extends StatelessWidget {
   const _Header({
@@ -102,9 +102,9 @@ class _Header extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           16,
-          MediaQuery.of(context).padding.top + 12,
+          MediaQuery.of(context).padding.top + 8,
           16,
-          16,
+          12,
         ),
         child: SizedBox(
           height: _kHeaderContentHeight,

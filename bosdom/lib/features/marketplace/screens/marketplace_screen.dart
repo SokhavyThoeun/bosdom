@@ -15,12 +15,17 @@ import '../widgets/product_list_tile.dart';
 class MarketplaceScreen extends ConsumerWidget {
   const MarketplaceScreen({super.key});
 
+  Future<void> _refresh(WidgetRef ref) => Future.wait([
+    ref.refresh(listingsProvider.future),
+    ref.refresh(coBuyProvider.future),
+  ]);
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
-    final coBuySessions = ref.watch(coBuyProvider).value ?? const [];
+    final coBuyAsync = ref.watch(coBuyProvider);
     final unreadCount = ref.watch(unreadNotificationCountProvider);
     final listingsAsync = ref.watch(listingsProvider);
 
@@ -39,129 +44,152 @@ class MarketplaceScreen extends ConsumerWidget {
               // behind the floating nav pill; the scroll padding below is what
               // rests the last item above it.
               bottom: false,
-              child: SingleChildScrollView(
-                padding: EdgeInsets.only(
-                  top: 24,
-                  bottom: 8 + MediaQuery.of(context).padding.bottom,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Text(
-                        l10n.marketplaceCategoriesTitle,
-                        style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      height: 76,
-                      child: ListView.separated(
+              child: RefreshIndicator(
+                onRefresh: () => _refresh(ref),
+                color: colorScheme.primary,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.only(
+                    top: 24,
+                    bottom: 8 + MediaQuery.of(context).padding.bottom,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
-                        scrollDirection: Axis.horizontal,
-                        itemCount: kCategories.length,
-                        separatorBuilder: (_, _) => const SizedBox(width: 16),
-                        itemBuilder: (context, index) => CategoryItem(
-                          category: kCategories[index],
-                          onTap: () => context.pushNamed(
-                            'categoryResults',
-                            extra: kCategories[index],
+                        child: Text(
+                          l10n.marketplaceCategoriesTitle,
+                          style: textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 24),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Row(
-                        children: [
-                          Text(
-                            l10n.marketplaceCoBuyDealsTitle,
-                            style: textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        height: 76,
+                        child: ListView.separated(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          scrollDirection: Axis.horizontal,
+                          itemCount: kCategories.length,
+                          separatorBuilder: (_, _) => const SizedBox(width: 16),
+                          itemBuilder: (context, index) => CategoryItem(
+                            category: kCategories[index],
+                            onTap: () => context.pushNamed(
+                              'categoryResults',
+                              extra: kCategories[index],
                             ),
                           ),
-                          const Spacer(),
-                          TextButton(
-                            onPressed: () => context.pushNamed('coBuying'),
-                            style: TextButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                            child: Text(
-                              l10n.commonSeeAll,
-                              style: textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.primary,
-                                fontWeight: FontWeight.w600,
-                                decoration: TextDecoration.underline,
-                                decorationColor: colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Row(
+                          children: [
+                            Text(
+                              l10n.marketplaceCoBuyDealsTitle,
+                              style: textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: CoBuyCarousel(sessions: coBuySessions),
-                    ),
-                    const SizedBox(height: 24),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Text(
-                        l10n.marketplacePopularProductsTitle,
-                        style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: listingsAsync.when(
-                        data: (products) => products.isEmpty
-                            ? EmptyProductsNotice(
-                                colorScheme: colorScheme,
-                                textTheme: textTheme,
-                                message: l10n.marketplaceNoProductsYet,
-                              )
-                            : ListView.separated(
-                                shrinkWrap: true,
+                            const Spacer(),
+                            TextButton(
+                              onPressed: () => context.pushNamed('coBuying'),
+                              style: TextButton.styleFrom(
                                 padding: EdgeInsets.zero,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemCount: products.length,
-                                separatorBuilder: (_, _) =>
-                                    const SizedBox(height: 12),
-                                itemBuilder: (context, index) {
-                                  final product = products[index];
-                                  return ProductListTile(
-                                    product: product,
-                                    id: product.id,
-                                    onTap: () => context.pushNamed(
-                                      'productDetail',
-                                      pathParameters: {'id': product.id},
-                                    ),
-                                  );
-                                },
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
-                        loading: () => const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 24),
-                          child: Center(child: CircularProgressIndicator()),
-                        ),
-                        error: (error, stackTrace) => EmptyProductsNotice(
-                          colorScheme: colorScheme,
-                          textTheme: textTheme,
-                          message: l10n.marketplaceProductsLoadError,
-                          onRetry: () => ref.invalidate(listingsProvider),
+                              child: Text(
+                                l10n.commonSeeAll,
+                                style: textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.primary,
+                                  fontWeight: FontWeight.w600,
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: colorScheme.primary,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 12),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: coBuyAsync.when(
+                          data: (sessions) => sessions.isEmpty
+                              ? EmptyProductsNotice(
+                                  colorScheme: colorScheme,
+                                  textTheme: textTheme,
+                                  message: l10n.marketplaceNoCoBuyDealsYet,
+                                )
+                              : CoBuyCarousel(sessions: sessions),
+                          loading: () => const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 24),
+                            child: Center(child: CircularProgressIndicator()),
+                          ),
+                          error: (error, stackTrace) => EmptyProductsNotice(
+                            colorScheme: colorScheme,
+                            textTheme: textTheme,
+                            message: l10n.marketplaceCoBuyDealsLoadError,
+                            onRetry: () => ref.invalidate(coBuyProvider),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Text(
+                          l10n.marketplacePopularProductsTitle,
+                          style: textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: listingsAsync.when(
+                          data: (products) => products.isEmpty
+                              ? EmptyProductsNotice(
+                                  colorScheme: colorScheme,
+                                  textTheme: textTheme,
+                                  message: l10n.marketplaceNoProductsYet,
+                                )
+                              : ListView.separated(
+                                  shrinkWrap: true,
+                                  padding: EdgeInsets.zero,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: products.length,
+                                  separatorBuilder: (_, _) =>
+                                      const SizedBox(height: 12),
+                                  itemBuilder: (context, index) {
+                                    final product = products[index];
+                                    return ProductListTile(
+                                      product: product,
+                                      id: product.id,
+                                      onTap: () => context.pushNamed(
+                                        'productDetail',
+                                        pathParameters: {'id': product.id},
+                                      ),
+                                    );
+                                  },
+                                ),
+                          loading: () => const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 24),
+                            child: Center(child: CircularProgressIndicator()),
+                          ),
+                          error: (error, stackTrace) => EmptyProductsNotice(
+                            colorScheme: colorScheme,
+                            textTheme: textTheme,
+                            message: l10n.marketplaceProductsLoadError,
+                            onRetry: () => ref.invalidate(listingsProvider),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -193,15 +221,13 @@ class _Header extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
-          MediaQuery.of(context).padding.top + 16,
+          MediaQuery.of(context).padding.top + 10,
           24,
-          20,
+          14,
         ),
         child: SizedBox(
           height: _kHeaderContentHeight,

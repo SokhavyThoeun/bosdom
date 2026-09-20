@@ -1,55 +1,51 @@
+import '../../../core/config/api_config.dart';
 import '../../../shared/utils/mock_images.dart';
 
 class SellerListing {
   const SellerListing({
+    required this.id,
     required this.name,
     required this.price,
-    required this.stockLabel,
-    required this.imageQuery,
-    this.active = true,
+    required this.stockQty,
+    required this.category,
+    required this.active,
+    this.photoUrl,
   });
 
+  final String id;
   final String name;
   final double price;
-  final String stockLabel;
-  final String imageQuery;
+  final int stockQty;
+  final String category;
   final bool active;
+  final String? photoUrl;
 
-  String get imageUrl => mockPhotoUrl(imageQuery, name);
+  /// The listing's real photo when available, else a category-matched mock
+  /// photo — mirrors [Product.imageUrl]'s fallback.
+  String get imageUrl => photoUrl ?? mockPhotoUrl(category, name);
 
   SellerListing copyWith({bool? active}) => SellerListing(
+    id: id,
     name: name,
     price: price,
-    stockLabel: stockLabel,
-    imageQuery: imageQuery,
+    stockQty: stockQty,
+    category: category,
+    photoUrl: photoUrl,
     active: active ?? this.active,
   );
-}
 
-const kMockSellerListings = [
-  SellerListing(
-    name: 'Organic Kampot Black Pepper',
-    price: 12.50,
-    stockLabel: '500 bags',
-    imageQuery: 'black,pepper',
-  ),
-  SellerListing(
-    name: 'Premium Jasmine Rice AAA',
-    price: 45.00,
-    stockLabel: '1,200 bags',
-    imageQuery: 'jasmine,rice,bag',
-  ),
-  SellerListing(
-    name: 'Raw Cashew Nuts (Grade W240)',
-    price: 8.20,
-    stockLabel: '350 bags',
-    imageQuery: 'roasted,cashew,nuts',
-    active: false,
-  ),
-  SellerListing(
-    name: 'Dehydrated Honey Mango Slices',
-    price: 15.40,
-    stockLabel: '280 boxes',
-    imageQuery: 'dried,mango',
-  ),
-];
+  factory SellerListing.fromJson(Map<String, dynamic> json) {
+    final photoUrls = (json['photo_urls'] as List).cast<String>();
+    return SellerListing(
+      id: json['id'] as String,
+      name: json['product_name'] as String,
+      price: (json['price'] as num).toDouble(),
+      stockQty: json['stock_qty'] as int,
+      category: json['category'] as String,
+      active: json['active'] as bool,
+      photoUrl: photoUrls.isNotEmpty
+          ? ApiConfig.resolveAvatarUrl(photoUrls.first)
+          : null,
+    );
+  }
+}

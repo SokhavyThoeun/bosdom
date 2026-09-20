@@ -82,8 +82,9 @@ class Product {
 
   bool get hasFreeDelivery => deliveryFee == 0;
 
-  String get deliveryFeeLabel =>
-      hasFreeDelivery ? 'Free Delivery' : '\$${deliveryFee.toStringAsFixed(2)} delivery fee';
+  String get deliveryFeeLabel => hasFreeDelivery
+      ? 'Free Delivery'
+      : '\$${deliveryFee.toStringAsFixed(2)} delivery fee';
 
   /// The listing's real photo when available, else a category/topic-matched
   /// mock photo.
@@ -91,6 +92,12 @@ class Product {
 
   /// The seller's real shop logo when available, else a generated mock logo.
   String get sellerLogoUrl => sellerLogoOverride ?? mockStoreLogoUrl(seller);
+
+  /// Whether [id] is a real backend listing id vs. a stringified mock
+  /// index (see [id]'s doc comment) — mock ids are plain small integers,
+  /// real listing ids are UUIDs. Used to decide whether a cart line can
+  /// become a real backend order at checkout.
+  bool get isRealListing => int.tryParse(id) == null;
 
   double get priceValue => double.parse(price.replaceFirst('\$', ''));
 
@@ -111,6 +118,7 @@ const kMockProducts = [
     icon: Icons.rice_bowl_outlined,
     category: 'Food & Bev',
     imageQuery: 'rice,sack',
+    photoUrl: 'assets/mock_products/rice_bulk.jpeg',
     rating: 4.5,
     weight: '25kg per bag',
     origin: 'Cambodia',
@@ -127,6 +135,7 @@ const kMockProducts = [
     icon: Icons.local_cafe_outlined,
     category: 'Home',
     imageQuery: 'paper,cup',
+    photoUrl: 'assets/mock_products/paper_cup.png',
     deliveryFee: 3.5,
   ),
   Product(
@@ -138,6 +147,7 @@ const kMockProducts = [
     icon: Icons.bolt_outlined,
     category: 'Electronics',
     imageQuery: 'usb,charger',
+    photoUrl: 'assets/mock_products/usb_charger.png',
     deliveryFee: 8,
   ),
   Product(
@@ -149,6 +159,7 @@ const kMockProducts = [
     icon: Icons.spa_outlined,
     category: 'Food & Bev',
     imageQuery: 'coconut,oil',
+    photoUrl: 'assets/mock_products/coconut_oil.jpeg',
   ),
   Product(
     id: '4',
@@ -159,6 +170,7 @@ const kMockProducts = [
     icon: Icons.shopping_bag_outlined,
     category: 'Clothing',
     imageQuery: 'tote,bag',
+    photoUrl: 'assets/mock_products/tote_bag.png',
     deliveryFee: 6,
     colorOptions: [
       ProductColorOption('Natural', Color(0xFFE8DCC8)),
@@ -176,6 +188,7 @@ const kMockProducts = [
     icon: Icons.cleaning_services_outlined,
     category: 'Home',
     imageQuery: 'cleaning,cloth',
+    photoUrl: 'assets/mock_products/microfiber_cloth.png',
     deliveryFee: 4,
   ),
   Product(
@@ -187,6 +200,7 @@ const kMockProducts = [
     icon: Icons.fastfood_outlined,
     category: 'Food & Bev',
     imageQuery: 'snack,mix',
+    photoUrl: 'assets/mock_products/snack_mix.jpeg',
     deliveryFee: 2.5,
   ),
   Product(
@@ -198,6 +212,7 @@ const kMockProducts = [
     icon: Icons.masks_outlined,
     category: 'Beauty',
     imageQuery: 'face,mask',
+    photoUrl: 'assets/mock_products/face_mask.png',
     deliveryFee: 6,
     sizes: ['Kids', 'Adult'],
     colorOptions: [
@@ -215,6 +230,7 @@ const kMockProducts = [
     icon: Icons.water_drop_outlined,
     category: 'Home',
     imageQuery: 'water,bottle',
+    photoUrl: 'assets/mock_products/water_bottle.png',
     deliveryFee: 5,
   ),
   Product(
@@ -226,6 +242,7 @@ const kMockProducts = [
     icon: Icons.headset_outlined,
     category: 'Electronics',
     imageQuery: 'wireless,earbuds',
+    photoUrl: 'assets/mock_products/earbuds.png',
     deliveryFee: 8,
   ),
   Product(
@@ -237,6 +254,7 @@ const kMockProducts = [
     icon: Icons.checkroom_outlined,
     category: 'Clothing',
     imageQuery: 'tshirt,stack',
+    photoUrl: 'assets/mock_products/tshirt.png',
     deliveryFee: 7,
     sizes: ['S', 'M', 'L', 'XL', 'XXL'],
     colorOptions: [
@@ -256,6 +274,7 @@ const kMockProducts = [
     icon: Icons.countertops_outlined,
     category: 'Home',
     imageQuery: 'paper,towel',
+    photoUrl: 'assets/mock_products/kitchen_towel.png',
     deliveryFee: 4.5,
   ),
   Product(
@@ -267,6 +286,7 @@ const kMockProducts = [
     icon: Icons.grain_outlined,
     category: 'Food & Bev',
     imageQuery: 'brown,sugar',
+    photoUrl: 'assets/mock_products/brown_sugar.jpeg',
     deliveryFee: 5,
   ),
   Product(
@@ -278,6 +298,7 @@ const kMockProducts = [
     icon: Icons.liquor_outlined,
     category: 'Food & Bev',
     imageQuery: 'fish,sauce',
+    photoUrl: 'assets/mock_products/fish_sauce_1.jpeg',
     deliveryFee: 3,
   ),
   Product(
@@ -289,6 +310,7 @@ const kMockProducts = [
     icon: Icons.emoji_food_beverage_outlined,
     category: 'Food & Bev',
     imageQuery: 'green,tea',
+    photoUrl: 'assets/mock_products/green_tea.jpeg',
   ),
   Product(
     id: '15',
@@ -299,6 +321,7 @@ const kMockProducts = [
     icon: Icons.eco_outlined,
     category: 'Food & Bev',
     imageQuery: 'dried,mango',
+    photoUrl: 'assets/mock_products/mango_slices.jpeg',
     deliveryFee: 5,
   ),
   Product(
@@ -311,6 +334,7 @@ const kMockProducts = [
     icon: Icons.liquor_outlined,
     category: 'Food & Bev',
     imageQuery: 'fish,sauce',
+    photoUrl: 'assets/mock_products/fish_sauce_2.jpeg',
     deliveryFee: 5,
   ),
   Product(
@@ -323,6 +347,20 @@ const kMockProducts = [
     icon: Icons.local_drink_outlined,
     category: 'Food & Bev',
     imageQuery: 'coconut,milk',
+    photoUrl: 'assets/mock_products/coconut_milk.jpeg',
     deliveryFee: 5,
+  ),
+  Product(
+    id: '18',
+    name: 'Homestyle Chili Sauce Bulk Pack (12 Bottles)',
+    price: '\$16.80',
+    moq: 'MOQ: 8 Packs',
+    moqValue: 8,
+    seller: 'Phnom Penh Foods',
+    icon: Icons.local_fire_department_outlined,
+    category: 'Food & Bev',
+    imageQuery: 'chili,sauce',
+    photoUrl: 'assets/mock_products/chili_sauce.jpeg',
+    deliveryFee: 3,
   ),
 ];

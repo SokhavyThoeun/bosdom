@@ -31,7 +31,9 @@ abstract final class ProfileService {
       throw Exception('Failed to load profile: ${response.body}');
     }
 
-    return UserProfile.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+    return UserProfile.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
   }
 
   static Future<UserProfile> save(UserProfile profile) async {
@@ -47,27 +49,49 @@ abstract final class ProfileService {
       throw Exception('Failed to save profile: ${response.body}');
     }
 
-    return UserProfile.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+    return UserProfile.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
+  /// Marks the signup wizard as finished. Must only be called from the last
+  /// step of each role's flow — see [UserProfile.onboardingComplete].
+  static Future<UserProfile> completeOnboarding() async {
+    final response = await http
+        .post(
+          Uri.parse('${ApiConfig.baseUrl}/profile/me/complete-onboarding'),
+          headers: _authHeaders,
+        )
+        .timeout(_timeout);
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to complete onboarding: ${response.body}');
+    }
+
+    return UserProfile.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
   }
 
   static Future<UserProfile> uploadAvatar(File file) async {
-    final request = http.MultipartRequest(
-      'POST',
-      Uri.parse('${ApiConfig.baseUrl}/profile/me/avatar'),
-    )
-      ..headers.addAll(_authHeaders)
-      ..files.add(
-        await http.MultipartFile.fromPath(
-          'file',
-          file.path,
-          // The picker (see `_pickAvatar` in edit_profile_screen.dart) always
-          // re-encodes to JPEG, but the temp file path it hands back doesn't
-          // reliably carry a recognizable extension — without an explicit
-          // content type, mime-sniffing can fall back to
-          // application/octet-stream and the backend rejects the upload.
-          contentType: MediaType('image', 'jpeg'),
-        ),
-      );
+    final request =
+        http.MultipartRequest(
+            'POST',
+            Uri.parse('${ApiConfig.baseUrl}/profile/me/avatar'),
+          )
+          ..headers.addAll(_authHeaders)
+          ..files.add(
+            await http.MultipartFile.fromPath(
+              'file',
+              file.path,
+              // The picker (see `_pickAvatar` in edit_profile_screen.dart) always
+              // re-encodes to JPEG, but the temp file path it hands back doesn't
+              // reliably carry a recognizable extension — without an explicit
+              // content type, mime-sniffing can fall back to
+              // application/octet-stream and the backend rejects the upload.
+              contentType: MediaType('image', 'jpeg'),
+            ),
+          );
 
     final streamedResponse = await request.send().timeout(_timeout);
     final response = await http.Response.fromStream(streamedResponse);
@@ -76,7 +100,9 @@ abstract final class ProfileService {
       throw Exception('Failed to upload avatar: ${response.body}');
     }
 
-    return UserProfile.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+    return UserProfile.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
   }
 
   /// [docType] must be one of `national_id`, `passport`, `business_certificate`
@@ -86,19 +112,20 @@ abstract final class ProfileService {
     required String docType,
     required File file,
   }) async {
-    final request = http.MultipartRequest(
-      'POST',
-      Uri.parse('${ApiConfig.baseUrl}/profile/me/kyc-documents'),
-    )
-      ..headers.addAll(_authHeaders)
-      ..fields['doc_type'] = docType
-      ..files.add(
-        await http.MultipartFile.fromPath(
-          'file',
-          file.path,
-          contentType: MediaType('image', 'jpeg'),
-        ),
-      );
+    final request =
+        http.MultipartRequest(
+            'POST',
+            Uri.parse('${ApiConfig.baseUrl}/profile/me/kyc-documents'),
+          )
+          ..headers.addAll(_authHeaders)
+          ..fields['doc_type'] = docType
+          ..files.add(
+            await http.MultipartFile.fromPath(
+              'file',
+              file.path,
+              contentType: MediaType('image', 'jpeg'),
+            ),
+          );
 
     final streamedResponse = await request.send().timeout(_timeout);
     final response = await http.Response.fromStream(streamedResponse);
@@ -107,6 +134,8 @@ abstract final class ProfileService {
       throw Exception('Failed to upload document: ${response.body}');
     }
 
-    return UserProfile.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+    return UserProfile.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
   }
 }

@@ -1,89 +1,108 @@
 import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
-import '../../../shared/utils/delivery_carrier.dart';
+import '../../../shared/utils/currency_format.dart';
 import '../../../shared/widgets/app_snack_bar.dart';
+import '../../../shared/widgets/price_display.dart';
+import '../../../shared/widgets/order_review_card.dart';
+import '../../../shared/widgets/order_status_badge.dart';
+import '../../marketplace/widgets/empty_products_notice.dart';
+import '../../orders/models/order.dart';
+import '../../orders/providers/orders_provider.dart';
+import '../../orders/services/dispute_service.dart';
+import '../../orders/services/order_service.dart';
+import '../../orders/widgets/fulfilment_sheets.dart';
+import '../../orders/widgets/order_hold_card.dart';
+import '../../orders/widgets/seller_report_sheet.dart';
+import '../../orders/widgets/release_flow_card.dart';
 import '../../orders/services/receipt_service.dart';
 import '../models/seller_order.dart';
 
 // Same header size/shape as the seller dashboard/orders screens so moving
 // between seller screens feels like the same app.
-const _kHeaderContentHeight = 96.0;
+const _kHeaderContentHeight = 68.0;
 
-class SellerOrderDetailScreen extends StatefulWidget {
+class SellerOrderDetailScreen extends ConsumerWidget {
   const SellerOrderDetailScreen({super.key, required this.orderId});
 
   final String orderId;
 
   @override
-  State<SellerOrderDetailScreen> createState() =>
-      _SellerOrderDetailScreenState();
-}
-
-class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
-  late SellerOrderStatus _status;
-  bool _isSavingReceipt = false;
-
-  SellerOrder get _order => kMockSellerOrders.firstWhere(
-    (order) => order.id == widget.orderId,
-    orElse: () => kMockSellerOrders.first,
-  );
-
-  @override
-  void initState() {
-    super.initState();
-    _status = _order.status;
-  }
-
-  void _acceptOrder() {
-    final l10n = AppLocalizations.of(context);
-    setState(() => _status = SellerOrderStatus.processing);
-    showAppSnackBar(
-      context,
-      message: l10n.sellerOrderDetailOrderAcceptedSnackbar,
-      type: AppSnackBarType.success,
-    );
-  }
-
-  Future<void> _declineOrder() async {
-    final l10n = AppLocalizations.of(context);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.sellerOrderDetailDeclineConfirmTitle),
-        content: Text(l10n.sellerOrderDetailDeclineConfirmMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l10n.sellerOrderDetailDeclineConfirmCancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(
-              l10n.sellerOrderDetailDeclineConfirmConfirm,
-              style: const TextStyle(color: AppColors.brandCrimson),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final orderAsync = ref.watch(orderByIdProvider(orderId));
+    return orderAsync.when(
+      data: (order) => _SellerOrderDetailBody(order: order),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (error, stackTrace) {
+        final colorScheme = Theme.of(context).colorScheme;
+        final textTheme = Theme.of(context).textTheme;
+        return Scaffold(
+          body: Center(
+            child: EmptyProductsNotice(
+              colorScheme: colorScheme,
+              textTheme: textTheme,
+              message: AppLocalizations.of(context).ordersLoadError,
+              onRetry: () => ref.invalidate(orderByIdProvider(orderId)),
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
-    if (confirmed != true || !mounted) return;
-    showAppSnackBar(
-      context,
-      message: l10n.sellerOrderDetailOrderDeclinedSnackbar,
-      type: AppSnackBarType.info,
-    );
-    context.pop();
+  }
+}
+
+class _SellerOrderDetailBody extends ConsumerStatefulWidget {
+  const _SellerOrderDetailBody({required this.order});
+
+  final Order order;
+
+  @override
+  ConsumerState<_SellerOrderDetailBody> createState() =>
+      _SellerOrderDetailBodyState();
+}
+
+class _SellerOrderDetailBodyState
+    extends ConsumerState<_SellerOrderDetailBody> {
+  bool _isSavingReceipt = false;
+  bool _isConfirming = false;
+
+  Future<void> _confirmOrder(Order order) async {
+    final l10n = AppLocalizations.of(context);
+    setState(() => _isConfirming = true);
+    try {
+      await OrderService.confirmOrder(order.id);
+      ref.invalidate(orderByIdProvider(order.id));
+    } catch (e) {
+      if (!mounted) return;
+      showAppSnackBar(
+        context,
+        message: l10n.sellerOrderDetailConfirmFailedSnackbar('$e'),
+        type: AppSnackBarType.error,
+      );
+    } finally {
+      if (mounted) setState(() => _isConfirming = false);
+    }
   }
 
-  Future<void> _saveReceipt(SellerOrder order) async {
+  Future<void> _fulfil(Order order, {required bool delivering}) async {
+    final done = delivering
+        ? await showDeliveryProofSheet(context, order)
+        : await showShipOrderSheet(context, order);
+    if (!done) return;
+    ref.invalidate(orderByIdProvider(order.id));
+    ref.invalidate(sellerOrdersProvider);
+  }
+
+  Future<void> _saveReceipt(Order order) async {
     final l10n = AppLocalizations.of(context);
     setState(() => _isSavingReceipt = true);
     try {
-      final pdfBytes = await ReceiptService.generateSellerReceiptPdf(order);
+      final pdfBytes = await ReceiptService.generateReceiptPdf(order);
       await FileSaver.instance.saveFile(
         name: 'receipt-${order.id}',
         bytes: pdfBytes,
@@ -113,9 +132,7 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
-    final order = _order;
-    final statusColor = sellerOrderStatusColor(_status);
-    final carrierLogoAsset = deliveryLogoAsset(order.deliveryMethod);
+    final order = widget.order;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -136,8 +153,6 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                 children: [
                   _OrderSummaryHeader(
                     order: order,
-                    status: _status,
-                    statusColor: statusColor,
                     colorScheme: colorScheme,
                     textTheme: textTheme,
                   ),
@@ -150,14 +165,14 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          order.buyerName,
+                          order.shippingName,
                           style: textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          order.buyerAddress,
+                          order.shippingAddress,
                           style: textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                             height: 1.4,
@@ -165,7 +180,7 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          l10n.orderDetailPhoneLabel(order.buyerPhone),
+                          l10n.orderDetailPhoneLabel(order.shippingPhone),
                           style: textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
@@ -197,24 +212,31 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                               color: colorScheme.primaryContainer,
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: Image.network(
-                              order.imageUrl,
-                              fit: BoxFit.cover,
-                              loadingBuilder: (context, child, progress) =>
-                                  progress == null
-                                  ? child
-                                  : Icon(
-                                      order.icon,
-                                      color: colorScheme.primary,
-                                      size: 20,
-                                    ),
-                              errorBuilder: (context, error, stackTrace) =>
-                                  Icon(
+                            child: order.imageUrl == null
+                                ? Icon(
                                     order.icon,
                                     color: colorScheme.primary,
                                     size: 20,
+                                  )
+                                : Image.network(
+                                    order.imageUrl!,
+                                    fit: BoxFit.cover,
+                                    loadingBuilder:
+                                        (context, child, progress) =>
+                                            progress == null
+                                            ? child
+                                            : Icon(
+                                                order.icon,
+                                                color: colorScheme.primary,
+                                                size: 20,
+                                              ),
+                                    errorBuilder:
+                                        (context, error, stackTrace) => Icon(
+                                          order.icon,
+                                          color: colorScheme.primary,
+                                          size: 20,
+                                        ),
                                   ),
-                            ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -229,8 +251,7 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  'Qty: ${order.quantityLabel} × '
-                                  '\$${order.unitPrice.toStringAsFixed(2)}',
+                                  l10n.ordersItemCountLabel(order.quantity),
                                   style: textTheme.bodySmall?.copyWith(
                                     color: colorScheme.onSurfaceVariant,
                                   ),
@@ -240,65 +261,13 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                           ),
                           const SizedBox(width: 12),
                           Text(
-                            '\$${order.total.toStringAsFixed(2)}',
+                            formatPrice(ref, order.totalAmount),
                             style: textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _SectionCard(
-                    title: l10n.orderDetailDeliveryMethodSection,
-                    colorScheme: colorScheme,
-                    textTheme: textTheme,
-                    child: Row(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: carrierLogoAsset != null
-                              ? Image.asset(
-                                  carrierLogoAsset,
-                                  width: 56,
-                                  height: 42,
-                                  fit: BoxFit.cover,
-                                )
-                              : Container(
-                                  width: 56,
-                                  height: 42,
-                                  alignment: Alignment.center,
-                                  color: colorScheme.primaryContainer,
-                                  child: Icon(
-                                    Icons.local_shipping_outlined,
-                                    color: colorScheme.primary,
-                                    size: 20,
-                                  ),
-                                ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                l10n.orderDetailCarrierLabel,
-                                style: textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                order.deliveryMethod,
-                                style: textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -310,29 +279,15 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         _SummaryRow(
-                          label: l10n.orderDetailSubtotalLabel,
-                          valueLabel: '\$${order.total.toStringAsFixed(2)}',
+                          label: l10n.orderDetailUnitPriceLabel,
+                          valueLabel: formatPrice(ref, order.unitPrice),
                           colorScheme: colorScheme,
                           textTheme: textTheme,
                         ),
                         const SizedBox(height: 8),
                         _SummaryRow(
-                          label: l10n.sellerOrderDetailPlatformFeeLabel(
-                            (kSellerPlatformFeeRate * 100).round(),
-                          ),
-                          valueLabel:
-                              '-\$${order.platformFee.toStringAsFixed(2)}',
-                          valueColor: AppColors.brandCrimson,
-                          colorScheme: colorScheme,
-                          textTheme: textTheme,
-                        ),
-                        const SizedBox(height: 8),
-                        _SummaryRow(
-                          label: l10n.orderDetailShippingFeeLabel,
-                          valueLabel: order.shippingFeeLabel,
-                          valueColor: order.shippingFee > 0
-                              ? AppColors.trustGreen
-                              : null,
+                          label: l10n.orderDetailQuantityLabel,
+                          valueLabel: '${order.quantity}',
                           colorScheme: colorScheme,
                           textTheme: textTheme,
                         ),
@@ -340,16 +295,17 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                         Row(
                           children: [
                             Text(
-                              l10n.sellerOrderDetailYourEarningsLabel,
+                              l10n.orderDetailTotalAmountLabel,
                               style: textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             const Spacer(),
-                            Text(
-                              '\$${order.earnings.toStringAsFixed(2)}',
+                            PriceDisplay(
+                              order.totalAmount,
+                              crossAxisAlignment: CrossAxisAlignment.end,
                               style: textTheme.titleLarge?.copyWith(
-                                color: AppColors.brandCrimson,
+                                color: colorScheme.primary,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -358,23 +314,100 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                       ],
                     ),
                   ),
+                  if (order.status != OrderStatus.pendingPayment &&
+                      order.status != OrderStatus.cancelled) ...[
+                    const SizedBox(height: 16),
+                    ReleaseFlowCard(order: order),
+                  ],
+                  if (order.status == OrderStatus.disputed) ...[
+                    const SizedBox(height: 16),
+                    if (order.holdSource == 'delivery')
+                      OrderHoldCard(order: order, forSeller: true)
+                    else
+                      _DisputeCaseCard(order: order),
+                  ],
+                  if (order.status == OrderStatus.released) ...[
+                    const SizedBox(height: 16),
+                    _SectionCard(
+                      title: l10n.reviewSectionTitle,
+                      colorScheme: colorScheme,
+                      textTheme: textTheme,
+                      child: order.review != null
+                          ? OrderReviewCard(review: order.review!)
+                          : Padding(
+                              padding: const EdgeInsets.only(top: 10),
+                              child: Text(
+                                l10n.reviewEmptyStateMessage,
+                                style: textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                    ),
+                  ],
                   const SizedBox(height: 20),
-                  if (_status == SellerOrderStatus.pending) ...[
-                    FilledButton(
-                      onPressed: _acceptOrder,
-                      child: Text(l10n.sellerOrderDetailAcceptButton),
-                    ),
-                    const SizedBox(height: 12),
-                    OutlinedButton(
-                      onPressed: _declineOrder,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.brandCrimson,
-                        side: const BorderSide(color: AppColors.brandCrimson),
+                  if (order.status == OrderStatus.held) ...[
+                    if (order.isDelivered)
+                      _InfoLine(
+                        icon: Icons.timer_outlined,
+                        text: l10n.escrowSellerWaitingTimer,
+                      )
+                    else if (order.isShipped)
+                      const SizedBox.shrink()
+                    else if (order.isSellerConfirmed)
+                      FilledButton.icon(
+                        onPressed: () => _fulfil(order, delivering: false),
+                        icon: const Icon(Icons.local_shipping_outlined),
+                        label: Text(l10n.escrowShipButton),
+                      )
+                    else
+                      FilledButton.icon(
+                        onPressed: _isConfirming
+                            ? null
+                            : () => _confirmOrder(order),
+                        icon: _isConfirming
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(Icons.task_alt_rounded),
+                        label: Text(
+                          _isConfirming
+                              ? l10n.sellerOrderDetailConfirmingLabel
+                              : l10n.sellerOrderDetailConfirmButton,
+                        ),
                       ),
-                      child: Text(l10n.sellerOrderDetailDeclineButton),
-                    ),
                     const SizedBox(height: 12),
                   ],
+                  OutlinedButton(
+                    onPressed: () => context.pushNamed(
+                      'deliveryTracking',
+                      pathParameters: {'id': order.id},
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: colorScheme.primary,
+                      side: BorderSide(color: colorScheme.primary),
+                    ),
+                    child: Text(l10n.orderDetailTrackDeliveryButton),
+                  ),
+                  if (order.status == OrderStatus.held &&
+                      (order.isShipped || order.isDelivered)) ...[
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: () => showSellerReportSheet(context, order),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: colorScheme.primary,
+                        side: BorderSide(color: colorScheme.primary),
+                      ),
+                      icon: const Icon(Icons.report_gmailerrorred_outlined),
+                      label: Text(l10n.sellerReportButton),
+                    ),
+                  ],
+                  const SizedBox(height: 12),
                   OutlinedButton.icon(
                     onPressed: _isSavingReceipt
                         ? null
@@ -423,9 +456,9 @@ class _Header extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
-          MediaQuery.of(context).padding.top + 16,
+          MediaQuery.of(context).padding.top + 10,
           24,
-          20,
+          14,
         ),
         child: SizedBox(
           height: _kHeaderContentHeight,
@@ -467,15 +500,11 @@ class _Header extends StatelessWidget {
 class _OrderSummaryHeader extends StatelessWidget {
   const _OrderSummaryHeader({
     required this.order,
-    required this.status,
-    required this.statusColor,
     required this.colorScheme,
     required this.textTheme,
   });
 
-  final SellerOrder order;
-  final SellerOrderStatus status;
-  final Color statusColor;
+  final Order order;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
 
@@ -496,14 +525,16 @@ class _OrderSummaryHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  l10n.orderDetailOrderNumberLabel(order.id),
+                  l10n.orderDetailOrderNumberLabel(order.displayNumber),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  l10n.orderDetailPlacedOnLabel(order.date),
+                  l10n.orderDetailPlacedOnLabel(order.dateLabel),
                   style: textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -511,18 +542,10 @@ class _OrderSummaryHeader extends StatelessWidget {
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: statusColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              status.label,
-              style: textTheme.labelMedium?.copyWith(
-                color: statusColor,
-                fontWeight: FontWeight.bold,
-              ),
+          OrderStatusBadge(
+            label: sellerOrderStatusLabel(
+              order.status,
+              isSellerConfirmed: order.isSellerConfirmed,
             ),
           ),
         ],
@@ -578,12 +601,10 @@ class _SummaryRow extends StatelessWidget {
     required this.valueLabel,
     required this.colorScheme,
     required this.textTheme,
-    this.valueColor,
   });
 
   final String label;
   final String valueLabel;
-  final Color? valueColor;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
 
@@ -600,12 +621,172 @@ class _SummaryRow extends StatelessWidget {
         const Spacer(),
         Text(
           valueLabel,
-          style: textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: valueColor,
+          style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+        ),
+      ],
+    );
+  }
+}
+
+class _InfoLine extends StatelessWidget {
+  const _InfoLine({required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 18, color: AppColors.trustGreen),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],
+    );
+  }
+}
+
+/// The buyer's reported problem as the seller sees it: once the admin opens
+/// the case, the seller writes their side here.
+class _DisputeCaseCard extends StatefulWidget {
+  const _DisputeCaseCard({required this.order});
+
+  final Order order;
+
+  @override
+  State<_DisputeCaseCard> createState() => _DisputeCaseCardState();
+}
+
+class _DisputeCaseCardState extends State<_DisputeCaseCard> {
+  late Future<OrderDispute?> _future = DisputeService.fetchForOrder(
+    widget.order.id,
+  );
+  final _controller = TextEditingController();
+  bool _sending = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _send(OrderDispute dispute) async {
+    final text = _controller.text.trim();
+    if (text.isEmpty) return;
+    final l10n = AppLocalizations.of(context);
+    setState(() => _sending = true);
+    try {
+      await DisputeService.sellerReply(dispute.id, text);
+      if (!mounted) return;
+      setState(() {
+        _sending = false;
+        _future = DisputeService.fetchForOrder(widget.order.id);
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _sending = false);
+      showAppSnackBar(
+        context,
+        message: l10n.escrowActionFailed('$e'),
+        type: AppSnackBarType.error,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: colorScheme.outline),
+      ),
+      child: FutureBuilder<OrderDispute?>(
+        future: _future,
+        builder: (context, snapshot) {
+          final dispute = snapshot.data;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                l10n.escrowSellerReplyTitle.toUpperCase(),
+                style: textTheme.labelMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.4,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                l10n.escrowSellerDisputed,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              if (dispute != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  l10n.escrowSellerReplyReported(
+                    dispute.reason.replaceAll('_', ' '),
+                  ),
+                  style: textTheme.bodyMedium,
+                ),
+                if (dispute.note.isNotEmpty)
+                  Text(
+                    dispute.note,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                const SizedBox(height: 12),
+                if (dispute.sellerResponse != null) ...[
+                  Text(
+                    l10n.escrowSellerReplySent,
+                    style: textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(dispute.sellerResponse!),
+                ] else if (dispute.isCaseOpen) ...[
+                  TextField(
+                    controller: _controller,
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      hintText: l10n.escrowSellerReplyHint,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  FilledButton(
+                    onPressed: _sending ? null : () => _send(dispute),
+                    child: Text(l10n.escrowSellerReplyButton),
+                  ),
+                ] else
+                  Text(
+                    l10n.escrowSellerReplyWaiting,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+              ],
+            ],
+          );
+        },
+      ),
     );
   }
 }

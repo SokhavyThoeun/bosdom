@@ -107,7 +107,10 @@ const kMockSellers = <String, Seller>{
       SellerCertification(label: 'HACCP', icon: Icons.shield_outlined),
       SellerCertification(label: 'ISO 9001', icon: Icons.verified_outlined),
       SellerCertification(label: 'Organic Certified', icon: Icons.eco_outlined),
-      SellerCertification(label: 'Fair Trade', icon: Icons.workspace_premium_outlined),
+      SellerCertification(
+        label: 'Fair Trade',
+        icon: Icons.workspace_premium_outlined,
+      ),
     ],
     highlights: [
       SellerHighlight(
@@ -158,7 +161,13 @@ const kMockSellers = <String, Seller>{
   ),
 };
 
-Seller sellerFor(String name, {required IconData icon, required double rating, required String location, required bool verified}) {
+Seller sellerFor(
+  String name, {
+  required IconData icon,
+  required double rating,
+  required String location,
+  required bool verified,
+}) {
   return kMockSellers[name] ??
       Seller(
         name: name,
@@ -177,7 +186,10 @@ Seller sellerFor(String name, {required IconData icon, required double rating, r
         responseTime: 'Within 48 hours',
         shipping: 'Phnom Penh & nearby provinces',
         certifications: const [
-          SellerCertification(label: 'Verified Seller', icon: Icons.verified_outlined),
+          SellerCertification(
+            label: 'Verified Seller',
+            icon: Icons.verified_outlined,
+          ),
         ],
         highlights: const [
           SellerHighlight(

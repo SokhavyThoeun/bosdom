@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/config/api_config.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/session/app_session.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../auth/models/merchant_role.dart';
 import '../../auth/services/auth_service.dart';
@@ -14,6 +14,7 @@ import '../providers/profile_provider.dart';
 import '../widgets/data_privacy_popup.dart';
 import '../widgets/marketing_emails_popup.dart';
 import '../widgets/personalized_ads_popup.dart';
+import '../widgets/seller_approval_gate.dart';
 
 class _ProfileMenuItem {
   const _ProfileMenuItem(this.icon, this.label, {this.route, this.onTap});
@@ -48,7 +49,11 @@ List<_ProfileMenuItem> _sellingItems(AppLocalizations l10n) => [
     l10n.profileMenuShopProfile,
     route: 'shopProfile',
   ),
-  _ProfileMenuItem(Icons.bar_chart_rounded, l10n.profileMenuMyInventory),
+  _ProfileMenuItem(
+    Icons.bar_chart_rounded,
+    l10n.profileMenuMyInventory,
+    route: 'myInventory',
+  ),
   _ProfileMenuItem(
     Icons.add_circle_outline,
     l10n.profileMenuAddListing,
@@ -63,11 +68,6 @@ List<_ProfileMenuItem> _sellingItems(AppLocalizations l10n) => [
     Icons.location_on_outlined,
     l10n.profileMenuAddressStore,
     route: 'storeAddressBook',
-  ),
-  _ProfileMenuItem(
-    Icons.chat_bubble_outline,
-    l10n.profileMenuBuyerChat,
-    route: 'chatList',
   ),
 ];
 
@@ -157,7 +157,11 @@ class ProfileScreen extends ConsumerWidget {
     ).showSnackBar(SnackBar(content: Text(l10n.commonComingSoon(label))));
   }
 
-  void _handleTap(BuildContext context, _ProfileMenuItem item) {
+  void _handleTap(BuildContext context, WidgetRef ref, _ProfileMenuItem item) {
+    if (isSellerActionGated(ref, item.route)) {
+      showSellerApprovalPendingDialog(context, ref);
+      return;
+    }
     if (item.onTap != null) {
       item.onTap!(context);
     } else if (item.route != null) {
@@ -170,6 +174,9 @@ class ProfileScreen extends ConsumerWidget {
   Future<void> _logout(BuildContext context) async {
     await AuthService.signOut();
     if (context.mounted) context.goNamed('login');
+    // Discards every provider's cached state so a different account signing
+    // in next doesn't see this account's data until a manual refresh.
+    appSessionEpoch.value++;
   }
 
   Future<void> _refresh(BuildContext context, WidgetRef ref) async {
@@ -228,7 +235,7 @@ class ProfileScreen extends ConsumerWidget {
                       items: _shoppingItems(l10n),
                       colorScheme: colorScheme,
                       textTheme: textTheme,
-                      onTap: (item) => _handleTap(context, item),
+                      onTap: (item) => _handleTap(context, ref, item),
                     ),
                     const SizedBox(height: 24),
                     if (isSeller) ...[
@@ -242,7 +249,7 @@ class ProfileScreen extends ConsumerWidget {
                         items: _sellingItems(l10n),
                         colorScheme: colorScheme,
                         textTheme: textTheme,
-                        onTap: (item) => _handleTap(context, item),
+                        onTap: (item) => _handleTap(context, ref, item),
                       ),
                       const SizedBox(height: 24),
                     ],
@@ -256,7 +263,7 @@ class ProfileScreen extends ConsumerWidget {
                       items: _accountItems(l10n, isSeller: isSeller),
                       colorScheme: colorScheme,
                       textTheme: textTheme,
-                      onTap: (item) => _handleTap(context, item),
+                      onTap: (item) => _handleTap(context, ref, item),
                     ),
                     const SizedBox(height: 24),
                     _SectionLabel(
@@ -269,7 +276,7 @@ class ProfileScreen extends ConsumerWidget {
                       items: _settingsItems(l10n, isSeller: isSeller),
                       colorScheme: colorScheme,
                       textTheme: textTheme,
-                      onTap: (item) => _handleTap(context, item),
+                      onTap: (item) => _handleTap(context, ref, item),
                     ),
                     const SizedBox(height: 24),
                     _SectionLabel(
@@ -282,7 +289,7 @@ class ProfileScreen extends ConsumerWidget {
                       items: _supportItems(l10n),
                       colorScheme: colorScheme,
                       textTheme: textTheme,
-                      onTap: (item) => _handleTap(context, item),
+                      onTap: (item) => _handleTap(context, ref, item),
                     ),
                     const SizedBox(height: 24),
                     _SectionLabel(
@@ -295,7 +302,7 @@ class ProfileScreen extends ConsumerWidget {
                       items: _aboutItems(l10n),
                       colorScheme: colorScheme,
                       textTheme: textTheme,
-                      onTap: (item) => _handleTap(context, item),
+                      onTap: (item) => _handleTap(context, ref, item),
                     ),
                     const SizedBox(height: 28),
                     _LogoutButton(
@@ -325,16 +332,15 @@ class _ProfileHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(profileProvider).value;
     final l10n = AppLocalizations.of(context);
-    final isSeller = profile?.role == MerchantRole.supplier.name;
 
     return DecoratedBox(
       decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
-          MediaQuery.of(context).padding.top + 16,
+          MediaQuery.of(context).padding.top + 10,
           24,
-          28,
+          22,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -379,7 +385,8 @@ class _ProfileHeader extends ConsumerWidget {
                             ApiConfig.resolveAvatarUrl(profile!.avatarUrl)!,
                           )
                         : null,
-                    child: ApiConfig.resolveAvatarUrl(profile?.avatarUrl) == null
+                    child:
+                        ApiConfig.resolveAvatarUrl(profile?.avatarUrl) == null
                         ? Icon(
                             Icons.person,
                             size: 34,
@@ -394,28 +401,14 @@ class _ProfileHeader extends ConsumerWidget {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              profile?.name ?? '',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: textTheme.titleLarge?.copyWith(
-                                color: colorScheme.onPrimary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          if (isSeller) ...[
-                            const SizedBox(width: 6),
-                            Icon(
-                              Icons.verified_rounded,
-                              size: 18,
-                              color: AppColors.trustGreen,
-                            ),
-                          ],
-                        ],
+                      Text(
+                        profile?.name ?? '',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.titleLarge?.copyWith(
+                          color: colorScheme.onPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 5),
                       Row(

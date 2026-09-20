@@ -1,39 +1,47 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/providers/currency_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
-enum _CurrencyCode { usd, khr }
-
-extension on _CurrencyCode {
+extension on AppCurrency {
   String name(AppLocalizations l10n) =>
-      this == _CurrencyCode.usd ? l10n.currencyUsdName : l10n.currencyKhrName;
-  String get symbol => this == _CurrencyCode.usd ? r'$' : '៛';
+      this == AppCurrency.usd ? l10n.currencyUsdName : l10n.currencyKhrName;
+  String get symbol => this == AppCurrency.usd ? r'$' : '៛';
   String get rateLine =>
-      this == _CurrencyCode.usd ? r'$1.00 = ៛4,100' : '៛4,100 = \$1.00';
+      this == AppCurrency.usd ? r'$1.00 = ៛4,100' : '៛4,100 = \$1.00';
 }
 
-class PaymentCurrencyScreen extends StatefulWidget {
+class PaymentCurrencyScreen extends ConsumerStatefulWidget {
   const PaymentCurrencyScreen({super.key});
 
   @override
-  State<PaymentCurrencyScreen> createState() => _PaymentCurrencyScreenState();
+  ConsumerState<PaymentCurrencyScreen> createState() =>
+      _PaymentCurrencyScreenState();
 }
 
-class _PaymentCurrencyScreenState extends State<PaymentCurrencyScreen> {
-  _CurrencyCode _selected = _CurrencyCode.usd;
-  bool _showBoth = true;
+class _PaymentCurrencyScreenState extends ConsumerState<PaymentCurrencyScreen> {
+  late AppCurrency _selected = ref.read(currencyProvider);
+  late bool _showBoth = ref.read(showBothCurrenciesProvider);
+  bool _userEditedCurrency = false;
+  bool _userEditedShowBoth = false;
   bool _refreshing = false;
   bool _saving = false;
   bool _justSaved = false;
   String _lastUpdated = 'Aug 8, 2026';
 
-  void _selectCurrency(_CurrencyCode code) {
+  void _selectCurrency(AppCurrency code) {
     if (code == _selected) return;
     HapticFeedback.selectionClick();
-    setState(() => _selected = code);
+    setState(() {
+      _selected = code;
+      _userEditedCurrency = true;
+    });
   }
 
   Future<void> _refreshRate() async {
@@ -52,6 +60,8 @@ class _PaymentCurrencyScreenState extends State<PaymentCurrencyScreen> {
     if (_saving) return;
     HapticFeedback.mediumImpact();
     setState(() => _saving = true);
+    await ref.read(currencyProvider.notifier).setCurrency(_selected);
+    await ref.read(showBothCurrenciesProvider.notifier).setShowBoth(_showBoth);
     await Future.delayed(const Duration(milliseconds: 650));
     if (!mounted) return;
     setState(() {
@@ -72,6 +82,20 @@ class _PaymentCurrencyScreenState extends State<PaymentCurrencyScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
+
+    // The providers restore their persisted value asynchronously after
+    // first read, so catch that up here if the user hasn't already made a
+    // choice of their own on this screen.
+    ref.listen<AppCurrency>(currencyProvider, (previous, next) {
+      if (!_userEditedCurrency && next != _selected) {
+        setState(() => _selected = next);
+      }
+    });
+    ref.listen<bool>(showBothCurrenciesProvider, (previous, next) {
+      if (!_userEditedShowBoth && next != _showBoth) {
+        setState(() => _showBoth = next);
+      }
+    });
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -101,15 +125,15 @@ class _PaymentCurrencyScreenState extends State<PaymentCurrencyScreen> {
                   _SectionLabel(l10n.currencySectionSelect),
                   const SizedBox(height: 12),
                   _CurrencyCard(
-                    code: _CurrencyCode.usd,
-                    selected: _selected == _CurrencyCode.usd,
-                    onTap: () => _selectCurrency(_CurrencyCode.usd),
+                    code: AppCurrency.usd,
+                    selected: _selected == AppCurrency.usd,
+                    onTap: () => _selectCurrency(AppCurrency.usd),
                   ),
                   const SizedBox(height: 12),
                   _CurrencyCard(
-                    code: _CurrencyCode.khr,
-                    selected: _selected == _CurrencyCode.khr,
-                    onTap: () => _selectCurrency(_CurrencyCode.khr),
+                    code: AppCurrency.khr,
+                    selected: _selected == AppCurrency.khr,
+                    onTap: () => _selectCurrency(AppCurrency.khr),
                   ),
                   const SizedBox(height: 24),
                   _ExchangeRateCard(
@@ -125,7 +149,10 @@ class _PaymentCurrencyScreenState extends State<PaymentCurrencyScreen> {
                     enabled: _showBoth,
                     onChanged: (value) {
                       HapticFeedback.selectionClick();
-                      setState(() => _showBoth = value);
+                      setState(() {
+                        _showBoth = value;
+                        _userEditedShowBoth = true;
+                      });
                     },
                   ),
                   const SizedBox(height: 28),
@@ -155,12 +182,12 @@ class _CurrencyHeader extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
-          MediaQuery.of(context).padding.top + 16,
+          MediaQuery.of(context).padding.top + 10,
           24,
-          20,
+          14,
         ),
         child: SizedBox(
-          height: 96,
+          height: 68,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -220,7 +247,7 @@ class _CurrencyCard extends StatelessWidget {
     required this.onTap,
   });
 
-  final _CurrencyCode code;
+  final AppCurrency code;
   final bool selected;
   final VoidCallback onTap;
 
@@ -326,7 +353,7 @@ class _ExchangeRateCard extends StatelessWidget {
     required this.onRefresh,
   });
 
-  final _CurrencyCode selected;
+  final AppCurrency selected;
   final bool refreshing;
   final String lastUpdated;
   final VoidCallback onRefresh;
@@ -361,16 +388,27 @@ class _ExchangeRateCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           AnimatedSwitcher(
-            duration: const Duration(milliseconds: 260),
-            transitionBuilder: (child, animation) => FadeTransition(
-              opacity: animation,
-              child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0, 0.15),
-                  end: Offset.zero,
-                ).animate(animation),
-                child: child,
-              ),
+            duration: const Duration(milliseconds: 420),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            transitionBuilder: (child, animation) => AnimatedBuilder(
+              animation: animation,
+              child: child,
+              builder: (context, child) {
+                final t = animation.value.clamp(0.0, 1.0);
+                final angle = (1 - t) * (math.pi / 2.4);
+                return Opacity(
+                  opacity: t,
+                  child: Transform(
+                    alignment: Alignment.centerLeft,
+                    transform: Matrix4.identity()
+                      ..setEntry(3, 2, 0.0022)
+                      ..rotateX(angle)
+                      ..scaleByDouble(0.92 + 0.08 * t, 0.92 + 0.08 * t, 1, 1),
+                    child: child,
+                  ),
+                );
+              },
             ),
             child: Text(
               selected.rateLine,

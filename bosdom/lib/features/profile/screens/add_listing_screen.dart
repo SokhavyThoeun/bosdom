@@ -56,6 +56,10 @@ class _AddListingScreenState extends State<AddListingScreen> {
   final _stockController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _samplePriceController = TextEditingController();
+  final _weightController = TextEditingController();
+  final _originController = TextEditingController();
+  final _gradeController = TextEditingController();
+  final _packagingController = TextEditingController();
   final _picker = ImagePicker();
 
   String? _category;
@@ -163,6 +167,10 @@ class _AddListingScreenState extends State<AddListingScreen> {
     _stockController.dispose();
     _descriptionController.dispose();
     _samplePriceController.dispose();
+    _weightController.dispose();
+    _originController.dispose();
+    _gradeController.dispose();
+    _packagingController.dispose();
     super.dispose();
   }
 
@@ -210,6 +218,10 @@ class _AddListingScreenState extends State<AddListingScreen> {
             if (_selectedColorNames.contains(palette.name))
               ListingColorOption(name: palette.name, hex: palette.hex),
         ],
+        weight: _weightController.text.trim(),
+        origin: _originController.text.trim(),
+        grade: _gradeController.text.trim(),
+        packaging: _packagingController.text.trim(),
         photos: [
           for (final photo in _photos)
             if (photo != null) File(photo.path),
@@ -396,6 +408,94 @@ class _AddListingScreenState extends State<AddListingScreen> {
                     ),
                     const SizedBox(height: 24),
                     Text(
+                      l10n.addListingSpecsLabel,
+                      style: textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.warmBlack,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      l10n.addListingSpecsHelper,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: AppColors.roseMist,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: _AppTextField(
+                            label: l10n.addListingWeightLabel,
+                            controller: _weightController,
+                            icon: Icons.scale_outlined,
+                            hintText: l10n.addListingWeightHint,
+                            validator: (value) {
+                              if ((value ?? '').trim().isEmpty) {
+                                return l10n.addListingWeightRequired;
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _AppTextField(
+                            label: l10n.addListingOriginLabel,
+                            controller: _originController,
+                            icon: Icons.public,
+                            hintText: l10n.addListingOriginHint,
+                            textCapitalization: TextCapitalization.words,
+                            validator: (value) {
+                              if ((value ?? '').trim().isEmpty) {
+                                return l10n.addListingOriginRequired;
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: _AppTextField(
+                            label: l10n.addListingGradeLabel,
+                            controller: _gradeController,
+                            icon: Icons.workspace_premium_outlined,
+                            hintText: l10n.addListingGradeHint,
+                            textCapitalization: TextCapitalization.words,
+                            validator: (value) {
+                              if ((value ?? '').trim().isEmpty) {
+                                return l10n.addListingGradeRequired;
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _AppTextField(
+                            label: l10n.addListingPackagingLabel,
+                            controller: _packagingController,
+                            icon: Icons.archive_outlined,
+                            hintText: l10n.addListingPackagingHint,
+                            textCapitalization: TextCapitalization.words,
+                            validator: (value) {
+                              if ((value ?? '').trim().isEmpty) {
+                                return l10n.addListingPackagingRequired;
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
                       l10n.addListingPhotosLabel,
                       style: textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.bold,
@@ -543,12 +643,12 @@ class _Header extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
-          MediaQuery.of(context).padding.top + 16,
+          MediaQuery.of(context).padding.top + 10,
           24,
-          20,
+          14,
         ),
         child: SizedBox(
-          height: 96,
+          height: 68,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -1035,14 +1135,15 @@ InputDecoration _fieldDecoration({
   required String label,
   IconData? icon,
   String? hintText,
+  int maxLines = 1,
 }) {
   return InputDecoration(
     labelText: label.toUpperCase(),
     floatingLabelBehavior: FloatingLabelBehavior.always,
     hintText: hintText,
-    hintMaxLines: 4,
+    hintMaxLines: maxLines,
     hintStyle: const TextStyle(fontWeight: FontWeight.w400),
-    alignLabelWithHint: true,
+    alignLabelWithHint: maxLines > 1,
     filled: true,
     fillColor: Colors.white,
     isDense: true,
@@ -1147,6 +1248,9 @@ class _AppTextField extends StatelessWidget {
       keyboardType: keyboardType,
       textCapitalization: textCapitalization,
       maxLines: maxLines,
+      textAlignVertical: maxLines == 1
+          ? TextAlignVertical.center
+          : TextAlignVertical.top,
       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
         fontWeight: FontWeight.w600,
         color: AppColors.warmBlack,
@@ -1155,6 +1259,7 @@ class _AppTextField extends StatelessWidget {
         label: label,
         icon: icon,
         hintText: hintText,
+        maxLines: maxLines,
       ),
       validator: validator,
     );

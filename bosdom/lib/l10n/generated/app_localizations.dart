@@ -1046,6 +1046,18 @@ abstract class AppLocalizations {
   /// **'Your cart is empty'**
   String get cartEmptyState;
 
+  /// No description provided for @cartLoadErrorMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your cart. Tap to retry.'**
+  String get cartLoadErrorMessage;
+
+  /// No description provided for @cartUpdateErrorSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t update your cart. Please try again.'**
+  String get cartUpdateErrorSnackbar;
+
   /// No description provided for @checkoutDeliveryAddressLabel.
   ///
   /// In en, this message translates to:
@@ -1178,17 +1190,41 @@ abstract class AppLocalizations {
   /// **'e.g. Building B, Zone 3, Veng Sreng Blvd'**
   String get addressHouseFieldHint;
 
+  /// No description provided for @addressDistrictFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'DISTRICT (KHAN)'**
+  String get addressDistrictFieldLabel;
+
+  /// No description provided for @addressDistrictFieldHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select district...'**
+  String get addressDistrictFieldHint;
+
+  /// No description provided for @addressDistrictFreeTextHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. District name'**
+  String get addressDistrictFreeTextHint;
+
   /// No description provided for @addressSangkatFieldLabel.
   ///
   /// In en, this message translates to:
-  /// **'SANGKAT / DISTRICT'**
+  /// **'SANGKAT'**
   String get addressSangkatFieldLabel;
 
   /// No description provided for @addressSangkatFieldHint.
   ///
   /// In en, this message translates to:
-  /// **'e.g. Sangkat Choam Chao'**
+  /// **'Select sangkat...'**
   String get addressSangkatFieldHint;
+
+  /// No description provided for @addressSangkatFreeTextHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Sangkat / commune name'**
+  String get addressSangkatFreeTextHint;
 
   /// No description provided for @addressLandmarkFieldLabel.
   ///
@@ -1454,6 +1490,12 @@ abstract class AppLocalizations {
   /// **'Chat'**
   String get chatScreenTitle;
 
+  /// No description provided for @chatSellerScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer Messages'**
+  String get chatSellerScreenTitle;
+
   /// No description provided for @chatSearchHint.
   ///
   /// In en, this message translates to:
@@ -1465,6 +1507,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No conversations yet'**
   String get chatEmptyTitle;
+
+  /// No description provided for @chatSellerEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages from customers yet'**
+  String get chatSellerEmptyTitle;
 
   /// No description provided for @chatEmptyQuery.
   ///
@@ -1495,6 +1543,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t send message. Try again.'**
   String get chatSendError;
+
+  /// No description provided for @chatPhotoSendError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send photo. Try again.'**
+  String get chatPhotoSendError;
 
   /// No description provided for @chatStartConversationError.
   ///
@@ -1556,16 +1610,28 @@ abstract class AppLocalizations {
   /// **'Choose from gallery'**
   String get chatAttachPhotoGallery;
 
+  /// No description provided for @chatPhotoPreviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send this photo?'**
+  String get chatPhotoPreviewTitle;
+
+  /// No description provided for @chatPhotoPreviewSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get chatPhotoPreviewSend;
+
   /// No description provided for @liveChatTitle.
   ///
   /// In en, this message translates to:
-  /// **'Live Chat'**
+  /// **'BosDom'**
   String get liveChatTitle;
 
   /// No description provided for @liveChatStatusOnline.
   ///
   /// In en, this message translates to:
-  /// **'Online • Usually replies instantly'**
+  /// **'Support team • Replies Mon-Fri, 8 AM - 6 PM'**
   String get liveChatStatusOnline;
 
   /// No description provided for @liveChatStatusOffline.
@@ -2048,19 +2114,19 @@ abstract class AppLocalizations {
   /// No description provided for @coBuyCreateTargetQtyLabel.
   ///
   /// In en, this message translates to:
-  /// **'Target Retailers'**
+  /// **'Target Quantity'**
   String get coBuyCreateTargetQtyLabel;
 
   /// No description provided for @coBuyCreateTargetQtyHint.
   ///
   /// In en, this message translates to:
-  /// **'e.g. 20'**
+  /// **'e.g. 1000 kg'**
   String get coBuyCreateTargetQtyHint;
 
   /// No description provided for @coBuyCreateTargetQtyRequired.
   ///
   /// In en, this message translates to:
-  /// **'Target retailers is required'**
+  /// **'Target quantity is required'**
   String get coBuyCreateTargetQtyRequired;
 
   /// No description provided for @coBuyCreateTargetQtyInvalid.
@@ -2068,6 +2134,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter a valid number'**
   String get coBuyCreateTargetQtyInvalid;
+
+  /// No description provided for @coBuyCreateTargetQtyTooLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Target quantity must be at least the minimum order'**
+  String get coBuyCreateTargetQtyTooLow;
 
   /// No description provided for @coBuyCreateUnitLabelLabel.
   ///
@@ -2457,17 +2529,155 @@ abstract class AppLocalizations {
   /// **'Co-Buy Full'**
   String get coBuyDetailFullLabel;
 
+  /// No description provided for @coBuyDetailOwnListingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Listing'**
+  String get coBuyDetailOwnListingLabel;
+
   /// No description provided for @coBuyDetailJoinedLabel.
   ///
   /// In en, this message translates to:
-  /// **'You\'re in · tap to leave'**
+  /// **'You\'re in · request to leave'**
   String get coBuyDetailJoinedLabel;
+
+  /// No description provided for @coBuyDetailLeavePendingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave request pending review'**
+  String get coBuyDetailLeavePendingLabel;
+
+  /// No description provided for @coBuyDetailLeaveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request to leave?'**
+  String get coBuyDetailLeaveTitle;
+
+  /// No description provided for @coBuyDetailLeaveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your payment is held in escrow. An admin will review your request and refund you if it\'s approved.'**
+  String get coBuyDetailLeaveBody;
+
+  /// No description provided for @coBuyDetailLeaveReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Why do you want to leave?'**
+  String get coBuyDetailLeaveReasonHint;
+
+  /// No description provided for @coBuyDetailLeaveReasonTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Please give a short reason.'**
+  String get coBuyDetailLeaveReasonTooShort;
+
+  /// No description provided for @coBuyDetailLeaveSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Send request'**
+  String get coBuyDetailLeaveSubmit;
+
+  /// No description provided for @coBuyDetailLeaveSentSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave request sent. An admin will review it.'**
+  String get coBuyDetailLeaveSentSnackbar;
+
+  /// No description provided for @coBuyDetailLeaveRejectedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Your leave request was rejected: {note}'**
+  String coBuyDetailLeaveRejectedNote(String note);
 
   /// No description provided for @coBuyDetailJoinLabel.
   ///
   /// In en, this message translates to:
   /// **'Join Co-Buy · {amount}'**
   String coBuyDetailJoinLabel(String amount);
+
+  /// No description provided for @coBuyDetailPendingPaymentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue to Payment'**
+  String get coBuyDetailPendingPaymentLabel;
+
+  /// No description provided for @coBuyDetailReleasedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Order Placed'**
+  String get coBuyDetailReleasedLabel;
+
+  /// No description provided for @coBuyDetailRefundPendingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund Pending'**
+  String get coBuyDetailRefundPendingLabel;
+
+  /// No description provided for @coBuyDetailLeaveConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave this Co-Buy?'**
+  String get coBuyDetailLeaveConfirmTitle;
+
+  /// No description provided for @coBuyDetailLeaveConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {amount} payment will stay held until an admin releases your refund. This isn\'t instant.'**
+  String coBuyDetailLeaveConfirmBody(String amount);
+
+  /// No description provided for @coBuyDetailLeaveConfirmButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave & Request Refund'**
+  String get coBuyDetailLeaveConfirmButton;
+
+  /// No description provided for @coBuyDetailLeaveRequestedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund pending for {productName}. An admin will release your payment soon.'**
+  String coBuyDetailLeaveRequestedSnackbar(String productName);
+
+  /// No description provided for @coBuyDealsFulfillButtonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark Fulfilled'**
+  String get coBuyDealsFulfillButtonLabel;
+
+  /// No description provided for @coBuyDealsFulfillConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark this deal fulfilled?'**
+  String get coBuyDealsFulfillConfirmTitle;
+
+  /// No description provided for @coBuyDealsFulfillConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This releases every buyer\'s held payment to you. Only confirm after you\'ve shipped the pooled order to them.'**
+  String get coBuyDealsFulfillConfirmBody;
+
+  /// No description provided for @coBuyDealsFulfilledSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Deal marked fulfilled. Payments released.'**
+  String get coBuyDealsFulfilledSnackbar;
+
+  /// No description provided for @coBuyingPendingPaymentPillLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete Payment'**
+  String get coBuyingPendingPaymentPillLabel;
+
+  /// No description provided for @coBuyingRefundPendingPillLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund Pending'**
+  String get coBuyingRefundPendingPillLabel;
+
+  /// No description provided for @coBuyingOrderPlacedPillLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Order Placed'**
+  String get coBuyingOrderPlacedPillLabel;
 
   /// No description provided for @wishlistScreenTitle.
   ///
@@ -2492,6 +2702,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add to Cart'**
   String get wishlistAddToCartButton;
+
+  /// No description provided for @wishlistAddedToWishlistSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'{productName} added to wishlist'**
+  String wishlistAddedToWishlistSnackbar(String productName);
+
+  /// No description provided for @wishlistRemovedFromWishlistSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'{productName} removed from wishlist'**
+  String wishlistRemovedFromWishlistSnackbar(String productName);
+
+  /// No description provided for @wishlistToggleErrorSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t update your wishlist. Please try again.'**
+  String get wishlistToggleErrorSnackbar;
+
+  /// No description provided for @wishlistLoadErrorMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your wishlist. Tap to retry.'**
+  String get wishlistLoadErrorMessage;
 
   /// No description provided for @marketplaceCategoriesTitle.
   ///
@@ -2528,6 +2762,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t load products. Tap to retry.'**
   String get marketplaceProductsLoadError;
+
+  /// No description provided for @marketplaceNoCoBuyDealsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No co-buy deals yet. Check back soon!'**
+  String get marketplaceNoCoBuyDealsYet;
+
+  /// No description provided for @marketplaceCoBuyDealsLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load co-buy deals. Tap to retry.'**
+  String get marketplaceCoBuyDealsLoadError;
 
   /// No description provided for @marketplaceCoBuyJoinButton.
   ///
@@ -2658,7 +2904,7 @@ abstract class AppLocalizations {
   /// No description provided for @productDetailSampleRequestedSnackbar.
   ///
   /// In en, this message translates to:
-  /// **'Sample requested'**
+  /// **'Sample purchased'**
   String get productDetailSampleRequestedSnackbar;
 
   /// No description provided for @productDetailAddToCartButton.
@@ -2670,7 +2916,7 @@ abstract class AppLocalizations {
   /// No description provided for @productDetailSampleAlreadyRequested.
   ///
   /// In en, this message translates to:
-  /// **'Sample Already Requested'**
+  /// **'Sample Already Bought'**
   String get productDetailSampleAlreadyRequested;
 
   /// No description provided for @productDetailSampleCooldownActive.
@@ -2682,13 +2928,13 @@ abstract class AppLocalizations {
   /// No description provided for @productDetailRequestSample.
   ///
   /// In en, this message translates to:
-  /// **'Request Sample'**
+  /// **'Buy Sample'**
   String get productDetailRequestSample;
 
   /// No description provided for @productDetailSampleCooldownNote.
   ///
   /// In en, this message translates to:
-  /// **'You can request another sample after {date}.'**
+  /// **'You can buy another sample after {date}.'**
   String productDetailSampleCooldownNote(String date);
 
   /// No description provided for @productDetailSampleLimitNote.
@@ -2696,6 +2942,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Limited to 1 sample every 3 days'**
   String get productDetailSampleLimitNote;
+
+  /// No description provided for @productDetailOwnListingNote.
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t buy or sample your own listing'**
+  String get productDetailOwnListingNote;
 
   /// No description provided for @storeProfileStatProducts.
   ///
@@ -2745,6 +2997,12 @@ abstract class AppLocalizations {
   /// **'About'**
   String get storeProfileAboutSectionTitle;
 
+  /// No description provided for @storeProfileNoDescriptionYet.
+  ///
+  /// In en, this message translates to:
+  /// **'This seller hasn\'t added a shop description yet.'**
+  String get storeProfileNoDescriptionYet;
+
   /// No description provided for @storeProfileBusinessDetailsTitle.
   ///
   /// In en, this message translates to:
@@ -2768,6 +3026,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Location'**
   String get storeProfileLabelLocation;
+
+  /// No description provided for @storeProfileContactTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Information'**
+  String get storeProfileContactTitle;
+
+  /// No description provided for @storeProfileLabelPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone Number'**
+  String get storeProfileLabelPhone;
+
+  /// No description provided for @storeProfileLabelEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email Address'**
+  String get storeProfileLabelEmail;
 
   /// No description provided for @storeProfileLabelMinimumOrder.
   ///
@@ -2840,6 +3116,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Top Seller'**
   String get storeProfileTopSellerChip;
+
+  /// No description provided for @storePowerSellerBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Power Seller'**
+  String get storePowerSellerBadge;
 
   /// No description provided for @storeProfileRatingBreakdownTitle.
   ///
@@ -2985,6 +3267,12 @@ abstract class AppLocalizations {
   /// **'Rate & Review'**
   String get ordersRateReviewButton;
 
+  /// No description provided for @ordersAlreadyReviewedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviewed'**
+  String get ordersAlreadyReviewedLabel;
+
   /// No description provided for @ordersReportButton.
   ///
   /// In en, this message translates to:
@@ -2996,6 +3284,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Report order'**
   String get ordersReportLabel;
+
+  /// No description provided for @sellerReportButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Report a delivery problem'**
+  String get sellerReportButton;
+
+  /// No description provided for @sellerReportPhotosLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Screenshots (optional, up to 3)'**
+  String get sellerReportPhotosLabel;
+
+  /// No description provided for @sellerReportSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report a delivery problem'**
+  String get sellerReportSheetTitle;
+
+  /// No description provided for @sellerReportIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us what went wrong. An admin will look into it and keep the buyer updated.'**
+  String get sellerReportIntro;
+
+  /// No description provided for @sellerReportReasonDelayed.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery delayed'**
+  String get sellerReportReasonDelayed;
+
+  /// No description provided for @sellerReportReasonLost.
+  ///
+  /// In en, this message translates to:
+  /// **'Parcel lost or damaged'**
+  String get sellerReportReasonLost;
+
+  /// No description provided for @sellerReportReasonUnreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'Buyer unreachable'**
+  String get sellerReportReasonUnreachable;
+
+  /// No description provided for @sellerReportReasonAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address problem'**
+  String get sellerReportReasonAddress;
+
+  /// No description provided for @sellerReportSubmittedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Report sent. An admin will follow up and update the buyer.'**
+  String get sellerReportSubmittedSnackbar;
+
+  /// No description provided for @sellerReportFailedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send the report: {error}'**
+  String sellerReportFailedSnackbar(String error);
 
   /// No description provided for @ordersReportSheetTitle.
   ///
@@ -3267,16 +3615,28 @@ abstract class AppLocalizations {
   /// **'Order placed'**
   String get deliveryStepOrderPlaced;
 
-  /// No description provided for @deliveryStepPaymentHeld.
+  /// No description provided for @deliveryStepAwaitingSellerConfirmation.
   ///
   /// In en, this message translates to:
-  /// **'Payment held in escrow'**
-  String get deliveryStepPaymentHeld;
+  /// **'Awaiting seller confirmation'**
+  String get deliveryStepAwaitingSellerConfirmation;
+
+  /// No description provided for @deliveryStepSellerProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Seller is processing your order'**
+  String get deliveryStepSellerProcessing;
+
+  /// No description provided for @deliveryStepDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery'**
+  String get deliveryStepDelivery;
 
   /// No description provided for @deliveryStepReleased.
   ///
   /// In en, this message translates to:
-  /// **'Released to seller'**
+  /// **'Order completed'**
   String get deliveryStepReleased;
 
   /// No description provided for @deliveryStepDisputed.
@@ -3351,6 +3711,30 @@ abstract class AppLocalizations {
   /// **'WRITE A REVIEW'**
   String get reviewWriteReviewLabel;
 
+  /// No description provided for @reviewRatingRequiredSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Please rate the product before submitting.'**
+  String get reviewRatingRequiredSnackbar;
+
+  /// No description provided for @reviewSubmitFailedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t submit your review: {error}'**
+  String reviewSubmitFailedSnackbar(String error);
+
+  /// No description provided for @reviewSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Buyer Review'**
+  String get reviewSectionTitle;
+
+  /// No description provided for @reviewEmptyStateMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No review yet from the buyer.'**
+  String get reviewEmptyStateMessage;
+
   /// No description provided for @paymentScreenTitle.
   ///
   /// In en, this message translates to:
@@ -3398,6 +3782,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'CARD HOLDER'**
   String get paymentCardHolderLabel;
+
+  /// No description provided for @paymentCardHolderNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name on card'**
+  String get paymentCardHolderNameHint;
+
+  /// No description provided for @paymentCardHolderPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR NAME'**
+  String get paymentCardHolderPlaceholder;
 
   /// No description provided for @paymentCardValidThruLabel.
   ///
@@ -3963,6 +4359,54 @@ abstract class AppLocalizations {
   /// **'View All'**
   String get sellerDashboardViewAllLabel;
 
+  /// No description provided for @sellerApprovalPendingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Approval Pending'**
+  String get sellerApprovalPendingTitle;
+
+  /// No description provided for @sellerApprovalPendingMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your shop is being reviewed by our team. You\'ll be notified once it\'s approved and you can start listing products. In the meantime, feel free to shop around!'**
+  String get sellerApprovalPendingMessage;
+
+  /// No description provided for @sellerApprovalRejectedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification Rejected'**
+  String get sellerApprovalRejectedTitle;
+
+  /// No description provided for @sellerApprovalRejectedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your KYC documents didn\'t pass review. Resubmit them to continue setting up your shop.'**
+  String get sellerApprovalRejectedMessage;
+
+  /// No description provided for @sellerApprovalResubmitAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Resubmit Documents'**
+  String get sellerApprovalResubmitAction;
+
+  /// No description provided for @sellerApprovalGotItAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Got It'**
+  String get sellerApprovalGotItAction;
+
+  /// No description provided for @sellerApprovalSubmittedOnLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted on {date}'**
+  String sellerApprovalSubmittedOnLabel(String date);
+
+  /// No description provided for @sellerApprovalReviewedOnLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviewed on {date}'**
+  String sellerApprovalReviewedOnLabel(String date);
+
   /// No description provided for @sellerEarningsScreenTitle.
   ///
   /// In en, this message translates to:
@@ -3972,7 +4416,7 @@ abstract class AppLocalizations {
   /// No description provided for @sellerEarningsAvailableBalanceLabel.
   ///
   /// In en, this message translates to:
-  /// **'Available Balance'**
+  /// **'Released Balance'**
   String get sellerEarningsAvailableBalanceLabel;
 
   /// No description provided for @sellerEarningsCompletedSalesPercentLabel.
@@ -3984,7 +4428,7 @@ abstract class AppLocalizations {
   /// No description provided for @sellerEarningsWithdrawButton.
   ///
   /// In en, this message translates to:
-  /// **'Withdraw'**
+  /// **'Request Release'**
   String get sellerEarningsWithdrawButton;
 
   /// No description provided for @sellerEarningsReleasedLabel.
@@ -4098,7 +4542,7 @@ abstract class AppLocalizations {
   /// No description provided for @sellerEarningsEscrowNoticeText.
   ///
   /// In en, this message translates to:
-  /// **'Funds are held in escrow for 48 hours after purchase. Once released, tap Withdraw to transfer earnings to your bank account.'**
+  /// **'Funds stay in escrow until the buyer confirms delivery. Once you confirm an order, tap Request Release and the admin will review and release it.'**
   String get sellerEarningsEscrowNoticeText;
 
   /// No description provided for @sellerEarningsEmptyStateMessage.
@@ -4221,6 +4665,120 @@ abstract class AppLocalizations {
   /// **'OK'**
   String get sellerEarningsWithdrawSuccessOkButton;
 
+  /// No description provided for @sellerEarningsBankNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank Name'**
+  String get sellerEarningsBankNameLabel;
+
+  /// No description provided for @sellerEarningsBankNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. ABA Bank, ACLEDA, Wing'**
+  String get sellerEarningsBankNameHint;
+
+  /// No description provided for @sellerEarningsAccountNumberInvalidError.
+  ///
+  /// In en, this message translates to:
+  /// **'Digits only'**
+  String get sellerEarningsAccountNumberInvalidError;
+
+  /// No description provided for @sellerEarningsPayoutNoticeText.
+  ///
+  /// In en, this message translates to:
+  /// **'Your request goes to the admin for approval. Once approved, the money reaches this account in around 1 to 3 hours. Only money from orders the buyer has already received is included.'**
+  String get sellerEarningsPayoutNoticeText;
+
+  /// No description provided for @sellerEarningsPayoutNothingMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your released balance is empty. Money shows up here once a buyer receives their item.'**
+  String get sellerEarningsPayoutNothingMessage;
+
+  /// No description provided for @sellerEarningsPayoutSuccessMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your request to withdraw {amount} was sent to the admin for approval. Once approved, it may take around 1 to 3 hours to reach your bank account.'**
+  String sellerEarningsPayoutSuccessMessage(String amount);
+
+  /// No description provided for @sellerEarningsPayoutFailedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t request payout: {error}'**
+  String sellerEarningsPayoutFailedSnackbar(String error);
+
+  /// No description provided for @sellerEarningsPayoutArrivingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} on its way to your bank'**
+  String sellerEarningsPayoutArrivingLabel(String amount);
+
+  /// No description provided for @sellerEarningsPayoutArrivingBy.
+  ///
+  /// In en, this message translates to:
+  /// **'May take around 1 to 3 hours'**
+  String get sellerEarningsPayoutArrivingBy;
+
+  /// No description provided for @sellerEarningsPayoutPendingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} awaiting admin approval'**
+  String sellerEarningsPayoutPendingLabel(String amount);
+
+  /// No description provided for @sellerEarningsPayoutPendingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent to your bank 1 to 3 hours after approval'**
+  String get sellerEarningsPayoutPendingHint;
+
+  /// No description provided for @sellerEarningsStatusReleaseRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Release Requested'**
+  String get sellerEarningsStatusReleaseRequested;
+
+  /// No description provided for @sellerEarningsRequestReleaseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request Fund Release'**
+  String get sellerEarningsRequestReleaseTitle;
+
+  /// No description provided for @sellerEarningsRequestReleaseMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask the admin to release {amount} from {count} confirmed orders now?'**
+  String sellerEarningsRequestReleaseMessage(int count, String amount);
+
+  /// No description provided for @sellerEarningsRequestReleaseConfirmButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Request'**
+  String get sellerEarningsRequestReleaseConfirmButton;
+
+  /// No description provided for @sellerEarningsRequestReleaseCancelButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get sellerEarningsRequestReleaseCancelButton;
+
+  /// No description provided for @sellerEarningsRequestReleaseNothingMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No confirmed orders are waiting in escrow. Confirm an order first, then request its release.'**
+  String get sellerEarningsRequestReleaseNothingMessage;
+
+  /// No description provided for @sellerEarningsRequestReleaseSuccessMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Release requested for {count} orders ({amount}). The admin will review it shortly.'**
+  String sellerEarningsRequestReleaseSuccessMessage(int count, String amount);
+
+  /// No description provided for @sellerEarningsRequestReleaseFailedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t request release: {error}'**
+  String sellerEarningsRequestReleaseFailedSnackbar(String error);
+
   /// No description provided for @sellerOrdersScreenTitle.
   ///
   /// In en, this message translates to:
@@ -4323,6 +4881,78 @@ abstract class AppLocalizations {
   /// **'Decline'**
   String get sellerOrderDetailDeclineConfirmConfirm;
 
+  /// No description provided for @sellerOrderDetailConfirmButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Order'**
+  String get sellerOrderDetailConfirmButton;
+
+  /// No description provided for @sellerOrderDetailConfirmingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirming...'**
+  String get sellerOrderDetailConfirmingLabel;
+
+  /// No description provided for @sellerOrderDetailConfirmedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Order Confirmed'**
+  String get sellerOrderDetailConfirmedLabel;
+
+  /// No description provided for @sellerOrderDetailRequestReleaseButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Request Fund Release'**
+  String get sellerOrderDetailRequestReleaseButton;
+
+  /// No description provided for @sellerOrderDetailReleaseRequestedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Release requested, waiting for admin approval'**
+  String get sellerOrderDetailReleaseRequestedLabel;
+
+  /// No description provided for @sellerOrderDetailRequestReleaseFailedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t request release: {error}'**
+  String sellerOrderDetailRequestReleaseFailedSnackbar(String error);
+
+  /// No description provided for @sellerOrderDetailConfirmFailedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t confirm order: {error}'**
+  String sellerOrderDetailConfirmFailedSnackbar(String error);
+
+  /// No description provided for @orderDetailSellerConfirmedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Seller confirmed'**
+  String get orderDetailSellerConfirmedLabel;
+
+  /// No description provided for @orderDetailAwaitingSellerConfirmationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting seller confirmation'**
+  String get orderDetailAwaitingSellerConfirmationLabel;
+
+  /// No description provided for @orderDetailConfirmReceivedButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Item Received'**
+  String get orderDetailConfirmReceivedButton;
+
+  /// No description provided for @orderDetailConfirmReceivingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirming...'**
+  String get orderDetailConfirmReceivingLabel;
+
+  /// No description provided for @orderDetailConfirmReceivedFailedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t confirm receipt: {error}'**
+  String orderDetailConfirmReceivedFailedSnackbar(String error);
+
   /// No description provided for @myInventoryScreenTitle.
   ///
   /// In en, this message translates to:
@@ -4365,6 +4995,12 @@ abstract class AppLocalizations {
   /// **'No products found.'**
   String get myInventoryEmptyStateMessage;
 
+  /// No description provided for @myInventoryLoadErrorMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your inventory. Tap to retry.'**
+  String get myInventoryLoadErrorMessage;
+
   /// No description provided for @myInventoryListingActivatedSnackbar.
   ///
   /// In en, this message translates to:
@@ -4376,6 +5012,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{product} is now inactive'**
   String myInventoryListingDeactivatedSnackbar(String product);
+
+  /// No description provided for @myInventoryUpdateErrorSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t update the listing. Please try again.'**
+  String get myInventoryUpdateErrorSnackbar;
 
   /// No description provided for @profileEditProfileRoleLabel.
   ///
@@ -4736,6 +5378,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please enter a valid quantity'**
   String get addListingStockInvalid;
+
+  /// No description provided for @addListingSpecsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Wholesale Specifications'**
+  String get addListingSpecsLabel;
+
+  /// No description provided for @addListingSpecsHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Help buyers know what they\'re ordering'**
+  String get addListingSpecsHelper;
+
+  /// No description provided for @addListingWeightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get addListingWeightLabel;
+
+  /// No description provided for @addListingWeightHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 25kg per bag'**
+  String get addListingWeightHint;
+
+  /// No description provided for @addListingWeightRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a weight'**
+  String get addListingWeightRequired;
+
+  /// No description provided for @addListingOriginLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Origin'**
+  String get addListingOriginLabel;
+
+  /// No description provided for @addListingOriginHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Cambodia'**
+  String get addListingOriginHint;
+
+  /// No description provided for @addListingOriginRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter an origin'**
+  String get addListingOriginRequired;
+
+  /// No description provided for @addListingGradeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade'**
+  String get addListingGradeLabel;
+
+  /// No description provided for @addListingGradeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Premium AA'**
+  String get addListingGradeHint;
+
+  /// No description provided for @addListingGradeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a grade'**
+  String get addListingGradeRequired;
+
+  /// No description provided for @addListingPackagingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Packaging'**
+  String get addListingPackagingLabel;
+
+  /// No description provided for @addListingPackagingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Woven PP bag'**
+  String get addListingPackagingHint;
+
+  /// No description provided for @addListingPackagingRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a packaging type'**
+  String get addListingPackagingRequired;
 
   /// No description provided for @addListingPhotosLabel.
   ///
@@ -6498,7 +7224,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutStoryBody.
   ///
   /// In en, this message translates to:
-  /// **'Founded to solve trust deficiencies in Cambodia\'s B2B retail supply chain, Bosdom deploys an independent secure digital procurement ecosystem to empower small-to-medium retail owners.'**
+  /// **'Bosdom was started to fix the trust problem in Cambodia\'s wholesale supply chain. It gives small and medium retail owners a safe way to buy and sell in bulk.'**
   String get aboutStoryBody;
 
   /// No description provided for @aboutStatRetailers.
@@ -6566,6 +7292,324 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Color'**
   String get variantColorLabel;
+
+  /// No description provided for @escrowFlowTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How your payment is released'**
+  String get escrowFlowTitle;
+
+  /// No description provided for @escrowStepPaidTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Order placed'**
+  String get escrowStepPaidTitle;
+
+  /// No description provided for @escrowStepPaidDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment held in escrow'**
+  String get escrowStepPaidDetail;
+
+  /// No description provided for @escrowStepPreparesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Seller prepares'**
+  String get escrowStepPreparesTitle;
+
+  /// No description provided for @escrowStepPreparesDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting the order ready'**
+  String get escrowStepPreparesDetail;
+
+  /// No description provided for @escrowStepShippedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shipped'**
+  String get escrowStepShippedTitle;
+
+  /// No description provided for @escrowStepShippedDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo + tracking'**
+  String get escrowStepShippedDetail;
+
+  /// No description provided for @escrowStepTimerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Timer starts'**
+  String get escrowStepTimerTitle;
+
+  /// No description provided for @escrowStepTimerDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Buyer review window'**
+  String get escrowStepTimerDetail;
+
+  /// No description provided for @escrowStepReleaseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto released to seller'**
+  String get escrowStepReleaseTitle;
+
+  /// No description provided for @escrowStepReleaseDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Fee taken, seller paid'**
+  String get escrowStepReleaseDetail;
+
+  /// No description provided for @escrowTimerLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{time} left to report a problem'**
+  String escrowTimerLeft(String time);
+
+  /// No description provided for @escrowTimerFrozen.
+  ///
+  /// In en, this message translates to:
+  /// **'Timer paused while an admin reviews the report'**
+  String get escrowTimerFrozen;
+
+  /// No description provided for @escrowTrackingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{courier} · {number}'**
+  String escrowTrackingLabel(String courier, String number);
+
+  /// No description provided for @escrowReportProblemButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Report a problem'**
+  String get escrowReportProblemButton;
+
+  /// No description provided for @escrowReportSubmittedFrozen.
+  ///
+  /// In en, this message translates to:
+  /// **'Problem reported. The timer is frozen while an admin reviews it.'**
+  String get escrowReportSubmittedFrozen;
+
+  /// No description provided for @escrowShipButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Ship order'**
+  String get escrowShipButton;
+
+  /// No description provided for @escrowShipSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ship order'**
+  String get escrowShipSheetTitle;
+
+  /// No description provided for @escrowCourierLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Courier'**
+  String get escrowCourierLabel;
+
+  /// No description provided for @escrowCourierHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. VET, J&T, Cambodia Post'**
+  String get escrowCourierHint;
+
+  /// No description provided for @escrowTrackingNumberLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking number'**
+  String get escrowTrackingNumberLabel;
+
+  /// No description provided for @escrowParcelPhotoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo of the parcel'**
+  String get escrowParcelPhotoLabel;
+
+  /// No description provided for @escrowAddPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photo'**
+  String get escrowAddPhoto;
+
+  /// No description provided for @escrowPhotoRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please add a photo'**
+  String get escrowPhotoRequired;
+
+  /// No description provided for @escrowShipSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm shipment'**
+  String get escrowShipSubmit;
+
+  /// No description provided for @escrowMarkDeliveredButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload proof of delivery'**
+  String get escrowMarkDeliveredButton;
+
+  /// No description provided for @escrowDeliverySheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Proof of delivery'**
+  String get escrowDeliverySheetTitle;
+
+  /// No description provided for @escrowDeliverySheetNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload the courier\'s receipt or a handover photo. The buyer\'s review timer starts when you submit.'**
+  String get escrowDeliverySheetNote;
+
+  /// No description provided for @escrowDeliverySubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as delivered'**
+  String get escrowDeliverySubmit;
+
+  /// No description provided for @escrowActionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong: {error}'**
+  String escrowActionFailed(String error);
+
+  /// No description provided for @escrowSellerWaitingTimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered. Funds release automatically when the buyer\'s review window ends.'**
+  String get escrowSellerWaitingTimer;
+
+  /// No description provided for @escrowSellerWaitingDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Shipped.'**
+  String get escrowSellerWaitingDelivery;
+
+  /// No description provided for @escrowSellerDisputed.
+  ///
+  /// In en, this message translates to:
+  /// **'A problem was reported on this order. Funds are on hold while an admin reviews.'**
+  String get escrowSellerDisputed;
+
+  /// No description provided for @escrowSellerReplyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin case'**
+  String get escrowSellerReplyTitle;
+
+  /// No description provided for @escrowSellerReplyReported.
+  ///
+  /// In en, this message translates to:
+  /// **'Reported: {reason}'**
+  String escrowSellerReplyReported(String reason);
+
+  /// No description provided for @escrowSellerReplyWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for an admin to open the case.'**
+  String get escrowSellerReplyWaiting;
+
+  /// No description provided for @escrowSellerReplyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your reply to the admin'**
+  String get escrowSellerReplyHint;
+
+  /// No description provided for @escrowSellerReplyButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Send reply'**
+  String get escrowSellerReplyButton;
+
+  /// No description provided for @escrowSellerReplySent.
+  ///
+  /// In en, this message translates to:
+  /// **'Your reply'**
+  String get escrowSellerReplySent;
+
+  /// No description provided for @orderHoldTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What happened'**
+  String get orderHoldTitle;
+
+  /// No description provided for @orderHoldReasonDeliveryDelayed.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery delayed'**
+  String get orderHoldReasonDeliveryDelayed;
+
+  /// No description provided for @orderHoldReasonLostOrDamaged.
+  ///
+  /// In en, this message translates to:
+  /// **'Parcel lost or damaged'**
+  String get orderHoldReasonLostOrDamaged;
+
+  /// No description provided for @orderHoldReasonBuyerUnreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery could not reach you'**
+  String get orderHoldReasonBuyerUnreachable;
+
+  /// No description provided for @orderHoldReasonAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address problem'**
+  String get orderHoldReasonAddress;
+
+  /// No description provided for @orderHoldReasonWrongItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong item received'**
+  String get orderHoldReasonWrongItem;
+
+  /// No description provided for @orderHoldReasonDamaged.
+  ///
+  /// In en, this message translates to:
+  /// **'Item damaged'**
+  String get orderHoldReasonDamaged;
+
+  /// No description provided for @orderHoldReasonMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Item missing'**
+  String get orderHoldReasonMissing;
+
+  /// No description provided for @orderHoldReasonLate.
+  ///
+  /// In en, this message translates to:
+  /// **'Late delivery'**
+  String get orderHoldReasonLate;
+
+  /// No description provided for @orderHoldReasonOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other problem'**
+  String get orderHoldReasonOther;
+
+  /// No description provided for @orderHoldReasonBuyerUnreachableSeller.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipient could not be reached'**
+  String get orderHoldReasonBuyerUnreachableSeller;
+
+  /// No description provided for @orderHoldSellerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This order was cancelled by the BosDom Support Team following a delivery issue reported by the courier. No further action is required from you.'**
+  String get orderHoldSellerBody;
+
+  /// No description provided for @orderHoldBuyerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You reported an issue with this order. Our support team is reviewing your case, and your payment remains safely held in escrow. If the decision is in your favour, your refund will be issued within 2 to 3 days.'**
+  String get orderHoldBuyerBody;
+
+  /// No description provided for @orderHoldDeliveryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The delivery service reported an issue with your parcel, so the BosDom Support Team has cancelled this order. Your payment is fully protected, and your refund will be issued to you by {date}.'**
+  String orderHoldDeliveryBody(String date);
 }
 
 class _AppLocalizationsDelegate

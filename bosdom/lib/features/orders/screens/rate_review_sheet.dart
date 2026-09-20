@@ -1,10 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
 import '../models/order.dart';
+import '../providers/orders_provider.dart';
+import '../services/order_service.dart';
 
 const _kMaxPhotos = 6;
 
@@ -21,17 +24,17 @@ Future<void> showRateReviewSheet(BuildContext context, Order order) {
   );
 }
 
-class _RateReviewSheet extends StatefulWidget {
+class _RateReviewSheet extends ConsumerStatefulWidget {
   const _RateReviewSheet({required this.order});
 
   final Order order;
 
   @override
-  State<_RateReviewSheet> createState() => _RateReviewSheetState();
+  ConsumerState<_RateReviewSheet> createState() => _RateReviewSheetState();
 }
 
-class _RateReviewSheetState extends State<_RateReviewSheet> {
-  int _productRating = 5;
+class _RateReviewSheetState extends ConsumerState<_RateReviewSheet> {
+  int _productRating = 0;
   final _reviewController = TextEditingController();
   final _picker = ImagePicker();
   final List<XFile> _photos = [];
@@ -65,14 +68,39 @@ class _RateReviewSheetState extends State<_RateReviewSheet> {
   }
 
   Future<void> _submit() async {
-    setState(() => _isSubmitting = true);
-    await Future<void>.delayed(const Duration(milliseconds: 500));
-    if (!mounted) return;
     final l10n = AppLocalizations.of(context);
-    Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.reviewSubmittedSnackbar)),
-    );
+    if (_productRating == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.reviewRatingRequiredSnackbar)),
+      );
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+    try {
+      final orderId = widget.order.id;
+      await OrderService.submitReview(
+        orderId: orderId,
+        rating: _productRating,
+        comment: _reviewController.text.trim(),
+        photoPaths: _photos.map((photo) => photo.path).toList(),
+      );
+      ref.invalidate(orderByIdProvider(orderId));
+      ref.invalidate(ordersProvider);
+      ref.invalidate(sellerOrdersProvider);
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.reviewSubmittedSnackbar)));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.reviewSubmitFailedSnackbar('$e'))),
+      );
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   @override
@@ -145,8 +173,10 @@ class _RateReviewSheetState extends State<_RateReviewSheet> {
                 _RatingCard(
                   label: l10n.reviewRateProductLabel,
                   icon: order.icon,
+                  imageUrl: order.imageUrl,
                   name: order.productName,
-                  badge: null,
+                  sellerName: order.sellerName,
+                  sellerLogoUrl: order.sellerLogoUrl,
                   rating: _productRating,
                   onChanged: (value) => setState(() => _productRating = value),
                   colorScheme: colorScheme,
@@ -165,9 +195,7 @@ class _RateReviewSheetState extends State<_RateReviewSheet> {
                 TextField(
                   controller: _reviewController,
                   maxLines: 3,
-                  decoration: InputDecoration(
-                    hintText: l10n.reviewHintText,
-                  ),
+                  decoration: InputDecoration(hintText: l10n.reviewHintText),
                 ),
                 const SizedBox(height: 18),
                 Text(
@@ -198,7 +226,9 @@ class _RateReviewSheetState extends State<_RateReviewSheet> {
                             ),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: colorScheme.primary.withValues(alpha: 0.45),
+                              color: colorScheme.primary.withValues(
+                                alpha: 0.45,
+                              ),
                               width: 1.2,
                             ),
                           ),
@@ -278,8 +308,10 @@ class _RatingCard extends StatelessWidget {
   const _RatingCard({
     required this.label,
     required this.icon,
+    required this.imageUrl,
     required this.name,
-    required this.badge,
+    required this.sellerName,
+    required this.sellerLogoUrl,
     required this.rating,
     required this.onChanged,
     required this.colorScheme,
@@ -288,8 +320,10 @@ class _RatingCard extends StatelessWidget {
 
   final String label;
   final IconData icon;
+  final String? imageUrl;
   final String name;
-  final String? badge;
+  final String? sellerName;
+  final String? sellerLogoUrl;
   final int rating;
   final ValueChanged<int> onChanged;
   final ColorScheme colorScheme;
@@ -317,49 +351,110 @@ class _RatingCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Container(
-                width: 34,
-                height: 34,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(10),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: SizedBox(
+                  width: 34,
+                  height: 34,
+                  child: (imageUrl == null || imageUrl!.isEmpty)
+                      ? Container(
+                          color: colorScheme.primaryContainer,
+                          alignment: Alignment.center,
+                          child: Icon(
+                            icon,
+                            size: 17,
+                            color: colorScheme.primary,
+                          ),
+                        )
+                      : Image.network(
+                          imageUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(
+                                color: colorScheme.primaryContainer,
+                                alignment: Alignment.center,
+                                child: Icon(
+                                  icon,
+                                  size: 17,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                        ),
                 ),
-                child: Icon(icon, size: 17, color: colorScheme.primary),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(
-                  name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (sellerName != null && sellerName!.isNotEmpty)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: SizedBox(
+                              width: 14,
+                              height: 14,
+                              child:
+                                  (sellerLogoUrl == null ||
+                                      sellerLogoUrl!.isEmpty)
+                                  ? Container(
+                                      color: colorScheme.primaryContainer,
+                                      alignment: Alignment.center,
+                                      child: Icon(
+                                        Icons.storefront_outlined,
+                                        size: 10,
+                                        color: colorScheme.primary,
+                                      ),
+                                    )
+                                  : Image.network(
+                                      sellerLogoUrl!,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (
+                                            context,
+                                            error,
+                                            stackTrace,
+                                          ) => Container(
+                                            color: colorScheme.primaryContainer,
+                                            alignment: Alignment.center,
+                                            child: Icon(
+                                              Icons.storefront_outlined,
+                                              size: 10,
+                                              color: colorScheme.primary,
+                                            ),
+                                          ),
+                                    ),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              sellerName!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: textTheme.labelSmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
                 ),
               ),
-              if (badge != null) ...[
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    badge!,
-                    style: textTheme.labelSmall?.copyWith(
-                      color: colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 9,
-                    ),
-                  ),
-                ),
-              ],
             ],
           ),
           const SizedBox(height: 4),
@@ -369,7 +464,7 @@ class _RatingCard extends StatelessWidget {
               for (var i = 0; i < 5; i++)
                 _StarButton(
                   filled: i < rating,
-                  onTap: () => onChanged(i + 1),
+                  onTap: () => onChanged(i + 1 == rating ? 0 : i + 1),
                 ),
             ],
           ),

@@ -14,7 +14,8 @@ enum MerchantRole {
   ),
   supplier(
     title: 'Wholesaler / Supplier',
-    subtitle: 'Distributor or manufacturer. List products and receive bulk orders.',
+    subtitle:
+        'Distributor or manufacturer. List products and receive bulk orders.',
     icon: Icons.inventory_2_outlined,
     totalSteps: 4,
   );

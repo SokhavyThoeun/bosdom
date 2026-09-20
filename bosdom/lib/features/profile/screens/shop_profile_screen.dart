@@ -106,6 +106,11 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
               phone: _phoneController.text.trim(),
               email: _emailController.text.trim(),
               description: _descriptionController.text.trim(),
+              // This screen doesn't expose store type / online store URL
+              // fields — carry the values set during onboarding forward
+              // instead of silently wiping them on every save.
+              storeType: ref.read(shopProfileProvider).value?.storeType ?? '',
+              storeUrl: ref.read(shopProfileProvider).value?.storeUrl ?? '',
               logoUrl: ref.read(shopProfileProvider).value?.logoUrl ?? '',
             ),
           );
@@ -155,6 +160,7 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
           Expanded(
             child: SafeArea(
               top: false,
+              bottom: false,
               child: shopState.isLoading && !_initialized
                   ? const Center(child: CircularProgressIndicator())
                   : Form(
@@ -331,12 +337,12 @@ class _Header extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
-          MediaQuery.of(context).padding.top + 16,
+          MediaQuery.of(context).padding.top + 10,
           24,
-          20,
+          14,
         ),
         child: SizedBox(
-          height: 96,
+          height: 68,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisAlignment: MainAxisAlignment.center,

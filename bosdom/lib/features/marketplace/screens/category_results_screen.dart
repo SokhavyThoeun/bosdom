@@ -20,8 +20,7 @@ class CategoryResultsScreen extends ConsumerStatefulWidget {
       _CategoryResultsScreenState();
 }
 
-class _CategoryResultsScreenState
-    extends ConsumerState<CategoryResultsScreen> {
+class _CategoryResultsScreenState extends ConsumerState<CategoryResultsScreen> {
   final _controller = TextEditingController();
   final Set<String> _selectedCategories = {};
   String _query = '';
@@ -156,7 +155,10 @@ class _CategoryResultsScreenState
                                         24,
                                         0,
                                         24,
-                                        8 + MediaQuery.of(context).padding.bottom,
+                                        8 +
+                                            MediaQuery.of(
+                                              context,
+                                            ).padding.bottom,
                                       ),
                                       itemCount: results.length,
                                       separatorBuilder: (_, _) =>
@@ -224,9 +226,9 @@ class _Header extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
-          MediaQuery.of(context).padding.top + 16,
+          MediaQuery.of(context).padding.top + 10,
           24,
-          20,
+          14,
         ),
         child: SizedBox(
           height: _kHeaderContentHeight,
@@ -234,15 +236,18 @@ class _Header extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              InkWell(
-                onTap: () => context.pop(),
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Icon(
-                    Icons.arrow_back,
-                    color: colorScheme.onPrimary,
-                    size: 20,
+              Align(
+                alignment: Alignment.centerLeft,
+                child: InkWell(
+                  onTap: () => context.pop(),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Icon(
+                      Icons.arrow_back,
+                      color: colorScheme.onPrimary,
+                      size: 20,
+                    ),
                   ),
                 ),
               ),

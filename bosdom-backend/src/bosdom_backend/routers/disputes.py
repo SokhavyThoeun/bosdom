@@ -2,19 +2,24 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from ..auth import CurrentUser, get_current_user
 from ..db import get_db
-from ..models import Dispute, DisputeEvidence, Order
+from ..utils.images import save_image_as_webp
+from ..models import Dispute, DisputeEvidence, Order, SellerReport
 from .orders import (
     STATUS_DISPUTED,
     STATUS_REFUNDED,
     STATUS_RELEASED,
+    _aware,
     _get_participant_order,
     _transition,
+    auto_release_due_orders,
+    fee_rate_for,
+    release_funds,
 )
 
 router = APIRouter(tags=["disputes"])
@@ -33,18 +38,37 @@ EVIDENCE_WINDOW = timedelta(hours=48)
 
 DISPUTE_STATUS_EVIDENCE_WINDOW = "evidence_window"
 DISPUTE_STATUS_UNDER_REVIEW = "under_review"
+# The admin has opened a case: seller and courier are asked to reply, then
+# the admin decides.
+DISPUTE_STATUS_CASE_OPEN = "case_open"
 DISPUTE_STATUS_RESOLVED = "resolved"
 
 RESOLUTION_RELEASE = "release"
 RESOLUTION_REFUND = "refund"
 _VALID_RESOLUTIONS = {RESOLUTION_RELEASE, RESOLUTION_REFUND}
+VALID_FAULTS = {"seller", "courier", "buyer", "none"}
 
 
-def _aware(dt: datetime) -> datetime:
-    """SQLite (used by the test harness) returns tz-naive datetimes even for
-    DateTime(timezone=True) columns that are tz-aware on the real Postgres
-    backend — same landmine as 12.1's eligibility check."""
-    return dt if dt.tzinfo is not None else dt.replace(tzinfo=timezone.utc)
+def settle_dispute(
+    db: Session, dispute: Dispute, resolution: str, fault: str | None
+) -> Order:
+    """Drives the order to released (fee taken, seller paid) or refunded and
+    closes the dispute. Shared by the seller's refund and the admin's decision."""
+    order = db.get(Order, dispute.order_id)
+    if order is None:
+        raise HTTPException(status_code=404, detail="Order not found")
+    now = datetime.now(timezone.utc)
+    if resolution == RESOLUTION_RELEASE:
+        release_funds(order, now, fee_rate=fee_rate_for(db, order.seller_id, now))
+    else:
+        _transition(order, STATUS_REFUNDED)
+        order.refunded_at = now
+        order.review_remaining_seconds = None
+    dispute.status = DISPUTE_STATUS_RESOLVED
+    dispute.resolution = resolution
+    dispute.fault = fault
+    dispute.resolved_at = now
+    return order
 
 
 def _get_dispute_for_participant(db: Session, dispute_id: str, user_id: str) -> Dispute:
@@ -74,6 +98,12 @@ class DisputeOut(BaseModel):
     evidence_deadline: datetime
     resolution: str | None
     resolved_at: datetime | None
+    case_opened_at: datetime | None
+    seller_response: str | None
+    seller_responded_at: datetime | None
+    courier_response: str | None
+    courier_responded_at: datetime | None
+    fault: str | None
     created_at: datetime
     updated_at: datetime
 
@@ -82,6 +112,10 @@ class DisputeOut(BaseModel):
 
 class DisputeResolveRequest(BaseModel):
     resolution: str
+
+
+class SellerReplyRequest(BaseModel):
+    text: str
 
 
 class DisputeEvidenceOut(BaseModel):
@@ -112,7 +146,22 @@ def open_dispute(
     if existing is not None:
         raise HTTPException(status_code=409, detail="A dispute already exists for this order")
 
+    auto_release_due_orders(db)
+    db.refresh(order)
+    if order.status != "held":
+        raise HTTPException(
+            status_code=409,
+            detail="The review window has closed. Funds were already released"
+            if order.status == STATUS_RELEASED
+            else f"Cannot report a problem on a '{order.status}' order",
+        )
     _transition(order, STATUS_DISPUTED)
+    # Freeze the review timer: remember how long was left, and stop it so it
+    # can't auto-release while the case is open.
+    if order.review_deadline_at is not None:
+        remaining = _aware(order.review_deadline_at) - datetime.now(timezone.utc)
+        order.review_remaining_seconds = max(0, int(remaining.total_seconds()))
+        order.review_deadline_at = None
 
     dispute = Dispute(
         order_id=order.id,
@@ -209,36 +258,96 @@ def resolve_dispute(
         raise HTTPException(
             status_code=403, detail="The dispute's raiser cannot resolve it"
         )
-    if payload.resolution not in _VALID_RESOLUTIONS:
+    if payload.resolution != RESOLUTION_REFUND:
+        # Only the admin can decide a dispute in the seller's favour; the
+        # seller can only concede and refund the buyer.
         raise HTTPException(
-            status_code=400, detail="Resolution must be 'release' or 'refund'"
+            status_code=403, detail="Only an admin can release funds on a dispute"
         )
     if dispute.status == DISPUTE_STATUS_RESOLVED:
         raise HTTPException(status_code=409, detail="Dispute already resolved")
-    if (
-        dispute.status == DISPUTE_STATUS_EVIDENCE_WINDOW
-        and datetime.now(timezone.utc) <= _aware(dispute.evidence_deadline)
-    ):
-        # Forces the buyer to actually submit evidence before the seller has
-        # to respond, unless the window has lapsed without any — then the
-        # seller can resolve it themselves rather than waiting forever.
-        raise HTTPException(
-            status_code=409,
-            detail="Cannot resolve until evidence is submitted or the evidence window closes",
-        )
 
-    order = db.get(Order, dispute.order_id)
-    now = datetime.now(timezone.utc)
-    if payload.resolution == RESOLUTION_RELEASE:
-        _transition(order, STATUS_RELEASED)
-        order.released_at = now
-    else:
-        _transition(order, STATUS_REFUNDED)
-        order.refunded_at = now
-
-    dispute.status = DISPUTE_STATUS_RESOLVED
-    dispute.resolution = payload.resolution
-    dispute.resolved_at = now
+    settle_dispute(db, dispute, RESOLUTION_REFUND, fault="seller")
     db.commit()
     db.refresh(dispute)
     return dispute
+
+
+@router.post("/disputes/{dispute_id}/seller-reply", response_model=DisputeOut)
+def seller_reply(
+    dispute_id: str,
+    payload: SellerReplyRequest,
+    user: CurrentUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> Dispute:
+    """The seller's side of the story, once the admin has opened the case."""
+    dispute = _get_dispute_for_participant(db, dispute_id, user.id)
+    order = db.get(Order, dispute.order_id)
+    if order is None or user.id != order.seller_id:
+        raise HTTPException(status_code=403, detail="Only the seller can reply")
+    if dispute.status != DISPUTE_STATUS_CASE_OPEN:
+        raise HTTPException(status_code=409, detail="The case is not open for replies")
+    text = payload.text.strip()
+    if not text:
+        raise HTTPException(status_code=422, detail="Reply can't be empty")
+    dispute.seller_response = text
+    dispute.seller_responded_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(dispute)
+    return dispute
+
+
+SELLER_REPORT_PHOTOS_DIR = (
+    Path(__file__).resolve().parent.parent / "media" / "seller_report_photos"
+)
+_MAX_SELLER_REPORT_PHOTOS = 3
+
+
+class SellerReportOut(BaseModel):
+    id: str
+    order_id: str
+    reason: str
+    note: str
+    photo_urls: list[str]
+    status: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+@router.post("/orders/{order_id}/seller-report", response_model=SellerReportOut)
+def report_as_seller(
+    order_id: str,
+    reason: str = Form(...),
+    note: str = Form(""),
+    photos: list[UploadFile] = File(default_factory=list),
+    user: CurrentUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> SellerReport:
+    """The seller flags a delivery problem (delay, lost parcel, ...) so an
+    admin can look into it and update the buyer. Doesn't touch the order's
+    status or funds."""
+    order = _get_participant_order(db, order_id, user.id)
+    if user.id != order.seller_id:
+        raise HTTPException(status_code=403, detail="Only the seller can report here")
+    if len(photos) > _MAX_SELLER_REPORT_PHOTOS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Up to {_MAX_SELLER_REPORT_PHOTOS} photos are allowed",
+        )
+    photo_urls = [
+        f"/media/seller_report_photos/"
+        f"{save_image_as_webp(photo, SELLER_REPORT_PHOTOS_DIR, user.id)}"
+        for photo in photos
+    ]
+    report = SellerReport(
+        order_id=order.id,
+        seller_id=user.id,
+        reason=reason,
+        note=note.strip(),
+        photo_urls=photo_urls,
+    )
+    db.add(report)
+    db.commit()
+    db.refresh(report)
+    return report

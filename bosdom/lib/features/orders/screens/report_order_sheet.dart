@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/app_snack_bar.dart';
 import '../models/order.dart';
+import '../providers/orders_provider.dart';
 import '../services/report_service.dart';
 
 enum _ReportReason { wrongItem, damaged, missing, lateDelivery, other }
@@ -37,16 +39,16 @@ Future<void> showReportOrderSheet(BuildContext context, Order order) {
   );
 }
 
-class _ReportOrderSheet extends StatefulWidget {
+class _ReportOrderSheet extends ConsumerStatefulWidget {
   const _ReportOrderSheet({required this.order});
 
   final Order order;
 
   @override
-  State<_ReportOrderSheet> createState() => _ReportOrderSheetState();
+  ConsumerState<_ReportOrderSheet> createState() => _ReportOrderSheetState();
 }
 
-class _ReportOrderSheetState extends State<_ReportOrderSheet> {
+class _ReportOrderSheetState extends ConsumerState<_ReportOrderSheet> {
   _ReportReason _reason = _ReportReason.wrongItem;
   final _noteController = TextEditingController();
   bool _isSubmitting = false;
@@ -66,11 +68,13 @@ class _ReportOrderSheetState extends State<_ReportOrderSheet> {
         reason: _reason.apiValue,
         note: _noteController.text.trim(),
       );
+      ref.invalidate(orderByIdProvider(widget.order.id));
+      ref.invalidate(ordersProvider);
       if (!mounted) return;
       Navigator.of(context).pop();
       showAppSnackBar(
         context,
-        message: l10n.ordersReportSubmittedSnackbar,
+        message: l10n.escrowReportSubmittedFrozen,
         type: AppSnackBarType.success,
       );
     } catch (e) {
@@ -206,7 +210,6 @@ class _ReportOrderSheetState extends State<_ReportOrderSheet> {
                   child: FilledButton(
                     onPressed: _isSubmitting ? null : _submit,
                     style: FilledButton.styleFrom(
-                      backgroundColor: colorScheme.error,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(28),

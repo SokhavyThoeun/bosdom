@@ -51,7 +51,9 @@ abstract final class NotificationService {
     );
 
     if (response.statusCode != 200) {
-      throw Exception('Failed to mark all notifications read: ${response.body}');
+      throw Exception(
+        'Failed to mark all notifications read: ${response.body}',
+      );
     }
   }
 }

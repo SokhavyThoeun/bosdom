@@ -2,12 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/config/api_config.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../models/conversation.dart';
 import '../providers/chat_provider.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
-  const ChatScreen({super.key});
+  const ChatScreen({super.key, this.sellerMode = false});
+
+  /// When true, shows only conversations where this account is the seller
+  /// side (customers messaging their shop) — the seller dashboard's inbox.
+  /// When false (default), shows only the buyer-side conversations (this
+  /// account shopping around other stores), reached from the marketplace.
+  final bool sellerMode;
 
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
@@ -34,7 +41,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       backgroundColor: colorScheme.surface,
       body: Column(
         children: [
-          _Header(colorScheme: colorScheme, textTheme: textTheme),
+          _Header(
+            colorScheme: colorScheme,
+            textTheme: textTheme,
+            sellerMode: widget.sellerMode,
+          ),
           Expanded(
             child: SafeArea(
               top: false,
@@ -61,12 +72,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   ],
                 ),
                 data: (conversations) {
+                  final scoped = conversations
+                      .where(
+                        (c) => !c.isSupport && c.isSeller == widget.sellerMode,
+                      )
+                      .toList();
                   final filtered = query.isEmpty
-                      ? conversations
-                      : conversations
+                      ? scoped
+                      : scoped
                             .where(
-                              (c) =>
-                                  c.counterpartName.toLowerCase().contains(query),
+                              (c) => c.counterpartName.toLowerCase().contains(
+                                query,
+                              ),
                             )
                             .toList();
 
@@ -94,6 +111,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                               colorScheme: colorScheme,
                               textTheme: textTheme,
                               query: query,
+                              sellerMode: widget.sellerMode,
                             ),
                           )
                         else
@@ -140,26 +158,34 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 }
 
-const _kHeaderContentHeight = 96.0;
+const _kHeaderContentHeight = 68.0;
 
 class _Header extends StatelessWidget {
-  const _Header({required this.colorScheme, required this.textTheme});
+  const _Header({
+    required this.colorScheme,
+    required this.textTheme,
+    required this.sellerMode,
+  });
 
   final ColorScheme colorScheme;
   final TextTheme textTheme;
+  final bool sellerMode;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final title = sellerMode
+        ? l10n.chatSellerScreenTitle
+        : l10n.chatScreenTitle;
 
     return DecoratedBox(
       decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
-          MediaQuery.of(context).padding.top + 16,
+          MediaQuery.of(context).padding.top + 10,
           24,
-          20,
+          14,
         ),
         child: SizedBox(
           height: _kHeaderContentHeight,
@@ -185,7 +211,7 @@ class _Header extends StatelessWidget {
                 ),
               ),
               Text(
-                l10n.chatScreenTitle,
+                title,
                 textAlign: TextAlign.center,
                 style: textTheme.headlineSmall?.copyWith(
                   color: colorScheme.onPrimary,
@@ -290,17 +316,7 @@ class _ConversationTile extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 26,
-                backgroundColor: conversation.avatarColor.withValues(
-                  alpha: 0.18,
-                ),
-                child: Icon(
-                  conversation.avatarIcon,
-                  color: conversation.avatarColor,
-                  size: 24,
-                ),
-              ),
+              _ConversationAvatar(conversation: conversation),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -385,20 +401,60 @@ class _ConversationTile extends StatelessWidget {
   }
 }
 
+class _ConversationAvatar extends StatelessWidget {
+  const _ConversationAvatar({required this.conversation});
+
+  final Conversation conversation;
+
+  @override
+  Widget build(BuildContext context) {
+    final avatarUrl = ApiConfig.resolveAvatarUrl(
+      conversation.counterpartAvatarUrl,
+    );
+    final fallbackIcon = Icon(
+      conversation.avatarIcon,
+      color: conversation.avatarColor,
+      size: 24,
+    );
+    return CircleAvatar(
+      radius: 26,
+      backgroundColor: conversation.avatarColor.withValues(alpha: 0.18),
+      child: ClipOval(
+        child: avatarUrl != null
+            ? Image.network(
+                avatarUrl,
+                width: 52,
+                height: 52,
+                fit: BoxFit.cover,
+                loadingBuilder: (context, child, progress) =>
+                    progress == null ? child : fallbackIcon,
+                errorBuilder: (context, error, stackTrace) => fallbackIcon,
+              )
+            : fallbackIcon,
+      ),
+    );
+  }
+}
+
 class _EmptyState extends StatelessWidget {
   const _EmptyState({
     required this.colorScheme,
     required this.textTheme,
     required this.query,
+    required this.sellerMode,
   });
 
   final ColorScheme colorScheme;
   final TextTheme textTheme;
   final String query;
+  final bool sellerMode;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final emptyTitle = sellerMode
+        ? l10n.chatSellerEmptyTitle
+        : l10n.chatEmptyTitle;
 
     return Center(
       child: Padding(
@@ -413,7 +469,7 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              query.isEmpty ? l10n.chatEmptyTitle : l10n.chatEmptyQuery(query),
+              query.isEmpty ? emptyTitle : l10n.chatEmptyQuery(query),
               textAlign: TextAlign.center,
               style: textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,

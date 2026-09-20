@@ -77,7 +77,9 @@ class _MarketingEmailsPopupState extends ConsumerState<_MarketingEmailsPopup> {
           });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(AppLocalizations.of(context).marketingEmailsSaveError),
+              content: Text(
+                AppLocalizations.of(context).marketingEmailsSaveError,
+              ),
             ),
           );
         });

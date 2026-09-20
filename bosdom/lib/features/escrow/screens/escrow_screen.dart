@@ -13,10 +13,7 @@ class EscrowScreen extends StatelessWidget {
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Text(
-            l10n.escrowPlaceholderText,
-            textAlign: TextAlign.center,
-          ),
+          child: Text(l10n.escrowPlaceholderText, textAlign: TextAlign.center),
         ),
       ),
     );

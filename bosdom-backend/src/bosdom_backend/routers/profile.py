@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
@@ -8,11 +9,11 @@ from sqlalchemy.orm import Session
 from ..auth import CurrentUser, get_current_user
 from ..db import get_db
 from ..models import KycDocument, Profile
+from ..utils.images import save_image_as_webp
 
 router = APIRouter(prefix="/profile", tags=["profile"])
 
 AVATAR_DIR = Path(__file__).resolve().parent.parent / "media" / "avatars"
-_ALLOWED_AVATAR_TYPES = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
 
 KYC_DIR = Path(__file__).resolve().parent.parent / "media" / "kyc_documents"
 _ALLOWED_KYC_TYPES = {
@@ -21,8 +22,11 @@ _ALLOWED_KYC_TYPES = {
     "image/webp": ".webp",
     "application/pdf": ".pdf",
 }
-# National ID is the one document that immediately activates the seller badge
-# (no admin review) — matches the frontend's upload_documents_screen.dart copy.
+# National ID is the one document that puts the seller up for admin KYC
+# review — matches the frontend's upload_documents_screen.dart copy. Uploading
+# it always moves the profile back to "pending" (even if it was previously
+# "verified"/"rejected"), since a changed document invalidates any prior
+# admin decision and needs a fresh look.
 _VERIFYING_DOC_TYPE = "national_id"
 _KYC_DOC_TYPES = {"national_id", "passport", "business_certificate"}
 
@@ -34,6 +38,11 @@ class ProfileOut(BaseModel):
     email: str
     avatar_url: str = ""
     verification_status: str = "unverified"
+    onboarding_complete: bool = False
+    # When `verification_status` last changed — e.g. when a seller submitted
+    # their national ID (see upload_kyc_document below) or an admin reviewed
+    # it (see routers/admin.py). Lets the app show "Submitted on <date>".
+    updated_at: datetime
 
     model_config = {"from_attributes": True}
 
@@ -96,20 +105,30 @@ def save_profile(
     return profile
 
 
+@router.post("/me/complete-onboarding", response_model=ProfileOut)
+def complete_onboarding(
+    user: CurrentUser = Depends(get_current_user), db: Session = Depends(get_db)
+) -> Profile:
+    """Marks the signup wizard as finished. Called only from the last step
+    of each role's flow (delivery address for retailer/buyer, business info
+    for supplier) — an account/profile created earlier in the wizard must
+    NOT be treated as onboarded until the user actually reaches this point,
+    or restoring a session mid-wizard would drop them straight into the app
+    instead of resuming signup."""
+    profile = _get_or_create(db, user)
+    profile.onboarding_complete = True
+    db.commit()
+    db.refresh(profile)
+    return profile
+
+
 @router.post("/me/avatar", response_model=ProfileOut)
 def upload_avatar(
     file: UploadFile = File(...),
     user: CurrentUser = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> Profile:
-    ext = _ALLOWED_AVATAR_TYPES.get(file.content_type or "")
-    if ext is None:
-        raise HTTPException(status_code=400, detail="Unsupported image type")
-
-    AVATAR_DIR.mkdir(parents=True, exist_ok=True)
-    filename = f"{user.id}-{uuid.uuid4().hex[:8]}{ext}"
-    with (AVATAR_DIR / filename).open("wb") as out:
-        out.write(file.file.read())
+    filename = save_image_as_webp(file, AVATAR_DIR, user.id)
 
     profile = _get_or_create(db, user)
     profile.avatar_url = f"/media/avatars/{filename}"
@@ -168,7 +187,7 @@ def upload_kyc_document(
         )
 
     if doc_type == _VERIFYING_DOC_TYPE:
-        profile.verification_status = "verified"
+        profile.verification_status = "pending"
 
     db.commit()
     db.refresh(profile)

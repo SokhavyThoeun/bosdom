@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
+import '../../../shared/widgets/verified_badge_icon.dart';
+import '../../../shared/widgets/order_review_card.dart';
 import '../../chat/providers/chat_provider.dart';
+import '../../orders/models/order.dart';
+import '../../orders/providers/orders_provider.dart';
+import '../../profile/providers/shop_profile_provider.dart';
 import '../models/product.dart';
 import '../models/seller.dart';
 import '../providers/listings_provider.dart';
@@ -101,6 +107,10 @@ class _StoreProfileBodyState extends State<_StoreProfileBody>
         children: [
           _StoreHeader(
             seller: seller,
+            sellerId: products.isEmpty ? null : products.first.sellerId,
+            logoUrl: products.isNotEmpty
+                ? products.first.sellerLogoUrl
+                : seller.logoUrl,
             colorScheme: colorScheme,
             textTheme: textTheme,
             isFavorite: _isFavorite,
@@ -145,6 +155,9 @@ class _StoreProfileBodyState extends State<_StoreProfileBody>
                         ),
                         _ReviewsTab(
                           seller: seller,
+                          sellerId: products.isEmpty
+                              ? null
+                              : products.first.sellerId,
                           colorScheme: colorScheme,
                           textTheme: textTheme,
                         ),
@@ -166,9 +179,11 @@ class _StoreProfileBodyState extends State<_StoreProfileBody>
 // overall size even though it shows a back row + seller info.
 const _kHeaderContentHeight = 96.0;
 
-class _StoreHeader extends StatelessWidget {
+class _StoreHeader extends ConsumerWidget {
   const _StoreHeader({
     required this.seller,
+    required this.sellerId,
+    required this.logoUrl,
     required this.colorScheme,
     required this.textTheme,
     required this.isFavorite,
@@ -176,21 +191,28 @@ class _StoreHeader extends StatelessWidget {
   });
 
   final Seller seller;
+  final String? sellerId;
+  final String logoUrl;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
   final bool isFavorite;
   final VoidCallback onFavoriteToggle;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final powerSeller =
+        sellerId != null &&
+        (ref.watch(shopProfileByIdProvider(sellerId!)).value?.highVolume ??
+            false);
     return DecoratedBox(
       decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
-          MediaQuery.of(context).padding.top + 16,
+          MediaQuery.of(context).padding.top + 10,
           24,
-          20,
+          14,
         ),
         child: SizedBox(
           height: _kHeaderContentHeight,
@@ -240,7 +262,7 @@ class _StoreHeader extends StatelessWidget {
                     backgroundColor: colorScheme.onPrimary,
                     child: ClipOval(
                       child: Image.network(
-                        seller.logoUrl,
+                        logoUrl,
                         width: 48,
                         height: 48,
                         fit: BoxFit.cover,
@@ -280,11 +302,7 @@ class _StoreHeader extends StatelessWidget {
                             ),
                             if (seller.verified) ...[
                               const SizedBox(width: 4),
-                              const Icon(
-                                Icons.verified,
-                                size: 16,
-                                color: Colors.lightGreenAccent,
-                              ),
+                              const VerifiedBadgeIcon(),
                             ],
                           ],
                         ),
@@ -303,6 +321,37 @@ class _StoreHeader extends StatelessWidget {
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
+                            if (powerSeller) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.amber.shade700,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.military_tech,
+                                      size: 13,
+                                      color: Colors.white,
+                                    ),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      l10n.storePowerSellerBadge,
+                                      style: textTheme.labelSmall?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                         Text(
@@ -554,6 +603,38 @@ class _AboutTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    final canContactSupplier = sellerId != null && sellerId != currentUserId;
+
+    // Real shop info entered by the seller (Business Info / My Shop), keyed
+    // by their real backend id. `null` sellerId means this is a demo/mock
+    // product with no real seller account to fetch from.
+    final shopAsync = sellerId == null
+        ? null
+        : ref.watch(shopProfileByIdProvider(sellerId!));
+    final shop = shopAsync?.value;
+    final isLoadingShop =
+        shopAsync != null && shopAsync.isLoading && shop == null;
+
+    final about = shop != null && shop.description.isNotEmpty
+        ? shop.description
+        : (sellerId == null ? seller.about : l10n.storeProfileNoDescriptionYet);
+    final businessType = shop != null && shop.businessType.isNotEmpty
+        ? shop.businessType
+        : (sellerId == null ? seller.businessType : '-');
+    final yearEstablished = shop != null && shop.yearEstablished.isNotEmpty
+        ? shop.yearEstablished
+        : (sellerId == null ? seller.yearEstablished : '-');
+    final location = shop != null && shop.location.isNotEmpty
+        ? shop.location
+        : seller.location;
+    // Phone/email are only ever entered through the real Shop Profile —
+    // the mock demo `Seller` has no such fields — so only show this card
+    // once there's a real shop to source it from.
+    final showContactCard = shop != null;
+    final phone = shop != null && shop.phone.isNotEmpty ? shop.phone : '-';
+    final email = shop != null && shop.email.isNotEmpty ? shop.email : '-';
+
     return ListView(
       padding: EdgeInsets.fromLTRB(
         16,
@@ -574,10 +655,19 @@ class _AboutTab extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              Text(
-                seller.about,
-                style: textTheme.bodyMedium?.copyWith(height: 1.5),
-              ),
+              if (isLoadingShop)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+                )
+              else
+                Text(about, style: textTheme.bodyMedium?.copyWith(height: 1.5)),
             ],
           ),
         ),
@@ -597,42 +687,21 @@ class _AboutTab extends ConsumerWidget {
               _DetailRow(
                 icon: Icons.storefront_outlined,
                 label: l10n.storeProfileLabelBusinessType,
-                value: seller.businessType,
+                value: businessType,
                 colorScheme: colorScheme,
                 textTheme: textTheme,
               ),
               _DetailRow(
                 icon: Icons.calendar_today_outlined,
                 label: l10n.storeProfileLabelYearEstablished,
-                value: seller.yearEstablished,
+                value: yearEstablished,
                 colorScheme: colorScheme,
                 textTheme: textTheme,
               ),
               _DetailRow(
                 icon: Icons.location_on_outlined,
                 label: l10n.storeProfileLabelLocation,
-                value: seller.location,
-                colorScheme: colorScheme,
-                textTheme: textTheme,
-              ),
-              _DetailRow(
-                icon: Icons.sell_outlined,
-                label: l10n.storeProfileLabelMinimumOrder,
-                value: seller.minimumOrder,
-                colorScheme: colorScheme,
-                textTheme: textTheme,
-              ),
-              _DetailRow(
-                icon: Icons.schedule_outlined,
-                label: l10n.storeProfileLabelResponseTime,
-                value: seller.responseTime,
-                colorScheme: colorScheme,
-                textTheme: textTheme,
-              ),
-              _DetailRow(
-                icon: Icons.local_shipping_outlined,
-                label: l10n.storeProfileLabelShipping,
-                value: seller.shipping,
+                value: location,
                 colorScheme: colorScheme,
                 textTheme: textTheme,
                 isLast: true,
@@ -640,7 +709,7 @@ class _AboutTab extends ConsumerWidget {
             ],
           ),
         ),
-        if (seller.certifications.isNotEmpty) ...[
+        if (showContactCard) ...[
           const SizedBox(height: 16),
           _SectionCard(
             colorScheme: colorScheme,
@@ -648,118 +717,32 @@ class _AboutTab extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  l10n.storeProfileCertificationsTitle,
+                  l10n.storeProfileContactTitle,
                   style: textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 12),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: [
-                    for (final cert in seller.certifications)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: colorScheme.primaryContainer.withValues(
-                            alpha: 0.5,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            CircleAvatar(
-                              radius: 14,
-                              backgroundColor: colorScheme.primary,
-                              child: Icon(
-                                cert.icon,
-                                size: 14,
-                                color: colorScheme.onPrimary,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              cert.label,
-                              style: textTheme.bodySmall?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
+                _DetailRow(
+                  icon: Icons.phone_outlined,
+                  label: l10n.storeProfileLabelPhone,
+                  value: phone,
+                  colorScheme: colorScheme,
+                  textTheme: textTheme,
+                ),
+                _DetailRow(
+                  icon: Icons.mail_outline,
+                  label: l10n.storeProfileLabelEmail,
+                  value: email,
+                  colorScheme: colorScheme,
+                  textTheme: textTheme,
+                  isLast: true,
                 ),
               ],
             ),
           ),
         ],
-        if (seller.highlights.isNotEmpty) ...[
-          const SizedBox(height: 16),
-          _SectionCard(
-            colorScheme: colorScheme,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.storeProfileWhyChooseUsTitle,
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                for (final highlight in seller.highlights) ...[
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: colorScheme.outline),
-                    ),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 16,
-                          backgroundColor: colorScheme.primary,
-                          child: Icon(
-                            highlight.icon,
-                            size: 16,
-                            color: colorScheme.onPrimary,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                highlight.title,
-                                style: textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                highlight.description,
-                                style: textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-        if (sellerId != null) ...[
+        if (canContactSupplier) ...[
           const SizedBox(height: 16),
           FilledButton(
             onPressed: () async {
@@ -835,6 +818,7 @@ class _DetailRow extends StatelessWidget {
             : Border(bottom: BorderSide(color: colorScheme.outline)),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CircleAvatar(
             radius: 14,
@@ -842,18 +826,21 @@ class _DetailRow extends StatelessWidget {
             child: Icon(icon, size: 14, color: colorScheme.onPrimary),
           ),
           const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              label,
-              style: textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
+          Text(
+            label,
+            style: textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
-          Text(
-            value,
-            textAlign: TextAlign.right,
-            style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
@@ -861,22 +848,51 @@ class _DetailRow extends StatelessWidget {
   }
 }
 
-class _ReviewsTab extends StatelessWidget {
+class _ReviewsTab extends ConsumerWidget {
   const _ReviewsTab({
     required this.seller,
+    required this.sellerId,
     required this.colorScheme,
     required this.textTheme,
   });
 
   final Seller seller;
+
+  /// Real backend id of the seller, or `null` for demo/mock stores.
+  final String? sellerId;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
 
-    if (seller.rating <= 0) {
+    // Real buyer reviews (from completed orders) replace the placeholder
+    // rating summary once the seller has any.
+    final real = sellerId == null
+        ? const <OrderReview>[]
+        : (ref.watch(sellerReviewsProvider(sellerId!)).value ??
+              const <OrderReview>[]);
+    final hasReal = real.isNotEmpty;
+    final rating = hasReal
+        ? real.fold<int>(0, (sum, r) => sum + r.rating) / real.length
+        : seller.rating;
+    final reviewsCount = hasReal ? '${real.length}' : seller.reviewsCount;
+    final recommendPercent = hasReal
+        ? (real.where((r) => r.rating >= 4).length / real.length * 100).round()
+        : seller.recommendPercent;
+    final ratingBreakdown = hasReal
+        ? {
+            for (var star = 1; star <= 5; star++)
+              star:
+                  (real.where((r) => r.rating == star).length /
+                          real.length *
+                          100)
+                      .round(),
+          }
+        : seller.ratingBreakdown;
+
+    if (rating <= 0) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
@@ -909,12 +925,9 @@ class _ReviewsTab extends StatelessWidget {
       );
     }
 
-    final totalBreakdown = seller.ratingBreakdown.values.fold<int>(
-      0,
-      (a, b) => a + b,
-    );
-    final hasStats = seller.recommendPercent > 0 || seller.reviewsCount != '0';
-    final hasReviews = seller.reviews.isNotEmpty;
+    final totalBreakdown = ratingBreakdown.values.fold<int>(0, (a, b) => a + b);
+    final hasStats = recommendPercent > 0 || reviewsCount != '0';
+    final hasReviews = hasReal || seller.reviews.isNotEmpty;
 
     return ListView(
       padding: EdgeInsets.fromLTRB(
@@ -933,18 +946,18 @@ class _ReviewsTab extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
-                    seller.rating.toStringAsFixed(1),
+                    rating.toStringAsFixed(1),
                     style: textTheme.displayMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: colorScheme.primary,
                     ),
                   ),
                   const SizedBox(width: 10),
-                  _StarRow(rating: seller.rating, size: 20),
-                  if (seller.reviewsCount != '0') ...[
+                  _StarRow(rating: rating, size: 20),
+                  if (reviewsCount != '0') ...[
                     const SizedBox(width: 10),
                     Text(
-                      l10n.storeProfileReviewsCount(seller.reviewsCount),
+                      l10n.storeProfileReviewsCount(reviewsCount),
                       style: textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -965,7 +978,7 @@ class _ReviewsTab extends StatelessWidget {
                       textTheme: textTheme,
                       icon: Icons.thumb_up_outlined,
                       label: l10n.storeProfileRecommendPercent(
-                        '${seller.recommendPercent}',
+                        '$recommendPercent',
                       ),
                     ),
                     _ReviewStatChip(
@@ -1005,7 +1018,7 @@ class _ReviewsTab extends StatelessWidget {
                 for (var star = 5; star >= 1; star--)
                   _RatingBreakdownRow(
                     star: star,
-                    percent: seller.ratingBreakdown[star] ?? 0,
+                    percent: ratingBreakdown[star] ?? 0,
                     colorScheme: colorScheme,
                     textTheme: textTheme,
                     isLast: star == 1,
@@ -1021,14 +1034,23 @@ class _ReviewsTab extends StatelessWidget {
             style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
-          for (final review in seller.reviews) ...[
-            _ReviewCard(
-              review: review,
-              colorScheme: colorScheme,
-              textTheme: textTheme,
-            ),
-            const SizedBox(height: 10),
-          ],
+          if (hasReal)
+            for (final review in real) ...[
+              _SectionCard(
+                colorScheme: colorScheme,
+                child: OrderReviewCard(review: review, maskName: true),
+              ),
+              const SizedBox(height: 10),
+            ]
+          else
+            for (final review in seller.reviews) ...[
+              _ReviewCard(
+                review: review,
+                colorScheme: colorScheme,
+                textTheme: textTheme,
+              ),
+              const SizedBox(height: 10),
+            ],
         ],
       ],
     );

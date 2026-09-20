@@ -5,17 +5,20 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../../shared/utils/currency_format.dart';
 import '../../../shared/widgets/app_snack_bar.dart';
+import '../../../shared/widgets/price_display.dart';
+import '../../../shared/widgets/order_review_card.dart';
+import '../../../shared/widgets/order_status_badge.dart';
 import '../../cart/providers/cart_provider.dart';
 import '../../marketplace/providers/listings_provider.dart';
 import '../../marketplace/widgets/empty_products_notice.dart';
 import '../models/order.dart';
 import '../providers/orders_provider.dart';
+import '../services/order_service.dart';
 import '../services/receipt_service.dart';
-
-// All statuses share the brand color instead of a traffic-light palette —
-// status is distinguished by icon and label, not by hue.
-Color _statusColor(OrderStatus status) => AppColors.brandCrimson;
+import '../widgets/order_hold_card.dart';
+import 'rate_review_sheet.dart';
 
 class OrderDetailScreen extends ConsumerWidget {
   const OrderDetailScreen({super.key, required this.orderId});
@@ -59,6 +62,28 @@ class _OrderDetailBody extends ConsumerStatefulWidget {
 class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
   bool _isSavingReceipt = false;
   bool _isReordering = false;
+  bool _isConfirmingReceipt = false;
+
+  /// Buyer confirming the item arrived: releases the escrow, which lands the
+  /// money in the seller's earnings balance for them to withdraw.
+  Future<void> _confirmReceived(Order order) async {
+    final l10n = AppLocalizations.of(context);
+    setState(() => _isConfirmingReceipt = true);
+    try {
+      await OrderService.releaseOrder(order.id);
+      ref.invalidate(orderByIdProvider(order.id));
+      ref.invalidate(ordersProvider);
+    } catch (e) {
+      if (!mounted) return;
+      showAppSnackBar(
+        context,
+        message: l10n.orderDetailConfirmReceivedFailedSnackbar('$e'),
+        type: AppSnackBarType.error,
+      );
+    } finally {
+      if (mounted) setState(() => _isConfirmingReceipt = false);
+    }
+  }
 
   Future<void> _saveReceipt(Order order) async {
     final l10n = AppLocalizations.of(context);
@@ -100,9 +125,13 @@ class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
         listingByIdProvider(order.listingId).future,
       );
       if (!mounted) return;
-      ref
-          .read(cartProvider.notifier)
-          .addItems([(product, order.quantity)]);
+      final succeeded = await ref.read(cartProvider.notifier).addItems([
+        (product, order.quantity),
+      ]);
+      if (!mounted) return;
+      if (!succeeded) {
+        throw Exception(l10n.cartUpdateErrorSnackbar);
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.orderDetailItemsAddedSnackbar)),
       );
@@ -125,7 +154,6 @@ class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
     final order = widget.order;
-    final statusColor = _statusColor(order.status);
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -146,7 +174,6 @@ class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
                 children: [
                   _OrderSummaryHeader(
                     order: order,
-                    statusColor: statusColor,
                     colorScheme: colorScheme,
                     textTheme: textTheme,
                   ),
@@ -174,24 +201,31 @@ class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
                               color: colorScheme.primaryContainer,
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: Image.network(
-                              order.imageUrl,
-                              fit: BoxFit.cover,
-                              loadingBuilder: (context, child, progress) =>
-                                  progress == null
-                                  ? child
-                                  : Icon(
-                                      order.icon,
-                                      color: colorScheme.primary,
-                                      size: 20,
-                                    ),
-                              errorBuilder: (context, error, stackTrace) =>
-                                  Icon(
+                            child: order.imageUrl == null
+                                ? Icon(
                                     order.icon,
                                     color: colorScheme.primary,
                                     size: 20,
+                                  )
+                                : Image.network(
+                                    order.imageUrl!,
+                                    fit: BoxFit.cover,
+                                    loadingBuilder:
+                                        (context, child, progress) =>
+                                            progress == null
+                                            ? child
+                                            : Icon(
+                                                order.icon,
+                                                color: colorScheme.primary,
+                                                size: 20,
+                                              ),
+                                    errorBuilder:
+                                        (context, error, stackTrace) => Icon(
+                                          order.icon,
+                                          color: colorScheme.primary,
+                                          size: 20,
+                                        ),
                                   ),
-                            ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -216,7 +250,7 @@ class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
                           ),
                           const SizedBox(width: 12),
                           Text(
-                            '\$${order.totalAmount.toStringAsFixed(2)}',
+                            formatPrice(ref, order.totalAmount),
                             style: textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -225,6 +259,11 @@ class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
                       ),
                     ),
                   ),
+                  if (order.status == OrderStatus.disputed &&
+                      order.holdSource != null) ...[
+                    const SizedBox(height: 16),
+                    OrderHoldCard(order: order),
+                  ],
                   const SizedBox(height: 16),
                   _SectionCard(
                     title: l10n.orderDetailShippingSection,
@@ -267,8 +306,7 @@ class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
                       children: [
                         _SummaryRow(
                           label: l10n.orderDetailUnitPriceLabel,
-                          valueLabel:
-                              '\$${order.unitPrice.toStringAsFixed(2)}',
+                          valueLabel: formatPrice(ref, order.unitPrice),
                           colorScheme: colorScheme,
                           textTheme: textTheme,
                         ),
@@ -289,8 +327,9 @@ class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
                               ),
                             ),
                             const Spacer(),
-                            Text(
-                              '\$${order.totalAmount.toStringAsFixed(2)}',
+                            PriceDisplay(
+                              order.totalAmount,
+                              crossAxisAlignment: CrossAxisAlignment.end,
                               style: textTheme.titleLarge?.copyWith(
                                 color: colorScheme.primary,
                                 fontWeight: FontWeight.bold,
@@ -301,19 +340,52 @@ class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
                       ],
                     ),
                   ),
+                  if (order.status == OrderStatus.released) ...[
+                    const SizedBox(height: 16),
+                    _SectionCard(
+                      title: l10n.reviewSectionTitle,
+                      colorScheme: colorScheme,
+                      textTheme: textTheme,
+                      child: order.review != null
+                          ? OrderReviewCard(review: order.review!)
+                          : Padding(
+                              padding: const EdgeInsets.only(top: 10),
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: FilledButton.icon(
+                                  onPressed: () =>
+                                      showRateReviewSheet(context, order),
+                                  icon: const Icon(Icons.star_outline_rounded),
+                                  label: Text(l10n.ordersRateReviewButton),
+                                ),
+                              ),
+                            ),
+                    ),
+                  ],
                   const SizedBox(height: 20),
-                  OutlinedButton(
-                    onPressed: () => context.pushNamed(
-                      'deliveryTracking',
-                      pathParameters: {'id': order.id},
+                  if (order.status == OrderStatus.held && order.isShipped) ...[
+                    FilledButton.icon(
+                      onPressed: _isConfirmingReceipt
+                          ? null
+                          : () => _confirmReceived(order),
+                      icon: _isConfirmingReceipt
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.inventory_2_outlined),
+                      label: Text(
+                        _isConfirmingReceipt
+                            ? l10n.orderDetailConfirmReceivingLabel
+                            : l10n.orderDetailConfirmReceivedButton,
+                      ),
                     ),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: colorScheme.primary,
-                      side: BorderSide(color: colorScheme.primary),
-                    ),
-                    child: Text(l10n.orderDetailTrackDeliveryButton),
-                  ),
-                  const SizedBox(height: 12),
+                    const SizedBox(height: 12),
+                  ],
                   OutlinedButton.icon(
                     onPressed: _isSavingReceipt
                         ? null
@@ -362,10 +434,9 @@ class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
   }
 }
 
-// Matches the combined height of the logo/notification row + search bar
-// used by the homepage and wishlist headers, so this header is the same
-// overall size even though it shows a back row + centered title.
-const _kHeaderContentHeight = 96.0;
+// Sized to fit a back-row + centered title, shorter than the two-row
+// home/search header since there's no search bar to fit.
+const _kHeaderContentHeight = 68.0;
 
 class _Header extends StatelessWidget {
   const _Header({required this.colorScheme, required this.textTheme});
@@ -381,9 +452,9 @@ class _Header extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
-          MediaQuery.of(context).padding.top + 16,
+          MediaQuery.of(context).padding.top + 10,
           24,
-          20,
+          14,
         ),
         child: SizedBox(
           height: _kHeaderContentHeight,
@@ -425,13 +496,11 @@ class _Header extends StatelessWidget {
 class _OrderSummaryHeader extends StatelessWidget {
   const _OrderSummaryHeader({
     required this.order,
-    required this.statusColor,
     required this.colorScheme,
     required this.textTheme,
   });
 
   final Order order;
-  final Color statusColor;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
 
@@ -445,42 +514,65 @@ class _OrderSummaryHeader extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: colorScheme.outline),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.orderDetailOrderNumberLabel(order.id),
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.orderDetailOrderNumberLabel(order.displayNumber),
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      l10n.orderDetailPlacedOnLabel(order.dateLabel),
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 2),
+              ),
+              OrderStatusBadge(
+                label: buyerOrderStatusLabel(
+                  order.status,
+                  isSellerConfirmed: order.isSellerConfirmed,
+                ),
+              ),
+            ],
+          ),
+          if (order.status == OrderStatus.held) ...[
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Icon(
+                  order.isSellerConfirmed
+                      ? Icons.task_alt_rounded
+                      : Icons.schedule,
+                  size: 16,
+                  color: order.isSellerConfirmed
+                      ? AppColors.trustGreen
+                      : colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 6),
                 Text(
-                  l10n.orderDetailPlacedOnLabel(order.dateLabel),
+                  order.isSellerConfirmed
+                      ? l10n.orderDetailSellerConfirmedLabel
+                      : l10n.orderDetailAwaitingSellerConfirmationLabel,
                   style: textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: statusColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              order.status.label,
-              style: textTheme.labelMedium?.copyWith(
-                color: statusColor,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
+          ],
         ],
       ),
     );

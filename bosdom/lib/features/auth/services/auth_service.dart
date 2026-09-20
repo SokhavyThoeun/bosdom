@@ -40,6 +40,32 @@ abstract final class AuthService {
     }
   }
 
+  /// Applies a password the user typed after their account already exists —
+  /// e.g. they completed email signup, navigated back into the form, and
+  /// changed their mind about the password before finishing the wizard.
+  ///
+  /// Most of the time though, they back out and hit Continue again without
+  /// changing anything, resubmitting the same password — Supabase rejects
+  /// that as a "new password must differ from the old one" error, which
+  /// isn't a real problem here since the password is already what they want,
+  /// so it's swallowed rather than surfaced.
+  static Future<void> updatePassword(String password) async {
+    try {
+      await _auth.updateUser(UserAttributes(password: password));
+    } on AuthApiException catch (error) {
+      if (error.code != 'same_password') rethrow;
+    }
+  }
+
+  /// Whether the signed-in session came from linking a Google identity, as
+  /// opposed to a plain email/password account. Used to tell those two
+  /// apart when a session is already active — an email account shouldn't be
+  /// treated as "signed in via Google" just because it has a session.
+  static bool get isSignedInWithGoogle {
+    final providers = _auth.currentUser?.appMetadata['providers'];
+    return providers is List && providers.contains('google');
+  }
+
   /// On iOS, signs in via Google's own SDK ([GoogleSignIn], which presents
   /// its own native/web-sheet UI) and exchanges the resulting ID token with
   /// Supabase directly — this resolves once sign in completes, unlike the
@@ -59,9 +85,7 @@ abstract final class AuthService {
   static Future<void> _signInWithGoogleNative() async {
     final googleSignIn = GoogleSignIn.instance;
     if (!_googleSignInInitialized) {
-      await googleSignIn.initialize(
-        clientId: SupabaseConfig.googleIosClientId,
-      );
+      await googleSignIn.initialize(clientId: SupabaseConfig.googleIosClientId);
       _googleSignInInitialized = true;
     }
 

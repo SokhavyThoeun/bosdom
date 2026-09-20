@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../shared/utils/cambodia_locations.dart';
+import '../../profile/services/profile_service.dart';
 import '../models/merchant_role.dart';
-
-const _kProvinces = [
-  'Phnom Penh',
-  'Kandal',
-  'Siem Reap',
-  'Battambang',
-  'Kampong Cham',
-  'Preah Sihanouk',
-];
+import '../services/signup_draft.dart';
 
 class DeliveryAddressScreen extends StatefulWidget {
   const DeliveryAddressScreen({required this.role, super.key});
@@ -23,17 +17,29 @@ class DeliveryAddressScreen extends StatefulWidget {
 
 class _DeliveryAddressScreenState extends State<DeliveryAddressScreen> {
   final _houseController = TextEditingController();
-  final _sangkatController = TextEditingController();
   final _landmarkController = TextEditingController();
   String? _province;
+  String? _district;
+  String? _sangkat;
   bool _agreed = false;
+  bool _isSubmitting = false;
+
+  Map<String, List<String>>? get _districtsForProvince =>
+      kCambodiaDistricts[_province];
 
   @override
   void dispose() {
     _houseController.dispose();
-    _sangkatController.dispose();
     _landmarkController.dispose();
     super.dispose();
+  }
+
+  void _onProvinceChanged(String? value) {
+    setState(() {
+      _province = value;
+      _district = null;
+      _sangkat = null;
+    });
   }
 
   void _goBack() {
@@ -44,10 +50,26 @@ class _DeliveryAddressScreenState extends State<DeliveryAddressScreen> {
     }
   }
 
-  void _createAccount() {
-    if (!_agreed) return;
-    // Mock submit — real KYC/backend wiring lands later.
-    context.goNamed('marketplace');
+  Future<void> _createAccount() async {
+    if (!_agreed || _isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    try {
+      // The account and profile already exist (created back at the
+      // personal-details step) — this is the wizard's last step, so it's
+      // what actually marks the account as onboarded rather than abandoned
+      // mid-signup. See ProfileService.completeOnboarding.
+      await ProfileService.completeOnboarding();
+      SignupDraft.clear();
+      if (mounted) context.goNamed('marketplace');
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.toString())));
+      }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   @override
@@ -68,6 +90,7 @@ class _DeliveryAddressScreenState extends State<DeliveryAddressScreen> {
           Expanded(
             child: SafeArea(
               top: false,
+              bottom: false,
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
                 child: Column(
@@ -84,15 +107,34 @@ class _DeliveryAddressScreenState extends State<DeliveryAddressScreen> {
                       hintText: 'e.g. #12, Street 271',
                     ),
                     const SizedBox(height: 20),
-                    _FormField(
-                      label: 'SANGKAT / DISTRICT',
-                      controller: _sangkatController,
-                      hintText: 'e.g. Sangkat Tomnob Tuek',
-                    ),
-                    const SizedBox(height: 20),
                     _ProvinceField(
                       value: _province,
-                      onChanged: (value) => setState(() => _province = value),
+                      onChanged: _onProvinceChanged,
+                    ),
+                    const SizedBox(height: 20),
+                    _DropdownField(
+                      label: 'DISTRICT (KHAN)',
+                      hintText: _province == null
+                          ? 'Select province first'
+                          : 'Select district...',
+                      value: _district,
+                      items: _districtsForProvince?.keys.toList() ?? const [],
+                      onChanged: (value) => setState(() {
+                        _district = value;
+                        _sangkat = null;
+                      }),
+                    ),
+                    const SizedBox(height: 20),
+                    _DropdownField(
+                      label: 'SANGKAT',
+                      hintText: _district == null
+                          ? 'Select district first'
+                          : 'Select sangkat...',
+                      value: _sangkat,
+                      items: _district == null
+                          ? const []
+                          : _districtsForProvince?[_district] ?? const [],
+                      onChanged: (value) => setState(() => _sangkat = value),
                     ),
                     const SizedBox(height: 20),
                     _FormField(
@@ -114,7 +156,9 @@ class _DeliveryAddressScreenState extends State<DeliveryAddressScreen> {
                     ),
                     const SizedBox(height: 32),
                     FilledButton(
-                      onPressed: _agreed ? _createAccount : null,
+                      onPressed: _agreed && !_isSubmitting
+                          ? _createAccount
+                          : null,
                       child: const Padding(
                         padding: EdgeInsets.symmetric(vertical: 4),
                         child: Text('Create My Account'),
@@ -149,15 +193,13 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
-          MediaQuery.of(context).padding.top + 16,
+          MediaQuery.of(context).padding.top + 10,
           24,
-          24,
+          18,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -283,7 +325,8 @@ class _FormField extends StatelessWidget {
       keyboardType: keyboardType,
       style: textTheme.bodyLarge,
       decoration: InputDecoration(
-        filled: false,
+        filled: true,
+        fillColor: Colors.white,
         labelText: label,
         hintText: hintText,
         floatingLabelBehavior: FloatingLabelBehavior.always,
@@ -292,17 +335,18 @@ class _FormField extends StatelessWidget {
           fontWeight: FontWeight.w700,
           letterSpacing: 0.6,
         ),
+        hintStyle: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w400),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 16,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: colorScheme.primary.withValues(alpha: 0.5)),
+          borderSide: BorderSide(color: colorScheme.outline),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: colorScheme.primary.withValues(alpha: 0.5)),
+          borderSide: BorderSide(color: colorScheme.outline),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
@@ -321,44 +365,73 @@ class _ProvinceField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return _DropdownField(
+      label: 'PROVINCE / CITY',
+      hintText: 'Select province...',
+      value: value,
+      items: kCambodiaProvinces,
+      onChanged: onChanged,
+    );
+  }
+}
+
+class _DropdownField extends StatelessWidget {
+  const _DropdownField({
+    required this.label,
+    required this.hintText,
+    required this.value,
+    required this.items,
+    required this.onChanged,
+  });
+
+  final String label;
+  final String hintText;
+  final String? value;
+  final List<String> items;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     return DropdownButtonFormField<String>(
-      initialValue: value,
+      initialValue: items.contains(value) ? value : null,
       icon: Icon(Icons.keyboard_arrow_down, color: colorScheme.primary),
       style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface),
       decoration: InputDecoration(
-        filled: false,
-        labelText: 'PROVINCE / CITY',
-        hintText: 'Select province...',
+        filled: true,
+        fillColor: Colors.white,
+        labelText: label,
+        hintText: hintText,
         floatingLabelBehavior: FloatingLabelBehavior.always,
         labelStyle: textTheme.labelMedium?.copyWith(
           color: colorScheme.primary,
           fontWeight: FontWeight.w700,
           letterSpacing: 0.6,
         ),
+        hintStyle: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w400),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 16,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: colorScheme.primary.withValues(alpha: 0.5)),
+          borderSide: BorderSide(color: colorScheme.outline),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: colorScheme.primary.withValues(alpha: 0.5)),
+          borderSide: BorderSide(color: colorScheme.outline),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
         ),
       ),
-      items: _kProvinces
-          .map((p) => DropdownMenuItem(value: p, child: Text(p)))
+      items: items
+          .map((item) => DropdownMenuItem(value: item, child: Text(item)))
           .toList(),
-      onChanged: onChanged,
+      onChanged: items.isEmpty ? null : onChanged,
     );
   }
 }
@@ -460,7 +533,8 @@ class _VerificationNote extends StatelessWidget {
                 ),
                 children: [
                   const TextSpan(
-                    text: 'You can start browsing and buying immediately. '
+                    text:
+                        'You can start browsing and buying immediately. '
                         'Optionally upload your business ID later in ',
                   ),
                   TextSpan(

@@ -119,6 +119,18 @@ class CoBuyNotifier extends AsyncNotifier<List<CoBuySession>> {
     return updated;
   }
 
+  Future<CoBuySession> requestLeave(String id, String reason) async {
+    final updated = await CoBuyPoolService.requestLeave(id, reason);
+    _replace(updated);
+    return updated;
+  }
+
+  Future<CoBuySession> payJoin(String id, String paymentMethod) async {
+    final updated = await CoBuyPoolService.payJoin(id, paymentMethod);
+    _replace(updated);
+    return updated;
+  }
+
   void _replace(CoBuySession updated) {
     final current = state.value;
     if (current == null) return;
@@ -134,10 +146,11 @@ final coBuyProvider = AsyncNotifierProvider<CoBuyNotifier, List<CoBuySession>>(
 );
 
 /// The current seller's own co-buy deals, for the seller deals dashboard.
-final coBuySellerPoolsProvider =
-    FutureProvider.autoDispose<List<CoBuySession>>((ref) {
-      return CoBuyPoolService.fetchMyPools();
-    });
+final coBuySellerPoolsProvider = FutureProvider.autoDispose<List<CoBuySession>>(
+  (ref) {
+    return CoBuyPoolService.fetchMyPools();
+  },
+);
 
 /// A single co-buy deal by id, for the create/edit form when opened to edit
 /// an existing deal — fetched independently of [coBuyProvider] since the

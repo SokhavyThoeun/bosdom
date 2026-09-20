@@ -24,9 +24,7 @@ Future<void> _contactPrivacyTeam(BuildContext context) async {
     await Clipboard.setData(const ClipboardData(text: _kPrivacyTeamEmail));
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(l10n.dataPrivacyLaunchError(_kPrivacyTeamEmail)),
-      ),
+      SnackBar(content: Text(l10n.dataPrivacyLaunchError(_kPrivacyTeamEmail))),
     );
   }
 }
@@ -146,7 +144,10 @@ class _DataPrivacyPopup extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            _ContactPrivacyTeamButton(textTheme: textTheme, onTap: () => _contactPrivacyTeam(context)),
+            _ContactPrivacyTeamButton(
+              textTheme: textTheme,
+              onTap: () => _contactPrivacyTeam(context),
+            ),
           ],
         ),
       ),
@@ -174,7 +175,9 @@ class _ContactBanner extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.blushSurface.withValues(alpha: 0.6),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.roseMist.withValues(alpha: 0.4)),
+            border: Border.all(
+              color: AppColors.roseMist.withValues(alpha: 0.4),
+            ),
           ),
           child: Row(
             children: [
@@ -207,7 +210,10 @@ class _ContactBanner extends StatelessWidget {
 }
 
 class _ContactPrivacyTeamButton extends StatelessWidget {
-  const _ContactPrivacyTeamButton({required this.textTheme, required this.onTap});
+  const _ContactPrivacyTeamButton({
+    required this.textTheme,
+    required this.onTap,
+  });
 
   final TextTheme textTheme;
   final VoidCallback onTap;

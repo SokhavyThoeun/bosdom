@@ -33,7 +33,7 @@ class AboutScreen extends StatelessWidget {
         l10n.aboutFeatureCoBuyBody,
       ),
       _Feature(
-        Icons.shield_outlined,
+        Icons.gpp_good_outlined,
         l10n.aboutFeatureEscrowTitle,
         l10n.aboutFeatureEscrowBody,
       ),
@@ -154,12 +154,12 @@ class _AboutHeader extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
-          MediaQuery.of(context).padding.top + 16,
+          MediaQuery.of(context).padding.top + 10,
           24,
-          20,
+          14,
         ),
         child: SizedBox(
-          height: 96,
+          height: 68,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisAlignment: MainAxisAlignment.center,

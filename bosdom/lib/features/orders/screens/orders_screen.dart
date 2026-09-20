@@ -2,28 +2,46 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../../shared/utils/currency_format.dart';
+import '../../../shared/widgets/order_status_badge.dart';
 import '../../marketplace/widgets/empty_products_notice.dart';
 import '../models/order.dart';
 import '../providers/orders_provider.dart';
 import 'rate_review_sheet.dart';
 import 'report_order_sheet.dart';
 
-const _kFilters = [null, ...OrderStatus.values];
+// `OrderStatus.held` covers two buyer-visible states depending on whether
+// the seller has confirmed yet, so filters are keyed on (status,
+// isSellerConfirmed) rather than the raw enum — see [Order.isSellerConfirmed].
+typedef _StatusFilter = ({OrderStatus status, bool isSellerConfirmed});
 
-// All statuses share the brand color instead of a traffic-light palette —
-// status is distinguished by icon and label, not by hue.
-Color _statusColor(OrderStatus status) => AppColors.brandCrimson;
+// `pendingPayment`/`disputed` are excluded here — those escrow states
+// belong to the seller's earnings dashboard; a buyer still sees the real
+// status badge on an order that happens to be in one of them, but can't
+// filter the list down to just those.
+const _kStatusFilters = <_StatusFilter>[
+  (status: OrderStatus.held, isSellerConfirmed: false),
+  (status: OrderStatus.held, isSellerConfirmed: true),
+  (status: OrderStatus.released, isSellerConfirmed: true),
+  (status: OrderStatus.refunded, isSellerConfirmed: true),
+  (status: OrderStatus.cancelled, isSellerConfirmed: true),
+];
 
-IconData _statusIcon(OrderStatus status) => switch (status) {
-  OrderStatus.pendingPayment => Icons.hourglass_top_rounded,
-  OrderStatus.held => Icons.lock_clock_rounded,
-  OrderStatus.released => Icons.check_circle_rounded,
-  OrderStatus.disputed => Icons.report_problem_rounded,
-  OrderStatus.refunded => Icons.undo_rounded,
-  OrderStatus.cancelled => Icons.cancel_rounded,
-};
+const _kFilters = [null, ..._kStatusFilters];
+
+IconData _statusIcon(OrderStatus status, {bool isSellerConfirmed = true}) =>
+    switch (status) {
+      OrderStatus.pendingPayment => Icons.hourglass_top_rounded,
+      OrderStatus.held =>
+        isSellerConfirmed
+            ? Icons.inventory_2_outlined
+            : Icons.receipt_long_outlined,
+      OrderStatus.released => Icons.check_circle_rounded,
+      OrderStatus.disputed => Icons.report_problem_rounded,
+      OrderStatus.refunded => Icons.undo_rounded,
+      OrderStatus.cancelled => Icons.cancel_rounded,
+    };
 
 class OrdersScreen extends ConsumerStatefulWidget {
   const OrdersScreen({super.key});
@@ -33,11 +51,19 @@ class OrdersScreen extends ConsumerStatefulWidget {
 }
 
 class _OrdersScreenState extends ConsumerState<OrdersScreen> {
-  OrderStatus? _filter;
+  _StatusFilter? _filter;
 
-  List<Order> _filteredOrders(List<Order> orders) => _filter == null
-      ? orders
-      : orders.where((order) => order.status == _filter).toList();
+  List<Order> _filteredOrders(List<Order> orders) {
+    final filter = _filter;
+    if (filter == null) return orders;
+    return orders
+        .where(
+          (order) =>
+              order.status == filter.status &&
+              order.isSellerConfirmed == filter.isSellerConfirmed,
+        )
+        .toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,8 +82,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
               top: false,
               bottom: false,
               child: ordersAsync.when(
-                loading: () =>
-                    const Center(child: CircularProgressIndicator()),
+                loading: () => const Center(child: CircularProgressIndicator()),
                 error: (error, stackTrace) => Center(
                   child: EmptyProductsNotice(
                     colorScheme: colorScheme,
@@ -147,10 +172,9 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
   }
 }
 
-// Matches the combined height of the logo/notification row + search bar
-// used by the homepage and wishlist headers, so this header is the same
-// overall size even though it shows a back row + centered title.
-const _kHeaderContentHeight = 96.0;
+// Sized to fit a back-row + centered title, shorter than the two-row
+// home/search header since there's no search bar to fit.
+const _kHeaderContentHeight = 68.0;
 
 class _Header extends StatelessWidget {
   const _Header({required this.colorScheme, required this.textTheme});
@@ -166,9 +190,9 @@ class _Header extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
-          MediaQuery.of(context).padding.top + 16,
+          MediaQuery.of(context).padding.top + 10,
           24,
-          20,
+          14,
         ),
         child: SizedBox(
           height: _kHeaderContentHeight,
@@ -216,8 +240,8 @@ class _FilterRow extends StatelessWidget {
     required this.textTheme,
   });
 
-  final OrderStatus? selected;
-  final ValueChanged<OrderStatus?> onSelected;
+  final _StatusFilter? selected;
+  final ValueChanged<_StatusFilter?> onSelected;
   final int orderCount;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
@@ -233,7 +257,10 @@ class _FilterRow extends StatelessWidget {
             _FilterChip(
               label: _kFilters[i] == null
                   ? l10n.ordersFilterAllLabel(orderCount)
-                  : _kFilters[i]!.label,
+                  : buyerOrderStatusLabel(
+                      _kFilters[i]!.status,
+                      isSellerConfirmed: _kFilters[i]!.isSellerConfirmed,
+                    ),
               isSelected: selected == _kFilters[i],
               onTap: () => onSelected(_kFilters[i]),
               colorScheme: colorScheme,
@@ -293,7 +320,7 @@ class _FilterChip extends StatelessWidget {
   }
 }
 
-class _OrderCard extends StatelessWidget {
+class _OrderCard extends ConsumerWidget {
   const _OrderCard({
     required this.order,
     required this.colorScheme,
@@ -313,17 +340,24 @@ class _OrderCard extends StatelessWidget {
   final VoidCallback onTrack;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final statusColor = _statusColor(order.status);
-    final statusIcon = _statusIcon(order.status);
+    final statusIcon = _statusIcon(
+      order.status,
+      isSellerConfirmed: order.isSellerConfirmed,
+    );
+    final statusLabel = buyerOrderStatusLabel(
+      order.status,
+      isSellerConfirmed: order.isSellerConfirmed,
+    );
 
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.4)),
         boxShadow: [
           BoxShadow(
-            color: statusColor.withValues(alpha: 0.16),
+            color: colorScheme.shadow.withValues(alpha: 0.08),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
@@ -331,204 +365,188 @@ class _OrderCard extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(22),
-        child: IntrinsicHeight(
-          child: Row(
+        child: ColoredBox(
+          color: Colors.white,
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(width: 5, color: statusColor),
-              Expanded(
-                child: ColoredBox(
-                  color: Colors.white,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                            colors: [
-                              statusColor.withValues(alpha: 0.16),
-                              statusColor.withValues(alpha: 0.03),
-                            ],
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 34,
-                              height: 34,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: statusColor.withValues(alpha: 0.16),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                statusIcon,
-                                size: 17,
-                                color: statusColor,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    l10n.ordersOrderNumberLabel(order.id),
-                                    style: textTheme.bodyMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 1),
-                                  Text(
-                                    order.dateLabel,
-                                    style: textTheme.bodySmall?.copyWith(
-                                      color: colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: statusColor,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                order.status.label,
-                                style: textTheme.labelSmall?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+              Container(
+                padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: colorScheme.outline.withValues(alpha: 0.3),
+                    ),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 34,
+                      height: 34,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerHighest,
+                        shape: BoxShape.circle,
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  width: 56,
-                                  height: 56,
-                                  clipBehavior: Clip.antiAlias,
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.primaryContainer,
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                  child: Image.network(
-                                    order.imageUrl,
-                                    fit: BoxFit.cover,
-                                    loadingBuilder:
-                                        (context, child, progress) =>
-                                            progress == null
-                                            ? child
-                                            : Icon(
-                                                order.icon,
-                                                color: colorScheme.primary,
-                                                size: 24,
-                                              ),
-                                    errorBuilder: (context, error, stackTrace) =>
-                                        Icon(
+                      child: Icon(
+                        statusIcon,
+                        size: 17,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.ordersOrderNumberLabel(order.displayNumber),
+                            style: textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 1),
+                          Text(
+                            order.dateLabel,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    OrderStatusBadge(label: statusLabel, dense: true),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 56,
+                          height: 56,
+                          clipBehavior: Clip.antiAlias,
+                          decoration: BoxDecoration(
+                            color: colorScheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: order.imageUrl == null
+                              ? Icon(
+                                  order.icon,
+                                  color: colorScheme.primary,
+                                  size: 24,
+                                )
+                              : Image.network(
+                                  order.imageUrl!,
+                                  fit: BoxFit.cover,
+                                  loadingBuilder: (context, child, progress) =>
+                                      progress == null
+                                      ? child
+                                      : Icon(
                                           order.icon,
                                           color: colorScheme.primary,
                                           size: 24,
                                         ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        order.productName,
-                                        style: textTheme.bodyMedium?.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                        ),
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Icon(
+                                        order.icon,
+                                        color: colorScheme.primary,
+                                        size: 24,
                                       ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        l10n.ordersItemCountLabel(
-                                          order.quantity,
-                                        ),
-                                        style: textTheme.bodySmall?.copyWith(
-                                          color: colorScheme.onSurfaceVariant,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
                                 ),
-                                Text(
-                                  '\$${order.totalAmount.toStringAsFixed(2)}',
-                                  style: textTheme.titleMedium?.copyWith(
-                                    color: colorScheme.primary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                order.productName,
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
                                 ),
-                              ],
-                            ),
-                            const SizedBox(height: 14),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _PrimaryActionButton(
-                                    label: l10n.ordersViewDetailsButton,
-                                    onTap: onViewDetails,
-                                    colorScheme: colorScheme,
-                                    textTheme: textTheme,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                _SecondaryActionButton(
-                                  icon: Icons.flag_outlined,
-                                  label: l10n.ordersReportButton,
-                                  onTap: onReport,
-                                  colorScheme: colorScheme,
-                                  textTheme: textTheme,
-                                ),
-                              ],
-                            ),
-                            if (order.status == OrderStatus.released) ...[
-                              const SizedBox(height: 10),
-                              _SecondaryActionButton(
-                                icon: Icons.star_outline_rounded,
-                                label: l10n.ordersRateReviewButton,
-                                onTap: onRate,
-                                colorScheme: colorScheme,
-                                textTheme: textTheme,
-                                expand: true,
-                                accent: true,
                               ),
-                            ] else if (order.isActive) ...[
-                              const SizedBox(height: 10),
-                              _SecondaryActionButton(
-                                icon: Icons.location_on_outlined,
-                                label: l10n.ordersTrackOrderButton,
-                                onTap: onTrack,
-                                colorScheme: colorScheme,
-                                textTheme: textTheme,
-                                expand: true,
-                                accent: true,
+                              const SizedBox(height: 2),
+                              Text(
+                                l10n.ordersItemCountLabel(order.quantity),
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
                               ),
                             ],
-                          ],
+                          ),
                         ),
+                        Text(
+                          formatPrice(ref, order.totalAmount),
+                          style: textTheme.titleMedium?.copyWith(
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _PrimaryActionButton(
+                            label: l10n.ordersViewDetailsButton,
+                            onTap: onViewDetails,
+                            colorScheme: colorScheme,
+                            textTheme: textTheme,
+                          ),
+                        ),
+                        if (order.canReportProblem) ...[
+                          const SizedBox(width: 10),
+                          _SecondaryActionButton(
+                            icon: Icons.flag_outlined,
+                            label: l10n.ordersReportButton,
+                            onTap: onReport,
+                            colorScheme: colorScheme,
+                            textTheme: textTheme,
+                          ),
+                        ],
+                      ],
+                    ),
+                    if (order.status == OrderStatus.released) ...[
+                      const SizedBox(height: 10),
+                      order.review != null
+                          ? _SecondaryActionButton(
+                              icon: Icons.star_rounded,
+                              label: l10n.ordersAlreadyReviewedLabel,
+                              onTap: null,
+                              colorScheme: colorScheme,
+                              textTheme: textTheme,
+                              expand: true,
+                            )
+                          : _SecondaryActionButton(
+                              icon: Icons.star_outline_rounded,
+                              label: l10n.ordersRateReviewButton,
+                              onTap: onRate,
+                              colorScheme: colorScheme,
+                              textTheme: textTheme,
+                              expand: true,
+                              accent: true,
+                            ),
+                    ] else if (order.isActive) ...[
+                      const SizedBox(height: 10),
+                      _SecondaryActionButton(
+                        icon: Icons.location_on_outlined,
+                        label: l10n.ordersTrackOrderButton,
+                        onTap: onTrack,
+                        colorScheme: colorScheme,
+                        textTheme: textTheme,
+                        expand: true,
+                        accent: true,
                       ),
                     ],
-                  ),
+                  ],
                 ),
               ),
             ],
@@ -594,7 +612,9 @@ class _SecondaryActionButton extends StatelessWidget {
 
   final IconData icon;
   final String label;
-  final VoidCallback onTap;
+
+  /// Null renders the button as a non-interactive, dimmed indicator.
+  final VoidCallback? onTap;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
 
@@ -606,7 +626,10 @@ class _SecondaryActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tintColor = accent
+    final disabled = onTap == null;
+    final tintColor = disabled
+        ? colorScheme.onSurfaceVariant.withValues(alpha: 0.5)
+        : accent
         ? colorScheme.primary
         : colorScheme.onSurfaceVariant;
     return Material(
@@ -620,7 +643,11 @@ class _SecondaryActionButton extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: accent ? colorScheme.primary : colorScheme.outline,
+              color: disabled
+                  ? colorScheme.outline.withValues(alpha: 0.5)
+                  : accent
+                  ? colorScheme.primary
+                  : colorScheme.outline,
             ),
           ),
           child: Row(

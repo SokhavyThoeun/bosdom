@@ -6,6 +6,7 @@ import 'package:http_parser/http_parser.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/config/api_config.dart';
+import '../models/seller_listing.dart';
 
 /// A named color option a seller offers for a listing, e.g. `('Navy', '#243B55')`.
 class ListingColorOption {
@@ -39,24 +40,33 @@ abstract final class ListingService {
     double? samplePrice,
     List<String> sizes = const [],
     List<ListingColorOption> colors = const [],
+    String weight = '',
+    String origin = '',
+    String grade = '',
+    String packaging = '',
     required List<File> photos,
   }) async {
-    final request = http.MultipartRequest(
-      'POST',
-      Uri.parse('${ApiConfig.baseUrl}/listings/me'),
-    )
-      ..headers.addAll(_authHeaders)
-      ..fields['product_name'] = productName
-      ..fields['category'] = category
-      ..fields['price'] = price.toString()
-      ..fields['moq_qty'] = moqQty.toString()
-      ..fields['stock_qty'] = stockQty.toString()
-      ..fields['description'] = description
-      ..fields['sample_testing_enabled'] = sampleTestingEnabled.toString()
-      ..fields['sizes'] = sizes.join(',')
-      ..fields['colors'] = jsonEncode([
-        for (final color in colors) color.toJson(),
-      ]);
+    final request =
+        http.MultipartRequest(
+            'POST',
+            Uri.parse('${ApiConfig.baseUrl}/listings/me'),
+          )
+          ..headers.addAll(_authHeaders)
+          ..fields['product_name'] = productName
+          ..fields['category'] = category
+          ..fields['price'] = price.toString()
+          ..fields['moq_qty'] = moqQty.toString()
+          ..fields['stock_qty'] = stockQty.toString()
+          ..fields['description'] = description
+          ..fields['sample_testing_enabled'] = sampleTestingEnabled.toString()
+          ..fields['sizes'] = sizes.join(',')
+          ..fields['colors'] = jsonEncode([
+            for (final color in colors) color.toJson(),
+          ])
+          ..fields['weight'] = weight
+          ..fields['origin'] = origin
+          ..fields['grade'] = grade
+          ..fields['packaging'] = packaging;
 
     if (sampleTestingEnabled && samplePrice != null) {
       request.fields['sample_price'] = samplePrice.toString();
@@ -82,5 +92,38 @@ abstract final class ListingService {
     if (response.statusCode != 200) {
       throw Exception('Failed to create listing: ${response.body}');
     }
+  }
+
+  static Future<List<SellerListing>> listMine() async {
+    final response = await http
+        .get(
+          Uri.parse('${ApiConfig.baseUrl}/listings/me'),
+          headers: _authHeaders,
+        )
+        .timeout(_timeout);
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load inventory: ${response.body}');
+    }
+    final body = jsonDecode(response.body) as List;
+    return body
+        .cast<Map<String, dynamic>>()
+        .map(SellerListing.fromJson)
+        .toList();
+  }
+
+  static Future<SellerListing> setActive(String listingId, bool active) async {
+    final response = await http
+        .patch(
+          Uri.parse('${ApiConfig.baseUrl}/listings/me/$listingId/active'),
+          headers: {..._authHeaders, 'Content-Type': 'application/json'},
+          body: jsonEncode({'active': active}),
+        )
+        .timeout(_timeout);
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update listing: ${response.body}');
+    }
+    return SellerListing.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
   }
 }

@@ -43,6 +43,17 @@ abstract final class AppTheme {
   );
   static const _buttonMinimumSize = Size(64, 48);
 
+  /// Applied to FilledButton/ElevatedButton when disabled so a pending CTA
+  /// (e.g. "Continue" before a required upload/checkbox) still reads as an
+  /// on-brand muted button instead of Material's near-invisible default
+  /// (12%-opacity black), which looked like a stray pale box on screen.
+  static final _disabledBackgroundColor = _colorScheme.primary.withValues(
+    alpha: 0.35,
+  );
+  static final _disabledForegroundColor = _colorScheme.onPrimary.withValues(
+    alpha: 0.85,
+  );
+
   static ThemeData get light {
     return ThemeData(
       useMaterial3: true,
@@ -61,6 +72,8 @@ abstract final class AppTheme {
           padding: _buttonPadding,
           shape: _buttonShape,
           textStyle: AppTextTheme.textTheme.labelLarge,
+          disabledBackgroundColor: _disabledBackgroundColor,
+          disabledForegroundColor: _disabledForegroundColor,
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -77,6 +90,8 @@ abstract final class AppTheme {
           padding: _buttonPadding,
           shape: _buttonShape,
           textStyle: AppTextTheme.textTheme.labelLarge,
+          disabledBackgroundColor: _disabledBackgroundColor,
+          disabledForegroundColor: _disabledForegroundColor,
         ),
       ),
       textButtonTheme: TextButtonThemeData(

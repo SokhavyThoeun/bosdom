@@ -4,8 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/services/shipping_fee_calculator.dart';
+import '../../../shared/utils/currency_format.dart';
 import '../../../shared/widgets/checkout_progress_stepper.dart';
+import '../../../shared/widgets/price_display.dart';
 import '../../payment/screens/payment_screen.dart' show OrderLineSummary;
+import '../../profile/providers/profile_provider.dart';
 import '../../../shared/utils/mock_images.dart';
 import '../models/address.dart';
 import '../providers/address_provider.dart';
@@ -13,10 +16,14 @@ import '../providers/address_provider.dart';
 class CheckoutLineItem {
   const CheckoutLineItem({
     required this.icon,
+    required this.imageUrl,
     required this.name,
     required this.qtyLabel,
     required this.total,
     required this.seller,
+    this.sellerLogoOverride,
+    this.listingId,
+    this.quantity = 1,
     // Co-buy sessions don't track a per-item weight yet, so this falls back
     // to a rough average wholesale-carton estimate rather than 0 (which
     // would silently understate the shipping estimate to nothing).
@@ -24,14 +31,30 @@ class CheckoutLineItem {
   });
 
   final IconData icon;
+  final String imageUrl;
   final String name;
   final String qtyLabel;
   final double total;
   final String seller;
 
+  /// Real shop logo URL for this line's seller. `null` for demo/co-buy
+  /// lines, which fall back to [sellerLogoUrl]'s generated mock logo.
+  final String? sellerLogoOverride;
+
+  /// Real backend listing id, when this line is a real product — `null`
+  /// for demo/co-buy lines that have no backend counterpart to order.
+  final String? listingId;
+
+  /// Purchased quantity as a real int (distinct from [qtyLabel]'s display
+  /// string), needed to create a real backend order.
+  final int quantity;
+
   /// Total weight for this line (already accounts for quantity) — used to
   /// pick the right weight bracket in [estimateShippingFee].
   final double weightKg;
+
+  /// The seller's real shop logo when available, else a generated mock logo.
+  String get sellerLogoUrl => sellerLogoOverride ?? mockStoreLogoUrl(seller);
 }
 
 class _ShippingOption {
@@ -46,35 +69,40 @@ class _ShippingOption {
   final String logoAsset;
 }
 
-const _kCheckoutItems = [
+final _kCheckoutItems = [
   CheckoutLineItem(
     icon: Icons.rice_bowl_outlined,
+    imageUrl: mockPhotoUrl('jasmine,rice,bag', 'checkout-rice'),
     name: 'Premium Jasmine Rice (25kg)',
     qtyLabel: 'Qty: 20 Bags',
+    quantity: 20,
     total: 370,
     seller: 'Mekong Agri-Food Co.',
     weightKg: 500, // 20 bags × 25kg
   ),
   CheckoutLineItem(
     icon: Icons.local_cafe_outlined,
+    imageUrl: mockPhotoUrl('paper,cup', 'checkout-cups'),
     name: 'Biodegradable Paper Hot Cups',
     qtyLabel: 'Qty: 5 Boxes',
+    quantity: 5,
     total: 80,
     seller: 'EcoPack Cambodia',
     weightKg: 2.5, // 5 boxes × 0.5kg
   ),
   CheckoutLineItem(
     icon: Icons.bolt_outlined,
+    imageUrl: mockPhotoUrl('usb,charger', 'checkout-usb'),
     name: 'Universal USB-C Bulk Pack',
     qtyLabel: 'Qty: 100 Units',
+    quantity: 100,
     total: 320,
     seller: 'PP Tech Import',
     weightKg: 5, // 100 units × 0.05kg
   ),
 ];
 
-// Every seller in this dataset ships from Phnom Penh — see
-// `kSellerOriginProvince` in `features/profile/models/seller_order.dart`.
+// Every seller in this dataset ships from Phnom Penh.
 const _kOriginProvince = 'Phnom Penh';
 
 const _kShippingOptions = [
@@ -151,6 +179,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
     final defaultAddress = ref.watch(defaultAddressProvider);
+    final profile = ref.watch(profileProvider).value;
     final destinationProvince = defaultAddress?.province ?? _kOriginProvince;
     final shippingQuotes = _shippingQuotes(destinationProvince);
     final effectiveShippingId = _effectiveShippingId(shippingQuotes);
@@ -264,13 +293,24 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       extra: {
                         'amount': _total(shipping),
                         'itemCount': _items.length,
+                        'shippingName': profile?.name ?? '',
+                        'shippingAddress': defaultAddress == null
+                            ? ''
+                            : '${defaultAddress.addressLine}, ${defaultAddress.cityLine}',
+                        'shippingPhone':
+                            defaultAddress?.phone ?? profile?.phone ?? '',
                         'items': [
                           for (final item in _items)
                             OrderLineSummary(
                               icon: item.icon,
+                              imageUrl: item.imageUrl,
                               name: item.name,
                               qtyLabel: item.qtyLabel,
                               total: item.total,
+                              seller: item.seller,
+                              sellerLogoOverride: item.sellerLogoOverride,
+                              listingId: item.listingId,
+                              quantity: item.quantity,
                             ),
                         ],
                       },
@@ -287,10 +327,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 }
 
-// Matches the combined height of the logo/notification row + search bar
-// used by the homepage and wishlist headers, so this header is the same
-// overall size even though it shows a back row + centered title.
-const _kHeaderContentHeight = 96.0;
+// Sized to fit a back-row + centered title, shorter than the two-row
+// home/search header since there's no search bar to fit.
+const _kHeaderContentHeight = 68.0;
 
 class _CheckoutHeader extends StatelessWidget {
   const _CheckoutHeader({required this.colorScheme, required this.textTheme});
@@ -306,9 +345,9 @@ class _CheckoutHeader extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
-          MediaQuery.of(context).padding.top + 16,
+          MediaQuery.of(context).padding.top + 10,
           24,
-          20,
+          14,
         ),
         child: SizedBox(
           height: _kHeaderContentHeight,
@@ -456,7 +495,7 @@ class _OrderItemsCard extends StatelessWidget {
   }
 }
 
-class _SellerGroupCard extends StatelessWidget {
+class _SellerGroupCard extends ConsumerWidget {
   const _SellerGroupCard({
     required this.seller,
     required this.items,
@@ -470,7 +509,7 @@ class _SellerGroupCard extends StatelessWidget {
   final TextTheme textTheme;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
 
     return Container(
@@ -490,7 +529,7 @@ class _SellerGroupCard extends StatelessWidget {
                 backgroundColor: colorScheme.primaryContainer,
                 child: ClipOval(
                   child: Image.network(
-                    mockStoreLogoUrl(seller),
+                    items.first.sellerLogoUrl,
                     width: 22,
                     height: 22,
                     fit: BoxFit.cover,
@@ -544,11 +583,21 @@ class _SellerGroupCard extends StatelessWidget {
                 Container(
                   width: 40,
                   height: 40,
+                  clipBehavior: Clip.antiAlias,
                   decoration: BoxDecoration(
                     color: colorScheme.primaryContainer,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(item.icon, color: colorScheme.primary, size: 20),
+                  child: Image.network(
+                    item.imageUrl,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, progress) =>
+                        progress == null
+                        ? child
+                        : Icon(item.icon, color: colorScheme.primary, size: 20),
+                    errorBuilder: (context, error, stackTrace) =>
+                        Icon(item.icon, color: colorScheme.primary, size: 20),
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -574,7 +623,7 @@ class _SellerGroupCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '\$${item.total.toStringAsFixed(2)}',
+                  formatPrice(ref, item.total),
                   style: textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -588,7 +637,7 @@ class _SellerGroupCard extends StatelessWidget {
   }
 }
 
-class _ShippingOptionTile extends StatelessWidget {
+class _ShippingOptionTile extends ConsumerWidget {
   const _ShippingOptionTile({
     required this.option,
     required this.quote,
@@ -606,7 +655,7 @@ class _ShippingOptionTile extends StatelessWidget {
   final TextTheme textTheme;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final quote = this.quote;
     final available = quote != null;
@@ -689,7 +738,7 @@ class _ShippingOptionTile extends StatelessWidget {
                           if (available) ...[
                             const SizedBox(width: 8),
                             Text(
-                              '\$${quote.fee.toStringAsFixed(2)}',
+                              formatPrice(ref, quote.fee),
                               style: textTheme.bodyMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: colorScheme.primary,
@@ -719,7 +768,7 @@ class _ShippingOptionTile extends StatelessWidget {
   }
 }
 
-class _OrderSummaryCard extends StatelessWidget {
+class _OrderSummaryCard extends ConsumerWidget {
   const _OrderSummaryCard({
     required this.subtotal,
     required this.shipping,
@@ -737,7 +786,7 @@ class _OrderSummaryCard extends StatelessWidget {
   final TextTheme textTheme;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
@@ -784,8 +833,9 @@ class _OrderSummaryCard extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              Text(
-                '\$${total.toStringAsFixed(2)}',
+              PriceDisplay(
+                total,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 style: textTheme.titleLarge?.copyWith(
                   color: colorScheme.primary,
                   fontWeight: FontWeight.bold,
@@ -799,7 +849,7 @@ class _OrderSummaryCard extends StatelessWidget {
   }
 }
 
-class _SummaryRow extends StatelessWidget {
+class _SummaryRow extends ConsumerWidget {
   const _SummaryRow({
     required this.label,
     required this.value,
@@ -813,7 +863,7 @@ class _SummaryRow extends StatelessWidget {
   final TextTheme textTheme;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Row(
       children: [
         Text(
@@ -824,7 +874,7 @@ class _SummaryRow extends StatelessWidget {
         ),
         const Spacer(),
         Text(
-          '\$${value.toStringAsFixed(2)}',
+          formatPrice(ref, value),
           style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
       ],

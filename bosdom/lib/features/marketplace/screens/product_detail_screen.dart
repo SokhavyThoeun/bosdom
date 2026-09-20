@@ -4,11 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/models/variant_option.dart';
+import '../../../shared/utils/currency_format.dart';
+import '../../../shared/widgets/adaptive_network_image.dart';
 import '../../../shared/widgets/full_screen_image_viewer.dart';
 import '../../../shared/widgets/variant_selector.dart';
+import '../../../shared/widgets/verified_badge_icon.dart';
+import '../../cart/providers/cart_provider.dart';
 import '../../wishlist/providers/wishlist_provider.dart';
 import '../models/product.dart';
 import '../models/sample_order.dart';
@@ -42,7 +47,9 @@ class ProductDetailScreen extends ConsumerWidget {
             child: EmptyProductsNotice(
               colorScheme: colorScheme,
               textTheme: textTheme,
-              message: AppLocalizations.of(context).marketplaceProductsLoadError,
+              message: AppLocalizations.of(
+                context,
+              ).marketplaceProductsLoadError,
               onRetry: () => ref.invalidate(listingByIdProvider(productId)),
             ),
           ),
@@ -59,8 +66,7 @@ class _ProductDetailBody extends ConsumerStatefulWidget {
   final String productId;
 
   @override
-  ConsumerState<_ProductDetailBody> createState() =>
-      _ProductDetailBodyState();
+  ConsumerState<_ProductDetailBody> createState() => _ProductDetailBodyState();
 }
 
 class _ProductDetailBodyState extends ConsumerState<_ProductDetailBody> {
@@ -94,12 +100,20 @@ class _ProductDetailBodyState extends ConsumerState<_ProductDetailBody> {
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
     final product = this.product;
+    final supportsSample =
+        !product.isRealListing || product.samplePrice != null;
+    final isOwner =
+        product.sellerId != null &&
+        product.sellerId == Supabase.instance.client.auth.currentUser?.id;
     final sampleEligibility = ref.watch(sampleGateProvider);
     final wishlistId = productWishlistId(widget.productId);
     final isFavorite = ref.watch(
       wishlistProvider.select(
         (ids) => ids.value?.contains(wishlistId) ?? false,
       ),
+    );
+    final cartItemCount = ref.watch(
+      cartProvider.select((cart) => cart.value?.length ?? 0),
     );
 
     return Scaffold(
@@ -114,6 +128,8 @@ class _ProductDetailBodyState extends ConsumerState<_ProductDetailBody> {
               isFavorite: isFavorite,
               onFavoriteToggle: () =>
                   ref.read(wishlistProvider.notifier).toggle(wishlistId),
+              cartItemCount: cartItemCount,
+              onCartTap: () => context.goNamed('cart'),
             ),
           ),
           Expanded(
@@ -174,10 +190,12 @@ class _ProductDetailBodyState extends ConsumerState<_ProductDetailBody> {
                                   textBaseline: TextBaseline.alphabetic,
                                   children: [
                                     Text(
-                                      _mode == _BuyMode.wholesale
-                                          ? product.price
-                                          : (product.samplePrice ??
-                                                product.price),
+                                      formatPrice(
+                                        ref,
+                                        _mode == _BuyMode.wholesale
+                                            ? product.priceValue
+                                            : product.samplePriceValue,
+                                      ),
                                       style: textTheme.headlineMedium?.copyWith(
                                         color: colorScheme.primary,
                                         fontWeight: FontWeight.bold,
@@ -192,6 +210,21 @@ class _ProductDetailBodyState extends ConsumerState<_ProductDetailBody> {
                                     ),
                                   ],
                                 ),
+                                if (formatSecondaryPrice(
+                                      ref,
+                                      _mode == _BuyMode.wholesale
+                                          ? product.priceValue
+                                          : product.samplePriceValue,
+                                    )
+                                    case final secondary?) ...[
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    secondary,
+                                    style: textTheme.bodySmall?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
                                 const SizedBox(height: 12),
                                 Divider(height: 1, color: colorScheme.outline),
                                 const SizedBox(height: 12),
@@ -244,18 +277,21 @@ class _ProductDetailBodyState extends ConsumerState<_ProductDetailBody> {
                             colorScheme: colorScheme,
                             textTheme: textTheme,
                           ),
-                          const SizedBox(height: 20),
-                          _ModeToggle(
-                            mode: _mode,
-                            colorScheme: colorScheme,
-                            textTheme: textTheme,
-                            onChanged: (mode) => setState(() => _mode = mode),
-                          ),
+                          if (supportsSample) ...[
+                            const SizedBox(height: 20),
+                            _ModeToggle(
+                              mode: _mode,
+                              colorScheme: colorScheme,
+                              textTheme: textTheme,
+                              onChanged: (mode) => setState(() => _mode = mode),
+                            ),
+                          ],
                           const SizedBox(height: 16),
                           _BuyBox(
                             product: product,
                             productId: widget.productId,
-                            mode: _mode,
+                            mode: supportsSample ? _mode : _BuyMode.wholesale,
+                            isOwner: isOwner,
                             selectedSize: _selectedSize,
                             selectedColor: _selectedColor,
                             wholesaleQty: _wholesaleQty,
@@ -266,7 +302,10 @@ class _ProductDetailBodyState extends ConsumerState<_ProductDetailBody> {
                             isSampleGateLoading: sampleEligibility.isLoading,
                             onRequestSample: () => ref
                                 .read(sampleGateProvider.notifier)
-                                .requestSample(widget.productId),
+                                .requestSample(product),
+                            onAddToCart: () => ref
+                                .read(cartProvider.notifier)
+                                .addItems([(product, _wholesaleQty)]),
                             colorScheme: colorScheme,
                             textTheme: textTheme,
                           ),
@@ -296,6 +335,8 @@ class _Header extends StatelessWidget {
     required this.textTheme,
     required this.isFavorite,
     required this.onFavoriteToggle,
+    required this.cartItemCount,
+    required this.onCartTap,
   });
 
   final Product product;
@@ -303,6 +344,8 @@ class _Header extends StatelessWidget {
   final TextTheme textTheme;
   final bool isFavorite;
   final VoidCallback onFavoriteToggle;
+  final int cartItemCount;
+  final VoidCallback onCartTap;
 
   @override
   Widget build(BuildContext context) {
@@ -311,9 +354,9 @@ class _Header extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
-          MediaQuery.of(context).padding.top + 16,
+          MediaQuery.of(context).padding.top + 10,
           24,
-          20,
+          14,
         ),
         child: SizedBox(
           height: _kHeaderContentHeight,
@@ -348,6 +391,67 @@ class _Header extends StatelessWidget {
                           isFavorite ? Icons.favorite : Icons.favorite_border,
                           color: colorScheme.onPrimary,
                           size: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Material(
+                    color: colorScheme.onPrimary.withValues(alpha: 0.15),
+                    shape: const CircleBorder(),
+                    child: InkWell(
+                      onTap: onCartTap,
+                      customBorder: const CircleBorder(),
+                      child: Padding(
+                        padding: const EdgeInsets.all(2),
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Icon(
+                              Icons.shopping_cart_outlined,
+                              color: colorScheme.onPrimary,
+                              size: 20,
+                            ),
+                            if (cartItemCount > 0)
+                              Positioned(
+                                top: -4,
+                                right: -4,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                  ),
+                                  constraints: const BoxConstraints(
+                                    minWidth: 16,
+                                    minHeight: 16,
+                                  ),
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.tertiary,
+                                    shape: cartItemCount < 10
+                                        ? BoxShape.circle
+                                        : BoxShape.rectangle,
+                                    borderRadius: cartItemCount < 10
+                                        ? null
+                                        : BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: colorScheme.primary,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    cartItemCount > 99
+                                        ? '99+'
+                                        : '$cartItemCount',
+                                    style: textTheme.labelSmall?.copyWith(
+                                      color: colorScheme.onTertiary,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 10,
+                                      height: 1,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                     ),
@@ -462,7 +566,7 @@ class _ImageGalleryState extends State<_ImageGallery> {
                     ),
                     child: Container(
                       color: colorScheme.primaryContainer,
-                      child: Image.network(
+                      child: AdaptiveNetworkImage(
                         widget.product.imageUrl,
                         fit: BoxFit.cover,
                         loadingBuilder: (context, child, progress) =>
@@ -544,6 +648,7 @@ class _ImageGalleryState extends State<_ImageGallery> {
               separatorBuilder: (_, _) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
                 final selected = index == _selected;
+                final borderWidth = selected ? 2.0 : 1.0;
                 return InkWell(
                   onTap: () => _goTo(index),
                   borderRadius: BorderRadius.circular(10),
@@ -556,25 +661,27 @@ class _ImageGalleryState extends State<_ImageGallery> {
                         color: selected
                             ? colorScheme.primary
                             : colorScheme.outline,
-                        width: selected ? 2 : 1,
+                        width: borderWidth,
                       ),
                     ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Image.network(
-                      widget.product.imageUrl,
-                      fit: BoxFit.cover,
-                      loadingBuilder: (context, child, progress) =>
-                          progress == null
-                          ? child
-                          : Icon(
-                              widget.product.icon,
-                              size: 22,
-                              color: colorScheme.primary,
-                            ),
-                      errorBuilder: (context, error, stackTrace) => Icon(
-                        widget.product.icon,
-                        size: 22,
-                        color: colorScheme.primary,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10 - borderWidth),
+                      child: AdaptiveNetworkImage(
+                        widget.product.imageUrl,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, progress) =>
+                            progress == null
+                            ? child
+                            : Icon(
+                                widget.product.icon,
+                                size: 22,
+                                color: colorScheme.primary,
+                              ),
+                        errorBuilder: (context, error, stackTrace) => Icon(
+                          widget.product.icon,
+                          size: 22,
+                          color: colorScheme.primary,
+                        ),
                       ),
                     ),
                   ),
@@ -655,13 +762,7 @@ class _SellerRow extends StatelessWidget {
                   ),
                   if (product.verified) ...[
                     const SizedBox(width: 4),
-                    Icon(
-                      Icons.verified,
-                      size: 16,
-                      color: light
-                          ? Colors.lightGreenAccent
-                          : colorScheme.tertiary,
-                    ),
+                    const VerifiedBadgeIcon(),
                   ],
                 ],
               ),
@@ -887,7 +988,7 @@ class _ModeToggleButton extends StatelessWidget {
   }
 }
 
-class _BuyBox extends StatefulWidget {
+class _BuyBox extends ConsumerStatefulWidget {
   const _BuyBox({
     required this.product,
     required this.productId,
@@ -901,8 +1002,10 @@ class _BuyBox extends StatefulWidget {
     required this.sampleEligibility,
     required this.isSampleGateLoading,
     required this.onRequestSample,
+    required this.onAddToCart,
     required this.colorScheme,
     required this.textTheme,
+    this.isOwner = false,
   });
 
   final Product product;
@@ -917,15 +1020,41 @@ class _BuyBox extends StatefulWidget {
   final SampleEligibility? sampleEligibility;
   final bool isSampleGateLoading;
   final Future<SampleOrder> Function() onRequestSample;
+  final Future<bool> Function() onAddToCart;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
 
+  /// True when the signed-in user is this listing's own seller — sellers
+  /// can't buy or sample their own products.
+  final bool isOwner;
+
   @override
-  State<_BuyBox> createState() => _BuyBoxState();
+  ConsumerState<_BuyBox> createState() => _BuyBoxState();
 }
 
-class _BuyBoxState extends State<_BuyBox> {
+class _BuyBoxState extends ConsumerState<_BuyBox> {
   bool _isSubmittingSample = false;
+  bool _isAddingToCart = false;
+
+  Future<void> _handleAddToCart() async {
+    setState(() => _isAddingToCart = true);
+    final l10n = AppLocalizations.of(context);
+    final total = widget.product.priceValue * widget.wholesaleQty;
+    final variantSuffix = [
+      ?widget.selectedColor?.name,
+      ?widget.selectedSize,
+    ].join(', ');
+    final succeeded = await widget.onAddToCart();
+    if (!mounted) return;
+    final message = succeeded
+        ? l10n.productDetailAddedToCartSnackbar(formatPrice(ref, total)) +
+              (variantSuffix.isEmpty ? '' : ' · $variantSuffix')
+        : l10n.cartUpdateErrorSnackbar;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+    setState(() => _isAddingToCart = false);
+  }
 
   Future<void> _handleRequestSample() async {
     setState(() => _isSubmittingSample = true);
@@ -952,9 +1081,9 @@ class _BuyBoxState extends State<_BuyBox> {
       );
     } on SampleOrderException catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
     } finally {
       if (mounted) setState(() => _isSubmittingSample = false);
     }
@@ -965,8 +1094,6 @@ class _BuyBoxState extends State<_BuyBox> {
     final product = widget.product;
     final productId = widget.productId;
     final mode = widget.mode;
-    final selectedSize = widget.selectedSize;
-    final selectedColor = widget.selectedColor;
     final wholesaleQty = widget.wholesaleQty;
     final sampleQty = widget.sampleQty;
     final onWholesaleQtyChanged = widget.onWholesaleQtyChanged;
@@ -975,6 +1102,7 @@ class _BuyBoxState extends State<_BuyBox> {
     final isSampleGateLoading = widget.isSampleGateLoading;
     final colorScheme = widget.colorScheme;
     final textTheme = widget.textTheme;
+    final isOwner = widget.isOwner;
     final l10n = AppLocalizations.of(context);
     final isWholesale = mode == _BuyMode.wholesale;
     final unitPrice = isWholesale
@@ -1007,7 +1135,7 @@ class _BuyBoxState extends State<_BuyBox> {
           ),
           const SizedBox(height: 4),
           Text(
-            '\$${unitPrice.toStringAsFixed(2)} $unitLabel',
+            '${formatPrice(ref, unitPrice)} $unitLabel',
             style: textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
@@ -1025,34 +1153,20 @@ class _BuyBoxState extends State<_BuyBox> {
             minQuantity: isWholesale ? product.moqValue : 1,
             maxQuantity: isWholesale ? 9999 : 1,
             onChanged: isWholesale ? onWholesaleQtyChanged : onSampleQtyChanged,
+            disabled: isOwner,
             colorScheme: colorScheme,
             textTheme: textTheme,
           ),
           const SizedBox(height: 16),
           FilledButton(
-            onPressed:
-                !isWholesale &&
-                    (isSampleGateLoading || onCooldown || _isSubmittingSample)
+            onPressed: isOwner
                 ? null
                 : isWholesale
-                ? () {
-                    final variantSuffix = [
-                      ?selectedColor?.name,
-                      ?selectedSize,
-                    ].join(', ');
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          l10n.productDetailAddedToCartSnackbar(
-                                '\$${total.toStringAsFixed(2)}',
-                              ) +
-                              (variantSuffix.isEmpty ? '' : ' · $variantSuffix'),
-                        ),
-                      ),
-                    );
-                  }
+                ? (_isAddingToCart ? null : _handleAddToCart)
+                : (isSampleGateLoading || onCooldown || _isSubmittingSample)
+                ? null
                 : _handleRequestSample,
-            child: _isSubmittingSample
+            child: _isAddingToCart || _isSubmittingSample
                 ? SizedBox(
                     width: 20,
                     height: 20,
@@ -1062,9 +1176,11 @@ class _BuyBoxState extends State<_BuyBox> {
                     ),
                   )
                 : Text(
-                    isWholesale
+                    isOwner
+                        ? l10n.coBuyDetailOwnListingLabel
+                        : isWholesale
                         ? l10n.productDetailAddToCartButton(
-                            '\$${total.toStringAsFixed(2)}',
+                            formatPrice(ref, total),
                           )
                         : justRequestedThisProduct
                         ? l10n.productDetailSampleAlreadyRequested
@@ -1073,7 +1189,16 @@ class _BuyBoxState extends State<_BuyBox> {
                         : l10n.productDetailRequestSample,
                   ),
           ),
-          if (!isWholesale) ...[
+          if (isOwner) ...[
+            const SizedBox(height: 8),
+            Text(
+              l10n.productDetailOwnListingNote,
+              textAlign: TextAlign.center,
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ] else if (!isWholesale) ...[
             const SizedBox(height: 8),
             Text(
               onCooldown
@@ -1101,6 +1226,7 @@ class _QuantityStepper extends StatelessWidget {
     required this.onChanged,
     required this.colorScheme,
     required this.textTheme,
+    this.disabled = false,
   });
 
   final int quantity;
@@ -1109,6 +1235,7 @@ class _QuantityStepper extends StatelessWidget {
   final ValueChanged<int> onChanged;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
+  final bool disabled;
 
   @override
   Widget build(BuildContext context) {
@@ -1116,7 +1243,7 @@ class _QuantityStepper extends StatelessWidget {
       children: [
         _StepperButton(
           icon: Icons.remove,
-          enabled: quantity > minQuantity,
+          enabled: !disabled && quantity > minQuantity,
           onTap: () => onChanged(-1),
           colorScheme: colorScheme,
         ),
@@ -1140,7 +1267,7 @@ class _QuantityStepper extends StatelessWidget {
         ),
         _StepperButton(
           icon: Icons.add,
-          enabled: quantity < maxQuantity,
+          enabled: !disabled && quantity < maxQuantity,
           onTap: () => onChanged(1),
           colorScheme: colorScheme,
         ),

@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from pydantic import BaseModel
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
@@ -9,6 +10,7 @@ from ..auth import CurrentUser, get_current_user
 from ..db import get_db
 from ..models import Conversation, Listing, Message, Profile, Shop
 from ..off_platform import detects_off_platform_attempt
+from ..utils.images import save_image_as_webp
 from .notifications import NotificationTarget, push_notification
 
 router = APIRouter(prefix="/chat", tags=["chat"])
@@ -18,11 +20,25 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 FLAG_RESTRICTION_THRESHOLD = 3
 FLAG_RESTRICTION_DURATION = timedelta(hours=24)
 
+CHAT_IMAGES_DIR = Path(__file__).resolve().parent.parent / "media" / "chat_images"
+
+# Reserved seller-side id for the "BosDom Support" inbox. A support thread is
+# an ordinary Conversation (buyer_id = the user, seller_id = this), so the
+# regular message/read/image endpoints and Supabase Realtime work unchanged.
+# Admins reply from the admin panel (routers/admin.py), not as this "user".
+SUPPORT_AGENT_ID = "bosdom-support"
+SUPPORT_AGENT_NAME = "BosDom Support"
+SUPPORT_GREETING = (
+    "Hi! You're chatting with the BosDom Support team. Tell us how we can "
+    "help. We're available Mon-Fri, 8 AM - 6 PM (Cambodia Time)."
+)
+
 
 class MessageOut(BaseModel):
     id: str
     sender_id: str
-    text: str
+    text: str | None
+    image_url: str | None = None
     flagged: bool
     created_at: datetime
 
@@ -33,19 +49,23 @@ class ConversationSummaryOut(BaseModel):
     id: str
     counterpart_id: str
     counterpart_name: str
+    counterpart_avatar_url: str | None
     counterpart_verified: bool
     listing_id: str | None
     unread_count: int
     last_message_preview: str
     last_message_at: datetime | None
+    is_seller: bool
 
 
 class ConversationOut(BaseModel):
     id: str
     counterpart_id: str
     counterpart_name: str
+    counterpart_avatar_url: str | None
     counterpart_verified: bool
     listing_id: str | None
+    is_seller: bool
     messages: list[MessageOut]
 
 
@@ -78,12 +98,22 @@ def _counterpart_id(conversation: Conversation, user_id: str) -> str:
     return conversation.seller_id if user_id == conversation.buyer_id else conversation.buyer_id
 
 
-def _counterpart_display(db: Session, counterpart_id: str) -> tuple[str, bool]:
-    shop = db.get(Shop, counterpart_id)
-    profile = db.get(Profile, counterpart_id)
-    name = (shop.shop_name if shop else "") or (profile.name if profile else "") or "BosDom User"
+def _display_for(
+    db: Session, conversation: Conversation, participant_id: str
+) -> tuple[str, str | None, bool]:
+    """Buyers see the seller's shop profile; sellers see the buyer's real profile."""
+    if participant_id == SUPPORT_AGENT_ID:
+        return SUPPORT_AGENT_NAME, None, True
+    profile = db.get(Profile, participant_id)
     verified = profile.verification_status == "verified" if profile else False
-    return name, verified
+    if participant_id == conversation.seller_id:
+        shop = db.get(Shop, participant_id)
+        name = (shop.shop_name if shop else "") or (profile.name if profile else "") or "BosDom User"
+        avatar_url = shop.logo_url if shop and shop.logo_url else None
+        return name, avatar_url, verified
+    name = (profile.name if profile else "") or "BosDom User"
+    avatar_url = profile.avatar_url if profile and profile.avatar_url else None
+    return name, avatar_url, verified
 
 
 def _last_read_at(conversation: Conversation, user_id: str) -> datetime | None:
@@ -96,7 +126,7 @@ def _last_read_at(conversation: Conversation, user_id: str) -> datetime | None:
 
 def _to_summary(db: Session, conversation: Conversation, user_id: str) -> ConversationSummaryOut:
     counterpart_id = _counterpart_id(conversation, user_id)
-    name, verified = _counterpart_display(db, counterpart_id)
+    name, avatar_url, verified = _display_for(db, conversation, counterpart_id)
 
     last_message = (
         db.query(Message)
@@ -117,12 +147,24 @@ def _to_summary(db: Session, conversation: Conversation, user_id: str) -> Conver
         id=conversation.id,
         counterpart_id=counterpart_id,
         counterpart_name=name,
+        counterpart_avatar_url=avatar_url,
         counterpart_verified=verified,
         listing_id=conversation.listing_id,
         unread_count=unread_count,
-        last_message_preview=last_message.text if last_message else "",
+        last_message_preview=_message_preview(last_message),
         last_message_at=last_message.created_at if last_message else None,
+        is_seller=user_id == conversation.seller_id,
     )
+
+
+def _message_preview(message: Message | None) -> str:
+    if message is None:
+        return ""
+    if message.text:
+        return message.text
+    if message.image_url:
+        return "📷 Photo"
+    return ""
 
 
 @router.post("/conversations", response_model=ConversationSummaryOut)
@@ -160,13 +202,52 @@ def start_conversation(
     return _to_summary(db, existing, user.id)
 
 
+def get_or_create_support_conversation(db: Session, user_id: str) -> Conversation:
+    """The user's single thread with the BosDom Support team."""
+    conversation = (
+        db.query(Conversation)
+        .filter(
+            Conversation.buyer_id == user_id,
+            Conversation.seller_id == SUPPORT_AGENT_ID,
+        )
+        .first()
+    )
+    if conversation is None:
+        conversation = Conversation(buyer_id=user_id, seller_id=SUPPORT_AGENT_ID)
+        db.add(conversation)
+        db.flush()
+        db.add(
+            Message(
+                conversation_id=conversation.id,
+                sender_id=SUPPORT_AGENT_ID,
+                text=SUPPORT_GREETING,
+            )
+        )
+        db.commit()
+        db.refresh(conversation)
+    return conversation
+
+
+@router.post("/support", response_model=ConversationSummaryOut)
+def open_support_conversation(
+    user: CurrentUser = Depends(get_current_user), db: Session = Depends(get_db)
+) -> ConversationSummaryOut:
+    """Get-or-create the caller's single thread with the BosDom Support team."""
+    return _to_summary(db, get_or_create_support_conversation(db, user.id), user.id)
+
+
 @router.get("/conversations", response_model=list[ConversationSummaryOut])
 def list_conversations(
     user: CurrentUser = Depends(get_current_user), db: Session = Depends(get_db)
 ) -> list[ConversationSummaryOut]:
+    # The support thread lives in the Help & Support > Live Chat screen, not
+    # the buyer/seller inbox.
     conversations = (
         db.query(Conversation)
-        .filter(or_(Conversation.buyer_id == user.id, Conversation.seller_id == user.id))
+        .filter(
+            or_(Conversation.buyer_id == user.id, Conversation.seller_id == user.id),
+            Conversation.seller_id != SUPPORT_AGENT_ID,
+        )
         .all()
     )
     summaries = [_to_summary(db, c, user.id) for c in conversations]
@@ -185,7 +266,7 @@ def get_conversation(
 ) -> ConversationOut:
     conversation = _get_conversation_or_404(db, conversation_id, user.id)
     counterpart_id = _counterpart_id(conversation, user.id)
-    name, verified = _counterpart_display(db, counterpart_id)
+    name, avatar_url, verified = _display_for(db, conversation, counterpart_id)
     messages = (
         db.query(Message)
         .filter(Message.conversation_id == conversation.id)
@@ -196,8 +277,10 @@ def get_conversation(
         id=conversation.id,
         counterpart_id=counterpart_id,
         counterpart_name=name,
+        counterpart_avatar_url=avatar_url,
         counterpart_verified=verified,
         listing_id=conversation.listing_id,
+        is_seller=user.id == conversation.seller_id,
         messages=messages,
     )
 
@@ -247,18 +330,7 @@ def _flag_sender(db: Session, profile: Profile) -> None:
         profile.chat_flag_count = 0
 
 
-@router.post("/conversations/{conversation_id}/messages", response_model=MessageOut)
-def send_message(
-    conversation_id: str,
-    body: SendMessageRequest,
-    user: CurrentUser = Depends(get_current_user),
-    db: Session = Depends(get_db),
-) -> Message:
-    conversation = _get_conversation_or_404(db, conversation_id, user.id)
-    text = body.text.strip()
-    if not text:
-        raise HTTPException(status_code=422, detail="Message text is required")
-
+def _require_can_send(db: Session, user: CurrentUser) -> Profile:
     profile = db.get(Profile, user.id)
     if profile is None or profile.chat_tos_accepted_at is None:
         raise HTTPException(
@@ -281,6 +353,32 @@ def send_message(
             )
         profile.chat_restricted_until = None
 
+    return profile
+
+
+@router.post("/conversations/{conversation_id}/messages", response_model=MessageOut)
+def send_message(
+    conversation_id: str,
+    body: SendMessageRequest,
+    user: CurrentUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> Message:
+    conversation = _get_conversation_or_404(db, conversation_id, user.id)
+    text = body.text.strip()
+    if not text:
+        raise HTTPException(status_code=422, detail="Message text is required")
+
+    if conversation.seller_id == SUPPORT_AGENT_ID:
+        # Talking to BosDom itself: the peer-to-peer trading policy gate and
+        # off-platform-contact flagging don't apply.
+        message = Message(conversation_id=conversation.id, sender_id=user.id, text=text)
+        db.add(message)
+        db.commit()
+        db.refresh(message)
+        return message
+
+    profile = _require_can_send(db, user)
+
     flagged = detects_off_platform_attempt(text)
     message = Message(
         conversation_id=conversation.id, sender_id=user.id, text=text, flagged=flagged
@@ -291,11 +389,48 @@ def send_message(
     db.commit()
     db.refresh(message)
 
-    sender_name, _ = _counterpart_display(db, user.id)
+    sender_name, _, _ = _display_for(db, conversation, user.id)
     push_notification(
         category="chat",
         title=f"New message from {sender_name}",
         body=text,
+        target=NotificationTarget(route="chatDetail", params={"id": conversation.id}),
+    )
+
+    return message
+
+
+@router.post("/conversations/{conversation_id}/messages/image", response_model=MessageOut)
+def send_image_message(
+    conversation_id: str,
+    file: UploadFile = File(...),
+    user: CurrentUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> Message:
+    conversation = _get_conversation_or_404(db, conversation_id, user.id)
+    is_support = conversation.seller_id == SUPPORT_AGENT_ID
+    if not is_support:
+        _require_can_send(db, user)
+
+    filename = save_image_as_webp(file, CHAT_IMAGES_DIR, conversation.id)
+
+    message = Message(
+        conversation_id=conversation.id,
+        sender_id=user.id,
+        image_url=f"/media/chat_images/{filename}",
+        flagged=False,
+    )
+    db.add(message)
+    db.commit()
+    db.refresh(message)
+    if is_support:
+        return message
+
+    sender_name, _, _ = _display_for(db, conversation, user.id)
+    push_notification(
+        category="chat",
+        title=f"New message from {sender_name}",
+        body="📷 Photo",
         target=NotificationTarget(route="chatDetail", params={"id": conversation.id}),
     )
 

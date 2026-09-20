@@ -1,10 +1,18 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
+import '../../../shared/utils/cambodia_locations.dart';
+import '../../profile/models/shop_profile.dart';
 import '../../profile/providers/profile_provider.dart';
+import '../../profile/providers/shop_profile_provider.dart';
+import '../../profile/services/profile_service.dart';
 import '../models/merchant_role.dart';
+import '../services/signup_draft.dart';
 
 const _kStoreTypes = [
   'Physical Store',
@@ -12,24 +20,7 @@ const _kStoreTypes = [
   'Both Physical & Online',
 ];
 
-const _kProvinces = [
-  'Phnom Penh',
-  'Kandal',
-  'Siem Reap',
-  'Battambang',
-  'Kampong Cham',
-  'Preah Sihanouk',
-];
-
-const _kDistricts = [
-  'Khan Chamkarmon',
-  'Khan Toul Kork',
-  'Khan Sen Sok',
-  'Khan Boeng Keng Kang',
-  'Other',
-];
-
-const _kMaxStorePhotos = 3;
+const _kMaxStorePhotos = 4;
 
 class BusinessInfoScreen extends ConsumerStatefulWidget {
   const BusinessInfoScreen({
@@ -53,20 +44,52 @@ class BusinessInfoScreen extends ConsumerStatefulWidget {
 
 class _BusinessInfoScreenState extends ConsumerState<BusinessInfoScreen> {
   final _shopNameController = TextEditingController();
+  final _businessTypeController = TextEditingController();
+  final _yearEstablishedController = TextEditingController();
   final _storeUrlController = TextEditingController();
   final _streetController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _picker = ImagePicker();
   String? _storeType;
   String? _province;
   String? _district;
-  int _storePhotoCount = 0;
+  String? _sangkat;
+  final List<XFile> _storePhotos = [];
   bool _agreed = false;
+  bool _isSubmitting = false;
+  XFile? _logoFile;
+
+  Map<String, List<String>>? get _districtsForProvince =>
+      kCambodiaDistricts[_province];
 
   @override
   void dispose() {
     _shopNameController.dispose();
+    _businessTypeController.dispose();
+    _yearEstablishedController.dispose();
     _storeUrlController.dispose();
     _streetController.dispose();
+    _phoneController.dispose();
+    _emailController.dispose();
+    _descriptionController.dispose();
     super.dispose();
+  }
+
+  Future<void> _changeLogo() async {
+    try {
+      final picked = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1000,
+        maxHeight: 1000,
+        imageQuality: 85,
+      );
+      if (picked == null || !mounted) return;
+      setState(() => _logoFile = picked);
+    } catch (_) {
+      // Ignore — the picker surfaces its own permission/UX errors.
+    }
   }
 
   void _goBack() {
@@ -81,17 +104,74 @@ class _BusinessInfoScreenState extends ConsumerState<BusinessInfoScreen> {
     }
   }
 
-  void _addStorePhoto() {
-    if (_storePhotoCount >= _kMaxStorePhotos) return;
-    setState(() => _storePhotoCount++);
+  Future<void> _addStorePhoto() async {
+    final remaining = _kMaxStorePhotos - _storePhotos.length;
+    if (remaining <= 0) return;
+    try {
+      final picked = await _picker.pickMultiImage(
+        maxWidth: 1600,
+        maxHeight: 1600,
+        imageQuality: 85,
+      );
+      if (picked.isEmpty || !mounted) return;
+      setState(() => _storePhotos.addAll(picked.take(remaining)));
+    } catch (_) {
+      // Ignore — the picker surfaces its own permission/UX errors.
+    }
   }
 
   void _removeStorePhoto(int index) {
-    setState(() => _storePhotoCount--);
+    setState(() => _storePhotos.removeAt(index));
+  }
+
+  void _onProvinceChanged(String? value) {
+    setState(() {
+      _province = value;
+      _district = null;
+      _sangkat = null;
+    });
+  }
+
+  ShopProfile _buildShopProfile() {
+    final districtSangkat = [
+      if (_sangkat != null) 'Sangkat $_sangkat',
+      if (_district != null) 'Khan $_district',
+    ].join(', ');
+    final location = [
+      _streetController.text.trim(),
+      districtSangkat,
+      _province ?? '',
+    ].where((part) => part.isNotEmpty).join(', ');
+
+    return ShopProfile(
+      shopName: _shopNameController.text.trim(),
+      businessType: _businessTypeController.text.trim(),
+      storeType: _storeType ?? '',
+      yearEstablished: _yearEstablishedController.text.trim(),
+      location: location,
+      phone: _phoneController.text.trim(),
+      email: _emailController.text.trim(),
+      description: _descriptionController.text.trim(),
+      storeUrl: _storeUrlController.text.trim(),
+    );
+  }
+
+  Future<void> _saveShopProfile() async {
+    await ref.read(shopProfileProvider.notifier).save(_buildShopProfile());
+    if (_logoFile != null) {
+      await ref
+          .read(shopProfileProvider.notifier)
+          .uploadLogo(File(_logoFile!.path));
+    }
+    if (_storePhotos.isNotEmpty) {
+      await ref
+          .read(shopProfileProvider.notifier)
+          .uploadStorePhotos(_storePhotos.map((f) => File(f.path)).toList());
+    }
   }
 
   Future<void> _createAccount() async {
-    if (!_agreed) return;
+    if (!_agreed || _isSubmitting) return;
 
     if (widget.standalone) {
       final profile = ref.read(profileProvider).value;
@@ -106,6 +186,12 @@ class _BusinessInfoScreenState extends ConsumerState<BusinessInfoScreen> {
           // this form itself is mock (no real KYC/backend wiring yet).
         }
       }
+      try {
+        await _saveShopProfile();
+      } catch (_) {
+        // Shop fields can still be edited later from Shop Profile; don't
+        // block seller activation on this save failing.
+      }
       if (!mounted) return;
       final l10n = AppLocalizations.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -115,8 +201,29 @@ class _BusinessInfoScreenState extends ConsumerState<BusinessInfoScreen> {
       return;
     }
 
-    // Mock submit — real KYC/backend wiring lands later.
-    context.goNamed('marketplace');
+    setState(() => _isSubmitting = true);
+    try {
+      // The account and profile already exist (created back at the
+      // personal-details step) — this is the wizard's last step, so it's
+      // what actually marks the account as onboarded rather than abandoned
+      // mid-signup. See ProfileService.completeOnboarding.
+      await ProfileService.completeOnboarding();
+      try {
+        await _saveShopProfile();
+      } catch (_) {
+        // Same as above — don't block account creation on this.
+      }
+      SignupDraft.clear();
+      if (mounted) context.goNamed('marketplace');
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.toString())));
+      }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   @override
@@ -137,15 +244,30 @@ class _BusinessInfoScreenState extends ConsumerState<BusinessInfoScreen> {
           Expanded(
             child: SafeArea(
               top: false,
+              bottom: false,
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    Center(
+                      child: _LogoPicker(
+                        file: _logoFile,
+                        colorScheme: colorScheme,
+                        onTap: _changeLogo,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
                     _FormField(
                       label: 'SHOP / BUSINESS NAME',
                       controller: _shopNameController,
                       hintText: 'e.g. Angkor Wholesale Co.',
+                    ),
+                    const SizedBox(height: 20),
+                    _FormField(
+                      label: 'BUSINESS TYPE',
+                      controller: _businessTypeController,
+                      hintText: 'e.g. Manufacturer & Distributor',
                     ),
                     const SizedBox(height: 20),
                     _DropdownField(
@@ -156,10 +278,17 @@ class _BusinessInfoScreenState extends ConsumerState<BusinessInfoScreen> {
                       onChanged: (value) => setState(() => _storeType = value),
                     ),
                     const SizedBox(height: 20),
+                    _FormField(
+                      label: 'YEAR ESTABLISHED',
+                      controller: _yearEstablishedController,
+                      hintText: 'e.g. 2018',
+                      keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 20),
                     _StorePhotosField(
                       colorScheme: colorScheme,
                       textTheme: textTheme,
-                      photoCount: _storePhotoCount,
+                      photos: _storePhotos,
                       onAdd: _addStorePhoto,
                       onRemove: _removeStorePhoto,
                     ),
@@ -174,22 +303,60 @@ class _BusinessInfoScreenState extends ConsumerState<BusinessInfoScreen> {
                       label: 'PROVINCE / CITY',
                       hintText: 'Select province...',
                       value: _province,
-                      items: _kProvinces,
-                      onChanged: (value) => setState(() => _province = value),
+                      items: kCambodiaProvinces,
+                      onChanged: _onProvinceChanged,
                     ),
                     const SizedBox(height: 20),
                     _DropdownField(
-                      label: 'DISTRICT / SANGKAT',
-                      hintText: 'Select district...',
+                      label: 'DISTRICT (KHAN)',
+                      hintText: _province == null
+                          ? 'Select province first'
+                          : 'Select district...',
                       value: _district,
-                      items: _kDistricts,
-                      onChanged: (value) => setState(() => _district = value),
+                      items: _districtsForProvince?.keys.toList() ?? const [],
+                      onChanged: (value) => setState(() {
+                        _district = value;
+                        _sangkat = null;
+                      }),
+                    ),
+                    const SizedBox(height: 20),
+                    _DropdownField(
+                      label: 'SANGKAT',
+                      hintText: _district == null
+                          ? 'Select district first'
+                          : 'Select sangkat...',
+                      value: _sangkat,
+                      items: _district == null
+                          ? const []
+                          : _districtsForProvince?[_district] ?? const [],
+                      onChanged: (value) => setState(() => _sangkat = value),
                     ),
                     const SizedBox(height: 20),
                     _FormField(
                       label: 'STREET ADDRESS',
                       controller: _streetController,
                       hintText: 'e.g. Street 271, Phnom Penh',
+                    ),
+                    const SizedBox(height: 20),
+                    _FormField(
+                      label: 'PHONE NUMBER',
+                      controller: _phoneController,
+                      hintText: 'Enter your business phone number',
+                      keyboardType: TextInputType.phone,
+                    ),
+                    const SizedBox(height: 20),
+                    _FormField(
+                      label: 'EMAIL ADDRESS',
+                      controller: _emailController,
+                      hintText: 'Enter your business email address',
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                    const SizedBox(height: 20),
+                    _FormField(
+                      label: 'BUSINESS DESCRIPTION',
+                      controller: _descriptionController,
+                      hintText: 'Tell buyers about your business',
+                      maxLines: 4,
                     ),
                     const SizedBox(height: 20),
                     _AgreementRow(
@@ -205,7 +372,9 @@ class _BusinessInfoScreenState extends ConsumerState<BusinessInfoScreen> {
                     ),
                     const SizedBox(height: 32),
                     FilledButton(
-                      onPressed: _agreed ? _createAccount : null,
+                      onPressed: _agreed && !_isSubmitting
+                          ? _createAccount
+                          : null,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4),
                         child: Text(
@@ -244,15 +413,13 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
-          MediaQuery.of(context).padding.top + 16,
+          MediaQuery.of(context).padding.top + 10,
           24,
-          24,
+          18,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -323,12 +490,15 @@ class _FormField extends StatelessWidget {
     required this.label,
     required this.controller,
     required this.hintText,
-  }) : keyboardType = null;
+    this.keyboardType,
+    this.maxLines = 1,
+  });
 
   final String label;
   final TextEditingController controller;
   final String hintText;
   final TextInputType? keyboardType;
+  final int maxLines;
 
   @override
   Widget build(BuildContext context) {
@@ -338,37 +508,110 @@ class _FormField extends StatelessWidget {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
+      maxLines: maxLines,
       style: textTheme.bodyLarge,
       decoration: InputDecoration(
-        filled: false,
+        filled: true,
+        fillColor: Colors.white,
         labelText: label,
         hintText: hintText,
         floatingLabelBehavior: FloatingLabelBehavior.always,
+        alignLabelWithHint: maxLines > 1,
         labelStyle: textTheme.labelMedium?.copyWith(
           color: colorScheme.primary,
           fontWeight: FontWeight.w700,
           letterSpacing: 0.6,
         ),
+        hintStyle: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w400),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 16,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(
-            color: colorScheme.primary.withValues(alpha: 0.5),
-          ),
+          borderSide: BorderSide(color: colorScheme.outline),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(
-            color: colorScheme.primary.withValues(alpha: 0.5),
-          ),
+          borderSide: BorderSide(color: colorScheme.outline),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
         ),
+      ),
+    );
+  }
+}
+
+class _LogoPicker extends StatelessWidget {
+  const _LogoPicker({
+    required this.file,
+    required this.colorScheme,
+    required this.onTap,
+  });
+
+  static const double _size = 120;
+
+  final XFile? file;
+  final ColorScheme colorScheme;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          SizedBox(
+            width: _size,
+            height: _size,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                CircleAvatar(
+                  radius: _size / 2,
+                  backgroundColor: colorScheme.primaryContainer,
+                  backgroundImage: file == null
+                      ? null
+                      : FileImage(File(file!.path)),
+                  child: file == null
+                      ? Icon(
+                          Icons.storefront_rounded,
+                          size: 48,
+                          color: colorScheme.primary,
+                        )
+                      : null,
+                ),
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(7),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                    child: const Icon(
+                      Icons.camera_alt,
+                      size: 16,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Change Store Logo',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: colorScheme.primary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -395,11 +638,12 @@ class _DropdownField extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return DropdownButtonFormField<String>(
-      initialValue: value,
+      initialValue: items.contains(value) ? value : null,
       icon: Icon(Icons.keyboard_arrow_down, color: colorScheme.primary),
       style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface),
       decoration: InputDecoration(
-        filled: false,
+        filled: true,
+        fillColor: Colors.white,
         labelText: label,
         hintText: hintText,
         floatingLabelBehavior: FloatingLabelBehavior.always,
@@ -408,21 +652,18 @@ class _DropdownField extends StatelessWidget {
           fontWeight: FontWeight.w700,
           letterSpacing: 0.6,
         ),
+        hintStyle: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w400),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 16,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(
-            color: colorScheme.primary.withValues(alpha: 0.5),
-          ),
+          borderSide: BorderSide(color: colorScheme.outline),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(
-            color: colorScheme.primary.withValues(alpha: 0.5),
-          ),
+          borderSide: BorderSide(color: colorScheme.outline),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
@@ -432,7 +673,7 @@ class _DropdownField extends StatelessWidget {
       items: items
           .map((item) => DropdownMenuItem(value: item, child: Text(item)))
           .toList(),
-      onChanged: onChanged,
+      onChanged: items.isEmpty ? null : onChanged,
     );
   }
 }
@@ -441,19 +682,20 @@ class _StorePhotosField extends StatelessWidget {
   const _StorePhotosField({
     required this.colorScheme,
     required this.textTheme,
-    required this.photoCount,
+    required this.photos,
     required this.onAdd,
     required this.onRemove,
   });
 
   final ColorScheme colorScheme;
   final TextTheme textTheme;
-  final int photoCount;
+  final List<XFile> photos;
   final VoidCallback onAdd;
   final ValueChanged<int> onRemove;
 
   @override
   Widget build(BuildContext context) {
+    final isFull = photos.length >= _kMaxStorePhotos;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -467,13 +709,15 @@ class _StorePhotosField extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         InkWell(
-          onTap: onAdd,
+          onTap: isFull ? null : onAdd,
           borderRadius: BorderRadius.circular(16),
           child: Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isFull
+                  ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.3)
+                  : Colors.white,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: colorScheme.outline),
             ),
@@ -493,7 +737,9 @@ class _StorePhotosField extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Tap to upload store photos',
+                  isFull
+                      ? 'Maximum $_kMaxStorePhotos photos added'
+                      : 'Tap to upload store photos',
                   style: textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: colorScheme.onSurface,
@@ -513,40 +759,62 @@ class _StorePhotosField extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Row(
-          children: List.generate(_kMaxStorePhotos, (index) {
-            final filled = index < photoCount;
-            return Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(
-                  right: index == _kMaxStorePhotos - 1 ? 0 : 12,
-                ),
+          children: [
+            for (var index = 0; index < _kMaxStorePhotos; index++) ...[
+              if (index != 0) const SizedBox(width: 12),
+              Expanded(
                 child: AspectRatio(
                   aspectRatio: 1,
                   child: InkWell(
-                    onTap: filled ? () => onRemove(index) : null,
-                    borderRadius: BorderRadius.circular(12),
+                    onTap: index < photos.length ? () => onRemove(index) : null,
+                    borderRadius: BorderRadius.circular(14),
                     child: Container(
+                      clipBehavior: Clip.antiAlias,
                       decoration: BoxDecoration(
-                        color: filled
-                            ? colorScheme.primaryContainer
-                            : colorScheme.surfaceContainerHighest.withValues(
-                                alpha: 0.4,
-                              ),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: colorScheme.outline),
+                        color: colorScheme.surfaceContainerHighest.withValues(
+                          alpha: 0.4,
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: colorScheme.outline.withValues(alpha: 0.4),
+                        ),
                       ),
-                      child: Icon(
-                        filled ? Icons.check_circle : Icons.image_outlined,
-                        color: filled
-                            ? colorScheme.primary
-                            : colorScheme.onSurfaceVariant,
-                      ),
+                      child: index < photos.length
+                          ? Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                Image.file(
+                                  File(photos[index].path),
+                                  fit: BoxFit.cover,
+                                ),
+                                Positioned(
+                                  top: 4,
+                                  right: 4,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(2),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.black54,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.close,
+                                      size: 14,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            )
+                          : Icon(
+                              Icons.image_outlined,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
                     ),
                   ),
                 ),
               ),
-            );
-          }),
+            ],
+          ],
         ),
       ],
     );

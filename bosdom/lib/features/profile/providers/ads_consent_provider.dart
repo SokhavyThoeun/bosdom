@@ -26,6 +26,7 @@ class AdsConsentNotifier extends AsyncNotifier<AdsConsent> {
   }
 }
 
-final adsConsentProvider = AsyncNotifierProvider<AdsConsentNotifier, AdsConsent>(
-  AdsConsentNotifier.new,
-);
+final adsConsentProvider =
+    AsyncNotifierProvider<AdsConsentNotifier, AdsConsent>(
+      AdsConsentNotifier.new,
+    );

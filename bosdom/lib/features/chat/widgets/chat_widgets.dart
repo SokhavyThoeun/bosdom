@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
+import '../../../core/config/api_config.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../models/conversation.dart';
@@ -13,87 +14,169 @@ class MessageBubble extends StatelessWidget {
     required this.message,
     required this.colorScheme,
     required this.textTheme,
+    this.avatarUrl,
+    this.avatarIcon,
+    this.avatarColor,
   });
 
   final ChatMessage message;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
 
+  /// Small avatar shown beside the bubble. When [avatarIcon] is null, no
+  /// avatar is rendered at all (used by the local scripted support chat,
+  /// which has no real participant to show a picture for).
+  final String? avatarUrl;
+  final IconData? avatarIcon;
+  final Color? avatarColor;
+
+  static const double _avatarSize = 28;
+  static const double _avatarGap = 8;
+
   @override
   Widget build(BuildContext context) {
     final isMe = message.isMine;
+    final icon = avatarIcon;
+    final hasAvatar = icon != null;
+    final crossAxis = isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start;
+
+    final bubble = ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.of(context).size.width * 0.72,
+      ),
+      child: message.imageFile != null || message.imageUrl != null
+          ? ImageBubble(
+              message: message,
+              isMe: isMe,
+              colorScheme: colorScheme,
+              textTheme: textTheme,
+            )
+          : Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: isMe ? colorScheme.primary : Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(18),
+                  topRight: const Radius.circular(18),
+                  bottomLeft: Radius.circular(isMe ? 18 : 4),
+                  bottomRight: Radius.circular(isMe ? 4 : 18),
+                ),
+                border: isMe
+                    ? null
+                    : Border.all(
+                        color: AppColors.roseDivider.withValues(alpha: 0.6),
+                      ),
+                boxShadow: [
+                  BoxShadow(
+                    color: colorScheme.primary.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Text(
+                message.text ?? '',
+                style: textTheme.bodyMedium?.copyWith(
+                  color: isMe ? colorScheme.onPrimary : colorScheme.onSurface,
+                  height: 1.4,
+                ),
+              ),
+            ),
+    );
+
+    final bubbleRow = hasAvatar
+        ? Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisAlignment: isMe
+                ? MainAxisAlignment.end
+                : MainAxisAlignment.start,
+            children: isMe
+                ? [
+                    Flexible(child: bubble),
+                    const SizedBox(width: _avatarGap),
+                    _SmallAvatar(
+                      url: avatarUrl,
+                      icon: icon,
+                      color: avatarColor,
+                    ),
+                  ]
+                : [
+                    _SmallAvatar(
+                      url: avatarUrl,
+                      icon: icon,
+                      color: avatarColor,
+                    ),
+                    const SizedBox(width: _avatarGap),
+                    Flexible(child: bubble),
+                  ],
+          )
+        : bubble;
+
+    // Timestamp/badge sit below the bubble, indented past the avatar so they
+    // line up with the bubble's edge rather than the avatar's.
+    final metaIndent = hasAvatar ? _avatarSize + _avatarGap : 0.0;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Column(
-        crossAxisAlignment: isMe
-            ? CrossAxisAlignment.end
-            : CrossAxisAlignment.start,
+        crossAxisAlignment: crossAxis,
         children: [
-          ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width * 0.72,
+          bubbleRow,
+          Padding(
+            padding: EdgeInsetsDirectional.only(
+              start: !isMe ? metaIndent : 0,
+              end: isMe ? metaIndent : 0,
+              top: 4,
             ),
-            child: message.imageFile != null
-                ? ImageBubble(
-                    message: message,
-                    isMe: isMe,
-                    colorScheme: colorScheme,
-                    textTheme: textTheme,
-                  )
-                : Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isMe ? colorScheme.primary : Colors.white,
-                      borderRadius: BorderRadius.only(
-                        topLeft: const Radius.circular(18),
-                        topRight: const Radius.circular(18),
-                        bottomLeft: Radius.circular(isMe ? 18 : 4),
-                        bottomRight: Radius.circular(isMe ? 4 : 18),
-                      ),
-                      border: isMe
-                          ? null
-                          : Border.all(
-                              color: AppColors.roseDivider.withValues(
-                                alpha: 0.6,
-                              ),
-                            ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: colorScheme.primary.withValues(alpha: 0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Text(
-                      message.text ?? '',
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: isMe
-                            ? colorScheme.onPrimary
-                            : colorScheme.onSurface,
-                        height: 1.4,
-                      ),
-                    ),
+            child: Column(
+              crossAxisAlignment: crossAxis,
+              children: [
+                if (message.flagged) ...[
+                  FlaggedBadge(textTheme: textTheme),
+                  const SizedBox(height: 4),
+                ],
+                Text(
+                  message.sending
+                      ? AppLocalizations.of(context).chatMessageSending
+                      : message.time,
+                  style: textTheme.labelSmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
                   ),
-          ),
-          if (message.flagged) ...[
-            const SizedBox(height: 4),
-            FlaggedBadge(textTheme: textTheme),
-          ],
-          const SizedBox(height: 4),
-          Text(
-            message.sending
-                ? AppLocalizations.of(context).chatMessageSending
-                : message.time,
-            style: textTheme.labelSmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
+                ),
+              ],
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _SmallAvatar extends StatelessWidget {
+  const _SmallAvatar({this.url, required this.icon, this.color});
+
+  final String? url;
+  final IconData icon;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final fallback = Icon(icon, color: color, size: 14);
+    return CircleAvatar(
+      radius: 14,
+      backgroundColor: Colors.white,
+      child: ClipOval(
+        child: url != null
+            ? Image.network(
+                url!,
+                width: 28,
+                height: 28,
+                fit: BoxFit.cover,
+                loadingBuilder: (context, child, progress) =>
+                    progress == null ? child : fallback,
+                errorBuilder: (context, error, stackTrace) => fallback,
+              )
+            : fallback,
       ),
     );
   }
@@ -227,7 +310,8 @@ class ImageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final file = message.imageFile;
-    if (file == null) return const SizedBox.shrink();
+    final resolvedUrl = ApiConfig.resolveAvatarUrl(message.imageUrl);
+    if (file == null && resolvedUrl == null) return const SizedBox.shrink();
 
     return ClipRRect(
       borderRadius: BorderRadius.only(
@@ -248,33 +332,38 @@ class ImageBubble extends StatelessWidget {
           ],
         ),
         child: InkWell(
-          onTap: () => _openImageViewer(context, file),
+          onTap: () => _openImageViewer(context, file: file, url: resolvedUrl),
           child: SizedBox(
             height: 160,
             width: double.infinity,
-            child: Image.file(file, fit: BoxFit.cover),
+            child: file != null
+                ? Image.file(file, fit: BoxFit.cover)
+                : Image.network(resolvedUrl!, fit: BoxFit.cover),
           ),
         ),
       ),
     );
   }
 
-  void _openImageViewer(BuildContext context, File file) {
+  void _openImageViewer(BuildContext context, {File? file, String? url}) {
     Navigator.of(context).push(
       PageRouteBuilder(
         opaque: false,
         barrierColor: Colors.black,
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            FadeTransition(opacity: animation, child: _PhotoViewer(file: file)),
+        pageBuilder: (context, animation, secondaryAnimation) => FadeTransition(
+          opacity: animation,
+          child: _PhotoViewer(file: file, url: url),
+        ),
       ),
     );
   }
 }
 
 class _PhotoViewer extends StatelessWidget {
-  const _PhotoViewer({required this.file});
+  const _PhotoViewer({this.file, this.url});
 
-  final File file;
+  final File? file;
+  final String? url;
 
   @override
   Widget build(BuildContext context) {
@@ -286,7 +375,9 @@ class _PhotoViewer extends StatelessWidget {
             child: InteractiveViewer(
               minScale: 1,
               maxScale: 4,
-              child: Center(child: Image.file(file)),
+              child: Center(
+                child: file != null ? Image.file(file!) : Image.network(url!),
+              ),
             ),
           ),
           Positioned(
@@ -331,36 +422,35 @@ class Composer extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final bottomInset = MediaQuery.of(context).padding.bottom;
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          top: BorderSide(color: AppColors.roseDivider.withValues(alpha: 0.5)),
-        ),
-      ),
+    return ColoredBox(
+      color: colorScheme.surface,
       child: SafeArea(
         top: false,
-        minimum: EdgeInsets.only(bottom: bottomInset > 0 ? 0 : 6),
+        minimum: EdgeInsets.only(bottom: bottomInset > 0 ? 0 : 10),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+          padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               _CircleIconButton(
                 icon: Icons.camera_alt_outlined,
-                background: colorScheme.primaryContainer,
+                background: AppColors.blushSurface,
                 foreground: colorScheme.primary,
-                size: 46,
+                size: 44,
+                iconSize: 20,
                 onTap: onAttachPhoto,
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(minHeight: 46),
+                  constraints: const BoxConstraints(minHeight: 44),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: AppColors.petalWhite,
-                      borderRadius: BorderRadius.circular(23),
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: AppColors.roseDivider.withValues(alpha: 0.6),
+                      ),
                     ),
                     child: TextField(
                       controller: controller,
@@ -380,24 +470,38 @@ class Composer extends StatelessWidget {
                             ),
                         isDense: true,
                         isCollapsed: true,
+                        filled: false,
                         border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        disabledBorder: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 18,
-                          vertical: 14,
+                          horizontal: 16,
+                          vertical: 12,
                         ),
                       ),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
-              _CircleIconButton(
-                icon: Icons.send_rounded,
-                background: colorScheme.primary,
-                foreground: colorScheme.onPrimary,
-                size: 46,
-                onTap: onSend,
-                iconSize: 19,
+              const SizedBox(width: 8),
+              ValueListenableBuilder<TextEditingValue>(
+                valueListenable: controller,
+                builder: (context, value, _) {
+                  final hasText = value.text.trim().isNotEmpty;
+                  return _CircleIconButton(
+                    icon: Icons.send_rounded,
+                    background: hasText
+                        ? colorScheme.primary
+                        : AppColors.roseDivider.withValues(alpha: 0.4),
+                    foreground: hasText
+                        ? colorScheme.onPrimary
+                        : AppColors.warmTaupe.withValues(alpha: 0.5),
+                    size: 44,
+                    onTap: hasText ? onSend : () {},
+                    iconSize: 19,
+                  );
+                },
               ),
             ],
           ),

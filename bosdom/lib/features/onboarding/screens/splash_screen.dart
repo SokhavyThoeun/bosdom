@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../auth/models/merchant_role.dart';
 import '../../profile/services/profile_service.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -33,28 +34,53 @@ class _SplashScreenState extends State<SplashScreen>
       // Covers the Google sign-in redirect landing here before
       // supabase_flutter's deep-link listener has finished exchanging the
       // code for a session.
+      //
+      // This screen is never popped once the user moves on (splash sits at
+      // the bottom of the stack under signup/login/etc.), so it stays
+      // mounted and this subscription stays alive for the rest of the
+      // session. Without the isCurrent check, a sign-in that happens deep in
+      // the signup wizard (e.g. finishing the personal-details step) would
+      // still reach this dormant listener and yank the user out to the
+      // marketplace mid-wizard.
       _authSubscription = Supabase.instance.client.auth.onAuthStateChange
           .listen((data) {
-            if (data.session != null) _routeSignedInUser();
+            if (data.session != null &&
+                mounted &&
+                (ModalRoute.of(context)?.isCurrent ?? false)) {
+              _routeSignedInUser();
+            }
           });
     }
   }
 
   /// Mirrors `login_screen._routeAfterSignIn`: a signed-in session isn't
-  /// enough on its own — a Google account (or an interrupted email signup)
-  /// may not have finished the role/personal-details wizard yet, so route
-  /// there instead of straight to the marketplace when the profile has no
-  /// role set.
+  /// enough on its own to land in the app. `role` gets saved as early as the
+  /// personal-details step, so an interrupted signup (e.g. the app was
+  /// killed right after that step) already has one — only
+  /// `onboardingComplete`, set by the wizard's last step, means the account
+  /// is actually finished. Route back into the wizard instead, resuming at
+  /// personal-details (with whatever role was already picked) so the
+  /// existing account/profile is reused rather than erroring as "already
+  /// registered" on a second signup attempt.
   Future<void> _routeSignedInUser() async {
-    var hasRole = true;
+    var routeName = 'marketplace';
+    MerchantRole? role;
     try {
-      hasRole = (await ProfileService.fetch()).role.isNotEmpty;
+      final profile = await ProfileService.fetch();
+      if (!profile.onboardingComplete) {
+        if (profile.role.isEmpty) {
+          routeName = 'signup';
+        } else {
+          routeName = 'personalDetails';
+          role = MerchantRole.values.byName(profile.role);
+        }
+      }
     } catch (_) {
       // Backend unreachable or similar transient failure: don't bounce an
       // already-onboarded user into the wizard over a network blip.
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) context.goNamed(hasRole ? 'marketplace' : 'signup');
+      if (mounted) context.goNamed(routeName, extra: role);
     });
   }
 
@@ -212,7 +238,7 @@ class _SplashScreenState extends State<SplashScreen>
                                   width: double.infinity,
                                   child: ElevatedButton(
                                     onPressed: () =>
-                                        context.goNamed('signup'),
+                                        context.pushNamed('signup'),
                                     child: const Padding(
                                       padding: EdgeInsets.symmetric(
                                         vertical: 4,
@@ -243,9 +269,7 @@ class _SplashScreenState extends State<SplashScreen>
                       child: Text(
                         'For registered Cambodian merchants only',
                         textAlign: TextAlign.center,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.bodySmall?.copyWith(
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: AppColors.roseMist,
                         ),
                       ),
@@ -259,10 +283,8 @@ class _SplashScreenState extends State<SplashScreen>
               child: IgnorePointer(
                 child: AnimatedBuilder(
                   animation: flashOpacity,
-                  builder: (context, child) => Opacity(
-                    opacity: flashOpacity.value,
-                    child: child,
-                  ),
+                  builder: (context, child) =>
+                      Opacity(opacity: flashOpacity.value, child: child),
                   child: const ColoredBox(color: Colors.white),
                 ),
               ),

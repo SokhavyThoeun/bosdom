@@ -135,13 +135,29 @@
     "en": "e.g. Building B, Zone 3, Veng Sreng Blvd",
     "km": "ឧ. អគារ B, តំបន់ ៣, មហាវិថីវេងស្រេង"
   },
+  "addressDistrictFieldLabel": {
+    "en": "DISTRICT (KHAN)",
+    "km": "ខណ្ឌ"
+  },
+  "addressDistrictFieldHint": {
+    "en": "Select district...",
+    "km": "ជ្រើសរើសខណ្ឌ..."
+  },
+  "addressDistrictFreeTextHint": {
+    "en": "e.g. District name",
+    "km": "ឧ. ឈ្មោះស្រុក/ខណ្ឌ"
+  },
   "addressSangkatFieldLabel": {
-    "en": "SANGKAT / DISTRICT",
-    "km": "សង្កាត់ / ស្រុក"
+    "en": "SANGKAT",
+    "km": "សង្កាត់"
   },
   "addressSangkatFieldHint": {
-    "en": "e.g. Sangkat Choam Chao",
-    "km": "ឧ. សង្កាត់ជាំចារ"
+    "en": "Select sangkat...",
+    "km": "ជ្រើសរើសសង្កាត់..."
+  },
+  "addressSangkatFreeTextHint": {
+    "en": "e.g. Sangkat / commune name",
+    "km": "ឧ. ឈ្មោះសង្កាត់/ឃុំ"
   },
   "addressLandmarkFieldLabel": {
     "en": "NEAREST LANDMARK (OPTIONAL)",

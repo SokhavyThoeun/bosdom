@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
+import '../../../shared/utils/currency_format.dart';
 import '../../marketplace/models/product.dart';
 
 class WishlistItemCard extends StatefulWidget {
@@ -92,14 +94,27 @@ class _WishlistItemCardState extends State<WishlistItemCard>
                         Container(
                           width: 64,
                           height: 64,
+                          clipBehavior: Clip.antiAlias,
                           decoration: BoxDecoration(
                             color: colorScheme.primaryContainer,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Icon(
-                            product.icon,
-                            color: colorScheme.primary,
-                            size: 28,
+                          child: Image.network(
+                            product.imageUrl,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, progress) =>
+                                progress == null
+                                ? child
+                                : Icon(
+                                    product.icon,
+                                    color: colorScheme.primary,
+                                    size: 28,
+                                  ),
+                            errorBuilder: (context, error, stackTrace) => Icon(
+                              product.icon,
+                              color: colorScheme.primary,
+                              size: 28,
+                            ),
                           ),
                         ),
                         Positioned(
@@ -126,12 +141,35 @@ class _WishlistItemCardState extends State<WishlistItemCard>
                             fontWeight: FontWeight.w600,
                           ),
                         ),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.storefront_outlined,
+                              size: 12,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                product.seller,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                         const SizedBox(height: 4),
-                        Text(
-                          product.price,
-                          style: textTheme.titleMedium?.copyWith(
-                            color: colorScheme.primary,
-                            fontWeight: FontWeight.bold,
+                        Consumer(
+                          builder: (context, ref, _) => Text(
+                            formatPrice(ref, product.priceValue),
+                            style: textTheme.titleMedium?.copyWith(
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -155,8 +193,7 @@ class _WishlistItemCardState extends State<WishlistItemCard>
                                   vertical: 8,
                                 ),
                                 minimumSize: Size.zero,
-                                tapTargetSize:
-                                    MaterialTapTargetSize.shrinkWrap,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                 textStyle: textTheme.bodySmall?.copyWith(
                                   fontWeight: FontWeight.w600,
                                 ),

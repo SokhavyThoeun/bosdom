@@ -16,10 +16,7 @@ class FaqItem {
 }
 
 class FaqCategoryData {
-  const FaqCategoryData({
-    required this.icon,
-    required this.items,
-  });
+  const FaqCategoryData({required this.icon, required this.items});
 
   final IconData icon;
   final List<FaqItem> items;

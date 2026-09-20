@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
 import '../../profile/services/profile_service.dart';
+import '../models/merchant_role.dart';
 import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -42,26 +43,50 @@ class _LoginScreenState extends State<LoginScreen> {
       final isNewSignIn =
           data.event == AuthChangeEvent.signedIn &&
           data.session?.accessToken != tokenAtMount;
-      if (isNewSignIn && mounted) {
+      // Guard on isCurrent too: this screen isn't popped when the user
+      // pushes on to signup, so it stays mounted underneath and would
+      // otherwise still react to a sign-in that happens deep in that wizard
+      // and force-navigate away from it.
+      if (isNewSignIn &&
+          mounted &&
+          (ModalRoute.of(context)?.isCurrent ?? false)) {
         _routeAfterSignIn();
       }
     });
   }
 
-  /// Sends the user to the marketplace, unless this is a Google account that
-  /// has never been through the role/personal-details wizard (no role set
-  /// yet on its profile) — in which case it's routed there instead, since
-  /// Google sign-in is just an auth method, not a substitute for onboarding.
+  /// Sends the user to the marketplace, unless this account has never
+  /// finished the signup wizard — in which case it's routed back into it
+  /// instead, since a Google sign-in or an interrupted email signup is just
+  /// authentication, not a substitute for onboarding. `role` alone isn't
+  /// enough to tell those apart (it's saved as early as the
+  /// personal-details step); only `onboardingComplete`, set by the wizard's
+  /// last step, means the account is actually finished.
   Future<void> _routeAfterSignIn() async {
-    var hasRole = true;
+    var routeName = 'marketplace';
+    MerchantRole? role;
     try {
-      hasRole = (await ProfileService.fetch()).role.isNotEmpty;
+      final profile = await ProfileService.fetch();
+      if (!profile.onboardingComplete) {
+        if (profile.role.isEmpty) {
+          routeName = 'signup';
+        } else {
+          routeName = 'personalDetails';
+          role = MerchantRole.values.byName(profile.role);
+        }
+      }
     } catch (_) {
       // Backend unreachable or similar transient failure: don't bounce an
       // already-onboarded user into the wizard over a network blip.
     }
     if (!mounted) return;
-    context.goNamed(hasRole ? 'marketplace' : 'signup');
+    if (routeName == 'marketplace') {
+      context.goNamed(routeName);
+    } else {
+      // Push rather than replace, so backing out of the wizard returns to
+      // this login screen instead of getting stuck with nowhere to pop to.
+      context.pushNamed(routeName, extra: role);
+    }
   }
 
   @override
@@ -122,6 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
           Expanded(
             child: SafeArea(
               top: false,
+              bottom: false,
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
                 child: Column(
@@ -149,7 +175,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    _FieldLabel(l10n.authLoginPasswordLabel, textTheme: textTheme),
+                    _FieldLabel(
+                      l10n.authLoginPasswordLabel,
+                      textTheme: textTheme,
+                    ),
                     const SizedBox(height: 8),
                     TextFormField(
                       controller: _passwordController,
@@ -187,7 +216,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(l10n.authLoginPasswordResetComingSoon),
+                              content: Text(
+                                l10n.authLoginPasswordResetComingSoon,
+                              ),
                             ),
                           );
                         },
@@ -198,7 +229,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         child: Text(
                           l10n.authLoginForgotPassword,
-                          style: const TextStyle(decoration: TextDecoration.underline),
+                          style: const TextStyle(
+                            decoration: TextDecoration.underline,
+                          ),
                         ),
                       ),
                     ),
@@ -244,7 +277,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           TextButton(
-                            onPressed: () => context.goNamed('signup'),
+                            onPressed: () => context.pushNamed('signup'),
                             style: TextButton.styleFrom(
                               padding: EdgeInsets.zero,
                               minimumSize: const Size(0, 0),
@@ -280,15 +313,13 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
-          MediaQuery.of(context).padding.top + 20,
+          MediaQuery.of(context).padding.top + 14,
           24,
-          32,
+          26,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

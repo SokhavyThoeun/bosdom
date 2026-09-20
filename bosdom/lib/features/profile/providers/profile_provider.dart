@@ -27,7 +27,7 @@ class ProfileNotifier extends AsyncNotifier<UserProfile> {
   @override
   Future<UserProfile> build() async {
     try {
-      final profile = await ProfileService.fetch();
+      final profile = await _fetchWithRetry();
       await _cache(profile);
       return profile;
     } catch (_) {
@@ -35,6 +35,20 @@ class ProfileNotifier extends AsyncNotifier<UserProfile> {
       // last profile fetched for this Google account instead of showing a
       // blank profile that looks like the account needs re-onboarding.
       return await _readCache() ?? _kFallbackProfile;
+    }
+  }
+
+  /// The very first fetch right after sign-in can race the auth session
+  /// still settling, so retry a couple of times before giving up — this is
+  /// what used to leave the screen blank until a manual pull-to-refresh.
+  Future<UserProfile> _fetchWithRetry() async {
+    for (var attempt = 0; ; attempt++) {
+      try {
+        return await ProfileService.fetch();
+      } catch (_) {
+        if (attempt >= 2) rethrow;
+        await Future.delayed(Duration(milliseconds: 500 * (attempt + 1)));
+      }
     }
   }
 

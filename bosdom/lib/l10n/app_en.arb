@@ -240,6 +240,8 @@
   "cartEscrowFee": "Escrow Fee (2%)",
   "cartTotalAmount": "Total Amount",
   "cartEmptyState": "Your cart is empty",
+  "cartLoadErrorMessage": "Couldn't load your cart. Tap to retry.",
+  "cartUpdateErrorSnackbar": "Couldn't update your cart. Please try again.",
   "checkoutDeliveryAddressLabel": "Delivery Address",
   "checkoutOrderItemsLabel": "Order Items",
   "checkoutItemsCount": "{count} Items",
@@ -269,8 +271,12 @@
   "addressLabelFieldHint": "e.g. Home, Warehouse, Shop",
   "addressHouseFieldLabel": "HOUSE / STREET NUMBER",
   "addressHouseFieldHint": "e.g. Building B, Zone 3, Veng Sreng Blvd",
-  "addressSangkatFieldLabel": "SANGKAT / DISTRICT",
-  "addressSangkatFieldHint": "e.g. Sangkat Choam Chao",
+  "addressDistrictFieldLabel": "DISTRICT (KHAN)",
+  "addressDistrictFieldHint": "Select district...",
+  "addressDistrictFreeTextHint": "e.g. District name",
+  "addressSangkatFieldLabel": "SANGKAT",
+  "addressSangkatFieldHint": "Select sangkat...",
+  "addressSangkatFreeTextHint": "e.g. Sangkat / commune name",
   "addressLandmarkFieldLabel": "NEAREST LANDMARK (OPTIONAL)",
   "addressLandmarkFieldHint": "e.g. Next to Veng Sreng Canopy",
   "addressPhoneFieldLabel": "CONTACT PHONE NUMBER",
@@ -315,8 +321,10 @@
   "storeAddressDefaultBadge": "Default",
   "storeAddressEmptyState": "No store addresses yet. Add one to start shipping from a fixed location.",
   "chatScreenTitle": "Chat",
+  "chatSellerScreenTitle": "Customer Messages",
   "chatSearchHint": "Search conversations...",
   "chatEmptyTitle": "No conversations yet",
+  "chatSellerEmptyTitle": "No messages from customers yet",
   "chatEmptyQuery": "No conversations match \"{query}\"",
   "@chatEmptyQuery": {
     "placeholders": {
@@ -329,6 +337,7 @@
   "chatDetailLoadError": "Couldn't load this conversation",
   "chatMessageSending": "Sending...",
   "chatSendError": "Couldn't send message. Try again.",
+  "chatPhotoSendError": "Couldn't send photo. Try again.",
   "chatStartConversationError": "Couldn't start the conversation. Try again.",
   "chatRestrictedError": "You're temporarily restricted from sending messages until {until}.",
   "@chatRestrictedError": {
@@ -346,8 +355,10 @@
   "chatComposerHint": "Type a message...",
   "chatAttachPhotoCamera": "Take a photo",
   "chatAttachPhotoGallery": "Choose from gallery",
-  "liveChatTitle": "Live Chat",
-  "liveChatStatusOnline": "Online • Usually replies instantly",
+  "chatPhotoPreviewTitle": "Send this photo?",
+  "chatPhotoPreviewSend": "Send",
+  "liveChatTitle": "BosDom",
+  "liveChatStatusOnline": "Support team • Replies Mon-Fri, 8 AM - 6 PM",
   "liveChatStatusOffline": "Offline • We'll reply as soon as we're back",
   "liveChatSecurityNoticeTitle": "Security Notice",
   "liveChatSecurityNoticeBody": "Only make payments via Bosdom's official secure portal. Support will never ask for direct bank transfers in chat.",
@@ -493,10 +504,11 @@
   "coBuyCreateOriginalPriceLabel": "Original Price (USD)",
   "coBuyCreateOriginalPriceRequired": "Original price is required",
   "coBuyCreateOriginalPriceInvalid": "Original price must be higher than the co-buy price",
-  "coBuyCreateTargetQtyLabel": "Target Retailers",
-  "coBuyCreateTargetQtyHint": "e.g. 20",
-  "coBuyCreateTargetQtyRequired": "Target retailers is required",
+  "coBuyCreateTargetQtyLabel": "Target Quantity",
+  "coBuyCreateTargetQtyHint": "e.g. 1000 kg",
+  "coBuyCreateTargetQtyRequired": "Target quantity is required",
   "coBuyCreateTargetQtyInvalid": "Enter a valid number",
+  "coBuyCreateTargetQtyTooLow": "Target quantity must be at least the minimum order",
   "coBuyCreateUnitLabelLabel": "Unit",
   "coBuyCreateUnitLabelHint": "e.g. kg, packs, units",
   "coBuyCreateUnitLabelRequired": "Unit is required",
@@ -659,7 +671,23 @@
     }
   },
   "coBuyDetailFullLabel": "Co-Buy Full",
-  "coBuyDetailJoinedLabel": "You're in · tap to leave",
+  "coBuyDetailOwnListingLabel": "Your Listing",
+  "coBuyDetailJoinedLabel": "You're in · request to leave",
+  "coBuyDetailLeavePendingLabel": "Leave request pending review",
+  "coBuyDetailLeaveTitle": "Request to leave?",
+  "coBuyDetailLeaveBody": "Your payment is held in escrow. An admin will review your request and refund you if it's approved.",
+  "coBuyDetailLeaveReasonHint": "Why do you want to leave?",
+  "coBuyDetailLeaveReasonTooShort": "Please give a short reason.",
+  "coBuyDetailLeaveSubmit": "Send request",
+  "coBuyDetailLeaveSentSnackbar": "Leave request sent. An admin will review it.",
+  "coBuyDetailLeaveRejectedNote": "Your leave request was rejected: {note}",
+  "@coBuyDetailLeaveRejectedNote": {
+    "placeholders": {
+      "note": {
+        "type": "String"
+      }
+    }
+  },
   "coBuyDetailJoinLabel": "Join Co-Buy · {amount}",
   "@coBuyDetailJoinLabel": {
     "placeholders": {
@@ -668,6 +696,34 @@
       }
     }
   },
+  "coBuyDetailPendingPaymentLabel": "Continue to Payment",
+  "coBuyDetailReleasedLabel": "Order Placed",
+  "coBuyDetailRefundPendingLabel": "Refund Pending",
+  "coBuyDetailLeaveConfirmTitle": "Leave this Co-Buy?",
+  "coBuyDetailLeaveConfirmBody": "Your {amount} payment will stay held until an admin releases your refund. This isn't instant.",
+  "@coBuyDetailLeaveConfirmBody": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "coBuyDetailLeaveConfirmButton": "Leave & Request Refund",
+  "coBuyDetailLeaveRequestedSnackbar": "Refund pending for {productName}. An admin will release your payment soon.",
+  "@coBuyDetailLeaveRequestedSnackbar": {
+    "placeholders": {
+      "productName": {
+        "type": "String"
+      }
+    }
+  },
+  "coBuyDealsFulfillButtonLabel": "Mark Fulfilled",
+  "coBuyDealsFulfillConfirmTitle": "Mark this deal fulfilled?",
+  "coBuyDealsFulfillConfirmBody": "This releases every buyer's held payment to you. Only confirm after you've shipped the pooled order to them.",
+  "coBuyDealsFulfilledSnackbar": "Deal marked fulfilled. Payments released.",
+  "coBuyingPendingPaymentPillLabel": "Complete Payment",
+  "coBuyingRefundPendingPillLabel": "Refund Pending",
+  "coBuyingOrderPlacedPillLabel": "Order Placed",
   "wishlistScreenTitle": "Wishlist",
   "wishlistEmptyStateMessage": "No items in your wishlist yet",
   "wishlistAddedToCartSnackbar": "{productName} added to cart",
@@ -679,12 +735,32 @@
     }
   },
   "wishlistAddToCartButton": "Add to Cart",
+  "wishlistAddedToWishlistSnackbar": "{productName} added to wishlist",
+  "@wishlistAddedToWishlistSnackbar": {
+    "placeholders": {
+      "productName": {
+        "type": "String"
+      }
+    }
+  },
+  "wishlistRemovedFromWishlistSnackbar": "{productName} removed from wishlist",
+  "@wishlistRemovedFromWishlistSnackbar": {
+    "placeholders": {
+      "productName": {
+        "type": "String"
+      }
+    }
+  },
+  "wishlistToggleErrorSnackbar": "Couldn't update your wishlist. Please try again.",
+  "wishlistLoadErrorMessage": "Couldn't load your wishlist. Tap to retry.",
   "marketplaceCategoriesTitle": "Product Categories",
   "marketplaceCoBuyDealsTitle": "Co-Buy Deals",
   "marketplacePopularProductsTitle": "Popular wholesale products",
   "marketplaceSearchHint": "Search products...",
   "marketplaceNoProductsYet": "No products listed yet. Check back soon!",
   "marketplaceProductsLoadError": "Couldn't load products. Tap to retry.",
+  "marketplaceNoCoBuyDealsYet": "No co-buy deals yet. Check back soon!",
+  "marketplaceCoBuyDealsLoadError": "Couldn't load co-buy deals. Tap to retry.",
   "marketplaceCoBuyJoinButton": "Join Co-Buy",
   "marketplaceCoBuyProgressToTarget": "{percent}% to target",
   "@marketplaceCoBuyProgressToTarget": {
@@ -734,7 +810,7 @@
       }
     }
   },
-  "productDetailSampleRequestedSnackbar": "Sample requested",
+  "productDetailSampleRequestedSnackbar": "Sample purchased",
   "productDetailAddToCartButton": "Add to Cart · {price}",
   "@productDetailAddToCartButton": {
     "placeholders": {
@@ -743,10 +819,10 @@
       }
     }
   },
-  "productDetailSampleAlreadyRequested": "Sample Already Requested",
+  "productDetailSampleAlreadyRequested": "Sample Already Bought",
   "productDetailSampleCooldownActive": "Cooldown Active",
-  "productDetailRequestSample": "Request Sample",
-  "productDetailSampleCooldownNote": "You can request another sample after {date}.",
+  "productDetailRequestSample": "Buy Sample",
+  "productDetailSampleCooldownNote": "You can buy another sample after {date}.",
   "@productDetailSampleCooldownNote": {
     "placeholders": {
       "date": {
@@ -755,6 +831,7 @@
     }
   },
   "productDetailSampleLimitNote": "Limited to 1 sample every 3 days",
+  "productDetailOwnListingNote": "You can't buy or sample your own listing",
   "storeProfileStatProducts": "Products",
   "storeProfileStatOrders": "Orders",
   "storeProfileStatRating": "Rating",
@@ -763,10 +840,14 @@
   "storeProfileTabReviews": "Reviews",
   "storeProfileNoProducts": "No products yet",
   "storeProfileAboutSectionTitle": "About",
+  "storeProfileNoDescriptionYet": "This seller hasn't added a shop description yet.",
   "storeProfileBusinessDetailsTitle": "Business Details",
   "storeProfileLabelBusinessType": "Business Type",
   "storeProfileLabelYearEstablished": "Year Established",
   "storeProfileLabelLocation": "Location",
+  "storeProfileContactTitle": "Contact Information",
+  "storeProfileLabelPhone": "Phone Number",
+  "storeProfileLabelEmail": "Email Address",
   "storeProfileLabelMinimumOrder": "Minimum Order",
   "storeProfileLabelResponseTime": "Response Time",
   "storeProfileLabelShipping": "Shipping",
@@ -807,6 +888,7 @@
     }
   },
   "storeProfileTopSellerChip": "Top Seller",
+  "storePowerSellerBadge": "Power Seller",
   "storeProfileRatingBreakdownTitle": "Rating breakdown",
   "storeProfileRecentReviewsTitle": "Recent Reviews",
   "categoryResultsSearchHint": "Search products...",
@@ -866,8 +948,20 @@
     }
   },
   "ordersRateReviewButton": "Rate & Review",
+  "ordersAlreadyReviewedLabel": "Reviewed",
   "ordersReportButton": "Report",
   "ordersReportLabel": "Report order",
+  "sellerReportButton": "Report a delivery problem",
+  "sellerReportPhotosLabel": "Screenshots (optional, up to 3)",
+  "sellerReportSheetTitle": "Report a delivery problem",
+  "sellerReportIntro": "Tell us what went wrong. An admin will look into it and keep the buyer updated.",
+  "sellerReportReasonDelayed": "Delivery delayed",
+  "sellerReportReasonLost": "Parcel lost or damaged",
+  "sellerReportReasonUnreachable": "Buyer unreachable",
+  "sellerReportReasonAddress": "Address problem",
+  "sellerReportSubmittedSnackbar": "Report sent. An admin will follow up and update the buyer.",
+  "sellerReportFailedSnackbar": "Couldn't send the report: {error}",
+  "@sellerReportFailedSnackbar": { "placeholders": { "error": { "type": "String" } } },
   "ordersReportSheetTitle": "Report Order",
   "ordersReportReasonLabel": "What's the issue?",
   "ordersReportReasonWrongItem": "Wrong item received",
@@ -962,8 +1056,10 @@
   "deliveryStatusSectionTitle": "Delivery Status",
   "deliveryStepOrderCancelled": "Order cancelled",
   "deliveryStepOrderPlaced": "Order placed",
-  "deliveryStepPaymentHeld": "Payment held in escrow",
-  "deliveryStepReleased": "Released to seller",
+  "deliveryStepAwaitingSellerConfirmation": "Awaiting seller confirmation",
+  "deliveryStepSellerProcessing": "Seller is processing your order",
+  "deliveryStepDelivery": "Delivery",
+  "deliveryStepReleased": "Order completed",
   "deliveryStepDisputed": "Under dispute",
   "deliveryStepRefunded": "Refunded",
   "reviewSheetTitle": "Rate & Review",
@@ -990,6 +1086,17 @@
   "reviewSubmitButton": "Submit Review",
   "reviewSubmittedSnackbar": "Thanks! Your review has been submitted.",
   "reviewWriteReviewLabel": "WRITE A REVIEW",
+  "reviewRatingRequiredSnackbar": "Please rate the product before submitting.",
+  "reviewSubmitFailedSnackbar": "Couldn't submit your review: {error}",
+  "@reviewSubmitFailedSnackbar": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewSectionTitle": "Buyer Review",
+  "reviewEmptyStateMessage": "No review yet from the buyer.",
   "paymentScreenTitle": "Payment Method",
   "paymentAbaMethodTitle": "ABA Pay",
   "paymentAbaNotAvailableSnackbar": "ABA Pay is not available yet",
@@ -998,6 +1105,8 @@
   "paymentCardMethodTitle": "Credit/Debit Card",
   "paymentCardNumberLabel": "CARD NUMBER",
   "paymentCardHolderLabel": "CARD HOLDER",
+  "paymentCardHolderNameHint": "Full name on card",
+  "paymentCardHolderPlaceholder": "YOUR NAME",
   "paymentCardValidThruLabel": "VALID THRU",
   "paymentConfirmedSubtitle": "Your order has been placed and paid.",
   "paymentConfirmedTitle": "You're confirmed!",
@@ -1134,8 +1243,30 @@
   "sellerDashboardAvgDeliveryLabel": "Avg Delivery",
   "sellerDashboardRecentOrdersTitle": "Recent Active Orders",
   "sellerDashboardViewAllLabel": "View All",
+  "sellerApprovalPendingTitle": "Approval Pending",
+  "sellerApprovalPendingMessage": "Your shop is being reviewed by our team. You'll be notified once it's approved and you can start listing products. In the meantime, feel free to shop around!",
+  "sellerApprovalRejectedTitle": "Verification Rejected",
+  "sellerApprovalRejectedMessage": "Your KYC documents didn't pass review. Resubmit them to continue setting up your shop.",
+  "sellerApprovalResubmitAction": "Resubmit Documents",
+  "sellerApprovalGotItAction": "Got It",
+  "sellerApprovalSubmittedOnLabel": "Submitted on {date}",
+  "@sellerApprovalSubmittedOnLabel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "sellerApprovalReviewedOnLabel": "Reviewed on {date}",
+  "@sellerApprovalReviewedOnLabel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "sellerEarningsScreenTitle": "Earnings",
-  "sellerEarningsAvailableBalanceLabel": "Available Balance",
+  "sellerEarningsAvailableBalanceLabel": "Released Balance",
   "sellerEarningsCompletedSalesPercentLabel": "{percent}% of completed sales",
   "@sellerEarningsCompletedSalesPercentLabel": {
     "placeholders": {
@@ -1144,7 +1275,7 @@
       }
     }
   },
-  "sellerEarningsWithdrawButton": "Withdraw",
+  "sellerEarningsWithdrawButton": "Request Release",
   "sellerEarningsReleasedLabel": "Released",
   "sellerEarningsInEscrowLabel": "In Escrow",
   "sellerEarningsRefundedLabel": "Refunded",
@@ -1187,7 +1318,7 @@
   "sellerEarningsStatusReleased": "Released",
   "sellerEarningsStatusDisputed": "Refunded",
   "sellerEarningsStatusWithdrawn": "Withdrawn",
-  "sellerEarningsEscrowNoticeText": "Funds are held in escrow for 48 hours after purchase. Once released, tap Withdraw to transfer earnings to your bank account.",
+  "sellerEarningsEscrowNoticeText": "Funds stay in escrow until the buyer confirms delivery. Once you confirm an order, tap Request Release and the admin will review and release it.",
   "sellerEarningsEmptyStateMessage": "No transactions in this category",
   "sellerEarningsWithdrawSheetTitle": "Withdraw Funds",
   "sellerEarningsWithdrawPoweredByLabel": "Powered by ABA Pay",
@@ -1222,6 +1353,80 @@
     }
   },
   "sellerEarningsWithdrawSuccessOkButton": "OK",
+  "sellerEarningsBankNameLabel": "Bank Name",
+  "sellerEarningsBankNameHint": "e.g. ABA Bank, ACLEDA, Wing",
+  "sellerEarningsAccountNumberInvalidError": "Digits only",
+  "sellerEarningsPayoutNoticeText": "Your request goes to the admin for approval. Once approved, the money reaches this account in around 1 to 3 hours. Only money from orders the buyer has already received is included.",
+  "sellerEarningsPayoutNothingMessage": "Your released balance is empty. Money shows up here once a buyer receives their item.",
+  "sellerEarningsPayoutSuccessMessage": "Your request to withdraw {amount} was sent to the admin for approval. Once approved, it may take around 1 to 3 hours to reach your bank account.",
+  "@sellerEarningsPayoutSuccessMessage": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sellerEarningsPayoutFailedSnackbar": "Couldn't request payout: {error}",
+  "@sellerEarningsPayoutFailedSnackbar": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "sellerEarningsPayoutArrivingLabel": "{amount} on its way to your bank",
+  "@sellerEarningsPayoutArrivingLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sellerEarningsPayoutArrivingBy": "May take around 1 to 3 hours",
+  "sellerEarningsPayoutPendingLabel": "{amount} awaiting admin approval",
+  "@sellerEarningsPayoutPendingLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sellerEarningsPayoutPendingHint": "Sent to your bank 1 to 3 hours after approval",
+  "sellerEarningsStatusReleaseRequested": "Release Requested",
+  "sellerEarningsRequestReleaseTitle": "Request Fund Release",
+  "sellerEarningsRequestReleaseMessage": "Ask the admin to release {amount} from {count} confirmed orders now?",
+  "@sellerEarningsRequestReleaseMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sellerEarningsRequestReleaseConfirmButton": "Send Request",
+  "sellerEarningsRequestReleaseCancelButton": "Cancel",
+  "sellerEarningsRequestReleaseNothingMessage": "No confirmed orders are waiting in escrow. Confirm an order first, then request its release.",
+  "sellerEarningsRequestReleaseSuccessMessage": "Release requested for {count} orders ({amount}). The admin will review it shortly.",
+  "@sellerEarningsRequestReleaseSuccessMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sellerEarningsRequestReleaseFailedSnackbar": "Couldn't request release: {error}",
+  "@sellerEarningsRequestReleaseFailedSnackbar": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "sellerOrdersScreenTitle": "Orders",
   "sellerOrdersEmptyStateMessage": "No orders in this category",
   "sellerOrdersFilterAllLabel": "All ({count})",
@@ -1270,6 +1475,39 @@
   "sellerOrderDetailDeclineConfirmMessage": "The buyer will be notified that you can't fulfill this order.",
   "sellerOrderDetailDeclineConfirmCancel": "Cancel",
   "sellerOrderDetailDeclineConfirmConfirm": "Decline",
+  "sellerOrderDetailConfirmButton": "Confirm Order",
+  "sellerOrderDetailConfirmingLabel": "Confirming...",
+  "sellerOrderDetailConfirmedLabel": "Order Confirmed",
+  "sellerOrderDetailRequestReleaseButton": "Request Fund Release",
+  "sellerOrderDetailReleaseRequestedLabel": "Release requested, waiting for admin approval",
+  "sellerOrderDetailRequestReleaseFailedSnackbar": "Couldn't request release: {error}",
+  "@sellerOrderDetailRequestReleaseFailedSnackbar": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "sellerOrderDetailConfirmFailedSnackbar": "Couldn't confirm order: {error}",
+  "@sellerOrderDetailConfirmFailedSnackbar": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "orderDetailSellerConfirmedLabel": "Seller confirmed",
+  "orderDetailAwaitingSellerConfirmationLabel": "Awaiting seller confirmation",
+  "orderDetailConfirmReceivedButton": "Confirm Item Received",
+  "orderDetailConfirmReceivingLabel": "Confirming...",
+  "orderDetailConfirmReceivedFailedSnackbar": "Couldn't confirm receipt: {error}",
+  "@orderDetailConfirmReceivedFailedSnackbar": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "myInventoryScreenTitle": "My Inventory",
   "myInventorySearchHint": "Search products...",
   "myInventoryFilterAll": "All",
@@ -1278,22 +1516,30 @@
   "myInventoryStockLabel": "Stock: {stock}",
   "@myInventoryStockLabel": {
     "placeholders": {
-      "stock": {"type": "String"}
+      "stock": {
+        "type": "String"
+      }
     }
   },
   "myInventoryEmptyStateMessage": "No products found.",
+  "myInventoryLoadErrorMessage": "Couldn't load your inventory. Tap to retry.",
   "myInventoryListingActivatedSnackbar": "{product} is now active",
   "@myInventoryListingActivatedSnackbar": {
     "placeholders": {
-      "product": {"type": "String"}
+      "product": {
+        "type": "String"
+      }
     }
   },
   "myInventoryListingDeactivatedSnackbar": "{product} is now inactive",
   "@myInventoryListingDeactivatedSnackbar": {
     "placeholders": {
-      "product": {"type": "String"}
+      "product": {
+        "type": "String"
+      }
     }
   },
+  "myInventoryUpdateErrorSnackbar": "Couldn't update the listing. Please try again.",
   "profileEditProfileRoleLabel": "Role Profile",
   "profileEditProfileRoleSheetTitle": "Select Role Profile",
   "profileEditProfileChangePhoto": "Change photo",
@@ -1354,6 +1600,20 @@
   "addListingStockHint": "e.g. 500",
   "addListingStockRequired": "Please enter a stock quantity",
   "addListingStockInvalid": "Please enter a valid quantity",
+  "addListingSpecsLabel": "Wholesale Specifications",
+  "addListingSpecsHelper": "Help buyers know what they're ordering",
+  "addListingWeightLabel": "Weight",
+  "addListingWeightHint": "e.g. 25kg per bag",
+  "addListingWeightRequired": "Please enter a weight",
+  "addListingOriginLabel": "Origin",
+  "addListingOriginHint": "e.g. Cambodia",
+  "addListingOriginRequired": "Please enter an origin",
+  "addListingGradeLabel": "Grade",
+  "addListingGradeHint": "e.g. Premium AA",
+  "addListingGradeRequired": "Please enter a grade",
+  "addListingPackagingLabel": "Packaging",
+  "addListingPackagingHint": "e.g. Woven PP bag",
+  "addListingPackagingRequired": "Please enter a packaging type",
   "addListingPhotosLabel": "Product Photos",
   "addListingCoverPhotoCta": "Tap to add cover photo",
   "addListingPhotosFormatHint": "JPG, PNG up to 5MB",
@@ -1464,10 +1724,8 @@
   "callUsPopupPhoneNumber": "+855 23 456 789",
   "callUsPopupCallNow": "Call Now",
   "callUsPopupLaunchError": "Couldn't open the phone dialer",
-
   "termsConditionsScreenTitle": "Terms & Conditions",
   "termsConditionsLastUpdated": "Last updated: August 2026",
-
   "termsConditionsSection1Title": "1. Platform Overview & Acceptance",
   "termsConditionsSection1Point1": "Bosdom is a localized B2B wholesale marketplace built for verified Cambodian retailers and suppliers. The Platform connects independent retail merchants with trusted wholesalers through a secure escrow payment system, featuring sample verification, group co-buying, and automated escrow protections.",
   "termsConditionsSection1Point2": "By creating an account, you confirm that:",
@@ -1475,34 +1733,29 @@
   "termsConditionsSection1Point4": "You are operating a legitimate business in Cambodia.",
   "termsConditionsSection1Point5": "All information provided during registration is accurate, current, and complete.",
   "termsConditionsSection1Point6": "You agree to comply with these Terms and all applicable local laws and regulations.",
-
   "termsConditionsSection2Title": "2. Account Registration & Verification",
   "termsConditionsSection2Point1": "All users must register with valid business and identity information before completing any transaction on the Platform.",
   "termsConditionsSection2Point2": "Bosdom reserves the right to reject or suspend account registrations that fail identity verification or contain false information.",
   "termsConditionsSection2Point3": "Each user is limited to one verified merchant profile per business.",
   "termsConditionsSection2Point4": "Suppliers are required to provide accurate product listings, pricing, and inventory information at all times.",
   "termsConditionsSection2Point5": "Buyers are responsible for keeping their account and business information up to date.",
-
   "termsConditionsSection3Title": "3. Try-Before-You-Bulk Sample Gate",
   "termsConditionsSection3Point1": "Bosdom's Sample Gate lets buyers order a single unit of a product at consumer price before committing to a bulk wholesale purchase.",
   "termsConditionsSection3Point2": "Each buyer is limited to one sample order per product to prevent misuse of the feature.",
   "termsConditionsSection3Point3": "Sample orders do not carry wholesale pricing and are subject to standard shipping and handling fees.",
   "termsConditionsSection3Point4": "Suppliers must fulfill sample orders with the same product quality advertised in the listing. Misrepresenting sample quality is a violation of these Terms.",
-
   "termsConditionsSection4Title": "4. Collaborative Social Co-Buying",
   "termsConditionsSection4Point1": "Bosdom's Co-Buy feature lets buyers combine orders with other merchants to unlock wholesale bulk pricing.",
   "termsConditionsSection4Point2": "Any registered buyer may start a co-buy pool by selecting \"Invite to Co-Buy\" on an eligible product and sharing the generated invite link.",
   "termsConditionsSection4Point3": "Once a pool reaches its target quantity, the supplier fulfills the order under the applicable bulk pricing tier.",
   "termsConditionsSection4Point4": "Participants share shipping costs proportionally to their share of the order.",
   "termsConditionsSection4Point5": "If a co-buy pool does not reach its required threshold within the specified timeframe, all funds are automatically refunded to participants.",
-
   "termsConditionsSection5Title": "5. Escrow Payment & QR Verification System",
   "termsConditionsSection5Point1": "All financial transactions on Bosdom are processed through the Platform's escrow system.",
   "termsConditionsSection5Point2": "Supported payment methods include Bakong (National Bank of Cambodia) and other approved payment gateways.",
   "termsConditionsSection5Point3": "Funds are held in escrow until delivery is confirmed.",
   "termsConditionsSection5Point4": "Upon delivery, the receiving party must scan the QR code presented by the supplier or courier to confirm receipt.",
   "termsConditionsSection5Point5": "Once delivery is confirmed via QR scan, escrow funds are released to the supplier. Delivery issues may be escalated through the dispute resolution process described in Section 8.",
-
   "termsConditionsSection6Title": "6. Chat Policy & Communication Rules",
   "termsConditionsSection6Point1": "Bosdom provides in-app chat for direct communication between buyers and suppliers.",
   "termsConditionsSection6Point2": "Before accessing chat, users must review and accept the Chat & Trading Policy and Liability Disclosure.",
@@ -1511,19 +1764,16 @@
   "termsConditionsSection6Point5": "Sharing personal bank details for off-platform payment.",
   "termsConditionsSection6Point6": "Sending abusive, fraudulent, or otherwise inappropriate content.",
   "termsConditionsSection6Point7": "Bosdom holds no liability for losses arising from off-platform payments or trades arranged in violation of this policy. Violations may result in a warning, account suspension, or permanent ban, depending on severity, at Bosdom's sole discretion.",
-
   "termsConditionsSection7Title": "7. Pricing & Volume Tiers",
   "termsConditionsSection7Point1": "Suppliers set their own pricing for both sample and bulk purchase tiers.",
   "termsConditionsSection7Point2": "Bulk pricing is structured in volume tiers that unlock as a co-buy pool or bulk order grows.",
   "termsConditionsSection7Point3": "Applicable pricing tiers are shown on each product listing and update automatically as order volume changes.",
   "termsConditionsSection7Point4": "Bosdom does not own, store, or handle physical inventory. Suppliers are solely responsible for product quality, packaging, and inventory accuracy. Prices may be listed in Khmer Riel (KHR) or US Dollars (USD).",
-
   "termsConditionsSection8Title": "8. Dispute Resolution",
   "termsConditionsSection8Point1": "In the event of a dispute, such as damaged goods, non-delivery, or a quality mismatch, Bosdom provides a structured dispute resolution process.",
   "termsConditionsSection8Point2": "Escrow funds related to a disputed order remain locked until the dispute is resolved.",
   "termsConditionsSection8Point3": "Buyers have a 5-day window after delivery confirmation to file a dispute and submit supporting evidence.",
   "termsConditionsSection8Point4": "Bosdom reserves the right to review evidence and adjust escrow disbursement in cases of fraud, non-delivery, or breach of these Terms.",
-
   "termsConditionsSection9Title": "9. Prohibited Activities",
   "termsConditionsSection9Point1": "Users of the Platform must not:",
   "termsConditionsSection9Point2": "Sell counterfeit, illegal, or hazardous goods.",
@@ -1532,30 +1782,24 @@
   "termsConditionsSection9Point5": "Engage in price fixing, deceptive advertising, or false product listings.",
   "termsConditionsSection9Point6": "Use automated bots or scripts to interact with the Platform.",
   "termsConditionsSection9Point7": "Violating any of the above may result in immediate account suspension, forfeiture of pending escrow funds, and, where applicable, referral to relevant authorities.",
-
   "termsConditionsSection10Title": "10. Limitation of Liability",
   "termsConditionsSection10Point1": "Bosdom acts solely as a marketplace facilitator connecting buyers and suppliers. To the maximum extent permitted by law, Bosdom is not liable for:",
   "termsConditionsSection10Point2": "Product quality, accuracy of descriptions, or supplier claims.",
   "termsConditionsSection10Point3": "Delivery timelines or courier performance beyond the Platform's control.",
   "termsConditionsSection10Point4": "Losses resulting from a user's violation of these Terms or applicable Cambodian law.",
   "termsConditionsSection10Point5": "Bosdom is not liable for indirect, incidental, or consequential damages arising from use of the Platform.",
-
   "termsConditionsSection11Title": "11. Privacy & Data Protection",
   "termsConditionsSection11Point1": "Bosdom collects and processes personal data in accordance with our Privacy Policy and applicable Cambodian data protection laws.",
   "termsConditionsSection11Point2": "This includes business registration details, name, phone number, and email address, collected solely for identity verification and Platform operation.",
-
   "termsConditionsSection12Title": "12. Modifications to Terms",
   "termsConditionsSection12Point1": "Bosdom reserves the right to update or modify these Terms at any time. Continued use of the Platform after changes take effect constitutes acceptance of the updated Terms.",
   "termsConditionsSection12Point2": "Users who do not agree with updated Terms should discontinue use of the Platform.",
-
   "termsConditionsContactTitle": "Contact Us",
   "termsConditionsContactIntro": "If you have questions about these Terms & Conditions, please contact us:",
   "termsConditionsContactEmail": "support@bosdom.com",
   "termsConditionsContactInApp": "In-app: Help & Support",
-
   "privacyPolicyScreenTitle": "Privacy Policy",
   "privacyPolicyEffectiveDate": "Effective Date: August 2026",
-
   "privacyPolicySection1Title": "1. Information We Collect",
   "privacyPolicySection1Point1": "a) Account Information",
   "privacyPolicySection1Point2": "Full name, phone number, and email",
@@ -1582,7 +1826,6 @@
   "privacyPolicySection1Point23": "g) Co-Buy & Social Data",
   "privacyPolicySection1Point24": "Co-buy invitation creation and participation",
   "privacyPolicySection1Point25": "Invite link clicks and pool-joining activity",
-
   "privacyPolicySection2Title": "2. How We Use Your Information",
   "privacyPolicySection2Point1": "We use your personal data for the following purposes:",
   "privacyPolicySection2Point2": "a) Platform Operations",
@@ -1607,7 +1850,6 @@
   "privacyPolicySection2Point21": "To respond to lawful requests from authorities",
   "privacyPolicySection2Point22": "f) Business Transfers",
   "privacyPolicySection2Point23": "In the event of a merger, acquisition, or asset sale, information may be transferred as part of the business assets, subject to equivalent privacy protection",
-
   "privacyPolicySection3Title": "3. How We Share Your Information",
   "privacyPolicySection3Point1": "We do not sell your personal data. We only share information in the following circumstances:",
   "privacyPolicySection3Point2": "a) Between Buyers & Sellers",
@@ -1623,7 +1865,6 @@
   "privacyPolicySection3Point12": "To protect Bosdom's legal rights or investigate fraud",
   "privacyPolicySection3Point13": "e) Business Transfers",
   "privacyPolicySection3Point14": "In the event of a merger, acquisition, or reorganization of Bosdom, user data may be transferred with equivalent privacy protection commitments",
-
   "privacyPolicySection4Title": "4. Data Storage & Security",
   "privacyPolicySection4Point1": "Your data is stored securely using Supabase infrastructure, which provides:",
   "privacyPolicySection4Point2": "Encryption of data in transit (TLS/SSL) and at rest",
@@ -1632,7 +1873,6 @@
   "privacyPolicySection4Point5": "Escrow payment information is protected using PCI-compliant payment gateway standards.",
   "privacyPolicySection4Point6": "Chat conversations and dispute evidence are encrypted and access-restricted to relevant parties.",
   "privacyPolicySection4Point7": "While we implement industry-standard security measures, no method of electronic transmission or storage is 100% secure.",
-
   "privacyPolicySection5Title": "5. Data Retention",
   "privacyPolicySection5Point1": "We retain your personal data only for as long as necessary to fulfill the purposes outlined in this policy:",
   "privacyPolicySection5Point2": "Account Data: retained while your account is active and for up to 12 months after deletion",
@@ -1640,7 +1880,6 @@
   "privacyPolicySection5Point4": "Chat Messages: retained for 12 months",
   "privacyPolicySection5Point5": "Dispute Evidence: retained for 12 months after resolution",
   "privacyPolicySection5Point6": "You may request account deletion at any time by contacting support or using the in-app support feature.",
-
   "privacyPolicySection6Title": "6. Your Privacy Rights",
   "privacyPolicySection6Point1": "As a Bosdom user, you have the right to:",
   "privacyPolicySection6Point2": "Access: request a copy of the personal data we hold about you",
@@ -1650,34 +1889,31 @@
   "privacyPolicySection6Point6": "Notification Preferences: manage notification settings within the app",
   "privacyPolicySection6Point7": "Opt-Out: opt out of marketing communications at any time",
   "privacyPolicySection6Point8": "To exercise these rights, contact us at privacy@bosdom.com or via the in-app Support section.",
-
   "privacyPolicySection7Title": "7. Chat & Communication Privacy",
   "privacyPolicySection7Point1": "All in-app chat messages are stored securely and only accessible to conversation participants.",
   "privacyPolicySection7Point2": "Bosdom automatically monitors chat content for off-platform contact detection and scam prevention purposes only.",
   "privacyPolicySection7Point3": "Flagged messages may be reviewed manually by our Trust & Safety team.",
   "privacyPolicySection7Point4": "Soliciting direct contact information through chat may result in account restrictions or bans as outlined in our Terms & Conditions.",
-
   "privacyPolicySection8Title": "8. Children's Privacy",
   "privacyPolicySection8Point1": "Bosdom is a B2B wholesale marketplace intended for use by verified business users aged 18 and above. We do not knowingly collect data from minors.",
-
   "privacyPolicySection9Title": "9. Changes to This Policy",
   "privacyPolicySection9Point1": "We may update this Privacy Policy periodically to reflect changes in our practices, legal requirements, or platform features. Material changes will be communicated via:",
   "privacyPolicySection9Point2": "A prominent notice within the app",
   "privacyPolicySection9Point3": "Email notification to registered users",
   "privacyPolicySection9Point4": "An updated \"Last Modified\" date",
-
   "privacyPolicyContactTitle": "Contact Us",
   "privacyPolicyContactIntro": "For privacy-related questions or concerns, please contact:",
   "privacyPolicyContactEmail": "privacy@bosdom.com",
   "privacyPolicyContactInApp": "In-app: Support & Report an Issue",
   "privacyPolicyContactLocation": "Cambodia",
-
   "aboutScreenTitle": "About Bosdom",
   "aboutAppTagline": "The Automated B2B Wholesale Trust Market & Social Co-Buying Network",
   "aboutVersionLabel": "Version {version}",
   "@aboutVersionLabel": {
     "placeholders": {
-      "version": { "type": "String" }
+      "version": {
+        "type": "String"
+      }
     }
   },
   "aboutMissionTitle": "Our Mission",
@@ -1706,7 +1942,7 @@
   "aboutCompanyWebsiteLabel": "WEBSITE",
   "aboutCompanyWebsiteValue": "www.bosdom.com",
   "aboutStoryTitle": "Our Story",
-  "aboutStoryBody": "Founded to solve trust deficiencies in Cambodia's B2B retail supply chain, Bosdom deploys an independent secure digital procurement ecosystem to empower small-to-medium retail owners.",
+  "aboutStoryBody": "Bosdom was started to fix the trust problem in Cambodia's wholesale supply chain. It gives small and medium retail owners a safe way to buy and sell in bulk.",
   "aboutStatRetailers": "Retailers",
   "aboutStatSuppliers": "Suppliers",
   "aboutStatSuccessRate": "Success Rate",
@@ -1717,5 +1953,94 @@
   "aboutFooterCopyright": "© 2024-2026 Bosdom. All rights reserved.",
   "variantSelectOptionsTitle": "Select Options",
   "variantSizeLabel": "Size",
-  "variantColorLabel": "Color"
+  "variantColorLabel": "Color",
+  "escrowFlowTitle": "How your payment is released",
+  "escrowStepPaidTitle": "Order placed",
+  "escrowStepPaidDetail": "Payment held in escrow",
+  "escrowStepPreparesTitle": "Seller prepares",
+  "escrowStepPreparesDetail": "Getting the order ready",
+  "escrowStepShippedTitle": "Shipped",
+  "escrowStepShippedDetail": "Photo + tracking",
+  "escrowStepTimerTitle": "Timer starts",
+  "escrowStepTimerDetail": "Buyer review window",
+  "escrowStepReleaseTitle": "Auto released to seller",
+  "escrowStepReleaseDetail": "Fee taken, seller paid",
+  "escrowTimerLeft": "{time} left to report a problem",
+  "@escrowTimerLeft": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "escrowTimerFrozen": "Timer paused while an admin reviews the report",
+  "escrowTrackingLabel": "{courier} · {number}",
+  "@escrowTrackingLabel": {
+    "placeholders": {
+      "courier": {
+        "type": "String"
+      },
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "escrowReportProblemButton": "Report a problem",
+  "escrowReportSubmittedFrozen": "Problem reported. The timer is frozen while an admin reviews it.",
+  "escrowShipButton": "Ship order",
+  "escrowShipSheetTitle": "Ship order",
+  "escrowCourierLabel": "Courier",
+  "escrowCourierHint": "e.g. VET, J&T, Cambodia Post",
+  "escrowTrackingNumberLabel": "Tracking number",
+  "escrowParcelPhotoLabel": "Photo of the parcel",
+  "escrowAddPhoto": "Add photo",
+  "escrowPhotoRequired": "Please add a photo",
+  "escrowShipSubmit": "Confirm shipment",
+  "escrowMarkDeliveredButton": "Upload proof of delivery",
+  "escrowDeliverySheetTitle": "Proof of delivery",
+  "escrowDeliverySheetNote": "Upload the courier's receipt or a handover photo. The buyer's review timer starts when you submit.",
+  "escrowDeliverySubmit": "Mark as delivered",
+  "escrowActionFailed": "Something went wrong: {error}",
+  "@escrowActionFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "escrowSellerWaitingTimer": "Delivered. Funds release automatically when the buyer's review window ends.",
+  "escrowSellerWaitingDelivery": "Shipped.",
+  "escrowSellerDisputed": "A problem was reported on this order. Funds are on hold while an admin reviews.",
+  "escrowSellerReplyTitle": "Admin case",
+  "escrowSellerReplyReported": "Reported: {reason}",
+  "@escrowSellerReplyReported": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "escrowSellerReplyWaiting": "Waiting for an admin to open the case.",
+  "escrowSellerReplyHint": "Your reply to the admin",
+  "escrowSellerReplyButton": "Send reply",
+  "escrowSellerReplySent": "Your reply",
+  "orderHoldTitle": "What happened",
+  "orderHoldReasonDeliveryDelayed": "Delivery delayed",
+  "orderHoldReasonLostOrDamaged": "Parcel lost or damaged",
+  "orderHoldReasonBuyerUnreachable": "Delivery could not reach you",
+  "orderHoldReasonAddress": "Address problem",
+  "orderHoldReasonWrongItem": "Wrong item received",
+  "orderHoldReasonDamaged": "Item damaged",
+  "orderHoldReasonMissing": "Item missing",
+  "orderHoldReasonLate": "Late delivery",
+  "orderHoldReasonOther": "Other problem",
+  "orderHoldReasonBuyerUnreachableSeller": "Recipient could not be reached",
+  "orderHoldSellerBody": "This order was cancelled by the BosDom Support Team following a delivery issue reported by the courier. No further action is required from you.",
+  "orderHoldBuyerBody": "You reported an issue with this order. Our support team is reviewing your case, and your payment remains safely held in escrow. If the decision is in your favour, your refund will be issued within 2 to 3 days.",
+  "orderHoldDeliveryBody": "The delivery service reported an issue with your parcel, so the BosDom Support Team has cancelled this order. Your payment is fully protected, and your refund will be issued to you by {date}.",
+  "@orderHoldDeliveryBody": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  }
 }

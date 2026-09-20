@@ -36,7 +36,10 @@ abstract final class CoBuyPoolService {
 
   static Future<List<CoBuySession>> fetchPools() async {
     final response = await http
-        .get(Uri.parse('${ApiConfig.baseUrl}/co-buy/pools'), headers: _authHeaders)
+        .get(
+          Uri.parse('${ApiConfig.baseUrl}/co-buy/pools'),
+          headers: _authHeaders,
+        )
         .timeout(_timeout);
     if (response.statusCode != 200) {
       throw Exception('Failed to load co-buy deals: ${response.body}');
@@ -115,10 +118,7 @@ abstract final class CoBuyPoolService {
       ..fields['sizes'] = sizes.join(',')
       ..fields['colors'] = jsonEncode([
         for (final color in colorOptions)
-          {
-            'name': color.name,
-            'hex': _colorToHex(color.color),
-          },
+          {'name': color.name, 'hex': _colorToHex(color.color)},
       ]);
 
     for (final photo in photos) {
@@ -262,7 +262,8 @@ abstract final class CoBuyPoolService {
     }
 
     if (response.statusCode == 400 || response.statusCode == 409) {
-      final detail = (jsonDecode(response.body) as Map<String, dynamic>)['detail'];
+      final detail =
+          (jsonDecode(response.body) as Map<String, dynamic>)['detail'];
       throw CoBuyJoinException(
         detail is String ? detail : 'Unable to join this co-buy deal',
       );
@@ -277,11 +278,68 @@ abstract final class CoBuyPoolService {
           headers: _authHeaders,
         )
         .timeout(_timeout);
-    if (response.statusCode != 200) {
-      throw Exception('Failed to leave co-buy deal: ${response.body}');
+    if (response.statusCode == 200) {
+      return CoBuySession.fromJson(
+        jsonDecode(response.body) as Map<String, dynamic>,
+      );
     }
-    return CoBuySession.fromJson(
-      jsonDecode(response.body) as Map<String, dynamic>,
-    );
+    if (response.statusCode == 404 || response.statusCode == 409) {
+      final detail =
+          (jsonDecode(response.body) as Map<String, dynamic>)['detail'];
+      throw CoBuyJoinException(
+        detail is String ? detail : 'Unable to leave this co-buy deal',
+      );
+    }
+    throw Exception('Failed to leave co-buy deal: ${response.body}');
+  }
+
+  /// Asks an admin to let this (already paid) buyer out of the deal.
+  static Future<CoBuySession> requestLeave(String id, String reason) async {
+    final response = await http
+        .post(
+          Uri.parse('${ApiConfig.baseUrl}/co-buy/pools/$id/leave-request'),
+          headers: {..._authHeaders, 'Content-Type': 'application/json'},
+          body: jsonEncode({'reason': reason}),
+        )
+        .timeout(_timeout);
+    if (response.statusCode == 200) {
+      return CoBuySession.fromJson(
+        jsonDecode(response.body) as Map<String, dynamic>,
+      );
+    }
+    if (response.statusCode == 400 ||
+        response.statusCode == 404 ||
+        response.statusCode == 409) {
+      final detail =
+          (jsonDecode(response.body) as Map<String, dynamic>)['detail'];
+      throw CoBuyJoinException(
+        detail is String ? detail : 'Unable to send your leave request',
+      );
+    }
+    throw Exception('Failed to request leave: ${response.body}');
+  }
+
+  /// Moves this buyer's pending join into held escrow.
+  static Future<CoBuySession> payJoin(String id, String paymentMethod) async {
+    final response = await http
+        .post(
+          Uri.parse('${ApiConfig.baseUrl}/co-buy/pools/$id/pay'),
+          headers: {..._authHeaders, 'Content-Type': 'application/json'},
+          body: jsonEncode({'payment_method': paymentMethod}),
+        )
+        .timeout(_timeout);
+    if (response.statusCode == 200) {
+      return CoBuySession.fromJson(
+        jsonDecode(response.body) as Map<String, dynamic>,
+      );
+    }
+    if (response.statusCode == 404 || response.statusCode == 409) {
+      final detail =
+          (jsonDecode(response.body) as Map<String, dynamic>)['detail'];
+      throw CoBuyJoinException(
+        detail is String ? detail : 'Unable to pay for this co-buy deal',
+      );
+    }
+    throw Exception('Failed to pay for co-buy deal: ${response.body}');
   }
 }

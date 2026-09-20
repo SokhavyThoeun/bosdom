@@ -89,6 +89,10 @@ def create_sample_order(
     listing = db.get(Listing, payload.listing_id)
     if listing is None:
         raise HTTPException(status_code=404, detail="Listing not found")
+    if listing.seller_id == user.id:
+        raise HTTPException(
+            status_code=400, detail="You can't buy your own listing"
+        )
     if not listing.sample_testing_enabled or listing.sample_price is None:
         raise HTTPException(
             status_code=400, detail="This listing does not offer sample testing"

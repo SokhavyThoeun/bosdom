@@ -1,27 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../../shared/utils/currency_format.dart';
+import '../../../shared/widgets/order_status_badge.dart';
+import '../../marketplace/widgets/empty_products_notice.dart';
+import '../../orders/models/order.dart';
+import '../../orders/providers/orders_provider.dart';
 import '../models/seller_order.dart';
 
-const _kFilters = [null, ...SellerOrderStatus.values];
+const _kFilters = [null, ...OrderStatus.values];
 
 // Same header size/shape as the seller dashboard/inventory screens so
 // moving between seller screens feels like the same app.
-const _kHeaderContentHeight = 96.0;
+const _kHeaderContentHeight = 68.0;
 
-class SellerOrdersScreen extends StatefulWidget {
+class SellerOrdersScreen extends ConsumerStatefulWidget {
   const SellerOrdersScreen({super.key});
 
   @override
-  State<SellerOrdersScreen> createState() => _SellerOrdersScreenState();
+  ConsumerState<SellerOrdersScreen> createState() => _SellerOrdersScreenState();
 }
 
-class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
-  SellerOrderStatus? _filter;
+class _SellerOrdersScreenState extends ConsumerState<SellerOrdersScreen> {
+  OrderStatus? _filter;
 
-  List<SellerOrder> _filteredOrders(List<SellerOrder> orders) => _filter == null
+  List<Order> _filteredOrders(List<Order> orders) => _filter == null
       ? orders
       : orders.where((order) => order.status == _filter).toList();
 
@@ -29,8 +35,8 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final orders = kMockSellerOrders;
-    final filteredOrders = _filteredOrders(orders);
+    final l10n = AppLocalizations.of(context);
+    final ordersAsync = ref.watch(sellerOrdersProvider);
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -41,43 +47,69 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
             child: SafeArea(
               top: false,
               bottom: false,
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-                    child: _FilterRow(
-                      selected: _filter,
-                      onSelected: (status) => setState(() => _filter = status),
-                      orders: orders,
-                      colorScheme: colorScheme,
-                      textTheme: textTheme,
-                    ),
+              child: ordersAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stackTrace) => Center(
+                  child: EmptyProductsNotice(
+                    colorScheme: colorScheme,
+                    textTheme: textTheme,
+                    message: l10n.ordersLoadError,
+                    onRetry: () =>
+                        ref.read(sellerOrdersProvider.notifier).refresh(),
                   ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: filteredOrders.isEmpty
-                        ? _EmptyState(
+                ),
+                data: (orders) {
+                  final filteredOrders = _filteredOrders(orders);
+                  return RefreshIndicator(
+                    onRefresh: () =>
+                        ref.read(sellerOrdersProvider.notifier).refresh(),
+                    color: colorScheme.primary,
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+                          child: _FilterRow(
+                            selected: _filter,
+                            onSelected: (status) =>
+                                setState(() => _filter = status),
+                            orders: orders,
                             colorScheme: colorScheme,
                             textTheme: textTheme,
-                          )
-                        : ListView.separated(
-                            padding: EdgeInsets.fromLTRB(
-                              24,
-                              0,
-                              24,
-                              16 + MediaQuery.of(context).padding.bottom,
-                            ),
-                            itemCount: filteredOrders.length,
-                            separatorBuilder: (_, _) =>
-                                const SizedBox(height: 16),
-                            itemBuilder: (context, index) => _SellerOrderCard(
-                              order: filteredOrders[index],
-                              colorScheme: colorScheme,
-                              textTheme: textTheme,
-                            ),
                           ),
-                  ),
-                ],
+                        ),
+                        const SizedBox(height: 16),
+                        Expanded(
+                          child: filteredOrders.isEmpty
+                              ? ListView(
+                                  children: [
+                                    _EmptyState(
+                                      colorScheme: colorScheme,
+                                      textTheme: textTheme,
+                                    ),
+                                  ],
+                                )
+                              : ListView.separated(
+                                  padding: EdgeInsets.fromLTRB(
+                                    24,
+                                    0,
+                                    24,
+                                    16 + MediaQuery.of(context).padding.bottom,
+                                  ),
+                                  itemCount: filteredOrders.length,
+                                  separatorBuilder: (_, _) =>
+                                      const SizedBox(height: 16),
+                                  itemBuilder: (context, index) =>
+                                      _SellerOrderCard(
+                                        order: filteredOrders[index],
+                                        colorScheme: colorScheme,
+                                        textTheme: textTheme,
+                                      ),
+                                ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
             ),
           ),
@@ -101,9 +133,9 @@ class _Header extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
-          MediaQuery.of(context).padding.top + 16,
+          MediaQuery.of(context).padding.top + 10,
           24,
-          20,
+          14,
         ),
         child: SizedBox(
           height: _kHeaderContentHeight,
@@ -153,9 +185,9 @@ class _FilterRow extends StatelessWidget {
     required this.textTheme,
   });
 
-  final SellerOrderStatus? selected;
-  final ValueChanged<SellerOrderStatus?> onSelected;
-  final List<SellerOrder> orders;
+  final OrderStatus? selected;
+  final ValueChanged<OrderStatus?> onSelected;
+  final List<Order> orders;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
 
@@ -163,7 +195,7 @@ class _FilterRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final pendingCount = orders
-        .where((order) => order.status == SellerOrderStatus.pending)
+        .where((order) => order.status == OrderStatus.pendingPayment)
         .length;
 
     return SingleChildScrollView(
@@ -174,9 +206,9 @@ class _FilterRow extends StatelessWidget {
             _FilterChip(
               label: switch (_kFilters[i]) {
                 null => l10n.sellerOrdersFilterAllLabel(orders.length),
-                SellerOrderStatus.pending =>
+                OrderStatus.pendingPayment =>
                   l10n.sellerOrdersFilterPendingLabel(pendingCount),
-                final status => status.label,
+                final status => sellerOrderStatusLabel(status),
               },
               isSelected: selected == _kFilters[i],
               onTap: () => onSelected(_kFilters[i]),
@@ -237,21 +269,20 @@ class _FilterChip extends StatelessWidget {
   }
 }
 
-class _SellerOrderCard extends StatelessWidget {
+class _SellerOrderCard extends ConsumerWidget {
   const _SellerOrderCard({
     required this.order,
     required this.colorScheme,
     required this.textTheme,
   });
 
-  final SellerOrder order;
+  final Order order;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final statusColor = sellerOrderStatusColor(order.status);
 
     return Material(
       color: Colors.white,
@@ -286,14 +317,16 @@ class _SellerOrderCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          l10n.ordersOrderNumberLabel(order.id),
+                          l10n.ordersOrderNumberLabel(order.displayNumber),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          order.date,
+                          order.dateLabel,
                           style: textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
@@ -302,18 +335,12 @@ class _SellerOrderCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    alignment: WrapAlignment.end,
-                    children: [
-                      if (order.isCoBuy)
-                        _Badge(
-                          label: l10n.sellerOrdersCoBuyBadgeLabel,
-                          color: AppColors.trustGreen,
-                        ),
-                      _Badge(label: order.status.label, color: statusColor),
-                    ],
+                  OrderStatusBadge(
+                    label: sellerOrderStatusLabel(
+                      order.status,
+                      isSellerConfirmed: order.isSellerConfirmed,
+                    ),
+                    dense: true,
                   ),
                 ],
               ),
@@ -322,29 +349,39 @@ class _SellerOrderCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 child: AspectRatio(
                   aspectRatio: 16 / 9,
-                  child: Image.network(
-                    order.imageUrl,
-                    fit: BoxFit.cover,
-                    loadingBuilder: (context, child, progress) =>
-                        progress == null
-                        ? child
-                        : ColoredBox(
-                            color: colorScheme.primaryContainer,
-                            child: Icon(
-                              order.icon,
-                              color: colorScheme.primary,
-                              size: 28,
-                            ),
+                  child: order.imageUrl == null
+                      ? ColoredBox(
+                          color: colorScheme.primaryContainer,
+                          child: Icon(
+                            order.icon,
+                            color: colorScheme.primary,
+                            size: 28,
                           ),
-                    errorBuilder: (context, error, stackTrace) => ColoredBox(
-                      color: colorScheme.primaryContainer,
-                      child: Icon(
-                        order.icon,
-                        color: colorScheme.primary,
-                        size: 28,
-                      ),
-                    ),
-                  ),
+                        )
+                      : Image.network(
+                          order.imageUrl!,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, progress) =>
+                              progress == null
+                              ? child
+                              : ColoredBox(
+                                  color: colorScheme.primaryContainer,
+                                  child: Icon(
+                                    order.icon,
+                                    color: colorScheme.primary,
+                                    size: 28,
+                                  ),
+                                ),
+                          errorBuilder: (context, error, stackTrace) =>
+                              ColoredBox(
+                                color: colorScheme.primaryContainer,
+                                child: Icon(
+                                  order.icon,
+                                  color: colorScheme.primary,
+                                  size: 28,
+                                ),
+                              ),
+                        ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -356,7 +393,7 @@ class _SellerOrderCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          order.buyerName,
+                          order.shippingName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: textTheme.bodyMedium?.copyWith(
@@ -366,7 +403,7 @@ class _SellerOrderCard extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(
                           l10n.sellerOrdersQuantityProductLabel(
-                            order.quantityLabel,
+                            l10n.ordersItemCountLabel(order.quantity),
                             order.productName,
                           ),
                           maxLines: 1,
@@ -380,7 +417,7 @@ class _SellerOrderCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 10),
                   Text(
-                    '\$${order.total.toStringAsFixed(2)}',
+                    formatPrice(ref, order.totalAmount),
                     style: textTheme.titleMedium?.copyWith(
                       color: AppColors.brandCrimson,
                       fontWeight: FontWeight.bold,
@@ -391,43 +428,6 @@ class _SellerOrderCard extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _Badge extends StatelessWidget {
-  const _Badge({required this.label, required this.color});
-
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppColors.blushSurface,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: textTheme.labelSmall?.copyWith(
-              color: AppColors.warmBlack,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
       ),
     );
   }

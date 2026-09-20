@@ -109,6 +109,7 @@ class _UploadDocumentsScreenState extends State<UploadDocumentsScreen> {
           Expanded(
             child: SafeArea(
               top: false,
+              bottom: false,
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
                 child: Column(
@@ -155,7 +156,7 @@ class _UploadDocumentsScreenState extends State<UploadDocumentsScreen> {
                       uploading: _uploadingDocType == _businessCertificate,
                       onTap: () => _pickAndUpload(_businessCertificate),
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 16),
                     FilledButton(
                       onPressed: _nationalIdUploaded ? _continue : null,
                       child: const Padding(
@@ -192,15 +193,13 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-      ),
+      decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
-          MediaQuery.of(context).padding.top + 16,
+          MediaQuery.of(context).padding.top + 10,
           24,
-          24,
+          18,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -299,8 +298,8 @@ class _IdentityBanner extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Upload your ID for identity on file. Your Seller badge '
-                  'activates immediately no admin confirmation needed.',
+                  'Upload your ID for identity verification. Our team '
+                  'reviews it and your Seller badge activates once approved.',
                   style: textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onPrimaryContainer,
                   ),
@@ -346,7 +345,13 @@ class _DocumentCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colorScheme.outline),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withValues(alpha: 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -404,7 +409,7 @@ class _DocumentCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
             child: uploading

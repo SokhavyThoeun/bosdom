@@ -49,8 +49,8 @@ abstract final class SampleOrderService {
       );
     }
 
-    final detail = (jsonDecode(response.body)
-        as Map<String, dynamic>)['detail'];
+    final detail =
+        (jsonDecode(response.body) as Map<String, dynamic>)['detail'];
 
     if (response.statusCode == 409 && detail is Map<String, dynamic>) {
       final eligibleAt = detail['eligible_at'] as String?;

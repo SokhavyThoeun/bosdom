@@ -78,11 +78,7 @@ class _PersonalizedAdsPopupState extends ConsumerState<_PersonalizedAdsPopup> {
       _purchaseHistory = next;
     });
     _persist(
-      AdsConsent(
-        adsEnabled: next,
-        browsingData: next,
-        purchaseHistory: next,
-      ),
+      AdsConsent(adsEnabled: next, browsingData: next, purchaseHistory: next),
       previous: previous,
       closeOnSuccess: false,
     );
@@ -108,7 +104,9 @@ class _PersonalizedAdsPopupState extends ConsumerState<_PersonalizedAdsPopup> {
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context).personalizedAdsSaveError),
+            content: Text(
+              AppLocalizations.of(context).personalizedAdsSaveError,
+            ),
           ),
         );
       }

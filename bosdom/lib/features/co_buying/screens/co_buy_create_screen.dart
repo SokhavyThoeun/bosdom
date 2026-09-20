@@ -216,9 +216,9 @@ class _CoBuyCreateFormState extends ConsumerState<_CoBuyCreateForm> {
     } catch (_) {
       if (!mounted) return;
       setState(() => _isSaving = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.coBuyCreateSaveError)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.coBuyCreateSaveError)));
       return;
     }
 

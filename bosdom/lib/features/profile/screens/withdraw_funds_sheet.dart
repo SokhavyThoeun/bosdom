@@ -4,38 +4,37 @@ import 'package:flutter/services.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
-/// Result of a completed withdrawal request.
+/// Bank account the seller wants their released balance sent to.
 class WithdrawFundsResult {
   const WithdrawFundsResult({
-    required this.amount,
-    required this.methodLabel,
-    required this.accountLast4,
+    required this.bankName,
+    required this.accountHolder,
+    required this.accountNumber,
   });
 
-  final double amount;
-  final String methodLabel;
-  final String accountLast4;
+  final String bankName;
+  final String accountHolder;
+  final String accountNumber;
 }
 
-/// Opens the "Withdraw Funds" bottom sheet. Resolves with the submitted
-/// amount and destination once the seller confirms, or `null` if dismissed.
+/// Opens the "Withdraw Funds" bottom sheet. Resolves with the seller's bank
+/// details once they confirm, or `null` if dismissed.
 Future<WithdrawFundsResult?> showWithdrawFundsSheet(
   BuildContext context, {
-  required double availableBalance,
+  required String balanceLabel,
 }) {
   return showModalBottomSheet<WithdrawFundsResult>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (context) =>
-        _WithdrawFundsSheet(availableBalance: availableBalance),
+    builder: (context) => _WithdrawFundsSheet(balanceLabel: balanceLabel),
   );
 }
 
 class _WithdrawFundsSheet extends StatefulWidget {
-  const _WithdrawFundsSheet({required this.availableBalance});
+  const _WithdrawFundsSheet({required this.balanceLabel});
 
-  final double availableBalance;
+  final String balanceLabel;
 
   @override
   State<_WithdrawFundsSheet> createState() => _WithdrawFundsSheetState();
@@ -43,32 +42,25 @@ class _WithdrawFundsSheet extends StatefulWidget {
 
 class _WithdrawFundsSheetState extends State<_WithdrawFundsSheet> {
   final _formKey = GlobalKey<FormState>();
-  final _amountController = TextEditingController();
+  // Withdrawals go to ABA or Wing only.
+  String _bank = 'ABA';
   final _nameController = TextEditingController();
-  final _routingController = TextEditingController();
   final _accountController = TextEditingController();
 
   @override
   void dispose() {
-    _amountController.dispose();
     _nameController.dispose();
-    _routingController.dispose();
     _accountController.dispose();
     super.dispose();
   }
 
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
-    final amount = double.parse(_amountController.text.trim());
-    final last4 = _accountController.text.trim();
-    final suffix = last4.length >= 4
-        ? last4.substring(last4.length - 4)
-        : last4;
     Navigator.of(context).pop(
       WithdrawFundsResult(
-        amount: amount,
-        methodLabel: 'ABA Bank ****$suffix',
-        accountLast4: suffix,
+        bankName: _bank,
+        accountHolder: _nameController.text.trim(),
+        accountNumber: _accountController.text.trim(),
       ),
     );
   }
@@ -144,37 +136,6 @@ class _WithdrawFundsSheetState extends State<_WithdrawFundsSheet> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 14),
-                    Center(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: colorScheme.primaryContainer,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.account_balance_outlined,
-                              size: 14,
-                              color: colorScheme.primary,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              l10n.sellerEarningsWithdrawPoweredByLabel,
-                              style: textTheme.labelSmall?.copyWith(
-                                color: colorScheme.primary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
                     const SizedBox(height: 18),
                     Container(
                       width: double.infinity,
@@ -193,7 +154,7 @@ class _WithdrawFundsSheetState extends State<_WithdrawFundsSheet> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '\$${widget.availableBalance.toStringAsFixed(2)}',
+                            widget.balanceLabel,
                             style: textTheme.headlineSmall?.copyWith(
                               color: AppColors.brandCrimson,
                               fontWeight: FontWeight.bold,
@@ -203,30 +164,23 @@ class _WithdrawFundsSheetState extends State<_WithdrawFundsSheet> {
                       ),
                     ),
                     const SizedBox(height: 18),
-                    _WithdrawField(
-                      label: l10n.sellerEarningsWithdrawAmountLabel,
-                      controller: _amountController,
-                      hintText: '0.00',
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
+                    Text(
+                      l10n.sellerEarningsBankNameLabel,
+                      style: textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
                       ),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        for (final bank in const ['ABA', 'Wing'])
+                          ChoiceChip(
+                            label: Text(bank),
+                            selected: _bank == bank,
+                            onSelected: (_) => setState(() => _bank = bank),
+                          ),
                       ],
-                      validator: (value) {
-                        final trimmed = value?.trim() ?? '';
-                        if (trimmed.isEmpty) {
-                          return l10n.sellerEarningsWithdrawFieldRequiredError;
-                        }
-                        final amount = double.tryParse(trimmed);
-                        if (amount == null || amount <= 0) {
-                          return l10n.sellerEarningsWithdrawAmountInvalidError;
-                        }
-                        if (amount > widget.availableBalance) {
-                          return l10n.sellerEarningsWithdrawAmountExceedsError;
-                        }
-                        return null;
-                      },
                     ),
                     const SizedBox(height: 14),
                     _WithdrawField(
@@ -234,18 +188,6 @@ class _WithdrawFundsSheetState extends State<_WithdrawFundsSheet> {
                       controller: _nameController,
                       hintText: l10n.sellerEarningsAccountHolderNameHint,
                       textCapitalization: TextCapitalization.words,
-                      validator: (value) =>
-                          (value == null || value.trim().isEmpty)
-                          ? l10n.sellerEarningsWithdrawFieldRequiredError
-                          : null,
-                    ),
-                    const SizedBox(height: 14),
-                    _WithdrawField(
-                      label: l10n.sellerEarningsRoutingNumberLabel,
-                      controller: _routingController,
-                      hintText: l10n.sellerEarningsRoutingNumberHint,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       validator: (value) =>
                           (value == null || value.trim().isEmpty)
                           ? l10n.sellerEarningsWithdrawFieldRequiredError
@@ -294,7 +236,7 @@ class _WithdrawFundsSheetState extends State<_WithdrawFundsSheet> {
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              l10n.sellerEarningsWithdrawNoticeText,
+                              l10n.sellerEarningsPayoutNoticeText,
                               style: textTheme.bodySmall?.copyWith(
                                 color: AppColors.alertAmber,
                                 height: 1.4,

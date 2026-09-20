@@ -158,6 +158,8 @@
   "cartEscrowFee": "កម្រៃសេវាធានា (២%)",
   "cartTotalAmount": "ចំនួនទឹកប្រាក់សរុប",
   "cartEmptyState": "កន្ត្រករបស់អ្នកទទេ",
+  "cartLoadErrorMessage": "មិនអាចផ្ទុកកន្ត្រករបស់អ្នកបានទេ។ ចុចដើម្បីព្យាយាមម្តងទៀត។",
+  "cartUpdateErrorSnackbar": "មិនអាចធ្វើបច្ចុប្បន្នភាពកន្ត្រករបស់អ្នកបានទេ។ សូមព្យាយាមម្តងទៀត។",
   "checkoutDeliveryAddressLabel": "អាសយដ្ឋានដឹកជញ្ជូន",
   "checkoutOrderItemsLabel": "ទំនិញក្នុងការបញ្ជាទិញ",
   "checkoutItemsCount": "{count} ធាតុ",
@@ -180,8 +182,12 @@
   "addressLabelFieldHint": "ឧ. ផ្ទះ, ឃ្លាំង, ហាង",
   "addressHouseFieldLabel": "ផ្ទះ / លេខផ្លូវ",
   "addressHouseFieldHint": "ឧ. អគារ B, តំបន់ ៣, មហាវិថីវេងស្រេង",
-  "addressSangkatFieldLabel": "សង្កាត់ / ស្រុក",
-  "addressSangkatFieldHint": "ឧ. សង្កាត់ជាំចារ",
+  "addressDistrictFieldLabel": "ខណ្ឌ",
+  "addressDistrictFieldHint": "ជ្រើសរើសខណ្ឌ...",
+  "addressDistrictFreeTextHint": "ឧ. ឈ្មោះស្រុក/ខណ្ឌ",
+  "addressSangkatFieldLabel": "សង្កាត់",
+  "addressSangkatFieldHint": "ជ្រើសរើសសង្កាត់...",
+  "addressSangkatFreeTextHint": "ឧ. ឈ្មោះសង្កាត់/ឃុំ",
   "addressLandmarkFieldLabel": "ចំណុចសម្គាល់ជិតបំផុត (ស្រេចចិត្ត)",
   "addressLandmarkFieldHint": "ឧ. ក្បែរដំបូលវេងស្រេង",
   "addressPhoneFieldLabel": "លេខទូរស័ព្ទទំនាក់ទំនង",
@@ -226,13 +232,16 @@
   "storeAddressDefaultBadge": "លំនាំដើម",
   "storeAddressEmptyState": "មិនទាន់មានអាសយដ្ឋានហាងទេ។ បន្ថែមមួយដើម្បីចាប់ផ្តើមដឹកជញ្ជូនពីទីតាំងថេរ។",
   "chatScreenTitle": "ជជែក",
+  "chatSellerScreenTitle": "សារពីអតិថិជន",
   "chatSearchHint": "ស្វែងរកការសន្ទនា...",
   "chatEmptyTitle": "មិនទាន់មានការសន្ទនាទេ",
+  "chatSellerEmptyTitle": "មិនទាន់មានសារពីអតិថិជនទេ",
   "chatEmptyQuery": "រកមិនឃើញការសន្ទនាដែលត្រូវនឹង \"{query}\"",
   "chatLoadError": "មិនអាចផ្ទុកការសន្ទនាបានទេ",
   "chatDetailLoadError": "មិនអាចផ្ទុកការសន្ទនានេះបានទេ",
   "chatMessageSending": "កំពុងផ្ញើ...",
   "chatSendError": "មិនអាចផ្ញើសារបានទេ។ សូមព្យាយាមម្តងទៀត។",
+  "chatPhotoSendError": "មិនអាចផ្ញើរូបថតបានទេ។ សូមព្យាយាមម្តងទៀត។",
   "chatStartConversationError": "មិនអាចចាប់ផ្តើមការសន្ទនាបានទេ។ សូមព្យាយាមម្តងទៀត។",
   "chatRestrictedError": "អ្នកត្រូវបានដាក់កម្រិតបណ្តោះអាសន្នមិនឱ្យផ្ញើសារ រហូតដល់ {until}។",
   "chatPolicySecurePayTitle": "សូមទូទាត់ប្រាក់តាមរយៈ Bosdom Secure Pay តែប៉ុណ្ណោះ",
@@ -243,8 +252,10 @@
   "chatComposerHint": "វាយសារ...",
   "chatAttachPhotoCamera": "ថតរូប",
   "chatAttachPhotoGallery": "ជ្រើសរើសពីវិចិត្រសាល",
-  "liveChatTitle": "ជជែកផ្ទាល់",
-  "liveChatStatusOnline": "កំពុងអនឡាញ • ឆ្លើយតបភ្លាមៗ",
+  "chatPhotoPreviewTitle": "ផ្ញើរូបថតនេះមែនទេ?",
+  "chatPhotoPreviewSend": "ផ្ញើ",
+  "liveChatTitle": "BosDom",
+  "liveChatStatusOnline": "ក្រុមគាំទ្រ • ឆ្លើយតបថ្ងៃច័ន្ទ-សុក្រ ម៉ោង ៨ ព្រឹក - ៦ ល្ងាច",
   "liveChatStatusOffline": "គ្មានអនឡាញ • យើងនឹងឆ្លើយតបនៅពេលត្រឡប់មកវិញ",
   "liveChatSecurityNoticeTitle": "សេចក្តីជូនដំណឹងសុវត្ថិភាព",
   "liveChatSecurityNoticeBody": "សូមទូទាត់ប្រាក់តាមរយៈវេទិកាសុវត្ថិភាពផ្លូវការរបស់ Bosdom តែប៉ុណ្ណោះ។ ក្រុមគាំទ្រនឹងមិនស្នើសុំការផ្ទេរប្រាក់ចូលធនាគារដោយផ្ទាល់តាមរយៈជជែកទេ។",
@@ -334,6 +345,7 @@
   "coBuyCreateTargetQtyHint": "ឧ. 50",
   "coBuyCreateTargetQtyRequired": "ត្រូវការបរិមាណគោលដៅ",
   "coBuyCreateTargetQtyInvalid": "សូមបញ្ចូលបរិមាណត្រឹមត្រូវ",
+  "coBuyCreateTargetQtyTooLow": "បរិមាណគោលដៅត្រូវតែធំជាងឬស្មើនឹងបញ្ជាទិញអប្បបរមា",
   "coBuyCreateUnitLabelLabel": "ឯកតា",
   "coBuyCreateUnitLabelHint": "ឧ. kg, packs, units",
   "coBuyCreateUnitLabelRequired": "ត្រូវការឯកតា",
@@ -398,18 +410,47 @@
   "coBuyDetailSubtotalLabel": "សរុបរង",
   "coBuyDetailCheckoutLabel": "ការទូទាត់ · {amount}",
   "coBuyDetailFullLabel": "ការទិញរួមពេញ",
-  "coBuyDetailJoinedLabel": "អ្នកបានចូលរួម · ចុចដើម្បីចាកចេញ",
+  "coBuyDetailOwnListingLabel": "ការផ្សាយរបស់អ្នក",
+  "coBuyDetailJoinedLabel": "អ្នកបានចូលរួម · ស្នើសុំចាកចេញ",
+  "coBuyDetailLeavePendingLabel": "ការស្នើសុំចាកចេញកំពុងរង់ចាំការពិនិត្យ",
+  "coBuyDetailLeaveTitle": "ស្នើសុំចាកចេញ?",
+  "coBuyDetailLeaveBody": "ការទូទាត់របស់អ្នកត្រូវបានរក្សាទុកក្នុង escrow។ អ្នកគ្រប់គ្រងនឹងពិនិត្យសំណើរបស់អ្នក ហើយសងប្រាក់វិញប្រសិនបើអនុម័ត។",
+  "coBuyDetailLeaveReasonHint": "ហេតុអ្វីអ្នកចង់ចាកចេញ?",
+  "coBuyDetailLeaveReasonTooShort": "សូមផ្តល់ហេតុផលខ្លីមួយ។",
+  "coBuyDetailLeaveSubmit": "ផ្ញើសំណើ",
+  "coBuyDetailLeaveSentSnackbar": "បានផ្ញើសំណើចាកចេញ។ អ្នកគ្រប់គ្រងនឹងពិនិត្យវា។",
+  "coBuyDetailLeaveRejectedNote": "សំណើចាកចេញរបស់អ្នកត្រូវបានបដិសេធ៖ {note}",
   "coBuyDetailJoinLabel": "ចូលរួមទិញរួម · {amount}",
+  "coBuyDetailPendingPaymentLabel": "បន្តទៅការទូទាត់",
+  "coBuyDetailReleasedLabel": "បានដាក់ការបញ្ជាទិញ",
+  "coBuyDetailRefundPendingLabel": "កំពុងរង់ចាំសងប្រាក់ត្រឡប់",
+  "coBuyDetailLeaveConfirmTitle": "ចាកចេញពីការទិញរួមនេះ?",
+  "coBuyDetailLeaveConfirmBody": "ការទូទាត់ {amount} របស់អ្នកនឹងនៅតែជាប់រហូតដល់អ្នកគ្រប់គ្រងដោះលែងការសងប្រាក់ត្រឡប់របស់អ្នក។ វាមិនមែនភ្លាមៗទេ។",
+  "coBuyDetailLeaveConfirmButton": "ចាកចេញ និងស្នើសុំសងប្រាក់ត្រឡប់",
+  "coBuyDetailLeaveRequestedSnackbar": "កំពុងរង់ចាំសងប្រាក់ត្រឡប់សម្រាប់ {productName}។ អ្នកគ្រប់គ្រងនឹងដោះលែងការទូទាត់របស់អ្នកឆាប់ៗនេះ។",
+  "coBuyDealsFulfillButtonLabel": "សម្គាល់ថាបានបំពេញ",
+  "coBuyDealsFulfillConfirmTitle": "សម្គាល់កិច្ចព្រមព្រៀងនេះថាបានបំពេញ?",
+  "coBuyDealsFulfillConfirmBody": "សកម្មភាពនេះនឹងដោះលែងការទូទាត់ដែលបានរក្សាទុករបស់អ្នកទិញគ្រប់រូបទៅឱ្យអ្នក។ សូមបញ្ជាក់តែក្រោយពេលអ្នកបានដឹកជញ្ជូនការបញ្ជាទិញរួមទៅពួកគេរួចហើយ។",
+  "coBuyDealsFulfilledSnackbar": "កិច្ចព្រមព្រៀងត្រូវបានសម្គាល់ថាបានបំពេញ។ ការទូទាត់ត្រូវបានដោះលែង។",
+  "coBuyingPendingPaymentPillLabel": "បញ្ចប់ការទូទាត់",
+  "coBuyingRefundPendingPillLabel": "កំពុងរង់ចាំសងប្រាក់ត្រឡប់",
+  "coBuyingOrderPlacedPillLabel": "បានដាក់ការបញ្ជាទិញ",
   "wishlistScreenTitle": "បញ្ជីចង់បាន",
   "wishlistEmptyStateMessage": "មិនទាន់មានទំនិញនៅក្នុងបញ្ជីចង់បានរបស់អ្នកទេ",
   "wishlistAddedToCartSnackbar": "{productName} ត្រូវបានបញ្ចូលទៅកន្ត្រក",
   "wishlistAddToCartButton": "បញ្ចូលទៅកន្ត្រក",
+  "wishlistAddedToWishlistSnackbar": "បានបន្ថែម {productName} ទៅបញ្ជីចង់បាន",
+  "wishlistRemovedFromWishlistSnackbar": "បានដក {productName} ចេញពីបញ្ជីចង់បាន",
+  "wishlistToggleErrorSnackbar": "មិនអាចធ្វើបច្ចុប្បន្នភាពបញ្ជីចង់បានទេ។ សូមព្យាយាមម្តងទៀត។",
+  "wishlistLoadErrorMessage": "មិនអាចផ្ទុកបញ្ជីចង់បានរបស់អ្នកបានទេ។ ចុចដើម្បីព្យាយាមម្តងទៀត។",
   "marketplaceCategoriesTitle": "ប្រភេទផលិតផល",
   "marketplaceCoBuyDealsTitle": "ការទិញរួមគ្នា",
   "marketplacePopularProductsTitle": "ផលិតផលលក់ដុំពេញនិយម",
   "marketplaceSearchHint": "ស្វែងរកផលិតផល...",
   "marketplaceNoProductsYet": "មិនទាន់មានផលិតផលនៅឡើយទេ។ សូមពិនិត្យម្តងទៀតឆាប់ៗនេះ!",
   "marketplaceProductsLoadError": "មិនអាចផ្ទុកផលិតផលបានទេ។ ចុចដើម្បីព្យាយាមម្តងទៀត។",
+  "marketplaceNoCoBuyDealsYet": "មិនទាន់មានកិច្ចព្រមព្រៀងទិញរួមនៅឡើយទេ។ សូមពិនិត្យម្តងទៀតឆាប់ៗនេះ!",
+  "marketplaceCoBuyDealsLoadError": "មិនអាចផ្ទុកកិច្ចព្រមព្រៀងទិញរួមបានទេ។ ចុចដើម្បីព្យាយាមម្តងទៀត។",
   "marketplaceCoBuyJoinButton": "ចូលរួមទិញរួមគ្នា",
   "marketplaceCoBuyProgressToTarget": "{percent}% ទៅគោលដៅ",
   "marketplaceCoBuyRetailersJoined": "អ្នកលក់រាយចូលរួម {count} នាក់",
@@ -431,13 +472,14 @@
   "productDetailUnitPiece": "/ ឯកតា",
   "productDetailQuantityLabel": "បរិមាណ",
   "productDetailAddedToCartSnackbar": "បានដាក់ចូលរទេះ · {price}",
-  "productDetailSampleRequestedSnackbar": "បានស្នើសុំគំរូ",
+  "productDetailSampleRequestedSnackbar": "បានទិញគំរូ",
   "productDetailAddToCartButton": "ដាក់ចូលរទេះ · {price}",
-  "productDetailSampleAlreadyRequested": "បានស្នើសុំគំរូរួចហើយ",
+  "productDetailSampleAlreadyRequested": "បានទិញគំរូរួចហើយ",
   "productDetailSampleCooldownActive": "កំពុងស្ថិតក្នុងរយៈពេលរង់ចាំ",
-  "productDetailRequestSample": "សុំគំរូ",
-  "productDetailSampleCooldownNote": "អ្នកអាចស្នើសុំគំរូម្តងទៀតបន្ទាប់ពី {date}។",
+  "productDetailRequestSample": "ទិញគំរូ",
+  "productDetailSampleCooldownNote": "អ្នកអាចទិញគំរូម្តងទៀតបន្ទាប់ពី {date}។",
   "productDetailSampleLimitNote": "កំណត់ត្រឹមគំរូ ១ ក្នុងរយៈពេល ៣ ថ្ងៃ",
+  "productDetailOwnListingNote": "អ្នកមិនអាចទិញ ឬសុំគំរូពីការផ្សាយរបស់អ្នកផ្ទាល់បានទេ",
   "storeProfileStatProducts": "ផលិតផល",
   "storeProfileStatOrders": "ការបញ្ជាទិញ",
   "storeProfileStatRating": "ការវាយតម្លៃ",
@@ -446,10 +488,14 @@
   "storeProfileTabReviews": "ការវាយតម្លៃ",
   "storeProfileNoProducts": "មិនទាន់មានផលិតផលនៅឡើយទេ",
   "storeProfileAboutSectionTitle": "អំពី",
+  "storeProfileNoDescriptionYet": "អ្នកលក់នេះមិនទាន់បន្ថែមការពិពណ៌នាហាងនៅឡើយទេ។",
   "storeProfileBusinessDetailsTitle": "ព័ត៌មានលម្អិតអាជីវកម្ម",
   "storeProfileLabelBusinessType": "ប្រភេទអាជីវកម្ម",
   "storeProfileLabelYearEstablished": "ឆ្នាំបង្កើត",
   "storeProfileLabelLocation": "ទីតាំង",
+  "storeProfileContactTitle": "ព័ត៌មានទំនាក់ទំនង",
+  "storeProfileLabelPhone": "លេខទូរស័ព្ទ",
+  "storeProfileLabelEmail": "អាសយដ្ឋានអ៊ីមែល",
   "storeProfileLabelMinimumOrder": "ការបញ្ជាទិញអប្បបរមា",
   "storeProfileLabelResponseTime": "រយៈពេលឆ្លើយតប",
   "storeProfileLabelShipping": "ការដឹកជញ្ជូន",
@@ -462,6 +508,7 @@
   "storeProfileRecommendPercent": "{percent}% ណែនាំ",
   "storeProfileResponseTimeChip": "ឆ្លើយតបក្នុងរយៈពេល {time}",
   "storeProfileTopSellerChip": "អ្នកលក់កំពូល",
+  "storePowerSellerBadge": "អ្នកលក់កម្រិតខ្ពស់",
   "storeProfileRatingBreakdownTitle": "ការបំបែកការវាយតម្លៃ",
   "storeProfileRecentReviewsTitle": "ការវាយតម្លៃថ្មីៗ",
   "categoryResultsSearchHint": "ស្វែងរកផលិតផល...",
@@ -486,8 +533,20 @@
   "ordersItemCountLabel": "{count} ធាតុ",
   "ordersOrderNumberLabel": "លេខបញ្ជាទិញ #{orderId}",
   "ordersRateReviewButton": "វាយតម្លៃ និងផ្តល់មតិ",
+  "ordersAlreadyReviewedLabel": "បានវាយតម្លៃរួច",
   "ordersReportButton": "រាយការណ៍",
   "ordersReportLabel": "រាយការណ៍បញ្ជាទិញ",
+  "sellerReportButton": "រាយការណ៍បញ្ហាដឹកជញ្ជូន",
+  "sellerReportPhotosLabel": "រូបថតអេក្រង់ (ស្រេចចិត្ត រហូតដល់ ៣)",
+  "sellerReportSheetTitle": "រាយការណ៍បញ្ហាដឹកជញ្ជូន",
+  "sellerReportIntro": "សូមប្រាប់យើងអំពីអ្វីដែលមានបញ្ហា។ អ្នកគ្រប់គ្រងនឹងពិនិត្យ ហើយជូនដំណឹងអ្នកទិញ។",
+  "sellerReportReasonDelayed": "ដឹកជញ្ជូនយឺត",
+  "sellerReportReasonLost": "កញ្ចប់បាត់ ឬខូច",
+  "sellerReportReasonUnreachable": "ទាក់ទងអ្នកទិញមិនបាន",
+  "sellerReportReasonAddress": "បញ្ហាអាសយដ្ឋាន",
+  "sellerReportSubmittedSnackbar": "បានផ្ញើរបាយការណ៍។ អ្នកគ្រប់គ្រងនឹងតាមដាន ហើយជូនដំណឹងអ្នកទិញ។",
+  "sellerReportFailedSnackbar": "មិនអាចផ្ញើរបាយការណ៍បានទេ: {error}",
+  "@sellerReportFailedSnackbar": { "placeholders": { "error": { "type": "String" } } },
   "ordersReportSheetTitle": "រាយការណ៍បញ្ជាទិញ",
   "ordersReportReasonLabel": "តើមានបញ្ហាអ្វី?",
   "ordersReportReasonWrongItem": "ទទួលបានទំនិញខុស",
@@ -533,8 +592,10 @@
   "deliveryStatusSectionTitle": "ស្ថានភាពការដឹកជញ្ជូន",
   "deliveryStepOrderCancelled": "បញ្ជាទិញត្រូវបានលុបចោល",
   "deliveryStepOrderPlaced": "បានធ្វើការបញ្ជាទិញ",
-  "deliveryStepPaymentHeld": "ថវិកាត្រូវបានរក្សាទុកក្នុងអេស្គ្រូ",
-  "deliveryStepReleased": "ថវិកាត្រូវបានប្រគល់ជូនអ្នកលក់",
+  "deliveryStepAwaitingSellerConfirmation": "កំពុងរង់ចាំការបញ្ជាក់ពីអ្នកលក់",
+  "deliveryStepSellerProcessing": "អ្នកលក់កំពុងរៀបចំការបញ្ជាទិញរបស់អ្នក",
+  "deliveryStepDelivery": "ការដឹកជញ្ជូន",
+  "deliveryStepReleased": "បញ្ជាទិញបានបញ្ចប់",
   "deliveryStepDisputed": "កំពុងជាប់វិវាទ",
   "deliveryStepRefunded": "ថវិកាត្រូវបានប្រគល់សងវិញ",
   "reviewSheetTitle": "វាយតម្លៃ និងផ្តល់មតិ",
@@ -547,6 +608,10 @@
   "reviewSubmitButton": "ដាក់ស្នើមតិវាយតម្លៃ",
   "reviewSubmittedSnackbar": "សូមអរគុណ! មតិវាយតម្លៃរបស់អ្នកត្រូវបានដាក់ស្នើ។",
   "reviewWriteReviewLabel": "សរសេរមតិវាយតម្លៃ",
+  "reviewRatingRequiredSnackbar": "សូមវាយតម្លៃផលិតផលមុននឹងដាក់ស្នើ។",
+  "reviewSubmitFailedSnackbar": "មិនអាចដាក់ស្នើមតិវាយតម្លៃរបស់អ្នកបានទេ៖ {error}",
+  "reviewSectionTitle": "មតិវាយតម្លៃពីអ្នកទិញ",
+  "reviewEmptyStateMessage": "មិនទាន់មានមតិវាយតម្លៃពីអ្នកទិញនៅឡើយទេ។",
   "paymentScreenTitle": "វិធីទូទាត់ប្រាក់",
   "paymentAbaMethodTitle": "ABA Pay",
   "paymentAbaNotAvailableSnackbar": "ABA Pay មិនទាន់អាចប្រើប្រាស់បានទេ",
@@ -555,6 +620,8 @@
   "paymentCardMethodTitle": "កាតឥណទាន/កាតឥណពន្ធ",
   "paymentCardNumberLabel": "លេខកាត",
   "paymentCardHolderLabel": "ម្ចាស់កាត",
+  "paymentCardHolderNameHint": "ឈ្មោះពេញនៅលើកាត",
+  "paymentCardHolderPlaceholder": "ឈ្មោះរបស់អ្នក",
   "paymentCardValidThruLabel": "ប្រើបានដល់",
   "paymentConfirmedSubtitle": "ការបញ្ជាទិញរបស់អ្នកត្រូវបានធ្វើ និងបានទូទាត់ប្រាក់រួចរាល់។",
   "paymentConfirmedTitle": "អ្នកត្រូវបានបញ្ជាក់ហើយ!",
@@ -663,10 +730,32 @@
   "sellerDashboardAvgDeliveryLabel": "រយៈពេលដឹកជញ្ជូន",
   "sellerDashboardRecentOrdersTitle": "ការបញ្ជាទិញថ្មីៗ",
   "sellerDashboardViewAllLabel": "មើលទាំងអស់",
+  "sellerApprovalPendingTitle": "កំពុងរង់ចាំការអនុម័ត",
+  "sellerApprovalPendingMessage": "ហាងរបស់អ្នកកំពុងត្រូវបានត្រួតពិនិត្យដោយក្រុមការងាររបស់យើង។ អ្នកនឹងទទួលបានការជូនដំណឹងនៅពេលវាត្រូវបានអនុម័ត ហើយអាចចាប់ផ្តើមបន្ថែមទំនិញបាន។ ចន្លោះពេលនេះ សូមរីករាយនឹងការទិញទំនិញ!",
+  "sellerApprovalRejectedTitle": "ការផ្ទៀងផ្ទាត់មិនបានអនុម័ត",
+  "sellerApprovalRejectedMessage": "ឯកសារ KYC របស់អ្នកមិនបានអនុម័តទេ។ សូមបញ្ជូនឯកសារឡើងវិញដើម្បីបន្តដំឡើងហាងរបស់អ្នក។",
+  "sellerApprovalResubmitAction": "បញ្ជូនឯកសារឡើងវិញ",
+  "sellerApprovalGotItAction": "យល់ហើយ",
+  "sellerApprovalSubmittedOnLabel": "បានបញ្ជូននៅ {date}",
+  "@sellerApprovalSubmittedOnLabel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "sellerApprovalReviewedOnLabel": "បានពិនិត្យនៅ {date}",
+  "@sellerApprovalReviewedOnLabel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "sellerEarningsScreenTitle": "ចំណូល",
-  "sellerEarningsAvailableBalanceLabel": "សមតុល្យដែលអាចដកបាន",
+  "sellerEarningsAvailableBalanceLabel": "សមតុល្យដែលបានដោះលែង",
   "sellerEarningsCompletedSalesPercentLabel": "{percent}% នៃការលក់ដែលបានបញ្ចប់",
-  "sellerEarningsWithdrawButton": "ដកប្រាក់",
+  "sellerEarningsWithdrawButton": "ស្នើសុំដោះលែងប្រាក់",
   "sellerEarningsReleasedLabel": "បានផ្តល់ជូន",
   "sellerEarningsInEscrowLabel": "កំពុងរក្សាទុក",
   "sellerEarningsRefundedLabel": "បានសងវិញ",
@@ -685,7 +774,7 @@
   "sellerEarningsStatusReleased": "បានផ្តល់ជូន",
   "sellerEarningsStatusDisputed": "បានសងវិញ",
   "sellerEarningsStatusWithdrawn": "បានដក",
-  "sellerEarningsEscrowNoticeText": "ប្រាក់ត្រូវបានរក្សាទុករយៈពេល 48 ម៉ោងបន្ទាប់ពីការទិញ។ នៅពេលបានផ្តល់ជូន សូមចុច \"ដកប្រាក់\" ដើម្បីផ្ទេរចំណូលទៅគណនីធនាគាររបស់អ្នក។",
+  "sellerEarningsEscrowNoticeText": "ប្រាក់ត្រូវបានរក្សាទុកក្នុង escrow រហូតដល់អ្នកទិញបញ្ជាក់ការដឹកជញ្ជូន។ បន្ទាប់ពីអ្នកបញ្ជាក់ការបញ្ជាទិញ សូមចុច ស្នើសុំដោះលែងប្រាក់ ហើយអ្នកគ្រប់គ្រងនឹងពិនិត្យ និងដោះលែង។",
   "sellerEarningsEmptyStateMessage": "មិនមានប្រតិបត្តិការនៅក្នុងប្រភេទនេះទេ",
   "sellerEarningsWithdrawSheetTitle": "ដកប្រាក់",
   "sellerEarningsWithdrawPoweredByLabel": "ដំណើរការដោយ ABA Pay",
@@ -706,6 +795,53 @@
   "sellerEarningsWithdrawSuccessTitle": "ជោគជ័យ",
   "sellerEarningsWithdrawSuccessMessage": "ការដកប្រាក់ចំនួន ${amount} ត្រូវបានចាប់ផ្តើម។ ប្រាក់នឹងចូលក្នុងរយៈពេល 2-3 ថ្ងៃធ្វើការ។",
   "sellerEarningsWithdrawSuccessOkButton": "យល់ព្រម",
+  "sellerEarningsBankNameLabel": "ឈ្មោះធនាគារ",
+  "sellerEarningsBankNameHint": "ឧ. ABA, ACLEDA, Wing",
+  "sellerEarningsAccountNumberInvalidError": "លេខប៉ុណ្ណោះ",
+  "sellerEarningsPayoutNoticeText": "សមតុល្យរបស់អ្នកនឹងត្រូវផ្ញើទៅគណនីនេះក្នុងរយៈពេល 1 ដល់ 3 ម៉ោងបន្ទាប់ពីអ្នកដាក់ស្នើ។ រួមបញ្ចូលតែប្រាក់ពីការបញ្ជាទិញដែលអ្នកទិញបានទទួលទំនិញរួចហើយប៉ុណ្ណោះ។",
+  "sellerEarningsPayoutNothingMessage": "សមតុល្យដែលបានដោះលែងរបស់អ្នកទទេ។ ប្រាក់នឹងបង្ហាញនៅទីនេះនៅពេលអ្នកទិញទទួលបានទំនិញ។",
+  "sellerEarningsPayoutSuccessMessage": "សំណើដកប្រាក់ {amount} របស់អ្នកត្រូវបានផ្ញើទៅអ្នកគ្រប់គ្រងដើម្បីអនុម័ត។ បន្ទាប់ពីអនុម័ត អាចចំណាយពេលប្រហែល ១ ទៅ ៣ ម៉ោងទើបប្រាក់មកដល់គណនីធនាគាររបស់អ្នក។",
+  "@sellerEarningsPayoutSuccessMessage": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sellerEarningsPayoutFailedSnackbar": "មិនអាចស្នើសុំការទូទាត់បានទេ: {error}",
+  "@sellerEarningsPayoutFailedSnackbar": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "sellerEarningsPayoutArrivingLabel": "{amount} កំពុងធ្វើដំណើរទៅធនាគាររបស់អ្នក",
+  "@sellerEarningsPayoutArrivingLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sellerEarningsPayoutArrivingBy": "អាចចំណាយពេលប្រហែល ១ ទៅ ៣ ម៉ោង",
+  "sellerEarningsPayoutPendingLabel": "{amount} កំពុងរង់ចាំការអនុម័តពីអ្នកគ្រប់គ្រង",
+  "@sellerEarningsPayoutPendingLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sellerEarningsPayoutPendingHint": "ផ្ញើទៅធនាគាររបស់អ្នកក្នុងរយៈពេល ១ ដល់ ៣ ម៉ោងបន្ទាប់ពីអនុម័ត",
+  "sellerEarningsStatusReleaseRequested": "បានស្នើសុំដោះលែង",
+  "sellerEarningsRequestReleaseTitle": "ស្នើសុំដោះលែងប្រាក់",
+  "sellerEarningsRequestReleaseMessage": "ស្នើសុំអ្នកគ្រប់គ្រងដោះលែង {amount} ពីការបញ្ជាទិញដែលបានបញ្ជាក់ {count} ឥឡូវនេះ?",
+  "sellerEarningsRequestReleaseConfirmButton": "ផ្ញើសំណើ",
+  "sellerEarningsRequestReleaseCancelButton": "បោះបង់",
+  "sellerEarningsRequestReleaseNothingMessage": "គ្មានការបញ្ជាទិញដែលបានបញ្ជាក់កំពុងរង់ចាំក្នុង escrow ទេ។ សូមបញ្ជាក់ការបញ្ជាទិញជាមុនសិន រួចស្នើសុំដោះលែង។",
+  "sellerEarningsRequestReleaseSuccessMessage": "បានស្នើសុំដោះលែងសម្រាប់ការបញ្ជាទិញ {count} ({amount})។ អ្នកគ្រប់គ្រងនឹងពិនិត្យក្នុងពេលឆាប់ៗ។",
+  "sellerEarningsRequestReleaseFailedSnackbar": "មិនអាចស្នើសុំដោះលែងបានទេ៖ {error}",
   "sellerOrdersScreenTitle": "ការបញ្ជាទិញ",
   "sellerOrdersEmptyStateMessage": "មិនមានការបញ្ជាទិញនៅក្នុងប្រភេទនេះទេ",
   "sellerOrdersFilterAllLabel": "ទាំងអស់ ({count})",
@@ -723,6 +859,18 @@
   "sellerOrderDetailDeclineConfirmMessage": "អ្នកទិញនឹងទទួលបានការជូនដំណឹងថាអ្នកមិនអាចបំពេញការបញ្ជាទិញនេះបានទេ។",
   "sellerOrderDetailDeclineConfirmCancel": "បោះបង់",
   "sellerOrderDetailDeclineConfirmConfirm": "បដិសេធ",
+  "sellerOrderDetailConfirmButton": "បញ្ជាក់ការបញ្ជាទិញ",
+  "sellerOrderDetailConfirmingLabel": "កំពុងបញ្ជាក់...",
+  "sellerOrderDetailConfirmedLabel": "បានបញ្ជាក់ការបញ្ជាទិញ",
+  "sellerOrderDetailRequestReleaseButton": "ស្នើសុំដោះលែងប្រាក់",
+  "sellerOrderDetailReleaseRequestedLabel": "បានស្នើសុំដោះលែង កំពុងរង់ចាំការអនុម័តពីអ្នកគ្រប់គ្រង",
+  "sellerOrderDetailRequestReleaseFailedSnackbar": "មិនអាចស្នើសុំដោះលែងបានទេ៖ {error}",
+  "sellerOrderDetailConfirmFailedSnackbar": "មិនអាចបញ្ជាក់ការបញ្ជាទិញបានទេ៖ {error}",
+  "orderDetailSellerConfirmedLabel": "អ្នកលក់បានបញ្ជាក់ហើយ",
+  "orderDetailAwaitingSellerConfirmationLabel": "កំពុងរង់ចាំការបញ្ជាក់ពីអ្នកលក់",
+  "orderDetailConfirmReceivedButton": "បញ្ជាក់ថាបានទទួលទំនិញ",
+  "orderDetailConfirmReceivingLabel": "កំពុងបញ្ជាក់...",
+  "orderDetailConfirmReceivedFailedSnackbar": "មិនអាចបញ្ជាក់ការទទួលបានទេ៖ {error}",
   "myInventoryScreenTitle": "ស្តុកទំនិញរបស់ខ្ញុំ",
   "myInventorySearchHint": "ស្វែងរកទំនិញ...",
   "myInventoryFilterAll": "ទាំងអស់",
@@ -731,22 +879,30 @@
   "myInventoryStockLabel": "ស្តុក៖ {stock}",
   "@myInventoryStockLabel": {
     "placeholders": {
-      "stock": {"type": "String"}
+      "stock": {
+        "type": "String"
+      }
     }
   },
   "myInventoryEmptyStateMessage": "រកមិនឃើញទំនិញទេ។",
+  "myInventoryLoadErrorMessage": "មិនអាចផ្ទុកស្តុកទំនិញរបស់អ្នកបានទេ។ ចុចដើម្បីព្យាយាមម្តងទៀត។",
   "myInventoryListingActivatedSnackbar": "{product} កំពុងលក់ហើយ",
   "@myInventoryListingActivatedSnackbar": {
     "placeholders": {
-      "product": {"type": "String"}
+      "product": {
+        "type": "String"
+      }
     }
   },
   "myInventoryListingDeactivatedSnackbar": "{product} ត្រូវបានផ្អាក",
   "@myInventoryListingDeactivatedSnackbar": {
     "placeholders": {
-      "product": {"type": "String"}
+      "product": {
+        "type": "String"
+      }
     }
   },
+  "myInventoryUpdateErrorSnackbar": "មិនអាចធ្វើបច្ចុប្បន្នភាពទំនិញនេះបានទេ។ សូមព្យាយាមម្តងទៀត។",
   "profileEditProfileRoleLabel": "តួនាទីគណនី",
   "profileEditProfileRoleSheetTitle": "ជ្រើសរើសតួនាទីគណនី",
   "profileEditProfileChangePhoto": "ប្តូររូបភាព",
@@ -807,6 +963,20 @@
   "addListingStockHint": "ឧ. ៥០០",
   "addListingStockRequired": "សូមបញ្ចូលចំនួនស្តុក",
   "addListingStockInvalid": "សូមបញ្ចូលចំនួនដែលត្រឹមត្រូវ",
+  "addListingSpecsLabel": "ព័ត៌មានលម្អិតលក់ដុំ",
+  "addListingSpecsHelper": "ជួយអ្នកទិញឱ្យដឹងពីអ្វីដែលពួកគេកំពុងបញ្ជាទិញ",
+  "addListingWeightLabel": "ទម្ងន់",
+  "addListingWeightHint": "ឧ. 25kg ក្នុងមួយថង់",
+  "addListingWeightRequired": "សូមបញ្ចូលទម្ងន់",
+  "addListingOriginLabel": "ប្រភពដើម",
+  "addListingOriginHint": "ឧ. កម្ពុជា",
+  "addListingOriginRequired": "សូមបញ្ចូលប្រភពដើម",
+  "addListingGradeLabel": "កម្រិតគុណភាព",
+  "addListingGradeHint": "ឧ. Premium AA",
+  "addListingGradeRequired": "សូមបញ្ចូលកម្រិតគុណភាព",
+  "addListingPackagingLabel": "កញ្ចប់ខ្ចប់",
+  "addListingPackagingHint": "ឧ. ថង់ PP ត្បាញ",
+  "addListingPackagingRequired": "សូមបញ្ចូលប្រភេទកញ្ចប់ខ្ចប់",
   "addListingPhotosLabel": "រូបភាពផលិតផល",
   "addListingCoverPhotoCta": "ចុចដើម្បីបន្ថែមរូបភាពគម្រប",
   "addListingPhotosFormatHint": "JPG, PNG រហូតដល់ 5MB",
@@ -910,10 +1080,8 @@
   "callUsPopupPhoneNumber": "+855 23 456 789",
   "callUsPopupCallNow": "ហៅឥឡូវនេះ",
   "callUsPopupLaunchError": "មិនអាចបើកកម្មវិធីទូរស័ព្ទបានទេ",
-
   "termsConditionsScreenTitle": "លក្ខខណ្ឌប្រើប្រាស់",
   "termsConditionsLastUpdated": "ធ្វើបច្ចុប្បន្នភាពចុងក្រោយ៖ ខែសីហា ២០២៦",
-
   "termsConditionsSection1Title": "១. ទិដ្ឋភាពទូទៅនិងការទទួលយកលក្ខខណ្ឌប្រើប្រាស់វេទិកា",
   "termsConditionsSection1Point1": "Bosdom គឺជាទីផ្សារលក់ដុំបែប B2B ដែលបង្កើតឡើងសម្រាប់អ្នកលក់រាយ និងអ្នកផ្គត់ផ្គង់កម្ពុជាដែលបានផ្ទៀងផ្ទាត់។ វេទិកានេះភ្ជាប់អ្នកលក់រាយឯករាជ្យជាមួយអ្នកផ្គត់ផ្គង់ដែលអាចទុកចិត្តបានតាមរយៈប្រព័ន្ធទូទាត់ប្រាក់ដាក់ជាកក់ (Escrow) ដែលមានសុវត្ថិភាព ដោយមានមុខងារផ្ទៀងផ្ទាត់គំរូ ការទិញរួមគ្នាជាក្រុម និងការការពារប្រាក់ដាក់ជាកក់ដោយស្វ័យប្រវត្តិ។",
   "termsConditionsSection1Point2": "តាមរយៈការបង្កើតគណនី អ្នកបញ្ជាក់ថា៖",
@@ -921,34 +1089,29 @@
   "termsConditionsSection1Point4": "អ្នកកំពុងដំណើរការអាជីវកម្មស្របច្បាប់នៅកម្ពុជា។",
   "termsConditionsSection1Point5": "ព័ត៌មានទាំងអស់ដែលបានផ្តល់ក្នុងអំឡុងពេលចុះឈ្មោះមានភាពត្រឹមត្រូវ ទាន់សម័យ និងពេញលេញ។",
   "termsConditionsSection1Point6": "អ្នកយល់ព្រមអនុវត្តតាមលក្ខខណ្ឌទាំងនេះ ព្រមទាំងច្បាប់ និងបទប្បញ្ញត្តិមូលដ្ឋានទាំងអស់ដែលពាក់ព័ន្ធ។",
-
   "termsConditionsSection2Title": "២. ការចុះឈ្មោះនិងផ្ទៀងផ្ទាត់គណនី",
   "termsConditionsSection2Point1": "អ្នកប្រើប្រាស់ទាំងអស់ត្រូវចុះឈ្មោះជាមួយព័ត៌មានអាជីវកម្ម និងអត្តសញ្ញាណដែលត្រឹមត្រូវ មុននឹងបញ្ចប់ប្រតិបត្តិការណាមួយនៅលើវេទិកា។",
   "termsConditionsSection2Point2": "Bosdom រក្សាសិទ្ធិក្នុងការបដិសេធ ឬផ្អាកការចុះឈ្មោះគណនីណាដែលមិនអាចផ្ទៀងផ្ទាត់អត្តសញ្ញាណបាន ឬមានព័ត៌មានមិនពិត។",
   "termsConditionsSection2Point3": "អ្នកប្រើប្រាស់ម្នាក់ៗត្រូវបានកំណត់ត្រឹមប្រវត្តិរូបជាអ្នកជំនួញដែលបានផ្ទៀងផ្ទាត់មួយប៉ុណ្ណោះក្នុងមួយអាជីវកម្ម។",
   "termsConditionsSection2Point4": "អ្នកផ្គត់ផ្គង់ត្រូវផ្តល់ព័ត៌មានផលិតផល តម្លៃ និងស្តុកទំនិញឱ្យបានត្រឹមត្រូវជានិច្ច។",
   "termsConditionsSection2Point5": "អ្នកទិញមានទំនួលខុសត្រូវក្នុងការធ្វើបច្ចុប្បន្នភាពព័ត៌មានគណនី និងអាជីវកម្មរបស់ខ្លួនជានិច្ច។",
-
   "termsConditionsSection3Title": "៣. មុខងារសាកល្បងគំរូមុនទិញលក់ដុំ",
   "termsConditionsSection3Point1": "មុខងារសាកល្បងគំរូរបស់ Bosdom អនុញ្ញាតឱ្យអ្នកទិញបញ្ជាទិញផលិតផលមួយឯកតាក្នុងតម្លៃអ្នកប្រើប្រាស់ មុននឹងសម្រេចចិត្តទិញលក់ដុំ។",
   "termsConditionsSection3Point2": "អ្នកទិញម្នាក់ៗអាចបញ្ជាទិញគំរូបានតែម្តងគត់ក្នុងមួយផលិតផល ដើម្បីទប់ស្កាត់ការប្រើប្រាស់មុខងារនេះខុសគោលបំណង។",
   "termsConditionsSection3Point3": "ការបញ្ជាទិញគំរូមិនអនុវត្តតម្លៃលក់ដុំទេ ហើយត្រូវបង់ថ្លៃដឹកជញ្ជូន និងការចាត់ចែងតាមស្តង់ដារ។",
   "termsConditionsSection3Point4": "អ្នកផ្គត់ផ្គង់ត្រូវផ្តល់គំរូដែលមានគុណភាពដូចគ្នានឹងអ្វីដែលបានផ្សព្វផ្សាយក្នុងបញ្ជីផលិតផល។ ការធ្វើឱ្យខុសពីការពិតអំពីគុណភាពគំរូ ត្រូវចាត់ទុកជាការបំពានលក្ខខណ្ឌទាំងនេះ។",
-
   "termsConditionsSection4Title": "៤. ការទិញរួមគ្នាតាមសង្គម",
   "termsConditionsSection4Point1": "មុខងារទិញរួមគ្នារបស់ Bosdom អនុញ្ញាតឱ្យអ្នកទិញរួមបញ្ចូលការបញ្ជាទិញជាមួយអ្នកជំនួញផ្សេងទៀត ដើម្បីទទួលបានតម្លៃលក់ដុំ។",
   "termsConditionsSection4Point2": "អ្នកទិញដែលបានចុះឈ្មោះណាមួយអាចបង្កើតក្រុមទិញរួមគ្នា ដោយចុច \"អញ្ជើញទិញរួមគ្នា\" លើផលិតផលដែលមានលក្ខណៈគ្រប់គ្រាន់ ហើយចែករំលែកតំណអញ្ជើញដែលបានបង្កើត។",
   "termsConditionsSection4Point3": "នៅពេលក្រុមឈានដល់ចំនួនគោលដៅ អ្នកផ្គត់ផ្គង់នឹងចាត់ចែងការបញ្ជាទិញតាមថ្នាក់តម្លៃលក់ដុំដែលអនុវត្ត។",
   "termsConditionsSection4Point4": "សមាជិកនីមួយៗចែករំលែកថ្លៃដឹកជញ្ជូនតាមសមាមាត្រនៃចំណែកបញ្ជាទិញរបស់ខ្លួន។",
   "termsConditionsSection4Point5": "ប្រសិនបើក្រុមទិញរួមគ្នាមិនឈានដល់ចំនួនតម្រូវការក្នុងរយៈពេលកំណត់ទេ ប្រាក់ទាំងអស់នឹងត្រូវសងវិញដោយស្វ័យប្រវត្តិទៅសមាជិកគ្រប់រូប។",
-
   "termsConditionsSection5Title": "៥. ប្រព័ន្ធទូទាត់ប្រាក់ដាក់ជាកក់ និងផ្ទៀងផ្ទាត់តាមកូដ QR",
   "termsConditionsSection5Point1": "ប្រតិបត្តិការហិរញ្ញវត្ថុទាំងអស់នៅលើ Bosdom ត្រូវធ្វើឡើងតាមរយៈប្រព័ន្ធប្រាក់ដាក់ជាកក់របស់វេទិកា។",
   "termsConditionsSection5Point2": "វិធីទូទាត់ដែលអាចប្រើបានរួមមាន Bakong (ធនាគារជាតិនៃកម្ពុជា) និងច្រកទូទាត់ផ្សេងទៀតដែលបានអនុម័ត។",
   "termsConditionsSection5Point3": "ប្រាក់ត្រូវបានរក្សាទុកជាកក់រហូតដល់ការដឹកជញ្ជូនត្រូវបានបញ្ជាក់។",
   "termsConditionsSection5Point4": "នៅពេលទទួលទំនិញ អ្នកទទួលត្រូវស្កេនកូដ QR ដែលអ្នកផ្គត់ផ្គង់ ឬអ្នកដឹកជញ្ជូនបង្ហាញ ដើម្បីបញ្ជាក់ការទទួល។",
   "termsConditionsSection5Point5": "នៅពេលការដឹកជញ្ជូនត្រូវបានបញ្ជាក់តាមការស្កេនកូដ QR ប្រាក់ដាក់ជាកក់នឹងត្រូវផ្ញើទៅអ្នកផ្គត់ផ្គង់។ បញ្ហាទាក់ទងនឹងការដឹកជញ្ជូនអាចលើកឡើងតាមដំណើរការដោះស្រាយវិវាទដែលបានរៀបរាប់នៅផ្នែកទី ៨។",
-
   "termsConditionsSection6Title": "៦. គោលការណ៍ជជែក និងវិធានទំនាក់ទំនង",
   "termsConditionsSection6Point1": "Bosdom ផ្តល់មុខងារជជែកក្នុងកម្មវិធីសម្រាប់ការទំនាក់ទំនងផ្ទាល់រវាងអ្នកទិញ និងអ្នកផ្គត់ផ្គង់។",
   "termsConditionsSection6Point2": "មុននឹងចូលប្រើមុខងារជជែក អ្នកប្រើប្រាស់ត្រូវពិនិត្យ និងទទួលយក \"គោលការណ៍ជជែក និងជួញដូរ\" ព្រមទាំង \"សេចក្តីប្រកាសទំនួលខុសត្រូវ\"។",
@@ -957,19 +1120,16 @@
   "termsConditionsSection6Point5": "ចែករំលែកព័ត៌មានគណនីធនាគារផ្ទាល់ខ្លួនសម្រាប់ការទូទាត់ក្រៅវេទិកា។",
   "termsConditionsSection6Point6": "ផ្ញើមាតិកាដែលបំពានច្បាប់ ក្លែងបន្លំ ឬមិនសមរម្យ។",
   "termsConditionsSection6Point7": "Bosdom មិនទទួលខុសត្រូវចំពោះការខាតបង់ណាមួយដែលកើតឡើងពីការទូទាត់ ឬការជួញដូរក្រៅវេទិកាដែលបំពានគោលការណ៍នេះទេ។ ការបំពានអាចនាំឱ្យមានការព្រមាន ការផ្អាកគណនី ឬការហាមឃាត់ជាអចិន្ត្រៃយ៍ អាស្រ័យលើកម្រិតធ្ងន់ធ្ងរ ដោយស្ថិតនៅក្រោមការសម្រេចចិត្តតែមួយគត់របស់ Bosdom។",
-
   "termsConditionsSection7Title": "៧. តម្លៃ និងថ្នាក់បរិមាណ",
   "termsConditionsSection7Point1": "អ្នកផ្គត់ផ្គង់កំណត់តម្លៃរបស់ខ្លួនផ្ទាល់សម្រាប់ទាំងគំរូ និងការទិញលក់ដុំ។",
   "termsConditionsSection7Point2": "តម្លៃលក់ដុំត្រូវបានរៀបចំជាថ្នាក់បរិមាណ ដែលនឹងបើកឱ្យប្រើនៅពេលក្រុមទិញរួមគ្នា ឬការបញ្ជាទិញលក់ដុំកើនឡើង។",
   "termsConditionsSection7Point3": "ថ្នាក់តម្លៃដែលអនុវត្តត្រូវបានបង្ហាញនៅលើបញ្ជីផលិតផលនីមួយៗ ហើយនឹងធ្វើបច្ចុប្បន្នភាពដោយស្វ័យប្រវត្តិតាមចំនួនការបញ្ជាទិញ។",
   "termsConditionsSection7Point4": "Bosdom មិនកាន់កាប់ រក្សាទុក ឬចាត់ចែងស្តុកទំនិញផ្ទាល់ខ្លួនឡើយ។ អ្នកផ្គត់ផ្គង់ទទួលខុសត្រូវទាំងស្រុងចំពោះគុណភាពផលិតផល ការវេចខ្ចប់ និងភាពត្រឹមត្រូវនៃស្តុកទំនិញ។ តម្លៃអាចបង្ហាញជារូបិយប័ណ្ណរៀល (KHR) ឬដុល្លារអាមេរិក (USD)។",
-
   "termsConditionsSection8Title": "៨. ការដោះស្រាយវិវាទ",
   "termsConditionsSection8Point1": "ក្នុងករណីមានវិវាទកើតឡើង ដូចជាទំនិញខូចខាត មិនបានដឹកជញ្ជូន ឬគុណភាពមិនត្រូវគ្នា Bosdom ផ្តល់ដំណើរការដោះស្រាយវិវាទដែលមានរចនាសម្ព័ន្ធច្បាស់លាស់។",
   "termsConditionsSection8Point2": "ប្រាក់ដាក់ជាកក់ដែលទាក់ទងនឹងការបញ្ជាទិញមានវិវាទនឹងនៅតែជាប់កក់ រហូតដល់វិវាទត្រូវបានដោះស្រាយ។",
   "termsConditionsSection8Point3": "អ្នកទិញមានរយៈពេល ៥ថ្ងៃ បន្ទាប់ពីការបញ្ជាក់ការដឹកជញ្ជូន ដើម្បីដាក់ពាក្យបណ្តឹង និងផ្តល់ភស្តុតាងគាំទ្រ។",
   "termsConditionsSection8Point4": "Bosdom រក្សាសិទ្ធិក្នុងការត្រួតពិនិត្យភស្តុតាង និងកែសម្រួលការចេញប្រាក់ពីគណនីកក់ ក្នុងករណីមានការក្លែងបន្លំ មិនដឹកជញ្ជូន ឬបំពានលក្ខខណ្ឌទាំងនេះ។",
-
   "termsConditionsSection9Title": "៩. សកម្មភាពហាមឃាត់",
   "termsConditionsSection9Point1": "អ្នកប្រើប្រាស់វេទិកាមិនត្រូវ៖",
   "termsConditionsSection9Point2": "លក់ទំនិញក្លែងក្លាយ ខុសច្បាប់ ឬគ្រោះថ្នាក់។",
@@ -978,30 +1138,24 @@
   "termsConditionsSection9Point5": "ចូលរួមក្នុងការកំណត់តម្លៃរួម ការផ្សព្វផ្សាយបញ្ឆោត ឬការចុះបញ្ជីផលិតផលមិនពិត។",
   "termsConditionsSection9Point6": "ប្រើកម្មវិធីស្វ័យប្រវត្តិ ឬស្គ្រីបដើម្បីធ្វើអន្តរកម្មជាមួយវេទិកា។",
   "termsConditionsSection9Point7": "ការបំពានលើចំណុចណាមួយខាងលើអាចនាំឱ្យមានការផ្អាកគណនីភ្លាមៗ ការបាត់បង់ប្រាក់កក់ដែលមិនទាន់ចេញ និងករណីចាំបាច់ អាចបញ្ជូនទៅអាជ្ញាធរពាក់ព័ន្ធ។",
-
   "termsConditionsSection10Title": "១០. ដែនកំណត់នៃទំនួលខុសត្រូវ",
   "termsConditionsSection10Point1": "Bosdom ដើរតួជាអន្តរការីទីផ្សារភ្ជាប់អ្នកទិញ និងអ្នកផ្គត់ផ្គង់តែប៉ុណ្ណោះ។ ក្នុងកម្រិតអតិបរមាដែលច្បាប់អនុញ្ញាត Bosdom មិនទទួលខុសត្រូវចំពោះ៖",
   "termsConditionsSection10Point2": "គុណភាពផលិតផល ភាពត្រឹមត្រូវនៃការពិពណ៌នា ឬការអះអាងរបស់អ្នកផ្គត់ផ្គង់។",
   "termsConditionsSection10Point3": "កាលវិភាគដឹកជញ្ជូន ឬដំណើរការរបស់អ្នកដឹកជញ្ជូនដែលនៅក្រៅការគ្រប់គ្រងរបស់វេទិកា។",
   "termsConditionsSection10Point4": "ការខាតបង់ណាមួយដែលបណ្តាលមកពីការបំពានលក្ខខណ្ឌទាំងនេះ ឬច្បាប់កម្ពុជាដែលពាក់ព័ន្ធ។",
   "termsConditionsSection10Point5": "Bosdom មិនទទួលខុសត្រូវចំពោះការខូចខាតដោយប្រយោល ចៃដន្យ ឬជាផលវិបាកដែលកើតចេញពីការប្រើប្រាស់វេទិកានេះឡើយ។",
-
   "termsConditionsSection11Title": "១១. ភាពឯកជននិងការការពារទិន្នន័យ",
   "termsConditionsSection11Point1": "Bosdom ប្រមូល និងដំណើរការទិន្នន័យផ្ទាល់ខ្លួនស្របតាមគោលការណ៍ភាពឯកជនរបស់យើង និងច្បាប់ការពារទិន្នន័យកម្ពុជាដែលពាក់ព័ន្ធ។",
   "termsConditionsSection11Point2": "នេះរួមមានព័ត៌មានចុះបញ្ជីអាជីវកម្ម ឈ្មោះ លេខទូរស័ព្ទ និងអាសយដ្ឋានអ៊ីមែល ដែលប្រមូលសម្រាប់គោលបំណងផ្ទៀងផ្ទាត់អត្តសញ្ញាណ និងប្រតិបត្តិការវេទិកាតែប៉ុណ្ណោះ។",
-
   "termsConditionsSection12Title": "១២. ការកែប្រែលក្ខខណ្ឌ",
   "termsConditionsSection12Point1": "Bosdom រក្សាសិទ្ធិក្នុងការធ្វើបច្ចុប្បន្នភាព ឬកែប្រែលក្ខខណ្ឌទាំងនេះនៅពេលណាមួយ។ ការបន្តប្រើប្រាស់វេទិកាបន្ទាប់ពីមានការផ្លាស់ប្តូរ ចាត់ទុកថាជាការទទួលយកលក្ខខណ្ឌដែលបានធ្វើបច្ចុប្បន្នភាព។",
   "termsConditionsSection12Point2": "អ្នកប្រើប្រាស់ដែលមិនយល់ព្រមនឹងលក្ខខណ្ឌដែលបានធ្វើបច្ចុប្បន្នភាព គួរតែឈប់ប្រើប្រាស់វេទិកានេះ។",
-
   "termsConditionsContactTitle": "ទាក់ទងមកយើងខ្ញុំ",
   "termsConditionsContactIntro": "ប្រសិនបើអ្នកមានសំណួរអំពីលក្ខខណ្ឌប្រើប្រាស់ទាំងនេះ សូមទាក់ទងមកយើងខ្ញុំ៖",
   "termsConditionsContactEmail": "support@bosdom.com",
   "termsConditionsContactInApp": "ក្នុងកម្មវិធី៖ ជំនួយ និងគាំទ្រ",
-
   "privacyPolicyScreenTitle": "គោលការណ៍ភាពឯកជន",
   "privacyPolicyEffectiveDate": "ថ្ងៃចូលជាធរមាន៖ ខែសីហា ២០២៦",
-
   "privacyPolicySection1Title": "១. ព័ត៌មានដែលយើងប្រមូល",
   "privacyPolicySection1Point1": "ក) ព័ត៌មានគណនី",
   "privacyPolicySection1Point2": "ឈ្មោះពេញ លេខទូរស័ព្ទ និងអ៊ីមែល",
@@ -1028,7 +1182,6 @@
   "privacyPolicySection1Point23": "ឆ) ទិន្នន័យទិញរួម និងសង្គម",
   "privacyPolicySection1Point24": "ការបង្កើត និងការចូលរួមអញ្ជើញទិញរួម",
   "privacyPolicySection1Point25": "ការចុចលើតំណអញ្ជើញ និងសកម្មភាពចូលរួមក្រុមទិញរួម",
-
   "privacyPolicySection2Title": "២. របៀបយើងប្រើប្រាស់ព័ត៌មានរបស់អ្នក",
   "privacyPolicySection2Point1": "យើងប្រើប្រាស់ទិន្នន័យផ្ទាល់ខ្លួនរបស់អ្នកសម្រាប់គោលបំណងដូចខាងក្រោម៖",
   "privacyPolicySection2Point2": "ក) ប្រតិបត្តិការវេទិកា",
@@ -1053,7 +1206,6 @@
   "privacyPolicySection2Point21": "ដើម្បីឆ្លើយតបទៅនឹងសំណើស្របច្បាប់ពីអាជ្ញាធរ",
   "privacyPolicySection2Point22": "ច) ការផ្ទេរអាជីវកម្ម",
   "privacyPolicySection2Point23": "ក្នុងករណីមានការរួមបញ្ចូល ការទិញយក ឬការលក់ទ្រព្យសកម្ម ព័ត៌មានអាចត្រូវបានផ្ទេរជាផ្នែកនៃទ្រព្យសកម្មអាជីវកម្ម ដោយអនុលោមតាមការការពារភាពឯកជនស្មើគ្នា",
-
   "privacyPolicySection3Title": "៣. របៀបយើងចែករំលែកព័ត៌មានរបស់អ្នក",
   "privacyPolicySection3Point1": "យើងមិនលក់ទិន្នន័យផ្ទាល់ខ្លួនរបស់អ្នកឡើយ។ យើងចែករំលែកព័ត៌មានក្នុងករណីដូចខាងក្រោមតែប៉ុណ្ណោះ៖",
   "privacyPolicySection3Point2": "ក) រវាងអ្នកទិញ និងអ្នកលក់",
@@ -1069,7 +1221,6 @@
   "privacyPolicySection3Point12": "ដើម្បីការពារសិទ្ធិស្របច្បាប់របស់ Bosdom ឬស៊ើបអង្កេតការក្លែងបន្លំ",
   "privacyPolicySection3Point13": "ង) ការផ្ទេរអាជីវកម្ម",
   "privacyPolicySection3Point14": "ក្នុងករណីមានការរួមបញ្ចូល ការទិញយក ឬការរៀបចំរចនាសម្ព័ន្ធឡើងវិញរបស់ Bosdom ទិន្នន័យអ្នកប្រើប្រាស់អាចត្រូវបានផ្ទេរដោយមានការប្តេជ្ញាការពារភាពឯកជនស្មើគ្នា",
-
   "privacyPolicySection4Title": "៤. ការផ្ទុក និងសុវត្ថិភាពទិន្នន័យ",
   "privacyPolicySection4Point1": "ទិន្នន័យរបស់អ្នកត្រូវបានផ្ទុកដោយសុវត្ថិភាពដោយប្រើហេដ្ឋារចនាសម្ព័ន្ធ Supabase ដែលផ្តល់៖",
   "privacyPolicySection4Point2": "ការអ៊ិនគ្រីបទិន្នន័យក្នុងការបញ្ជូន (TLS/SSL) និងនៅពេលផ្ទុក",
@@ -1078,7 +1229,6 @@
   "privacyPolicySection4Point5": "ព័ត៌មានការទូទាត់ប្រាក់ជាកក់ត្រូវបានការពារដោយប្រើស្តង់ដារច្រកទូទាត់ដែលអនុលោមតាម PCI។",
   "privacyPolicySection4Point6": "ការសន្ទនាជជែក និងភស្តុតាងវិវាទត្រូវបានអ៊ិនគ្រីប និងកំណត់សិទ្ធិចូលប្រើសម្រាប់តែភាគីពាក់ព័ន្ធប៉ុណ្ណោះ។",
   "privacyPolicySection4Point7": "ទោះបីជាយើងអនុវត្តវិធានការសុវត្ថិភាពតាមស្តង់ដារឧស្សាហកម្មក៏ដោយ គ្មានវិធីនៃការបញ្ជូន ឬការផ្ទុកតាមអេឡិចត្រូនិកណាមួយមានសុវត្ថិភាព ១០០% ឡើយ។",
-
   "privacyPolicySection5Title": "៥. រយៈពេលរក្សាទុកទិន្នន័យ",
   "privacyPolicySection5Point1": "យើងរក្សាទុកទិន្នន័យផ្ទាល់ខ្លួនរបស់អ្នកតែក្នុងរយៈពេលចាំបាច់ដើម្បីបំពេញគោលបំណងដែលបានរៀបរាប់ក្នុងគោលការណ៍នេះប៉ុណ្ណោះ៖",
   "privacyPolicySection5Point2": "ទិន្នន័យគណនី៖ រក្សាទុកខណៈពេលគណនីរបស់អ្នកនៅសកម្ម និងរហូតដល់ ១២ ខែក្រោយការលុប",
@@ -1086,7 +1236,6 @@
   "privacyPolicySection5Point4": "សារជជែក៖ រក្សាទុករយៈពេល ១២ ខែ",
   "privacyPolicySection5Point5": "ភស្តុតាងវិវាទ៖ រក្សាទុករយៈពេល ១២ ខែក្រោយពេលដោះស្រាយ",
   "privacyPolicySection5Point6": "អ្នកអាចស្នើសុំលុបគណនីនៅពេលណាមួយដោយទាក់ទងផ្នែកជំនួយ ឬប្រើមុខងារជំនួយក្នុងកម្មវិធី។",
-
   "privacyPolicySection6Title": "៦. សិទ្ធិភាពឯកជនរបស់អ្នក",
   "privacyPolicySection6Point1": "ក្នុងនាមជាអ្នកប្រើប្រាស់ Bosdom អ្នកមានសិទ្ធិ៖",
   "privacyPolicySection6Point2": "ចូលមើល៖ ស្នើសុំច្បាប់ចម្លងទិន្នន័យផ្ទាល់ខ្លួនរបស់អ្នកដែលយើងកាន់កាប់",
@@ -1096,34 +1245,31 @@
   "privacyPolicySection6Point6": "ចំណូលចិត្តការជូនដំណឹង៖ គ្រប់គ្រងការកំណត់ការជូនដំណឹងក្នុងកម្មវិធី",
   "privacyPolicySection6Point7": "ដកខ្លួន៖ ដកខ្លួនចេញពីការទំនាក់ទំនងទីផ្សារនៅពេលណាមួយ",
   "privacyPolicySection6Point8": "ដើម្បីអនុវត្តសិទ្ធិទាំងនេះ សូមទាក់ទងមកយើងខ្ញុំតាមអ៊ីមែល privacy@bosdom.com ឬតាមរយៈផ្នែកជំនួយក្នុងកម្មវិធី។",
-
   "privacyPolicySection7Title": "៧. ភាពឯកជននៃការជជែក និងទំនាក់ទំនង",
   "privacyPolicySection7Point1": "សារជជែកទាំងអស់ក្នុងកម្មវិធីត្រូវបានផ្ទុកដោយសុវត្ថិភាព និងអាចចូលមើលបានតែដោយអ្នកចូលរួមក្នុងការសន្ទនាប៉ុណ្ណោះ។",
   "privacyPolicySection7Point2": "Bosdom ត្រួតពិនិត្យមាតិកាជជែកដោយស្វ័យប្រវត្តិសម្រាប់តែគោលបំណងរកឃើញការទាក់ទងក្រៅវេទិកា និងការទប់ស្កាត់ការក្លែងបន្លំប៉ុណ្ណោះ។",
   "privacyPolicySection7Point3": "សារដែលត្រូវបានដាក់ទង់អាចត្រូវបានត្រួតពិនិត្យដោយផ្ទាល់ដៃដោយក្រុមទំនុកចិត្ត និងសុវត្ថិភាពរបស់យើង។",
   "privacyPolicySection7Point4": "ការស្នើសុំព័ត៌មានទាក់ទងផ្ទាល់តាមរយៈការជជែកអាចនាំឱ្យមានការដាក់កំហិត ឬហាមឃាត់គណនី ដូចមានចែងក្នុងលក្ខខណ្ឌប្រើប្រាស់របស់យើង។",
-
   "privacyPolicySection8Title": "៨. ភាពឯកជនរបស់កុមារ",
   "privacyPolicySection8Point1": "Bosdom ជាទីផ្សារលក់ដុំបែប B2B ដែលមានបំណងសម្រាប់អ្នកជំនួញដែលបានផ្ទៀងផ្ទាត់ដែលមានអាយុ ១៨ ឆ្នាំឡើងទៅ។ យើងមិនប្រមូលទិន្នន័យពីអនីតិជនដោយចេតនាឡើយ។",
-
   "privacyPolicySection9Title": "៩. ការផ្លាស់ប្តូរគោលការណ៍នេះ",
   "privacyPolicySection9Point1": "យើងអាចធ្វើបច្ចុប្បន្នភាពគោលការណ៍ភាពឯកជននេះជាទៀងទាត់ ដើម្បីឆ្លុះបញ្ចាំងពីការផ្លាស់ប្តូរការអនុវត្ត តម្រូវការច្បាប់ ឬមុខងារវេទិកា។ ការផ្លាស់ប្តូរសំខាន់ៗនឹងត្រូវជូនដំណឹងតាមរយៈ៖",
   "privacyPolicySection9Point2": "ការជូនដំណឹងគួរឱ្យកត់សម្គាល់ក្នុងកម្មវិធី",
   "privacyPolicySection9Point3": "ការជូនដំណឹងតាមអ៊ីមែលទៅកាន់អ្នកប្រើប្រាស់ដែលបានចុះឈ្មោះ",
   "privacyPolicySection9Point4": "កាលបរិច្ឆេទ \"ធ្វើបច្ចុប្បន្នភាពចុងក្រោយ\" ដែលបានធ្វើបច្ចុប្បន្នភាព",
-
   "privacyPolicyContactTitle": "ទាក់ទងមកយើងខ្ញុំ",
   "privacyPolicyContactIntro": "សម្រាប់សំណួរ ឬកង្វល់ទាក់ទងនឹងភាពឯកជន សូមទាក់ទង៖",
   "privacyPolicyContactEmail": "privacy@bosdom.com",
   "privacyPolicyContactInApp": "ក្នុងកម្មវិធី៖ ជំនួយ និងរាយការណ៍បញ្ហា",
   "privacyPolicyContactLocation": "កម្ពុជា",
-
   "aboutScreenTitle": "អំពី Bosdom",
   "aboutAppTagline": "ទីផ្សារជំនឿទុកចិត្តលក់ដុំ B2B ស្វ័យប្រវត្តិ និងបណ្តាញទិញរួមសង្គម",
   "aboutVersionLabel": "កំណែ {version}",
   "@aboutVersionLabel": {
     "placeholders": {
-      "version": { "type": "String" }
+      "version": {
+        "type": "String"
+      }
     }
   },
   "aboutMissionTitle": "បេសកកម្មរបស់យើង",
@@ -1163,5 +1309,58 @@
   "aboutFooterCopyright": "© 2024-2026 Bosdom។ រក្សាសិទ្ធិគ្រប់យ៉ាង។",
   "variantSelectOptionsTitle": "ជ្រើសរើសជម្រើស",
   "variantSizeLabel": "ទំហំ",
-  "variantColorLabel": "ពណ៌"
+  "variantColorLabel": "ពណ៌",
+  "escrowFlowTitle": "របៀបដែលប្រាក់ត្រូវបានបញ្ចេញ",
+  "escrowStepPaidTitle": "បានបញ្ជាទិញ",
+  "escrowStepPaidDetail": "ប្រាក់ត្រូវបានរក្សាទុកក្នុង Escrow",
+  "escrowStepPreparesTitle": "អ្នកលក់កំពុងរៀបចំ",
+  "escrowStepPreparesDetail": "កំពុងរៀបចំការបញ្ជាទិញ",
+  "escrowStepShippedTitle": "កំពុងដឹកជញ្ជូន",
+  "escrowStepShippedDetail": "រូបថត + លេខតាមដាន",
+  "escrowStepTimerTitle": "ចាប់ផ្តើមកម្មវិធីរាប់ថយក្រោយ",
+  "escrowStepTimerDetail": "រយៈពេលពិនិត្យរបស់អ្នកទិញ",
+  "escrowStepReleaseTitle": "បញ្ចេញទៅអ្នកលក់ដោយស្វ័យប្រវត្តិ",
+  "escrowStepReleaseDetail": "កាត់ថ្លៃសេវា បង់ប្រាក់អ្នកលក់",
+  "escrowTimerLeft": "នៅសល់ {time} ដើម្បីរាយការណ៍បញ្ហា",
+  "escrowTimerFrozen": "កម្មវិធីរាប់ថយក្រោយត្រូវបានផ្អាក អ្នកគ្រប់គ្រងកំពុងពិនិត្យ",
+  "escrowTrackingLabel": "{courier} · {number}",
+  "escrowReportProblemButton": "រាយការណ៍បញ្ហា",
+  "escrowReportSubmittedFrozen": "បានរាយការណ៍បញ្ហា។ កម្មវិធីរាប់ថយក្រោយត្រូវបានផ្អាកពេលអ្នកគ្រប់គ្រងពិនិត្យ។",
+  "escrowShipButton": "ដឹកជញ្ជូនការបញ្ជាទិញ",
+  "escrowShipSheetTitle": "ដឹកជញ្ជូនការបញ្ជាទិញ",
+  "escrowCourierLabel": "ក្រុមហ៊ុនដឹកជញ្ជូន",
+  "escrowCourierHint": "ឧ. VET, J&T, Cambodia Post",
+  "escrowTrackingNumberLabel": "លេខតាមដាន",
+  "escrowParcelPhotoLabel": "រូបថតកញ្ចប់ឥវ៉ាន់",
+  "escrowAddPhoto": "បន្ថែមរូបថត",
+  "escrowPhotoRequired": "សូមបន្ថែមរូបថត",
+  "escrowShipSubmit": "បញ្ជាក់ការដឹកជញ្ជូន",
+  "escrowMarkDeliveredButton": "បញ្ចូលភស្តុតាងនៃការដឹកជញ្ជូន",
+  "escrowDeliverySheetTitle": "ភស្តុតាងនៃការដឹកជញ្ជូន",
+  "escrowDeliverySheetNote": "បញ្ចូលបង្កាន់ដៃរបស់អ្នកដឹកជញ្ជូន ឬរូបថតពេលប្រគល់។ កម្មវិធីរាប់ថយក្រោយរបស់អ្នកទិញចាប់ផ្តើមពេលអ្នកដាក់ស្នើ។",
+  "escrowDeliverySubmit": "សម្គាល់ថាបានដឹកជញ្ជូនដល់",
+  "escrowActionFailed": "មានបញ្ហាកើតឡើង៖ {error}",
+  "escrowSellerWaitingTimer": "បានដឹកជញ្ជូនដល់។ ប្រាក់នឹងត្រូវបានបញ្ចេញដោយស្វ័យប្រវត្តិនៅពេលរយៈពេលពិនិត្យរបស់អ្នកទិញបញ្ចប់។",
+  "escrowSellerWaitingDelivery": "បានដឹកជញ្ជូន។",
+  "escrowSellerDisputed": "បញ្ហាត្រូវបានរាយការណ៍លើការបញ្ជាទិញនេះ។ ប្រាក់ត្រូវបានផ្អាកខណៈអ្នកគ្រប់គ្រងពិនិត្យ។",
+  "escrowSellerReplyTitle": "សំណុំរឿងរបស់អ្នកគ្រប់គ្រង",
+  "escrowSellerReplyReported": "បានរាយការណ៍៖ {reason}",
+  "escrowSellerReplyWaiting": "កំពុងរង់ចាំអ្នកគ្រប់គ្រងបើកសំណុំរឿង។",
+  "escrowSellerReplyHint": "ចម្លើយរបស់អ្នកទៅអ្នកគ្រប់គ្រង",
+  "escrowSellerReplyButton": "ផ្ញើចម្លើយ",
+  "escrowSellerReplySent": "ចម្លើយរបស់អ្នក",
+  "orderHoldTitle": "អ្វីបានកើតឡើង",
+  "orderHoldReasonDeliveryDelayed": "ការដឹកជញ្ជូនយឺត",
+  "orderHoldReasonLostOrDamaged": "កញ្ចប់បាត់ ឬខូច",
+  "orderHoldReasonBuyerUnreachable": "ក្រុមដឹកជញ្ជូនមិនអាចទាក់ទងអ្នកបាន",
+  "orderHoldReasonAddress": "បញ្ហាអាសយដ្ឋាន",
+  "orderHoldReasonWrongItem": "ទទួលបានទំនិញខុស",
+  "orderHoldReasonDamaged": "ទំនិញខូច",
+  "orderHoldReasonMissing": "ទំនិញបាត់",
+  "orderHoldReasonLate": "ការដឹកជញ្ជូនយឺត",
+  "orderHoldReasonOther": "បញ្ហាផ្សេងៗ",
+  "orderHoldReasonBuyerUnreachableSeller": "មិនអាចទាក់ទងអ្នកទទួលបាន",
+  "orderHoldSellerBody": "ការបញ្ជាទិញនេះត្រូវបានលុបចោលដោយក្រុមគាំទ្រ BosDom បន្ទាប់ពីក្រុមដឹកជញ្ជូនបានរាយការណ៍បញ្ហាដឹកជញ្ជូន។ អ្នកមិនចាំបាច់ធ្វើអ្វីបន្ថែមទេ។",
+  "orderHoldBuyerBody": "អ្នកបានរាយការណ៍បញ្ហាលើការបញ្ជាទិញនេះ។ ក្រុមគាំទ្ររបស់យើងកំពុងពិនិត្យករណីរបស់អ្នក ហើយប្រាក់របស់អ្នកនៅតែត្រូវបានរក្សាទុកដោយសុវត្ថិភាពក្នុង escrow។ ប្រសិនបើការសម្រេចជាប្រយោជន៍ដល់អ្នក អ្នកនឹងទទួលបានប្រាក់សងវិញក្នុងរយៈពេល 2 ទៅ 3 ថ្ងៃ។",
+  "orderHoldDeliveryBody": "សេវាដឹកជញ្ជូនបានរាយការណ៍បញ្ហាលើកញ្ចប់របស់អ្នក ដូច្នេះក្រុមគាំទ្រ BosDom បានលុបចោលការបញ្ជាទិញនេះ។ ប្រាក់របស់អ្នកត្រូវបានការពារពេញលេញ ហើយអ្នកនឹងទទួលបានប្រាក់សងវិញត្រឹមថ្ងៃទី {date}។"
 }

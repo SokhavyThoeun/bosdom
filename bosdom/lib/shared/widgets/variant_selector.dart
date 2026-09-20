@@ -48,9 +48,7 @@ class ProductVariantSelector extends StatelessWidget {
         children: [
           Text(
             l10n.variantSelectOptionsTitle,
-            style: textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           if (hasColors) ...[
             const SizedBox(height: 16),

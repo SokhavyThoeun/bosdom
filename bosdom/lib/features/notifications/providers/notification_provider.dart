@@ -66,7 +66,9 @@ class NotificationNotifier extends AsyncNotifier<NotificationState> {
     final unreadCount = await NotificationService.markRead(id);
     final latest = state.value;
     if (latest != null) {
-      state = AsyncData(NotificationState(items: latest.items, unreadCount: unreadCount));
+      state = AsyncData(
+        NotificationState(items: latest.items, unreadCount: unreadCount),
+      );
     }
   }
 

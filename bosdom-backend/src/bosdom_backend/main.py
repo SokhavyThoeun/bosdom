@@ -5,7 +5,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from .routers import (
+    admin,
     ads_consent,
+    cart,
     chat,
     co_buy,
     disputes,
@@ -34,6 +36,7 @@ app.include_router(orders.router)
 app.include_router(disputes.router)
 app.include_router(co_buy.router)
 app.include_router(wishlist.router)
+app.include_router(cart.router)
 app.include_router(chat.router)
 app.include_router(notifications.router)
 app.include_router(ads_consent.router)
@@ -42,6 +45,7 @@ app.include_router(profile.router)
 app.include_router(shop.router)
 app.include_router(listings.router)
 app.include_router(sample_orders.router)
+app.include_router(admin.router)
 
 _media_dir = Path(__file__).resolve().parent / "media"
 _media_dir.mkdir(exist_ok=True)

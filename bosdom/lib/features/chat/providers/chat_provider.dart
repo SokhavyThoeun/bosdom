@@ -96,6 +96,14 @@ class ChatNotifier extends AsyncNotifier<List<Conversation>> {
     return conversation;
   }
 
+  /// Opens (creating on first use) the BosDom Support thread and loads its
+  /// full history. Returns the conversation id.
+  Future<String> openSupportConversation() async {
+    final summary = await ChatService.openSupportConversation();
+    await loadConversation(summary.id);
+    return summary.id;
+  }
+
   Future<void> markRead(String id) async {
     final conversation = byId(id);
     if (conversation == null || conversation.unreadCount == 0) return;
@@ -157,17 +165,32 @@ class ChatNotifier extends AsyncNotifier<List<Conversation>> {
     if (conversation == null) return;
 
     final currentUserId = Supabase.instance.client.auth.currentUser?.id ?? '';
+    final optimisticId = 'pending-${DateTime.now().microsecondsSinceEpoch}';
     conversation.messages.add(
       ChatMessage(
-        id: 'local-${DateTime.now().microsecondsSinceEpoch}',
+        id: optimisticId,
         senderId: currentUserId,
         isMine: true,
         createdAt: DateTime.now(),
         imageFile: file,
+        sending: true,
       ),
     );
     _bumpToTop(conversation);
     state = AsyncData([...state.value ?? const []]);
+
+    try {
+      final sent = await ChatService.sendImage(id, file);
+      final index = conversation.messages.indexWhere(
+        (m) => m.id == optimisticId,
+      );
+      if (index != -1) conversation.messages[index] = sent;
+      state = AsyncData([...state.value ?? const []]);
+    } catch (_) {
+      conversation.messages.removeWhere((m) => m.id == optimisticId);
+      state = AsyncData([...state.value ?? const []]);
+      rethrow;
+    }
   }
 
   void _bumpToTop(Conversation conversation) {

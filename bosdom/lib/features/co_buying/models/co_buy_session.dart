@@ -28,6 +28,8 @@ class CoBuySession {
     this.sellerRating = 4.8,
     this.description = '',
     this.autoRenew = false,
+    this.myStatus,
+    this.myLeaveAdminNote,
     this.sellerLogoOverride,
     this.photoUrls = const [],
     this.sizes = const [],
@@ -72,6 +74,15 @@ class CoBuySession {
   /// Selectable colors. Empty when the session has no color variants.
   final List<ProductColorOption> colorOptions;
 
+  /// The viewer's own escrow state on this deal (`held`, `leave_requested`,
+  /// `released`), or null when they haven't paid in.
+  final String? myStatus;
+
+  /// The admin's reason when the viewer's last leave request was rejected.
+  final String? myLeaveAdminNote;
+
+  bool get leavePending => myStatus == 'leave_requested';
+
   bool get hasVariants => sizes.isNotEmpty || colorOptions.isNotEmpty;
 
   double get progress => currentQty / targetQty;
@@ -96,7 +107,8 @@ class CoBuySession {
       photoUrls.isNotEmpty ? photoUrls.first : mockPhotoUrl(imageQuery, id);
 
   /// Real shop logo when set, otherwise a clean mock logo for the seller.
-  String get sellerLogoUrl => sellerLogoOverride ?? mockStoreLogoUrl(sellerName);
+  String get sellerLogoUrl =>
+      sellerLogoOverride ?? mockStoreLogoUrl(sellerName);
 
   factory CoBuySession.fromJson(Map<String, dynamic> json) {
     final productName = json['product_name'] as String;
@@ -146,6 +158,8 @@ class CoBuySession {
       price: (json['price'] as num).toDouble(),
       joined: json['joined'] as bool,
       autoRenew: json['auto_renew'] as bool,
+      myStatus: json['my_status'] as String?,
+      myLeaveAdminNote: json['my_leave_admin_note'] as String?,
       photoUrls: photoUrls,
       sizes: sizes,
       colorOptions: colors,
