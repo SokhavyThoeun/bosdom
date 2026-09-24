@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from .db import engine
-from .models import UserNotification
+from .models import PaywayPayment, UserNotification
 from .routers import (
     admin,
     ads_consent,
@@ -17,6 +17,7 @@ from .routers import (
     marketing_consent,
     notifications,
     orders,
+    payments,
     profile,
     receipts,
     sample_orders,
@@ -24,9 +25,11 @@ from .routers import (
     wishlist,
 )
 
-# The notifications table is new; create it if the SQL migration hasn't been
-# applied yet so the feed works instead of erroring (no-op once it exists).
+# The notifications/PayWay tables are new; create them if the SQL migrations
+# haven't been applied yet so they work instead of erroring (no-op once they
+# exist).
 UserNotification.__table__.create(bind=engine, checkfirst=True)
+PaywayPayment.__table__.create(bind=engine, checkfirst=True)
 
 app = FastAPI(title="Bosdom Backend")
 
@@ -39,6 +42,7 @@ app.add_middleware(
 
 app.include_router(receipts.router)
 app.include_router(orders.router)
+app.include_router(payments.router)
 app.include_router(disputes.router)
 app.include_router(co_buy.router)
 app.include_router(wishlist.router)

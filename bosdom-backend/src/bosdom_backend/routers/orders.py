@@ -1,4 +1,3 @@
-import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -52,11 +51,6 @@ _VALID_TRANSITIONS: dict[str, set[str]] = {
     STATUS_REFUNDED: set(),
     STATUS_CANCELLED: set(),
 }
-
-# Payment methods mirror the frontend's `_PaymentMethod` enum
-# (payment_screen.dart) — this backend has no real Stripe/Bakong
-# integration, so "paying" just moves the order into `held`.
-_MOCK_PAYMENT_METHODS = {"card", "khqr", "aba"}
 
 # After proof of delivery the buyer has this long to report a problem; when
 # it runs out with nothing reported, the funds auto-release to the seller.
@@ -270,6 +264,24 @@ def _transition(order: Order, new_status: str) -> None:
     order.status = new_status
 
 
+def mark_order_paid(db: Session, order: Order, method: str, reference: str) -> None:
+    """Moves a pending order into held escrow once ABA PayWay has confirmed
+    its payment (routers/payments.py), and tells the seller. Commits."""
+    _transition(order, STATUS_HELD)
+    order.payment_method = method
+    order.payment_reference = reference
+    order.paid_at = datetime.now(timezone.utc)
+    db.commit()
+    push_notification(
+        db,
+        order.seller_id,
+        "order",
+        "New order received",
+        f"{order.quantity} × {order.product_name} was paid and is held in escrow. Confirm and ship it.",
+        NotificationTarget(route="sellerOrderDetail", params={"id": order.id}),
+    )
+
+
 def _get_participant_order(db: Session, order_id: str, user_id: str) -> Order:
     order = db.get(Order, order_id)
     if order is None or user_id not in (order.buyer_id, order.seller_id):
@@ -285,10 +297,6 @@ class OrderCreate(BaseModel):
     shipping_name: str = ""
     shipping_address: str = ""
     shipping_phone: str = ""
-
-
-class OrderPayRequest(BaseModel):
-    payment_method: str
 
 
 class OrderReviewOut(BaseModel):
@@ -709,39 +717,6 @@ def get_order(
             raise HTTPException(status_code=404, detail="Order not found")
         return _cobuy_order_out(db, part, pool)
     order = _get_participant_order(db, order_id, user.id)
-    return _order_out_single(db, order)
-
-
-@router.post("/{order_id}/pay", response_model=OrderOut)
-def pay_order(
-    order_id: str,
-    payload: OrderPayRequest,
-    user: CurrentUser = Depends(get_current_user),
-    db: Session = Depends(get_db),
-) -> OrderOut:
-    """Mock payment gateway (15.2): no real Stripe/Bakong call — this just
-    simulates the gateway succeeding and holding the funds in escrow."""
-    if payload.payment_method not in _MOCK_PAYMENT_METHODS:
-        raise HTTPException(status_code=400, detail="Unsupported payment method")
-
-    order = _get_participant_order(db, order_id, user.id)
-    if user.id != order.buyer_id:
-        raise HTTPException(status_code=403, detail="Only the buyer can pay for this order")
-
-    _transition(order, STATUS_HELD)
-    order.payment_method = payload.payment_method
-    order.payment_reference = f"MOCK-{uuid.uuid4().hex[:12].upper()}"
-    order.paid_at = datetime.now(timezone.utc)
-    db.commit()
-    db.refresh(order)
-    push_notification(
-        db,
-        order.seller_id,
-        "order",
-        "New order received",
-        f"{order.quantity} × {order.product_name} was paid and is held in escrow. Confirm and ship it.",
-        NotificationTarget(route="sellerOrderDetail", params={"id": order.id}),
-    )
     return _order_out_single(db, order)
 
 

@@ -378,6 +378,7 @@ abstract final class AppRouter {
           if (extra is Map) {
             return PaymentScreen(
               amount: extra['amount'] as double,
+              shippingFee: (extra['shippingFee'] as num?)?.toDouble() ?? 0,
               itemCount: extra['itemCount'] as int,
               items:
                   (extra['items'] as List?)?.cast<OrderLineSummary>() ??

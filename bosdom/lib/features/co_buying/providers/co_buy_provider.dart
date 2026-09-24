@@ -145,12 +145,6 @@ class CoBuyNotifier extends AsyncNotifier<List<CoBuySession>> {
     return updated;
   }
 
-  Future<CoBuySession> payJoin(String id, String paymentMethod) async {
-    final updated = await CoBuyPoolService.payJoin(id, paymentMethod);
-    _replace(updated);
-    return updated;
-  }
-
   void _replace(CoBuySession updated) {
     final current = state.value;
     if (current == null) return;

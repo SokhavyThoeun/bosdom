@@ -474,3 +474,32 @@ class UserNotification(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
+
+
+class PaywayPayment(Base):
+    """One ABA PayWay transaction. A single KHQR payment covers every order
+    from one checkout (or one co-buy join), so the buyer scans once."""
+
+    __tablename__ = "payway_payments"
+
+    # PayWay's `tran_id` — 20 characters max, unique per merchant.
+    tran_id: Mapped[str] = mapped_column(String, primary_key=True)
+    buyer_id: Mapped[str] = mapped_column(String, index=True)
+    order_ids: Mapped[list[str]] = mapped_column(JSON, default=list)
+    co_buy_participant_id: Mapped[str | None] = mapped_column(
+        String, nullable=True, index=True
+    )
+    amount: Mapped[float] = mapped_column(Float)
+    currency: Mapped[str] = mapped_column(String, default="USD")
+    payment_option: Mapped[str] = mapped_column(String, default="khqr")
+    # pending -> paid | expired | failed | refund_due (paid, but the co-buy
+    # deal filled up before the payment landed — refund by hand for now).
+    status: Mapped[str] = mapped_column(String, default="pending")
+    apv: Mapped[str | None] = mapped_column(String, nullable=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+    paid_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )

@@ -2119,26 +2119,7 @@ class AppLocalizationsKm extends AppLocalizations {
   String get paymentAmountToPayLabel => 'ចំនួនទឹកប្រាក់ត្រូវទូទាត់';
 
   @override
-  String get paymentCardDetailsSubtitle =>
-      'បញ្ចូលព័ត៌មានប័ណ្ណរបស់អ្នកយ៉ាងសុវត្ថិភាព';
-
-  @override
   String get paymentCardMethodTitle => 'កាតឥណទាន/កាតឥណពន្ធ';
-
-  @override
-  String get paymentCardNumberLabel => 'លេខកាត';
-
-  @override
-  String get paymentCardHolderLabel => 'ម្ចាស់កាត';
-
-  @override
-  String get paymentCardHolderNameHint => 'ឈ្មោះពេញនៅលើកាត';
-
-  @override
-  String get paymentCardHolderPlaceholder => 'ឈ្មោះរបស់អ្នក';
-
-  @override
-  String get paymentCardValidThruLabel => 'ប្រើបានដល់';
 
   @override
   String get paymentConfirmedSubtitle =>
@@ -2157,12 +2138,6 @@ class AppLocalizationsKm extends AppLocalizations {
   String get paymentContinueShoppingButton => 'បន្តទិញឥវ៉ាន់';
 
   @override
-  String get paymentCvvLabel => 'CVV';
-
-  @override
-  String get paymentExpiryDateLabel => 'កាលបរិច្ឆេទផុតកំណត់';
-
-  @override
   String paymentFailedSnackbar(String error) {
     return 'ការទូទាត់មិនបានសម្រេច៖ $error';
   }
@@ -2173,20 +2148,37 @@ class AppLocalizationsKm extends AppLocalizations {
   }
 
   @override
-  String get paymentMethodSubtitleVisaMastercard => 'Visa, Mastercard ជាដើម';
+  String get paymentKhqrMethodTitle => 'ABA KHQR';
 
   @override
-  String get paymentKhqrMethodTitle => 'KHQR / Bakong';
+  String get paymentKhqrSubtitle => 'ស្កេនដើម្បីទូទាត់ជាមួយកម្មវិធីធនាគារណាមួយ';
 
   @override
-  String get paymentKhqrSubtitle => 'Bakong, ABA, ACLEDA និងផ្សេងទៀត';
+  String get paymentNoPayableItems =>
+      'ទំនិញទាំងនេះមិនទាន់អាចទូទាត់តាមអនឡាញបានទេ។';
+
+  @override
+  String get paymentWeAcceptLabel => 'យើងទទួលយក';
+
+  @override
+  String get paymentCardConfirmingLabel => 'កំពុងបញ្ជាក់ការទូទាត់របស់អ្នក…';
+
+  @override
+  String get paymentCardUnavailableLabel =>
+      'ការទូទាត់តាមកាតមិនទាន់អាចប្រើបានទេ។ សូមទូទាត់តាម ABA KHQR ជំនួសវិញ។';
+
+  @override
+  String get paymentCardFailedLabel => 'ការទូទាត់តាមកាតនេះមិនបានសម្រេចទេ។';
+
+  @override
+  String get paymentCardCloseButton => 'បិទ';
 
   @override
   String get paymentKhqrSheetTitle => 'ស្កេនដើម្បីទូទាត់';
 
   @override
   String get paymentKhqrInstructions =>
-      'បើកកម្មវិធីធនាគាររបស់អ្នក ហើយស្កេនកូដនេះ ដើម្បីបញ្ចប់ការទូទាត់';
+      'ស្កេនជាមួយ ABA Mobile ឬកម្មវិធីធនាគារណាមួយដែលគាំទ្រ KHQR';
 
   @override
   String paymentKhqrExpiresLabel(String time) {
@@ -2200,19 +2192,25 @@ class AppLocalizationsKm extends AppLocalizations {
   String get paymentKhqrRefreshButton => 'ផ្ទុកកូដឡើងវិញ';
 
   @override
-  String get paymentKhqrConfirmButton => 'ខ្ញុំបានទូទាត់រួចរាល់';
+  String get paymentKhqrOpenAbaButton => 'បើក ABA Mobile';
 
   @override
-  String paymentPayAmountLabel(String amount) {
-    return 'ទូទាត់ $amount';
-  }
+  String get paymentKhqrWaitingLabel => 'កំពុងរង់ចាំការទូទាត់…';
+
+  @override
+  String get paymentKhqrFailedLabel =>
+      'ការទូទាត់នេះមិនបានសម្រេចទេ។ សូមផ្ទុកកូដឡើងវិញ ដើម្បីព្យាយាមម្តងទៀត។';
+
+  @override
+  String get paymentKhqrRefundDueLabel =>
+      'កិច្ចព្រមព្រៀងនេះបានពេញមុនពេលការទូទាត់របស់អ្នកមកដល់។ អ្នកនឹងទទួលបានប្រាក់វិញ។';
+
+  @override
+  String get paymentKhqrAbaNotInstalled =>
+      'មិនអាចបើក ABA Mobile បានទេ។ សូមស្កេនកូដនេះពីកម្មវិធីធនាគាររបស់អ្នកជំនួសវិញ។';
 
   @override
   String get paymentPayNowButton => 'ទូទាត់ឥឡូវនេះ';
-
-  @override
-  String get paymentSecureEncryptionNote =>
-      'ព័ត៌មានទូទាត់របស់អ្នកត្រូវបានអ៊ិនគ្រីបយ៉ាងសុវត្ថិភាព';
 
   @override
   String get paymentSelectMethodLabel => 'ជ្រើសរើសវិធីទូទាត់ប្រាក់';

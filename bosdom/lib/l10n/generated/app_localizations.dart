@@ -3849,47 +3849,11 @@ abstract class AppLocalizations {
   /// **'Amount to Pay'**
   String get paymentAmountToPayLabel;
 
-  /// No description provided for @paymentCardDetailsSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Securely enter your card details'**
-  String get paymentCardDetailsSubtitle;
-
   /// No description provided for @paymentCardMethodTitle.
   ///
   /// In en, this message translates to:
   /// **'Credit/Debit Card'**
   String get paymentCardMethodTitle;
-
-  /// No description provided for @paymentCardNumberLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'CARD NUMBER'**
-  String get paymentCardNumberLabel;
-
-  /// No description provided for @paymentCardHolderLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'CARD HOLDER'**
-  String get paymentCardHolderLabel;
-
-  /// No description provided for @paymentCardHolderNameHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Full name on card'**
-  String get paymentCardHolderNameHint;
-
-  /// No description provided for @paymentCardHolderPlaceholder.
-  ///
-  /// In en, this message translates to:
-  /// **'YOUR NAME'**
-  String get paymentCardHolderPlaceholder;
-
-  /// No description provided for @paymentCardValidThruLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'VALID THRU'**
-  String get paymentCardValidThruLabel;
 
   /// No description provided for @paymentConfirmedSubtitle.
   ///
@@ -3921,18 +3885,6 @@ abstract class AppLocalizations {
   /// **'Continue Shopping'**
   String get paymentContinueShoppingButton;
 
-  /// No description provided for @paymentCvvLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'CVV'**
-  String get paymentCvvLabel;
-
-  /// No description provided for @paymentExpiryDateLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'EXPIRY DATE'**
-  String get paymentExpiryDateLabel;
-
   /// No description provided for @paymentFailedSnackbar.
   ///
   /// In en, this message translates to:
@@ -3945,23 +3897,53 @@ abstract class AppLocalizations {
   /// **'{count} items purchased'**
   String paymentItemsPurchasedLabel(int count);
 
-  /// No description provided for @paymentMethodSubtitleVisaMastercard.
-  ///
-  /// In en, this message translates to:
-  /// **'Visa, Mastercard, etc.'**
-  String get paymentMethodSubtitleVisaMastercard;
-
   /// No description provided for @paymentKhqrMethodTitle.
   ///
   /// In en, this message translates to:
-  /// **'KHQR / Bakong'**
+  /// **'ABA KHQR'**
   String get paymentKhqrMethodTitle;
 
   /// No description provided for @paymentKhqrSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Bakong, ABA, ACLEDA & more'**
+  /// **'Scan to pay with any banking app'**
   String get paymentKhqrSubtitle;
+
+  /// No description provided for @paymentNoPayableItems.
+  ///
+  /// In en, this message translates to:
+  /// **'These items can\'t be paid online yet.'**
+  String get paymentNoPayableItems;
+
+  /// No description provided for @paymentWeAcceptLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'We accept'**
+  String get paymentWeAcceptLabel;
+
+  /// No description provided for @paymentCardConfirmingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirming your payment…'**
+  String get paymentCardConfirmingLabel;
+
+  /// No description provided for @paymentCardUnavailableLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Card payments aren\'t available yet. Please pay with ABA KHQR instead.'**
+  String get paymentCardUnavailableLabel;
+
+  /// No description provided for @paymentCardFailedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'This card payment didn\'t go through.'**
+  String get paymentCardFailedLabel;
+
+  /// No description provided for @paymentCardCloseButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get paymentCardCloseButton;
 
   /// No description provided for @paymentKhqrSheetTitle.
   ///
@@ -3972,7 +3954,7 @@ abstract class AppLocalizations {
   /// No description provided for @paymentKhqrInstructions.
   ///
   /// In en, this message translates to:
-  /// **'Open your banking app and scan this code to complete payment'**
+  /// **'Scan with ABA Mobile or any KHQR supported banking app'**
   String get paymentKhqrInstructions;
 
   /// No description provided for @paymentKhqrExpiresLabel.
@@ -3993,29 +3975,41 @@ abstract class AppLocalizations {
   /// **'Refresh Code'**
   String get paymentKhqrRefreshButton;
 
-  /// No description provided for @paymentKhqrConfirmButton.
+  /// No description provided for @paymentKhqrOpenAbaButton.
   ///
   /// In en, this message translates to:
-  /// **'I\'ve Completed the Payment'**
-  String get paymentKhqrConfirmButton;
+  /// **'Open ABA Mobile'**
+  String get paymentKhqrOpenAbaButton;
 
-  /// No description provided for @paymentPayAmountLabel.
+  /// No description provided for @paymentKhqrWaitingLabel.
   ///
   /// In en, this message translates to:
-  /// **'Pay {amount}'**
-  String paymentPayAmountLabel(String amount);
+  /// **'Waiting for payment…'**
+  String get paymentKhqrWaitingLabel;
+
+  /// No description provided for @paymentKhqrFailedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'This payment didn\'t go through. Refresh the code to try again.'**
+  String get paymentKhqrFailedLabel;
+
+  /// No description provided for @paymentKhqrRefundDueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'The deal filled up before your payment arrived. You\'ll be refunded.'**
+  String get paymentKhqrRefundDueLabel;
+
+  /// No description provided for @paymentKhqrAbaNotInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open ABA Mobile. Scan the code from your banking app instead.'**
+  String get paymentKhqrAbaNotInstalled;
 
   /// No description provided for @paymentPayNowButton.
   ///
   /// In en, this message translates to:
   /// **'Pay Now'**
   String get paymentPayNowButton;
-
-  /// No description provided for @paymentSecureEncryptionNote.
-  ///
-  /// In en, this message translates to:
-  /// **'Your payment credentials are securely encrypted'**
-  String get paymentSecureEncryptionNote;
 
   /// No description provided for @paymentSelectMethodLabel.
   ///

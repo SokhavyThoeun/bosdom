@@ -348,28 +348,4 @@ abstract final class CoBuyPoolService {
     }
     throw Exception('Failed to request leave: ${response.body}');
   }
-
-  /// Moves this buyer's pending join into held escrow.
-  static Future<CoBuySession> payJoin(String id, String paymentMethod) async {
-    final response = await http
-        .post(
-          Uri.parse('${ApiConfig.baseUrl}/co-buy/pools/$id/pay'),
-          headers: {..._authHeaders, 'Content-Type': 'application/json'},
-          body: jsonEncode({'payment_method': paymentMethod}),
-        )
-        .timeout(_timeout);
-    if (response.statusCode == 200) {
-      return CoBuySession.fromJson(
-        jsonDecode(response.body) as Map<String, dynamic>,
-      );
-    }
-    if (response.statusCode == 404 || response.statusCode == 409) {
-      final detail =
-          (jsonDecode(response.body) as Map<String, dynamic>)['detail'];
-      throw CoBuyJoinException(
-        detail is String ? detail : 'Unable to pay for this co-buy deal',
-      );
-    }
-    throw Exception('Failed to pay for co-buy deal: ${response.body}');
-  }
 }

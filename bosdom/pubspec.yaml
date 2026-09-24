@@ -55,6 +55,7 @@ dependencies:
   google_sign_in: ^7.2.0
   flex_color_picker: ^3.8.0
   qr_flutter: ^4.1.0
+  webview_flutter: ^4.14.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -83,6 +84,7 @@ flutter:
     - assets/images/shipping/
     - assets/icons/categories/
     - assets/KHQR_card.svg
+    - assets/payway/
     - assets/mock_products/
 
   # To add assets to your application, add an assets section, like this:

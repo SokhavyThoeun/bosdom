@@ -477,54 +477,39 @@ def request_leave(
     return _serialize_pool(pool, db, user.id)
 
 
-class PayJoinRequest(BaseModel):
-    payment_method: str
+def remaining_qty(db: Session, pool: CoBuyPool) -> int:
+    """Units still open in a deal — only paid joins count toward it."""
+    taken = sum(p.quantity for p in _active_participants(db, pool.id))
+    return max(0, pool.target_qty - taken)
 
 
-@router.post("/pools/{pool_id}/pay", response_model=CoBuyPoolOut)
-def pay_join(
-    pool_id: str,
-    body: PayJoinRequest,
-    user: CurrentUser = Depends(get_current_user),
-    db: Session = Depends(get_db),
-) -> CoBuyPoolOut:
-    pool = db.get(CoBuyPool, pool_id)
-    if pool is None:
-        raise HTTPException(status_code=404, detail="Co-buy deal not found")
-    participant = _own_participant(db, pool.id, user.id)
-    if participant is None:
-        raise HTTPException(status_code=404, detail="Join this deal before paying")
-    if participant.status != "pending_payment":
-        raise HTTPException(status_code=409, detail="This join is already paid")
-
-    # Others may have filled the deal while this buyer was at checkout.
-    before = sum(p.quantity for p in _active_participants(db, pool.id))
-    if before + participant.quantity > pool.target_qty:
-        db.delete(participant)
-        db.commit()
-        raise HTTPException(
-            status_code=409,
-            detail=f"Only {max(0, pool.target_qty - before)} {pool.unit_label} left in this deal",
-        )
-
+def hold_join(
+    db: Session,
+    pool: CoBuyPool,
+    participant: CoBuyParticipant,
+    method: str,
+    reference: str,
+) -> None:
+    """Moves a pending join into held escrow once ABA PayWay has confirmed its
+    payment (routers/payments.py), then tells the seller (and everyone, if this filled the deal). Commits."""
+    before = pool.target_qty - remaining_qty(db, pool)
     participant.status = "held"
-    participant.payment_method = body.payment_method
-    participant.payment_reference = f"COBUY-{uuid.uuid4().hex[:10].upper()}"
+    participant.payment_method = method
+    participant.payment_reference = reference
     participant.paid_at = datetime.now(timezone.utc)
     db.commit()
-    db.refresh(pool)
 
-    result = _serialize_pool(pool, db, user.id)
+    current = pool.target_qty - remaining_qty(db, pool)
     target = NotificationTarget(route="coBuyDetail", params={"id": pool.id})
     push_notification(
         db,
         pool.seller_id,
         "co_buy",
         "A retailer joined your co-buy",
-        f"{pool.product_name}: {result.current_qty}/{pool.target_qty} reached.",
+        f"{pool.product_name}: {current}/{pool.target_qty} reached.",
         target,
     )
-    if before < pool.target_qty and result.is_full:
+    if before < pool.target_qty <= current:
         body = f"{pool.product_name} hit its group buy target. Checkout closes soon."
         recipients = {p.buyer_id for p in _active_participants(db, pool.id)}
         recipients.add(pool.seller_id)
@@ -532,4 +517,3 @@ def pay_join(
             push_notification(
                 db, recipient, "co_buy", "Co-buy target reached", body, target
             )
-    return result

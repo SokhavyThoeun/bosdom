@@ -324,6 +324,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                         'payment',
                         extra: {
                           'amount': _total(shipping),
+                          'shippingFee': shipping,
                           'itemCount': _items.length,
                           'coBuyPoolId': widget.coBuyPoolId,
                           'shippingName': profile?.name ?? '',

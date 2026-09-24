@@ -2094,25 +2094,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentAmountToPayLabel => 'Amount to Pay';
 
   @override
-  String get paymentCardDetailsSubtitle => 'Securely enter your card details';
-
-  @override
   String get paymentCardMethodTitle => 'Credit/Debit Card';
-
-  @override
-  String get paymentCardNumberLabel => 'CARD NUMBER';
-
-  @override
-  String get paymentCardHolderLabel => 'CARD HOLDER';
-
-  @override
-  String get paymentCardHolderNameHint => 'Full name on card';
-
-  @override
-  String get paymentCardHolderPlaceholder => 'YOUR NAME';
-
-  @override
-  String get paymentCardValidThruLabel => 'VALID THRU';
 
   @override
   String get paymentConfirmedSubtitle => 'Your order has been placed and paid.';
@@ -2130,12 +2112,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentContinueShoppingButton => 'Continue Shopping';
 
   @override
-  String get paymentCvvLabel => 'CVV';
-
-  @override
-  String get paymentExpiryDateLabel => 'EXPIRY DATE';
-
-  @override
   String paymentFailedSnackbar(String error) {
     return 'Payment failed: $error';
   }
@@ -2146,20 +2122,36 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get paymentMethodSubtitleVisaMastercard => 'Visa, Mastercard, etc.';
+  String get paymentKhqrMethodTitle => 'ABA KHQR';
 
   @override
-  String get paymentKhqrMethodTitle => 'KHQR / Bakong';
+  String get paymentKhqrSubtitle => 'Scan to pay with any banking app';
 
   @override
-  String get paymentKhqrSubtitle => 'Bakong, ABA, ACLEDA & more';
+  String get paymentNoPayableItems => 'These items can\'t be paid online yet.';
+
+  @override
+  String get paymentWeAcceptLabel => 'We accept';
+
+  @override
+  String get paymentCardConfirmingLabel => 'Confirming your payment…';
+
+  @override
+  String get paymentCardUnavailableLabel =>
+      'Card payments aren\'t available yet. Please pay with ABA KHQR instead.';
+
+  @override
+  String get paymentCardFailedLabel => 'This card payment didn\'t go through.';
+
+  @override
+  String get paymentCardCloseButton => 'Close';
 
   @override
   String get paymentKhqrSheetTitle => 'Scan to Pay';
 
   @override
   String get paymentKhqrInstructions =>
-      'Open your banking app and scan this code to complete payment';
+      'Scan with ABA Mobile or any KHQR supported banking app';
 
   @override
   String paymentKhqrExpiresLabel(String time) {
@@ -2173,19 +2165,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentKhqrRefreshButton => 'Refresh Code';
 
   @override
-  String get paymentKhqrConfirmButton => 'I\'ve Completed the Payment';
+  String get paymentKhqrOpenAbaButton => 'Open ABA Mobile';
 
   @override
-  String paymentPayAmountLabel(String amount) {
-    return 'Pay $amount';
-  }
+  String get paymentKhqrWaitingLabel => 'Waiting for payment…';
+
+  @override
+  String get paymentKhqrFailedLabel =>
+      'This payment didn\'t go through. Refresh the code to try again.';
+
+  @override
+  String get paymentKhqrRefundDueLabel =>
+      'The deal filled up before your payment arrived. You\'ll be refunded.';
+
+  @override
+  String get paymentKhqrAbaNotInstalled =>
+      'Couldn\'t open ABA Mobile. Scan the code from your banking app instead.';
 
   @override
   String get paymentPayNowButton => 'Pay Now';
-
-  @override
-  String get paymentSecureEncryptionNote =>
-      'Your payment credentials are securely encrypted';
 
   @override
   String get paymentSelectMethodLabel => 'Select Payment Method';

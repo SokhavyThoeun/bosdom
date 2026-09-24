@@ -105,22 +105,6 @@ abstract final class OrderService {
     return Order.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   }
 
-  static Future<Order> payOrder(String orderId, String paymentMethod) async {
-    final response = await http
-        .post(
-          Uri.parse('${ApiConfig.baseUrl}/orders/$orderId/pay'),
-          headers: {..._authHeaders, 'Content-Type': 'application/json'},
-          body: jsonEncode({'payment_method': paymentMethod}),
-        )
-        .timeout(_timeout);
-
-    if (response.statusCode != 200) {
-      throw Exception('Failed to pay order: ${response.body}');
-    }
-
-    return Order.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
-  }
-
   static Future<Order> requestRelease(String orderId) async {
     final response = await http
         .post(

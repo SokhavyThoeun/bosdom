@@ -2,14 +2,13 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-import '../../../core/providers/currency_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/utils/currency_format.dart';
 import '../../../shared/widgets/price_display.dart';
@@ -20,12 +19,10 @@ import '../../cart/providers/cart_provider.dart';
 import '../../co_buying/providers/co_buy_provider.dart';
 import '../../orders/providers/orders_provider.dart';
 import '../../orders/services/order_service.dart';
+import '../services/payway_service.dart';
+import '../widgets/card_checkout_sheet.dart';
 
-enum _PaymentMethod { card, khqr }
-
-/// Mock riel/dollar rate used only to render a KHQR amount — this app has
-/// no real Bakong integration, so there's no live FX feed to call.
-const _kMockKhrPerUsd = 4100.0;
+enum _PaymentMethod { khqr, card }
 
 /// A purchased line item, summarized for the payment/confirmation flow.
 class OrderLineSummary {
@@ -65,6 +62,7 @@ class PaymentScreen extends ConsumerStatefulWidget {
   const PaymentScreen({
     super.key,
     required this.amount,
+    this.shippingFee = 0,
     this.itemCount = 3,
     this.items = const [],
     this.shippingName = '',
@@ -74,6 +72,10 @@ class PaymentScreen extends ConsumerStatefulWidget {
   });
 
   final double amount;
+
+  /// Part of [amount] that's shipping — the backend adds it to the items
+  /// when working out what PayWay should charge.
+  final double shippingFee;
   final int itemCount;
   final List<OrderLineSummary> items;
   final String shippingName;
@@ -90,30 +92,161 @@ class PaymentScreen extends ConsumerStatefulWidget {
 }
 
 class _PaymentScreenState extends ConsumerState<PaymentScreen> {
-  _PaymentMethod _selectedMethod = _PaymentMethod.card;
+  _PaymentMethod _selectedMethod = _PaymentMethod.khqr;
   bool _isPaying = false;
   bool _orderConfirmed = false;
 
-  Future<void> _onPayNowPressed() async {
-    final confirmed = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _selectedMethod == _PaymentMethod.khqr
-          ? _KhqrPaymentSheet(
-              amount: widget.amount,
-              currency: ref.read(currencyProvider),
-              showBoth: ref.read(showBothCurrenciesProvider),
-            )
-          : _CardDetailsSheet(amount: widget.amount),
-    );
+  /// Backend orders created for this checkout, still awaiting payment —
+  /// reused when the buyer closes the QR sheet and retries (or switches to
+  /// card) so a retry doesn't duplicate them.
+  List<String>? _pendingOrderIds;
 
-    if (confirmed == true) {
-      await _payNow();
+  /// The most recent KHQR transaction opened from this screen.
+  String? _khqrTranId;
+
+  Future<void> _onPayNowPressed() async {
+    switch (_selectedMethod) {
+      case _PaymentMethod.khqr:
+        await _payWithKhqr();
+      case _PaymentMethod.card:
+        await _payWithCard();
     }
   }
 
-  Future<void> _payNow() async {
+  /// Opens a real ABA PayWay card payment: PayWay's hosted card page in a
+  /// WebView, until the backend sees PayWay approve it.
+  Future<void> _payWithCard() async {
+    setState(() => _isPaying = true);
+    final CardCheckout checkout;
+    try {
+      final coBuyPoolId = widget.coBuyPoolId;
+      if (coBuyPoolId != null) {
+        checkout = await PaywayService.startCard(
+          coBuyPoolId: coBuyPoolId,
+          shippingFee: widget.shippingFee,
+        );
+      } else {
+        checkout = await PaywayService.startCard(
+          orderIds: await _orderIdsToPay(),
+          shippingFee: widget.shippingFee,
+        );
+      }
+    } catch (e) {
+      _showPaymentError(e);
+      return;
+    } finally {
+      if (mounted) setState(() => _isPaying = false);
+    }
+    if (!mounted) return;
+
+    var paid =
+        await showModalBottomSheet<bool>(
+          context: context,
+          isScrollControlled: true,
+          enableDrag: false,
+          backgroundColor: Colors.transparent,
+          builder: (context) => CardCheckoutSheet(checkout: checkout),
+        ) ??
+        false;
+    if (!paid) paid = await _paidAfterAll(checkout.tranId);
+    if (paid && mounted) await _showOrderConfirmed();
+  }
+
+  void _showPaymentError(Object error) {
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.paymentFailedSnackbar('$error'))),
+    );
+  }
+
+  /// A payment sheet closed without seeing the payment land — it may still
+  /// have gone through in the last few seconds, so ask once more.
+  Future<bool> _paidAfterAll(String tranId) async {
+    try {
+      return await PaywayService.status(tranId) == PaywayPaymentStatus.paid;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Opens a real ABA PayWay KHQR payment and shows its QR until the backend
+  /// sees PayWay approve it.
+  Future<void> _payWithKhqr() async {
+    setState(() => _isPaying = true);
+    final KhqrPayment payment;
+    try {
+      payment = await _startKhqr();
+    } catch (e) {
+      _showPaymentError(e);
+      return;
+    } finally {
+      if (mounted) setState(() => _isPaying = false);
+    }
+    if (!mounted) return;
+
+    var paid = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) =>
+          _KhqrPaymentSheet(initialPayment: payment, onRefresh: _startKhqr),
+    );
+
+    final tranId = _khqrTranId;
+    if (paid != true && tranId != null) paid = await _paidAfterAll(tranId);
+    if (paid == true && mounted) await _showOrderConfirmed();
+  }
+
+  Future<KhqrPayment> _startKhqr() async {
+    final coBuyPoolId = widget.coBuyPoolId;
+    final KhqrPayment payment;
+    if (coBuyPoolId != null) {
+      payment = await PaywayService.startKhqr(
+        coBuyPoolId: coBuyPoolId,
+        shippingFee: widget.shippingFee,
+      );
+    } else {
+      payment = await PaywayService.startKhqr(
+        orderIds: await _orderIdsToPay(),
+        shippingFee: widget.shippingFee,
+      );
+    }
+    _khqrTranId = payment.tranId;
+    return payment;
+  }
+
+  /// This checkout's backend orders, created on the first payment attempt
+  /// and reused by later ones.
+  Future<List<String>> _orderIdsToPay() async {
+    final noPayableItems = AppLocalizations.of(context).paymentNoPayableItems;
+    final orderIds = _pendingOrderIds ??= await _createOrders();
+    if (orderIds.isEmpty) throw PaymentException(noPayableItems);
+    return orderIds;
+  }
+
+  /// One backend `Order` per line that carries a real listing id — demo
+  /// lines have no backend counterpart to order, so they're skipped.
+  Future<List<String>> _createOrders() async {
+    final ids = <String>[];
+    for (final line in widget.items) {
+      final listingId = line.listingId;
+      if (listingId == null) continue;
+      final order = await OrderService.createOrder(
+        listingId: listingId,
+        quantity: line.quantity,
+        shippingName: widget.shippingName,
+        shippingAddress: widget.shippingAddress,
+        shippingPhone: widget.shippingPhone,
+      );
+      ids.add(order.id);
+    }
+    return ids;
+  }
+
+  /// Shows the confirming → confirmed flow once PayWay has approved the
+  /// payment and the backend has moved it into escrow.
+  Future<void> _showOrderConfirmed() async {
     setState(() => _isPaying = true);
 
     final rootNavigator = Navigator.of(context, rootNavigator: true);
@@ -138,29 +271,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       final coBuyPoolId = widget.coBuyPoolId;
       final paidListingIds = <String>{};
       if (coBuyPoolId != null) {
-        // Co-buy join: the pending participation already exists (created at
-        // "Join Deal"), this just moves it into held escrow.
-        await ref
-            .read(coBuyProvider.notifier)
-            .payJoin(coBuyPoolId, _selectedMethod.name);
+        ref.invalidate(coBuyProvider);
       } else {
-        // Real backend orders (15.1/15.2): one `Order` per line that carries
-        // a real listing id — demo lines have no backend counterpart to
-        // order, so they're skipped here and only reflected in this local
-        // confirmation UI.
-        for (final line in widget.items) {
-          final listingId = line.listingId;
-          if (listingId == null) continue;
-          final order = await OrderService.createOrder(
-            listingId: listingId,
-            quantity: line.quantity,
-            shippingName: widget.shippingName,
-            shippingAddress: widget.shippingAddress,
-            shippingPhone: widget.shippingPhone,
-          );
-          await OrderService.payOrder(order.id, _selectedMethod.name);
-          paidListingIds.add(listingId);
-        }
+        paidListingIds.addAll(widget.items.map((l) => l.listingId).nonNulls);
       }
 
       await minDelay;
@@ -295,11 +408,32 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                             ),
                           ),
                           const SizedBox(height: 12),
+                          // Rows and logos follow PayWay's eCommerce checkout
+                          // guideline (aba_resource/method*.svg).
                           _PaymentMethodTile(
-                            imageAsset: 'assets/images/visa-mastercard.webp',
-                            imagePadding: 6,
+                            iconAsset: 'assets/payway/aba_khqr_tile.svg',
+                            title: l10n.paymentKhqrMethodTitle,
+                            subtitle: Text(
+                              l10n.paymentKhqrSubtitle,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            selected: _selectedMethod == _PaymentMethod.khqr,
+                            onTap: () => setState(
+                              () => _selectedMethod = _PaymentMethod.khqr,
+                            ),
+                            colorScheme: colorScheme,
+                            textTheme: textTheme,
+                          ),
+                          const SizedBox(height: 12),
+                          _PaymentMethodTile(
+                            iconAsset: 'assets/payway/card_tile.svg',
                             title: l10n.paymentCardMethodTitle,
-                            subtitle: l10n.paymentMethodSubtitleVisaMastercard,
+                            subtitle: const _PaymentLogos(
+                              assets: _kCardLogos,
+                              height: 14,
+                            ),
                             selected: _selectedMethod == _PaymentMethod.card,
                             onTap: () => setState(
                               () => _selectedMethod = _PaymentMethod.card,
@@ -307,17 +441,23 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                             colorScheme: colorScheme,
                             textTheme: textTheme,
                           ),
-                          const SizedBox(height: 12),
-                          _PaymentMethodTile(
-                            imageAsset: 'assets/images/bakong-logo.png',
-                            title: l10n.paymentKhqrMethodTitle,
-                            subtitle: l10n.paymentKhqrSubtitle,
-                            selected: _selectedMethod == _PaymentMethod.khqr,
-                            onTap: () => setState(
-                              () => _selectedMethod = _PaymentMethod.khqr,
-                            ),
-                            colorScheme: colorScheme,
-                            textTheme: textTheme,
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Text(
+                                l10n.paymentWeAcceptLabel,
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              const Expanded(
+                                child: _PaymentLogos(
+                                  assets: _kAcceptedLogos,
+                                  height: 18,
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 24),
                           _AmountToPayCard(
@@ -424,10 +564,43 @@ class _PaymentHeader extends StatelessWidget {
   }
 }
 
+const _kCardLogos = [
+  'assets/payway/visa.svg',
+  'assets/payway/mastercard.svg',
+  'assets/payway/unionpay.svg',
+  'assets/payway/jcb.svg',
+];
+
+/// PayWay's "We accept" strip: every scheme its checkout takes.
+const _kAcceptedLogos = [
+  'assets/payway/aba.svg',
+  'assets/payway/khqr.svg',
+  ..._kCardLogos,
+];
+
+class _PaymentLogos extends StatelessWidget {
+  const _PaymentLogos({required this.assets, required this.height});
+
+  final List<String> assets;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: height * 0.45,
+      runSpacing: 6,
+      children: [
+        for (final asset in assets) SvgPicture.asset(asset, height: height),
+      ],
+    );
+  }
+}
+
+/// One payment option, laid out like PayWay's guideline rows: brand tile,
+/// title, then a caption or the accepted card logos.
 class _PaymentMethodTile extends StatelessWidget {
   const _PaymentMethodTile({
-    required this.imageAsset,
-    this.imagePadding = 0,
+    required this.iconAsset,
     required this.title,
     required this.subtitle,
     required this.selected,
@@ -436,10 +609,9 @@ class _PaymentMethodTile extends StatelessWidget {
     required this.textTheme,
   });
 
-  final String imageAsset;
-  final double imagePadding;
+  final String iconAsset;
   final String title;
-  final String subtitle;
+  final Widget subtitle;
   final bool selected;
   final VoidCallback onTap;
   final ColorScheme colorScheme;
@@ -464,21 +636,7 @@ class _PaymentMethodTile extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                alignment: Alignment.center,
-                clipBehavior: Clip.antiAlias,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: colorScheme.outlineVariant),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.all(imagePadding),
-                  child: Image.asset(imageAsset, fit: BoxFit.contain),
-                ),
-              ),
+              SvgPicture.asset(iconAsset, width: 44, height: 44),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -490,16 +648,12 @@ class _PaymentMethodTile extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
+                    const SizedBox(height: 4),
+                    subtitle,
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
               Container(
                 width: 24,
                 height: 24,
@@ -1224,753 +1378,155 @@ class _FlyInItemState extends State<_FlyInItem> {
   }
 }
 
-class _CardDetailsSheet extends ConsumerStatefulWidget {
-  const _CardDetailsSheet({required this.amount});
-
-  final double amount;
-
-  @override
-  ConsumerState<_CardDetailsSheet> createState() => _CardDetailsSheetState();
-}
-
-class _CardDetailsSheetState extends ConsumerState<_CardDetailsSheet> {
-  final _cardNumberController = TextEditingController();
-  final _cardHolderController = TextEditingController();
-  final _expiryController = TextEditingController();
-  final _cvvController = TextEditingController();
-  final _cvvFocusNode = FocusNode();
-
-  @override
-  void initState() {
-    super.initState();
-    // Redraws the live card preview as the buyer types.
-    _cardNumberController.addListener(_refreshPreview);
-    _cardHolderController.addListener(_refreshPreview);
-    _expiryController.addListener(_refreshPreview);
-    _cvvFocusNode.addListener(_refreshPreview);
-  }
-
-  void _refreshPreview() => setState(() {});
-
-  @override
-  void dispose() {
-    _cardNumberController.dispose();
-    _cardHolderController.dispose();
-    _expiryController.dispose();
-    _cvvController.dispose();
-    _cvvFocusNode.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final l10n = AppLocalizations.of(context);
-    final formattedAmount = formatPrice(ref, widget.amount);
-
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        child: SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: colorScheme.outlineVariant,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        l10n.paymentPayAmountLabel(formattedAmount),
-                        style: textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    InkWell(
-                      onTap: () => Navigator.of(context).pop(false),
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        width: 32,
-                        height: 32,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: colorScheme.outline),
-                        ),
-                        child: Icon(
-                          Icons.close,
-                          size: 18,
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  l10n.paymentCardDetailsSubtitle,
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                _VisaCardPreview(
-                  cardNumber: _cardNumberController.text,
-                  cardHolder: _cardHolderController.text,
-                  expiry: _expiryController.text,
-                  cvv: _cvvController.text,
-                  showBack: _cvvFocusNode.hasFocus,
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  l10n.paymentCardNumberLabel,
-                  style: textTheme.labelSmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _cardNumberController,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(16),
-                    _CardNumberFormatter(),
-                  ],
-                  decoration: InputDecoration(
-                    hintText: '0000 0000 0000 0000',
-                    prefixIcon: Icon(
-                      Icons.credit_card,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  l10n.paymentCardHolderLabel,
-                  style: textTheme.labelSmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _cardHolderController,
-                  textCapitalization: TextCapitalization.characters,
-                  keyboardType: TextInputType.name,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp("[a-zA-Z '-]")),
-                    LengthLimitingTextInputFormatter(26),
-                    _UpperCaseTextFormatter(),
-                  ],
-                  decoration: InputDecoration(
-                    hintText: l10n.paymentCardHolderNameHint,
-                    prefixIcon: Icon(
-                      Icons.person_outline,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l10n.paymentExpiryDateLabel,
-                            style: textTheme.labelSmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: _expiryController,
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                              LengthLimitingTextInputFormatter(4),
-                              _ExpiryDateFormatter(),
-                            ],
-                            decoration: InputDecoration(
-                              hintText: 'MM/YY',
-                              prefixIcon: Icon(
-                                Icons.calendar_today_outlined,
-                                size: 20,
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l10n.paymentCvvLabel,
-                            style: textTheme.labelSmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: _cvvController,
-                            focusNode: _cvvFocusNode,
-                            keyboardType: TextInputType.number,
-                            obscureText: true,
-                            obscuringCharacter: '•',
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                              LengthLimitingTextInputFormatter(4),
-                            ],
-                            decoration: InputDecoration(
-                              hintText: '***',
-                              prefixIcon: Icon(
-                                Icons.lock_outline,
-                                size: 20,
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.lock_outline,
-                      size: 16,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        l10n.paymentSecureEncryptionNote,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    child: Text(l10n.paymentPayAmountLabel(formattedAmount)),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CardNumberFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    final digits = newValue.text;
-    final buffer = StringBuffer();
-    for (var i = 0; i < digits.length; i++) {
-      if (i != 0 && i % 4 == 0) buffer.write(' ');
-      buffer.write(digits[i]);
-    }
-    return TextEditingValue(
-      text: buffer.toString(),
-      selection: TextSelection.collapsed(offset: buffer.length),
-    );
-  }
-}
-
-class _ExpiryDateFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    final digits = newValue.text;
-    final buffer = StringBuffer();
-    for (var i = 0; i < digits.length; i++) {
-      if (i == 2) buffer.write('/');
-      buffer.write(digits[i]);
-    }
-    return TextEditingValue(
-      text: buffer.toString(),
-      selection: TextSelection.collapsed(offset: buffer.length),
-    );
-  }
-}
-
-/// Uppercases text as the buyer types, matching how a name is embossed on
-/// a real card.
-class _UpperCaseTextFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    return newValue.copyWith(
-      text: newValue.text.toUpperCase(),
-      selection: newValue.selection,
-    );
-  }
-}
-
-/// A live-updating "credit card" visual (gradient, embossed digits, EMV
-/// chip, VISA wordmark) mirroring what the buyer is typing into
-/// [_CardDetailsSheet], flipping to a back face with the CVV while that
-/// field is focused — there is no real card network/Stripe behind this,
-/// purely a UI mock.
-class _VisaCardPreview extends StatelessWidget {
-  const _VisaCardPreview({
-    required this.cardNumber,
-    required this.cardHolder,
-    required this.expiry,
-    required this.cvv,
-    required this.showBack,
-  });
-
-  final String cardNumber;
-  final String cardHolder;
-  final String expiry;
-  final String cvv;
-  final bool showBack;
-
-  @override
-  Widget build(BuildContext context) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween<double>(begin: 0, end: showBack ? 1 : 0),
-      duration: const Duration(milliseconds: 450),
-      curve: Curves.easeInOutCubic,
-      builder: (context, value, child) {
-        final isBackHalf = value > 0.5;
-        return Transform(
-          alignment: Alignment.center,
-          transform: Matrix4.identity()
-            ..setEntry(3, 2, 0.0012)
-            ..rotateY(value * math.pi),
-          child: isBackHalf
-              ? Transform(
-                  alignment: Alignment.center,
-                  transform: Matrix4.identity()..rotateY(math.pi),
-                  child: _VisaCardBack(cvv: cvv),
-                )
-              : _VisaCardFront(
-                  cardNumber: cardNumber,
-                  cardHolder: cardHolder,
-                  expiry: expiry,
-                ),
-        );
-      },
-    );
-  }
-}
-
-class _VisaCardFront extends StatelessWidget {
-  const _VisaCardFront({
-    required this.cardNumber,
-    required this.cardHolder,
-    required this.expiry,
-  });
-
-  final String cardNumber;
-  final String cardHolder;
-  final String expiry;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final digits = cardNumber.replaceAll(' ', '');
-    final groups = List.generate(4, (i) {
-      final start = i * 4;
-      if (start >= digits.length) return '••••';
-      final end = (start + 4).clamp(0, digits.length);
-      return digits.substring(start, end).padRight(4, '•');
-    });
-    final expiryDisplay = expiry.isEmpty ? 'MM/YY' : expiry;
-    final holderDisplay = cardHolder.trim().isEmpty
-        ? l10n.paymentCardHolderPlaceholder
-        : cardHolder.trim();
-    final labelStyle = TextStyle(
-      color: Colors.white.withValues(alpha: 0.65),
-      fontSize: 9,
-      fontWeight: FontWeight.w600,
-      letterSpacing: 0.6,
-    );
-    const valueStyle = TextStyle(
-      color: Colors.white,
-      fontSize: 13,
-      fontWeight: FontWeight.w600,
-      letterSpacing: 0.5,
-    );
-
-    return _CardFace(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const _EmvChip(),
-              const SizedBox(width: 10),
-              Transform.rotate(
-                angle: math.pi / 2,
-                child: Icon(
-                  Icons.wifi_rounded,
-                  color: Colors.white.withValues(alpha: 0.85),
-                  size: 20,
-                ),
-              ),
-              const Spacer(),
-              const _VisaWordmark(),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Text(
-            groups.join('  '),
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 2,
-              shadows: [Shadow(color: Color(0x40000000), offset: Offset(0, 1))],
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(l10n.paymentCardHolderLabel, style: labelStyle),
-                    const SizedBox(height: 4),
-                    Text(
-                      holderDisplay,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: valueStyle,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(l10n.paymentCardValidThruLabel, style: labelStyle),
-                  const SizedBox(height: 4),
-                  Text(expiryDisplay, style: valueStyle),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _VisaCardBack extends StatelessWidget {
-  const _VisaCardBack({required this.cvv});
-
-  final String cvv;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final cvvDisplay = cvv.isEmpty ? '•••' : cvv;
-
-    return _CardFace(
-      padding: EdgeInsets.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 22),
-          Container(height: 40, color: Colors.black.withValues(alpha: 0.75)),
-          const SizedBox(height: 18),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    height: 30,
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.only(right: 10),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.9),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      cvvDisplay,
-                      style: const TextStyle(
-                        color: Colors.black87,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 2,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 6),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Text(
-              l10n.paymentCvvLabel,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.6),
-                fontSize: 9,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.6,
-              ),
-            ),
-          ),
-          const Spacer(),
-          Align(
-            alignment: Alignment.centerRight,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
-              child: _VisaWordmark(),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Shared front/back card shell: gradient, rounded corners, shadow, and a
-/// faint highlight so the card reads as glossy rather than flat.
-class _CardFace extends StatelessWidget {
-  const _CardFace({
-    required this.child,
-    this.padding = const EdgeInsets.all(20),
-  });
-
-  final Widget child;
-  final EdgeInsets padding;
-
-  @override
-  Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: 1.586,
-      child: Container(
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [AppColors.brandCrimson, AppColors.deepBurgundy],
-          ),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x40000000),
-              blurRadius: 18,
-              offset: Offset(0, 10),
-            ),
-          ],
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              top: -40,
-              right: -30,
-              child: Container(
-                width: 140,
-                height: 140,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.05),
-                ),
-              ),
-            ),
-            Padding(padding: padding, child: child),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _EmvChip extends StatelessWidget {
-  const _EmvChip();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 38,
-      height: 28,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFF6E7B4), Color(0xFFC9A24B)],
-        ),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: CustomPaint(painter: _EmvChipPainter()),
-    );
-  }
-}
-
-class _EmvChipPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0x33000000)
-      ..strokeWidth = 1;
-    final midY1 = size.height * 0.34;
-    final midY2 = size.height * 0.66;
-    final leftX = size.width * 0.28;
-    final rightX = size.width * 0.72;
-
-    canvas.drawLine(Offset(0, midY1), Offset(size.width, midY1), paint);
-    canvas.drawLine(Offset(0, midY2), Offset(size.width, midY2), paint);
-    canvas.drawLine(
-      Offset(size.width / 2, midY1),
-      Offset(size.width / 2, midY2),
-      paint,
-    );
-    canvas.drawLine(Offset(leftX, 0), Offset(leftX, midY1), paint);
-    canvas.drawLine(Offset(rightX, 0), Offset(rightX, midY1), paint);
-    canvas.drawLine(Offset(leftX, midY2), Offset(leftX, size.height), paint);
-    canvas.drawLine(Offset(rightX, midY2), Offset(rightX, size.height), paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _EmvChipPainter oldDelegate) => false;
-}
-
-class _VisaWordmark extends StatelessWidget {
-  const _VisaWordmark();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Text(
-      'VISA',
-      style: TextStyle(
-        color: Colors.white,
-        fontSize: 20,
-        fontWeight: FontWeight.w900,
-        fontStyle: FontStyle.italic,
-        letterSpacing: 1,
-      ),
-    );
-  }
-}
-
-/// KHQR/Bakong "scan to pay" mock — a bottom sheet showing a generated QR
-/// code on the provided [assets/KHQR_card.svg] template with a countdown,
-/// and a manual "I've paid" confirm button since there's no real Bakong
-/// backend/webhook to detect a scan against.
+/// KHQR "scan to pay" bottom sheet for a real ABA PayWay transaction: the
+/// QR in PayWay's KHQR presentation ([_KhqrPanel]) with a countdown, an "Open
+/// ABA Mobile" shortcut, and a status poll that closes the sheet (with
+/// `true`) as soon as the backend sees PayWay approve the payment.
 class _KhqrPaymentSheet extends StatefulWidget {
   const _KhqrPaymentSheet({
-    required this.amount,
-    required this.currency,
-    required this.showBoth,
+    required this.initialPayment,
+    required this.onRefresh,
   });
 
-  final double amount;
-  final AppCurrency currency;
-  final bool showBoth;
+  final KhqrPayment initialPayment;
+
+  /// Opens a fresh transaction once this one's QR has expired.
+  final Future<KhqrPayment> Function() onRefresh;
 
   @override
   State<_KhqrPaymentSheet> createState() => _KhqrPaymentSheetState();
 }
 
 class _KhqrPaymentSheetState extends State<_KhqrPaymentSheet> {
-  static const _initialSeconds = 5 * 60;
+  static const _pollInterval = Duration(seconds: 3);
 
-  int _secondsLeft = _initialSeconds;
-  late String _qrData;
-  Timer? _timer;
+  late KhqrPayment _payment;
+  late int _secondsLeft;
+  Timer? _countdownTimer;
+  Timer? _pollTimer;
+  Timer? _sandboxTimer;
+  bool _polling = false;
+  bool _refreshing = false;
+
+  /// Set once PayWay has settled the payment without it going through
+  /// (declined, or a co-buy deal that filled up first).
+  PaywayPaymentStatus? _failure;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _qrData = _generateQrPayload();
-    _startTimer();
+    _payment = widget.initialPayment;
+    _startTimers();
   }
 
-  String _generateQrPayload() {
-    final khr = ((widget.amount * _kMockKhrPerUsd) / 100).round() * 100;
-    final stamp = DateTime.now().millisecondsSinceEpoch;
-    return 'KHQR-BOSDOM-$khr-$stamp';
-  }
-
-  void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+  void _startTimers() {
+    _secondsLeft = _secondsUntilExpiry();
+    _countdownTimer?.cancel();
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
-      if (_secondsLeft <= 1) {
-        timer.cancel();
-        setState(() => _secondsLeft = 0);
-      } else {
-        setState(() => _secondsLeft -= 1);
-      }
+      setState(() => _secondsLeft = _secondsUntilExpiry());
     });
+    _pollTimer?.cancel();
+    _pollTimer = Timer.periodic(_pollInterval, (_) => _poll());
+    _sandboxTimer?.cancel();
+    final approveAfter = _payment.sandboxApproveAfter;
+    if (approveAfter != null) {
+      _sandboxTimer = Timer(approveAfter, _sandboxApprove);
+    }
   }
 
-  void _refreshCode() {
-    _timer?.cancel();
+  int _secondsUntilExpiry() =>
+      math.max(0, _payment.expiresAt.difference(DateTime.now()).inSeconds);
+
+  /// Sandbox QR codes can't be paid by a real banking app, so on the
+  /// sandbox the backend is told to treat this one as scanned and paid.
+  Future<void> _sandboxApprove() async {
+    try {
+      await PaywayService.sandboxApprove(_payment.tranId);
+    } catch (_) {
+      // Leave it to the normal poll.
+    }
+    await _poll();
+  }
+
+  Future<void> _poll() async {
+    if (_polling) return;
+    _polling = true;
+    try {
+      final status = await PaywayService.status(_payment.tranId);
+      if (!mounted) return;
+      switch (status) {
+        case PaywayPaymentStatus.paid:
+          _stopTimers();
+          Navigator.of(context).pop(true);
+        case PaywayPaymentStatus.failed || PaywayPaymentStatus.refundDue:
+          _stopTimers();
+          setState(() => _failure = status);
+        case PaywayPaymentStatus.expired:
+          // Nothing more can land on this QR — stop asking about it.
+          _stopTimers();
+          setState(() => _secondsLeft = 0);
+        case PaywayPaymentStatus.pending:
+          // Keep polling, even just past the countdown: a scan in the last
+          // seconds can still come through.
+          break;
+      }
+    } catch (_) {
+      // A dropped poll is fine; the next tick tries again.
+    } finally {
+      _polling = false;
+    }
+  }
+
+  Future<void> _refreshCode() async {
     setState(() {
-      _secondsLeft = _initialSeconds;
-      _qrData = _generateQrPayload();
+      _refreshing = true;
+      _error = null;
     });
-    _startTimer();
+    try {
+      final next = await widget.onRefresh();
+      if (!mounted) return;
+      setState(() {
+        _payment = next;
+        _failure = null;
+      });
+      _startTimers();
+    } catch (e) {
+      // The old QR may have been paid after all (the backend refuses to
+      // open another payment then) — check before showing the error.
+      await _poll();
+      if (mounted) setState(() => _error = '$e');
+    } finally {
+      if (mounted) setState(() => _refreshing = false);
+    }
+  }
+
+  Future<void> _openAbaMobile() async {
+    final l10n = AppLocalizations.of(context);
+    var opened = false;
+    final uri = Uri.tryParse(_payment.deeplink);
+    if (uri != null) {
+      try {
+        opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } catch (_) {
+        opened = false;
+      }
+    }
+    if (!opened && mounted) {
+      setState(() => _error = l10n.paymentKhqrAbaNotInstalled);
+    }
+  }
+
+  void _stopTimers() {
+    _countdownTimer?.cancel();
+    _pollTimer?.cancel();
+    _sandboxTimer?.cancel();
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _stopTimers();
     super.dispose();
   }
 
@@ -1985,11 +1541,13 @@ class _KhqrPaymentSheetState extends State<_KhqrPaymentSheet> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
-    final expired = _secondsLeft == 0;
+    final failure = _failure;
+    final expired = _secondsLeft == 0 || failure != null;
+    final error = _error;
 
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.92,
       ),
       child: DecoratedBox(
         decoration: BoxDecoration(
@@ -2045,79 +1603,115 @@ class _KhqrPaymentSheetState extends State<_KhqrPaymentSheet> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  l10n.paymentKhqrInstructions,
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 260),
-                    child: AnimatedOpacity(
-                      opacity: expired ? 0.35 : 1,
-                      duration: const Duration(milliseconds: 250),
-                      child: _KhqrCardVisual(
-                        amountUsd: widget.amount,
-                        currency: widget.currency,
-                        showBoth: widget.showBoth,
-                        qrData: _qrData,
-                      ),
+                const SizedBox(height: 16),
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        _KhqrPanel(
+                          amountUsd: _payment.amount,
+                          qrData: _payment.qrString,
+                          dimmed: expired,
+                        ),
+                        const SizedBox(height: 16),
+                        if (failure == PaywayPaymentStatus.refundDue)
+                          Text(
+                            l10n.paymentKhqrRefundDueLabel,
+                            textAlign: TextAlign.center,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: colorScheme.error,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          )
+                        else if (expired) ...[
+                          Text(
+                            failure == PaywayPaymentStatus.failed
+                                ? l10n.paymentKhqrFailedLabel
+                                : l10n.paymentKhqrExpiredLabel,
+                            textAlign: TextAlign.center,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: colorScheme.error,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextButton.icon(
+                            onPressed: _refreshing ? null : _refreshCode,
+                            icon: _refreshing
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(Icons.refresh, size: 18),
+                            label: Text(l10n.paymentKhqrRefreshButton),
+                          ),
+                        ] else
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.timer_outlined,
+                                size: 16,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                l10n.paymentKhqrExpiresLabel(_formattedTime),
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        if (error != null) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            error,
+                            textAlign: TextAlign.center,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: colorScheme.error,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                Center(
-                  child: expired
-                      ? Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              l10n.paymentKhqrExpiredLabel,
-                              style: textTheme.bodySmall?.copyWith(
-                                color: colorScheme.error,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            TextButton.icon(
-                              onPressed: _refreshCode,
-                              icon: const Icon(Icons.refresh, size: 18),
-                              label: Text(l10n.paymentKhqrRefreshButton),
-                            ),
-                          ],
-                        )
-                      : Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.timer_outlined,
-                              size: 16,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              l10n.paymentKhqrExpiresLabel(_formattedTime),
-                              style: textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                ),
                 const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: expired
-                        ? null
-                        : () => Navigator.of(context).pop(true),
-                    child: Text(l10n.paymentKhqrConfirmButton),
-                  ),
+                FilledButton.icon(
+                  onPressed: expired || _payment.deeplink.isEmpty
+                      ? null
+                      : _openAbaMobile,
+                  icon: const Icon(Icons.open_in_new, size: 18),
+                  label: Text(l10n.paymentKhqrOpenAbaButton),
                 ),
+                if (!expired) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 12,
+                        height: 12,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 1.5,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        l10n.paymentKhqrWaitingLabel,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
@@ -2127,147 +1721,196 @@ class _KhqrPaymentSheetState extends State<_KhqrPaymentSheet> {
   }
 }
 
-/// Renders [assets/KHQR_card.svg] as a card background and overlays the
-/// merchant name, KHR amount, and a generated QR code on top of it, using
-/// the SVG's fixed viewBox geometry (442x622) to place each element
-/// proportionally regardless of the rendered size.
-class _KhqrCardVisual extends StatelessWidget {
-  const _KhqrCardVisual({
+/// PayWay's KHQR presentation, from `aba_resource/paywayqr.svg` and the
+/// placement rules in `aba_resource/qr_guideline.png`: the ABA PAY logo, the
+/// KHQR card and the scan caption on a grey panel with the guideline's
+/// protected white outline (6px, 18px corners) and 24px safe space. Laid out
+/// 1:1 on the design's 196px-wide grid, which keeps the QR at the
+/// guideline's 144px maximum. The colours are PayWay's brand spec, not the
+/// app theme's.
+class _KhqrPanel extends StatelessWidget {
+  const _KhqrPanel({
     required this.amountUsd,
-    required this.currency,
-    required this.showBoth,
     required this.qrData,
+    required this.dimmed,
   });
 
   final double amountUsd;
-  final AppCurrency currency;
-  final bool showBoth;
   final String qrData;
+  final bool dimmed;
 
-  static const _svgWidth = 442.0;
-  static const _svgHeight = 622.0;
-  static const _headerBottomFraction = 90.6 / _svgHeight;
-  static const _dashedLineFraction = 218.5 / _svgHeight;
-  static const _cardLeftFraction = 21.0 / _svgWidth;
-  static const _cardRightFraction = 421.0 / _svgWidth;
-  static const _cardBottomFraction = 601.0 / _svgHeight;
+  static const _panelColor = Color(0xFFE8E9EC);
+  static const _captionColor = Color(0xFF878787);
 
   @override
   Widget build(BuildContext context) {
-    final String amountPrefix;
-    final String amountLabel;
-    final String amountSuffix;
-    final String secondaryAmount;
-    final khr = ((amountUsd * _kMockKhrPerUsd) / 100).round() * 100;
-    if (currency == AppCurrency.usd) {
-      amountPrefix = r'$';
-      amountLabel = NumberFormat('#,##0.00', 'en_US').format(amountUsd);
-      amountSuffix = '  USD';
-      secondaryAmount = '≈ ៛${NumberFormat('#,##0', 'en_US').format(khr)}';
-    } else {
-      amountPrefix = '';
-      amountLabel = NumberFormat('#,##0', 'en_US').format(khr);
-      amountSuffix = '  KHR';
-      secondaryAmount =
-          '≈ \$${NumberFormat('#,##0.00', 'en_US').format(amountUsd)}';
-    }
-
-    return AspectRatio(
-      aspectRatio: _svgWidth / _svgHeight,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final width = constraints.maxWidth;
-          final height = constraints.maxHeight;
-          return Stack(
-            children: [
-              SvgPicture.asset(
-                'assets/KHQR_card.svg',
-                width: width,
-                height: height,
-                fit: BoxFit.fill,
+    final l10n = AppLocalizations.of(context);
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: _panelColor,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white, width: 6),
+      ),
+      child: SizedBox(
+        width: _KhqrCard.width,
+        child: Column(
+          children: [
+            SvgPicture.asset(
+              'assets/payway/aba_pay.svg',
+              width: _KhqrCard.width,
+            ),
+            const SizedBox(height: 32),
+            AnimatedOpacity(
+              opacity: dimmed ? 0.35 : 1,
+              duration: const Duration(milliseconds: 250),
+              child: _KhqrCard(amountUsd: amountUsd, qrData: qrData),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              l10n.paymentKhqrInstructions,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 12,
+                height: 1.35,
+                color: _captionColor,
               ),
-              Positioned(
-                top: height * _headerBottomFraction + height * 0.03,
-                left: width * _cardLeftFraction + width * 0.03,
-                right: width * (1 - _cardRightFraction) + width * 0.03,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'BosDom Marketplace',
-                      style: TextStyle(
-                        fontSize: height * 0.026,
-                        color: AppColors.warmTaupe,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    SizedBox(height: height * 0.012),
-                    Text.rich(
-                      TextSpan(
-                        children: [
-                          TextSpan(
-                            text: '$amountPrefix$amountLabel',
-                            style: TextStyle(
-                              fontSize: height * 0.05,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.warmBlack,
-                            ),
-                          ),
-                          TextSpan(
-                            text: amountSuffix,
-                            style: TextStyle(
-                              fontSize: height * 0.022,
-                              color: AppColors.warmTaupe,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (showBoth) ...[
-                      SizedBox(height: height * 0.006),
-                      Text(
-                        secondaryAmount,
-                        style: TextStyle(
-                          fontSize: height * 0.022,
-                          color: AppColors.warmTaupe,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              Positioned(
-                top: height * _dashedLineFraction + height * 0.045,
-                left: 0,
-                right: 0,
-                bottom: height * (1 - _cardBottomFraction) + height * 0.025,
-                child: Center(
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: Padding(
-                      padding: EdgeInsets.all(width * 0.02),
-                      child: QrImageView(
-                        data: qrData,
-                        backgroundColor: Colors.white,
-                        eyeStyle: const QrEyeStyle(
-                          eyeShape: QrEyeShape.square,
-                          color: Colors.black,
-                        ),
-                        dataModuleStyle: const QrDataModuleStyle(
-                          dataModuleShape: QrDataModuleShape.square,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
+            ),
+          ],
+        ),
       ),
     );
   }
+}
+
+/// The KHQR card itself (paywayqr.svg's 196x301 card): red KHQR header with
+/// its folded corner, merchant and amount, a dashed divider, then the QR with
+/// the Bakong badge — which PayWay shows whatever the currency.
+class _KhqrCard extends StatelessWidget {
+  const _KhqrCard({required this.amountUsd, required this.qrData});
+
+  final double amountUsd;
+  final String qrData;
+
+  static const width = 196.0;
+  static const _height = 301.0;
+  static const _qrSize = 144.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: _height,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(17),
+        boxShadow: const [BoxShadow(color: Color(0x29000000), blurRadius: 11)],
+      ),
+      child: Stack(
+        children: [
+          SvgPicture.asset(
+            'assets/payway/khqr_card_header.svg',
+            width: width,
+            height: 54,
+          ),
+          Positioned(
+            left: 26.7,
+            top: 52,
+            right: 20,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'BosDom Marketplace',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    height: 1.2,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 4.6),
+                Text(
+                  '\$ ${NumberFormat('#,##0.00', 'en_US').format(amountUsd)}',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    height: 1.2,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Positioned(
+            left: 0,
+            right: 0,
+            top: 105,
+            child: CustomPaint(
+              size: Size(width, 1),
+              painter: _DashedLinePainter(),
+            ),
+          ),
+          Positioned(
+            left: (width - _qrSize) / 2,
+            top: 131,
+            width: _qrSize,
+            height: _qrSize,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                QrImageView(
+                  data: qrData,
+                  size: _qrSize,
+                  padding: EdgeInsets.zero,
+                  // High error correction so the centre badge can cover part
+                  // of the code and it still scans.
+                  errorCorrectionLevel: QrErrorCorrectLevel.H,
+                  backgroundColor: Colors.white,
+                  eyeStyle: const QrEyeStyle(
+                    eyeShape: QrEyeShape.square,
+                    color: Colors.black,
+                  ),
+                  dataModuleStyle: const QrDataModuleStyle(
+                    dataModuleShape: QrDataModuleShape.square,
+                    color: Colors.black,
+                  ),
+                ),
+                SvgPicture.asset(
+                  'assets/payway/bakong_badge.svg',
+                  width: 41,
+                  height: 41,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// paywayqr.svg's divider: black at 50%, 0.5px, 4.14px dashes and gaps.
+class _DashedLinePainter extends CustomPainter {
+  const _DashedLinePainter();
+
+  static const _dash = 4.14;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.5)
+      ..strokeWidth = 0.5175;
+    for (var x = 0.0; x < size.width; x += _dash * 2) {
+      canvas.drawLine(
+        Offset(x, 0),
+        Offset(math.min(x + _dash, size.width), 0),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
