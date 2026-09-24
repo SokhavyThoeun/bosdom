@@ -597,3 +597,30 @@ class AdminCoBuyLeave {
 
   bool get isPending => decision == 'pending';
 }
+
+class AdminNotification {
+  const AdminNotification({
+    required this.kind,
+    required this.title,
+    required this.body,
+    required this.route,
+    required this.createdAt,
+  });
+
+  factory AdminNotification.fromJson(Map<String, dynamic> json) =>
+      AdminNotification(
+        kind: json['kind'] as String,
+        title: json['title'] as String,
+        body: json['body'] as String,
+        route: json['route'] as String,
+        createdAt: json['created_at'] == null
+            ? null
+            : DateTime.parse(json['created_at'] as String).toLocal(),
+      );
+
+  final String kind;
+  final String title;
+  final String body;
+  final String route;
+  final DateTime? createdAt;
+}

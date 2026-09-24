@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
@@ -128,6 +129,12 @@ class _LoginScreenState extends State<LoginScreen> {
       // Navigation happens via the onAuthStateChange listener in initState
       // once the web sheet redirects back with a session.
     } catch (error) {
+      // The user backing out of the Google sheet isn't an error worth
+      // surfacing — just quietly return them to the login screen.
+      if (error is GoogleSignInException &&
+          error.code == GoogleSignInExceptionCode.canceled) {
+        return;
+      }
       _showError(error);
     } finally {
       if (mounted) setState(() => _isSubmitting = false);

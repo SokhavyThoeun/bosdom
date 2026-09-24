@@ -391,6 +391,8 @@ def send_message(
 
     sender_name, _, _ = _display_for(db, conversation, user.id)
     push_notification(
+        db,
+        _counterpart_id(conversation, user.id),
         category="chat",
         title=f"New message from {sender_name}",
         body=text,
@@ -428,6 +430,8 @@ def send_image_message(
 
     sender_name, _, _ = _display_for(db, conversation, user.id)
     push_notification(
+        db,
+        _counterpart_id(conversation, user.id),
         category="chat",
         title=f"New message from {sender_name}",
         body="📷 Photo",

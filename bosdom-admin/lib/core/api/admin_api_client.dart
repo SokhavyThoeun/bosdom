@@ -43,6 +43,11 @@ abstract final class AdminApiClient {
       } catch (_) {
         // Body wasn't JSON — fall back to the raw text above.
       }
+      // Expired/invalid token: drop the stale session so the router sends the
+      // admin back to the login screen instead of a dead "invalid token" page.
+      if (response.statusCode == 401 && adminSession.isLoggedIn) {
+        unawaited(adminSession.logout());
+      }
       throw AdminApiException(response.statusCode, detail);
     }
     return jsonDecode(response.body) as Map<String, dynamic>;
@@ -92,6 +97,9 @@ abstract final class AdminApiClient {
     final list = jsonDecode(response.body) as List;
     return list.map((e) => fromJson(e as Map<String, dynamic>)).toList();
   }
+
+  static Future<List<AdminNotification>> fetchNotifications() =>
+      _getList('/admin/notifications', AdminNotification.fromJson);
 
   static Future<List<AdminSeller>> fetchSellers() =>
       _getList('/admin/sellers', AdminSeller.fromJson);
@@ -224,8 +232,8 @@ abstract final class AdminApiClient {
   static Future<void> unverifyProfile(String id) =>
       _post('/admin/profiles/$id/unverify');
 
-  static Future<void> rejectProfile(String id) =>
-      _post('/admin/profiles/$id/reject');
+  static Future<void> rejectProfile(String id, String reason) =>
+      _postJson('/admin/profiles/$id/reject', {'reason': reason});
 
   static Future<void> suspendProfile(String id) =>
       _post('/admin/profiles/$id/suspend');

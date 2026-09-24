@@ -598,17 +598,7 @@ class _SellerActions extends StatelessWidget {
             style: TextButton.styleFrom(
               foregroundColor: const Color(0xFFB3261E),
             ),
-            onPressed: () => confirmAndRun(
-              context,
-              title: 'Reject seller?',
-              message:
-                  '${seller.name} will be denied the verified seller badge '
-                  'until they resubmit their documents.',
-              confirmLabel: 'Reject',
-              destructive: true,
-              action: () => AdminApiClient.rejectProfile(seller.id),
-              onSuccess: reload,
-            ),
+            onPressed: () => _rejectWithReason(context, seller, reload),
             child: const Text('Reject'),
           ),
         if (status == 'verified')
@@ -650,5 +640,76 @@ class _SellerActions extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+/// Asks for the reason first: it is sent to the seller as a notification so
+/// they know what to fix before registering again.
+Future<void> _rejectWithReason(
+  BuildContext context,
+  AdminSeller seller,
+  VoidCallback reload,
+) async {
+  final controller = TextEditingController();
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => StatefulBuilder(
+      builder: (dialogContext, setState) => AlertDialog(
+        title: const Text('Reject seller?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${seller.name} goes back to a normal buyer account and can '
+              'register as a seller again. The reason below is sent to them.',
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              maxLines: 3,
+              onChanged: (_) => setState(() {}),
+              decoration: const InputDecoration(
+                hintText: 'Reason for rejecting',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: controller.text.trim().isEmpty
+                ? null
+                : () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Reject'),
+          ),
+        ],
+      ),
+    ),
+  );
+  final reason = controller.text.trim();
+  controller.dispose();
+  if (confirmed != true || !context.mounted) return;
+  try {
+    await AdminApiClient.rejectProfile(seller.id, reason);
+    reload();
+    if (context.mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Reject done')));
+    }
+  } catch (error) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.toString()),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    }
   }
 }

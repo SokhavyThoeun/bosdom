@@ -143,7 +143,7 @@ class CoBuyingScreen extends ConsumerWidget {
 // Matches the combined height of the logo/notification row + search bar
 // used by the homepage and wishlist headers, so this header is the same
 // overall size even though it shows a back row + centered title.
-const _kHeaderContentHeight = 96.0;
+const _kHeaderContentHeight = 68.0;
 
 class _Header extends StatelessWidget {
   const _Header({required this.colorScheme, required this.textTheme});
@@ -160,9 +160,9 @@ class _Header extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           24,
-          MediaQuery.of(context).padding.top + 16,
+          MediaQuery.of(context).padding.top + 10,
           24,
-          20,
+          14,
         ),
         child: SizedBox(
           height: _kHeaderContentHeight,

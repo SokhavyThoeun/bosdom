@@ -42,19 +42,15 @@ class CoBuyCard extends StatelessWidget {
                 child: Image.network(
                   session.imageUrl,
                   fit: BoxFit.cover,
-                  loadingBuilder: (context, child, progress) =>
-                      progress == null
+                  loadingBuilder: (context, child, progress) => progress == null
                       ? child
                       : Icon(
                           session.icon,
                           color: colorScheme.primary,
                           size: 56,
                         ),
-                  errorBuilder: (context, error, stackTrace) => Icon(
-                    session.icon,
-                    color: colorScheme.primary,
-                    size: 56,
-                  ),
+                  errorBuilder: (context, error, stackTrace) =>
+                      Icon(session.icon, color: colorScheme.primary, size: 56),
                 ),
               ),
             ),

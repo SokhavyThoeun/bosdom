@@ -214,8 +214,8 @@ class _StoreHeader extends ConsumerWidget {
           24,
           14,
         ),
-        child: SizedBox(
-          height: _kHeaderContentHeight,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: _kHeaderContentHeight),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -356,6 +356,8 @@ class _StoreHeader extends ConsumerWidget {
                         ),
                         Text(
                           seller.location,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: textTheme.bodySmall?.copyWith(
                             color: colorScheme.onPrimary.withValues(alpha: 0.8),
                           ),

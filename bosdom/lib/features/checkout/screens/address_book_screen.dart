@@ -14,6 +14,34 @@ class AddressBookScreen extends ConsumerWidget {
   /// immediately returns to the caller.
   final bool selectionMode;
 
+  Future<void> _confirmDelete(
+    BuildContext context,
+    WidgetRef ref,
+    Address address,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.addressDeleteConfirmTitle),
+        content: Text(l10n.addressDeleteConfirmMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.addressCancelButton),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.addressDeleteAction),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      ref.read(addressBookProvider.notifier).deleteAddress(address.id);
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -24,11 +52,7 @@ class AddressBookScreen extends ConsumerWidget {
     return Scaffold(
       body: Column(
         children: [
-          _AddressBookHeader(
-            colorScheme: colorScheme,
-            textTheme: textTheme,
-            subtitle: selectionMode ? l10n.addressBookSelectionSubtitle : null,
-          ),
+          _AddressBookHeader(colorScheme: colorScheme, textTheme: textTheme),
           Expanded(
             child: SafeArea(
               top: false,
@@ -46,6 +70,9 @@ class AddressBookScreen extends ConsumerWidget {
                       address: address,
                       colorScheme: colorScheme,
                       textTheme: textTheme,
+                      onEdit: () =>
+                          context.pushNamed('addAddress', extra: address),
+                      onDelete: () => _confirmDelete(context, ref, address),
                       onSelect: () {
                         ref
                             .read(addressBookProvider.notifier)
@@ -76,12 +103,10 @@ class _AddressBookHeader extends StatelessWidget {
   const _AddressBookHeader({
     required this.colorScheme,
     required this.textTheme,
-    this.subtitle,
   });
 
   final ColorScheme colorScheme;
   final TextTheme textTheme;
-  final String? subtitle;
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +121,7 @@ class _AddressBookHeader extends StatelessWidget {
           14,
         ),
         child: SizedBox(
-          height: subtitle == null ? 96 : 116,
+          height: 68,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -127,16 +152,6 @@ class _AddressBookHeader extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              if (subtitle != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  subtitle!,
-                  textAlign: TextAlign.center,
-                  style: textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onPrimary.withValues(alpha: 0.85),
-                  ),
-                ),
-              ],
             ],
           ),
         ),
@@ -151,12 +166,16 @@ class _AddressCard extends StatelessWidget {
     required this.colorScheme,
     required this.textTheme,
     required this.onSelect,
+    required this.onEdit,
+    required this.onDelete,
   });
 
   final Address address;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
   final VoidCallback onSelect;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -251,11 +270,68 @@ class _AddressCard extends StatelessWidget {
                         color: colorScheme.onSurfaceVariant,
                       ),
                     ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        _CardAction(
+                          icon: Icons.edit_outlined,
+                          label: l10n.addressEditAction,
+                          color: colorScheme.primary,
+                          onTap: onEdit,
+                        ),
+                        const SizedBox(width: 16),
+                        _CardAction(
+                          icon: Icons.delete_outline,
+                          label: l10n.addressDeleteAction,
+                          color: colorScheme.onSurfaceVariant,
+                          onTap: onDelete,
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CardAction extends StatelessWidget {
+  const _CardAction({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(6),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: color),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: color,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
         ),
       ),
     );

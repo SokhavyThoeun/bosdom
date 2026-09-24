@@ -26,6 +26,7 @@ class DeviceIdentityNotifier extends AsyncNotifier<String> {
 
 /// Anonymous id persisted locally to identify this user to the admin chat
 /// until real account auth lands.
-final deviceUserIdProvider = AsyncNotifierProvider<DeviceIdentityNotifier, String>(
-  DeviceIdentityNotifier.new,
-);
+final deviceUserIdProvider =
+    AsyncNotifierProvider<DeviceIdentityNotifier, String>(
+      DeviceIdentityNotifier.new,
+    );

@@ -1,12 +1,17 @@
-from datetime import datetime, timedelta, timezone
-from itertools import count
+from datetime import datetime
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from ..auth import CurrentUser, get_current_user
+from ..db import get_db
+from ..models import UserNotification
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 
-_id_counter = count(1)
+# Newest N only — the feed screen has no pagination.
+_FEED_LIMIT = 100
 
 
 class NotificationTarget(BaseModel):
@@ -34,119 +39,92 @@ class MarkReadOut(BaseModel):
 
 
 def push_notification(
+    db: Session,
+    user_id: str,
     category: str,
     title: str,
     body: str,
     target: NotificationTarget | None = None,
-) -> Notification:
-    """Append a new alert to the shared feed. Called by other routers
-    (chat, co-buy, ...) whenever something buyer/seller-relevant happens."""
-    notification = Notification(
-        id=f"note-{next(_id_counter)}",
-        category=category,
-        title=title,
-        body=body,
-        created_at=datetime.now(timezone.utc),
-        target=target,
-    )
-    _notifications.insert(0, notification)
-    return notification
-
-
-def _seed() -> list[Notification]:
-    now = datetime.now(timezone.utc)
-    seed_id = count(1)
-
-    def make(
-        minutes_ago: int,
-        category: str,
-        title: str,
-        body: str,
-        target: NotificationTarget | None = None,
-        read: bool = False,
-    ) -> Notification:
-        return Notification(
-            id=f"note-{next(seed_id)}",
-            category=category,
-            title=title,
-            body=body,
-            created_at=now - timedelta(minutes=minutes_ago),
-            read=read,
-            target=target,
+) -> None:
+    """Adds an alert to one account's feed and commits. Called by the other
+    routers whenever something buyer/seller-relevant happens. Never raises:
+    a failed alert must not fail the action that triggered it."""
+    try:
+        db.add(
+            UserNotification(
+                user_id=user_id,
+                category=category,
+                title=title,
+                body=body,
+                target_route=target.route if target else None,
+                target_params=target.params if target else {},
+            )
         )
-
-    return [
-        make(
-            4,
-            "chat",
-            "New message from Mekong Agri-Food Co.",
-            "Yes, we have Jasmine Rice available in 25kg and 50kg bags.",
-            NotificationTarget(
-                route="chatDetail", params={"id": "mekong-agri-food-co"}
-            ),
-        ),
-        make(
-            35,
-            "co_buy",
-            "Co-buy target reached",
-            "Fish Sauce 12-pack hit its group buy target. Checkout closes soon.",
-            NotificationTarget(
-                route="coBuyDetail", params={"id": "fish-sauce-12pack"}
-            ),
-        ),
-        make(
-            90,
-            "order",
-            "Your order has shipped",
-            "Order for wholesale cotton shirts is on its way to your address.",
-            NotificationTarget(route="orders"),
-        ),
-        make(
-            180,
-            "escrow",
-            "Funds released from escrow",
-            "Payment for your Golden Silk Trading order has been released to the seller.",
-            NotificationTarget(route="escrow"),
-        ),
-        make(
-            240,
-            "payment",
-            "Payment received",
-            "Golden Silk Trading confirmed receipt of your invoice payment.",
-            read=True,
-        ),
-        make(
-            1440,
-            "co_buy",
-            "New retailer joined your co-buy",
-            "A retailer joined your Palm Sugar 10kg group buy: 25/25 reached.",
-            NotificationTarget(route="coBuyDetail", params={"id": "palm-sugar-10kg"}),
-            read=True,
-        ),
-    ]
+        db.commit()
+    except Exception:
+        db.rollback()
 
 
-_notifications: list[Notification] = _seed()
+def _out(row: UserNotification) -> Notification:
+    return Notification(
+        id=row.id,
+        category=row.category,
+        title=row.title,
+        body=row.body,
+        created_at=row.created_at,
+        read=row.read,
+        target=(
+            NotificationTarget(route=row.target_route, params=row.target_params or {})
+            if row.target_route
+            else None
+        ),
+    )
+
+
+def _unread_count(db: Session, user_id: str) -> int:
+    return (
+        db.query(UserNotification)
+        .filter(UserNotification.user_id == user_id, UserNotification.read.is_(False))
+        .count()
+    )
 
 
 @router.get("", response_model=NotificationsOut)
-def list_notifications() -> NotificationsOut:
-    items = sorted(_notifications, key=lambda n: n.created_at, reverse=True)
-    unread = sum(1 for n in items if not n.read)
-    return NotificationsOut(items=items, unread_count=unread)
+def list_notifications(
+    user: CurrentUser = Depends(get_current_user), db: Session = Depends(get_db)
+) -> NotificationsOut:
+    rows = (
+        db.query(UserNotification)
+        .filter(UserNotification.user_id == user.id)
+        .order_by(UserNotification.created_at.desc())
+        .limit(_FEED_LIMIT)
+        .all()
+    )
+    return NotificationsOut(
+        items=[_out(r) for r in rows], unread_count=_unread_count(db, user.id)
+    )
 
 
 @router.post("/{notification_id}/read", response_model=MarkReadOut)
-def mark_read(notification_id: str) -> MarkReadOut:
-    for notification in _notifications:
-        if notification.id == notification_id:
-            notification.read = True
-            return MarkReadOut(unread_count=sum(1 for n in _notifications if not n.read))
-    raise HTTPException(status_code=404, detail="Notification not found")
+def mark_read(
+    notification_id: str,
+    user: CurrentUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> MarkReadOut:
+    row = db.get(UserNotification, notification_id)
+    if row is None or row.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    row.read = True
+    db.commit()
+    return MarkReadOut(unread_count=_unread_count(db, user.id))
 
 
 @router.post("/read-all", response_model=MarkReadOut)
-def mark_all_read() -> MarkReadOut:
-    for notification in _notifications:
-        notification.read = True
+def mark_all_read(
+    user: CurrentUser = Depends(get_current_user), db: Session = Depends(get_db)
+) -> MarkReadOut:
+    db.query(UserNotification).filter(
+        UserNotification.user_id == user.id, UserNotification.read.is_(False)
+    ).update({"read": True})
+    db.commit()
     return MarkReadOut(unread_count=0)

@@ -10,7 +10,7 @@ import '../../../shared/widgets/app_snack_bar.dart';
 import '../../../shared/widgets/full_screen_image_viewer.dart';
 import '../../../shared/widgets/hourglass_icon.dart';
 import '../../../shared/widgets/variant_selector.dart';
-import '../../payment/screens/payment_screen.dart' show OrderLineSummary;
+import '../../checkout/screens/checkout_screen.dart' show CheckoutLineItem;
 import '../../marketplace/widgets/empty_products_notice.dart';
 import '../../wishlist/providers/wishlist_provider.dart';
 import '../models/co_buy_session.dart';
@@ -376,13 +376,11 @@ class _CoBuyDetailBodyState extends ConsumerState<_CoBuyDetailBody> {
       final variantSuffix = [?_selectedColor?.name, ?_selectedSize].join(', ');
       final qtyLabel = l10n.coBuyDetailQtyLabel(quantity, session.unitLabel);
       await context.pushNamed(
-        'payment',
+        'checkout',
         extra: {
-          'amount': subtotal,
-          'itemCount': 1,
           'coBuyPoolId': session.id,
           'items': [
-            OrderLineSummary(
+            CheckoutLineItem(
               icon: session.icon,
               imageUrl: session.imageUrl,
               name: session.productName,
@@ -554,8 +552,8 @@ class _Header extends StatelessWidget {
           24,
           20,
         ),
-        child: SizedBox(
-          height: _kHeaderContentHeight,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: _kHeaderContentHeight),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -689,6 +687,8 @@ class _SellerRow extends StatelessWidget {
               ),
               Text(
                 session.sellerLocation,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: textTheme.bodySmall?.copyWith(
                   color: colorScheme.onPrimary.withValues(alpha: 0.8),
                 ),

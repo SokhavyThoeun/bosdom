@@ -119,6 +119,7 @@ class CoBuyPool(Base):
     )
     seller_id: Mapped[str] = mapped_column(String, index=True)
     product_name: Mapped[str] = mapped_column(String)
+    category: Mapped[str] = mapped_column(String, default="")
     description: Mapped[str] = mapped_column(String, default="")
     price: Mapped[float] = mapped_column(Float)
     original_price: Mapped[float] = mapped_column(Float)
@@ -131,6 +132,10 @@ class CoBuyPool(Base):
     photo_urls: Mapped[list[str]] = mapped_column(JSON, default=list)
     sizes: Mapped[list[str]] = mapped_column(JSON, default=list)
     colors: Mapped[list[dict]] = mapped_column(JSON, default=list)
+    weight: Mapped[str] = mapped_column(String, default="")
+    origin: Mapped[str] = mapped_column(String, default="")
+    grade: Mapped[str] = mapped_column(String, default="")
+    packaging: Mapped[str] = mapped_column(String, default="")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
@@ -444,6 +449,28 @@ class OrderReview(Base):
     rating: Mapped[int] = mapped_column(Integer)
     comment: Mapped[str] = mapped_column(String, default="")
     photo_urls: Mapped[list[str]] = mapped_column(JSON, default=list)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+
+
+class UserNotification(Base):
+    """One alert in a single account's notification feed. Table is
+    `user_notifications` to stay clear of any legacy `notifications` table."""
+
+    __tablename__ = "user_notifications"
+
+    id: Mapped[str] = mapped_column(
+        String, primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    user_id: Mapped[str] = mapped_column(String, index=True)
+    # chat | order | co_buy | escrow | payment | system
+    category: Mapped[str] = mapped_column(String)
+    title: Mapped[str] = mapped_column(String)
+    body: Mapped[str] = mapped_column(String, default="")
+    target_route: Mapped[str | None] = mapped_column(String, nullable=True)
+    target_params: Mapped[dict] = mapped_column(JSON, default=dict)
+    read: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )

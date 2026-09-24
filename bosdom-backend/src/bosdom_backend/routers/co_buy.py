@@ -27,6 +27,7 @@ class CoBuyPoolOut(BaseModel):
     seller_verified: bool
     seller_location: str
     product_name: str
+    category: str
     description: str
     price: float
     original_price: float
@@ -41,6 +42,10 @@ class CoBuyPoolOut(BaseModel):
     photo_urls: list[str]
     sizes: list[str]
     colors: list[ColorOptionOut]
+    weight: str
+    origin: str
+    grade: str
+    packaging: str
     joined: bool
     # The viewer's own escrow state on this deal: None (not paid in),
     # "held", "leave_requested", or "released". `leave_admin_note` carries the
@@ -114,6 +119,7 @@ def _serialize_pool(pool: CoBuyPool, db: Session, viewer_id: str) -> CoBuyPoolOu
         seller_verified=bool(profile and profile.verification_status == "verified"),
         seller_location=shop.location if shop else "",
         product_name=pool.product_name,
+        category=pool.category,
         description=pool.description,
         price=pool.price,
         original_price=pool.original_price,
@@ -128,6 +134,10 @@ def _serialize_pool(pool: CoBuyPool, db: Session, viewer_id: str) -> CoBuyPoolOu
         photo_urls=pool.photo_urls,
         sizes=pool.sizes,
         colors=[ColorOptionOut(**c) for c in pool.colors],
+        weight=pool.weight,
+        origin=pool.origin,
+        grade=pool.grade,
+        packaging=pool.packaging,
         joined=mine is not None,
         my_status=mine.status if mine else None,
         my_leave_admin_note=mine.leave_admin_note if mine else None,
@@ -163,6 +173,7 @@ def _validate_pool_fields(
 @router.post("/pools", response_model=CoBuyPoolOut)
 def create_pool(
     product_name: str = Form(...),
+    category: str = Form(""),
     description: str = Form(""),
     price: float = Form(...),
     original_price: float = Form(...),
@@ -174,6 +185,10 @@ def create_pool(
     auto_renew: bool = Form(False),
     sizes: str = Form(""),
     colors: str = Form(""),
+    weight: str = Form(""),
+    origin: str = Form(""),
+    grade: str = Form(""),
+    packaging: str = Form(""),
     photos: list[UploadFile] = File(default_factory=list),
     user: CurrentUser = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -186,6 +201,7 @@ def create_pool(
     pool = CoBuyPool(
         seller_id=user.id,
         product_name=product_name,
+        category=category.strip(),
         description=description.strip(),
         price=price,
         original_price=original_price,
@@ -198,10 +214,22 @@ def create_pool(
         photo_urls=photo_urls,
         sizes=_parse_sizes(sizes),
         colors=_parse_colors(colors),
+        weight=weight.strip(),
+        origin=origin.strip(),
+        grade=grade.strip(),
+        packaging=packaging.strip(),
     )
     db.add(pool)
     db.commit()
     db.refresh(pool)
+    push_notification(
+        db,
+        user.id,
+        "co_buy",
+        "Your co-buy deal is live",
+        f"{pool.product_name} is now open for retailers to join.",
+        NotificationTarget(route="coBuyDetail", params={"id": pool.id}),
+    )
     return _serialize_pool(pool, db, user.id)
 
 
@@ -237,6 +265,7 @@ def _get_owned_pool(db: Session, user: CurrentUser, pool_id: str) -> CoBuyPool:
 def update_pool(
     pool_id: str,
     product_name: str = Form(...),
+    category: str = Form(""),
     description: str = Form(""),
     price: float = Form(...),
     original_price: float = Form(...),
@@ -248,6 +277,10 @@ def update_pool(
     auto_renew: bool = Form(False),
     sizes: str = Form(""),
     colors: str = Form(""),
+    weight: str = Form(""),
+    origin: str = Form(""),
+    grade: str = Form(""),
+    packaging: str = Form(""),
     photos: list[UploadFile] = File(default_factory=list),
     user: CurrentUser = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -262,6 +295,7 @@ def update_pool(
         pool.photo_urls = _save_photos(user.id, uploaded)
 
     pool.product_name = product_name
+    pool.category = category.strip()
     pool.description = description.strip()
     pool.price = price
     pool.original_price = original_price
@@ -273,6 +307,10 @@ def update_pool(
     pool.auto_renew = auto_renew
     pool.sizes = _parse_sizes(sizes)
     pool.colors = _parse_colors(colors)
+    pool.weight = weight.strip()
+    pool.origin = origin.strip()
+    pool.grade = grade.strip()
+    pool.packaging = packaging.strip()
     db.commit()
     db.refresh(pool)
     return _serialize_pool(pool, db, user.id)
@@ -477,11 +515,21 @@ def pay_join(
     db.refresh(pool)
 
     result = _serialize_pool(pool, db, user.id)
+    target = NotificationTarget(route="coBuyDetail", params={"id": pool.id})
+    push_notification(
+        db,
+        pool.seller_id,
+        "co_buy",
+        "A retailer joined your co-buy",
+        f"{pool.product_name}: {result.current_qty}/{pool.target_qty} reached.",
+        target,
+    )
     if before < pool.target_qty and result.is_full:
-        push_notification(
-            category="co_buy",
-            title="Co-buy target reached",
-            body=f"{pool.product_name} hit its group buy target. Checkout closes soon.",
-            target=NotificationTarget(route="coBuyDetail", params={"id": pool.id}),
-        )
+        body = f"{pool.product_name} hit its group buy target. Checkout closes soon."
+        recipients = {p.buyer_id for p in _active_participants(db, pool.id)}
+        recipients.add(pool.seller_id)
+        for recipient in recipients:
+            push_notification(
+                db, recipient, "co_buy", "Co-buy target reached", body, target
+            )
     return result

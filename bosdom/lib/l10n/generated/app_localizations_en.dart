@@ -646,6 +646,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addressAddScreenTitle => 'Add Address';
 
   @override
+  String get addressEditScreenTitle => 'Edit Address';
+
+  @override
+  String get addressEditAction => 'Edit';
+
+  @override
+  String get addressDeleteAction => 'Delete';
+
+  @override
+  String get addressDeleteConfirmTitle => 'Delete address?';
+
+  @override
+  String get addressDeleteConfirmMessage =>
+      'This address will be removed from your address book.';
+
+  @override
+  String get addressCancelButton => 'Cancel';
+
+  @override
   String get addressBookSelectionSubtitle => 'Tap an address to deliver here';
 
   @override
@@ -665,6 +684,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storeAddressAddScreenTitle => 'Add Store Address';
+
+  @override
+  String get storeAddressEditScreenTitle => 'Edit Store Address';
 
   @override
   String get storeAddressLabelFieldLabel => 'ADDRESS LABEL';
@@ -691,6 +713,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get storeAddressFullAddressFieldHint =>
       'e.g. No. 124, Street 271, Sangkat Boeung Salang';
+
+  @override
+  String get storeAddressHouseFieldLabel => 'HOUSE NUMBER';
+
+  @override
+  String get storeAddressHouseFieldHint => 'e.g. 124';
+
+  @override
+  String get storeAddressStreetFieldLabel => 'STREET NUMBER';
+
+  @override
+  String get storeAddressStreetFieldHint => 'e.g. 271';
 
   @override
   String get storeAddressDistrictFieldLabel => 'SANGKAT / DISTRICT';
@@ -826,7 +860,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get liveChatStatusOnline =>
-      'Support team • Replies Mon-Fri, 8 AM - 6 PM';
+      'Support team • Replies Mon-Sun, 8 AM - 6 PM';
 
   @override
   String get liveChatStatusOffline =>
@@ -1114,6 +1148,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get coBuyCreateTargetQtyHint => 'e.g. 1000 kg';
+
+  @override
+  String get coBuyCreateTargetQtyHintElectronics => 'e.g. 200 units';
+
+  @override
+  String get coBuyCreateTargetQtyHintClothing => 'e.g. 500 pcs';
+
+  @override
+  String get coBuyCreateTargetQtyHintBeauty => 'e.g. 300 units';
+
+  @override
+  String get coBuyCreateTargetQtyHintHome => 'e.g. 150 units';
 
   @override
   String get coBuyCreateTargetQtyRequired => 'Target quantity is required';
@@ -2284,7 +2330,24 @@ class AppLocalizationsEn extends AppLocalizations {
       'You\'re now part of the Seller Program!';
 
   @override
+  String get profileShopPhotosUploadFailed =>
+      'Shop details saved, but your logo/photos didn\'t upload — add them later from Shop Profile.';
+
+  @override
   String get profileSellerGoToMarketplace => 'Go to Marketplace';
+
+  @override
+  String get profileSellerPendingBadge => 'APPROVAL PENDING';
+
+  @override
+  String get profileSellerPendingTitle => 'Your Shop is Under Review';
+
+  @override
+  String get profileSellerPendingSubtitle =>
+      'Our team is reviewing your registration. You\'ll get a notification once it\'s approved.';
+
+  @override
+  String get profileSellerPendingCta => 'Check Status';
 
   @override
   String get profileEditProfileLabel => 'Edit Profile';
@@ -2371,7 +2434,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sellerApprovalPendingMessage =>
-      'Your shop is being reviewed by our team. You\'ll be notified once it\'s approved and you can start listing products. In the meantime, feel free to shop around!';
+      'Thanks for registering! Our team is reviewing your shop and will approve it within 24 hours. You\'ll get a notification once it\'s approved, and then you can use all the seller features. In the meantime, feel free to shop around!';
 
   @override
   String get sellerApprovalRejectedTitle => 'Verification Rejected';
@@ -2991,6 +3054,66 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addListingPackagingRequired => 'Please enter a packaging type';
+
+  @override
+  String get addListingWeightLabelElectronics => 'Unit Weight';
+
+  @override
+  String get addListingWeightHintElectronics => 'e.g. 500g';
+
+  @override
+  String get addListingOriginHintElectronics => 'e.g. China';
+
+  @override
+  String get addListingGradeHintElectronics => 'e.g. Grade A, Industrial';
+
+  @override
+  String get addListingPackagingHintElectronics => 'e.g. Retail box, 10/carton';
+
+  @override
+  String get addListingWeightLabelClothing => 'Fabric Weight';
+
+  @override
+  String get addListingWeightHintClothing => 'e.g. 180 GSM';
+
+  @override
+  String get addListingOriginHintClothing => 'e.g. Vietnam';
+
+  @override
+  String get addListingGradeLabelMaterial => 'Material';
+
+  @override
+  String get addListingGradeHintClothing => 'e.g. 100% Cotton';
+
+  @override
+  String get addListingPackagingHintClothing => 'e.g. Poly bag, 1/pack';
+
+  @override
+  String get addListingWeightLabelBeauty => 'Net Weight / Volume';
+
+  @override
+  String get addListingWeightHintBeauty => 'e.g. 50ml / 100g';
+
+  @override
+  String get addListingOriginHintBeauty => 'e.g. South Korea';
+
+  @override
+  String get addListingGradeHintBeauty => 'e.g. Cosmetic Grade';
+
+  @override
+  String get addListingPackagingHintBeauty => 'e.g. Glass bottle, boxed';
+
+  @override
+  String get addListingWeightHintHome => 'e.g. 5kg per unit';
+
+  @override
+  String get addListingOriginHintHome => 'e.g. Indonesia';
+
+  @override
+  String get addListingGradeHintHome => 'e.g. Solid Oak';
+
+  @override
+  String get addListingPackagingHintHome => 'e.g. Flat-pack carton';
 
   @override
   String get addListingPhotosLabel => 'Product Photos';

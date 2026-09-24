@@ -10,6 +10,7 @@ import '../../auth/services/auth_service.dart';
 import '../../notifications/widgets/notification_settings_popup.dart';
 import '../../orders/providers/orders_provider.dart';
 import '../../wishlist/providers/wishlist_provider.dart';
+import '../../../shared/widgets/hourglass_icon.dart';
 import '../providers/profile_provider.dart';
 import '../widgets/data_privacy_popup.dart';
 import '../widgets/marketing_emails_popup.dart';
@@ -147,8 +148,40 @@ List<_ProfileMenuItem> _aboutItems(AppLocalizations l10n) => [
   _ProfileMenuItem(Icons.info_outline, l10n.profileMenuAbout, route: 'about'),
 ];
 
-class ProfileScreen extends ConsumerWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _silentRefresh();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _silentRefresh();
+  }
+
+  // Picks up admin decisions (e.g. a rejected seller request switching the
+  // account back to a buyer) without the user having to pull-to-refresh.
+  Future<void> _silentRefresh() async {
+    try {
+      await ref.read(profileProvider.notifier).refresh();
+    } catch (_) {}
+  }
 
   void _showComingSoon(BuildContext context, String label) {
     final l10n = AppLocalizations.of(context);
@@ -192,12 +225,15 @@ class ProfileScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
+    // A registered-but-not-yet-approved seller stays in every way a normal
+    // shopper until admin review clears them — no seller stats, no Selling
+    // section — so `isSeller` here means "verified", not just "applied".
     final isSeller =
-        ref.watch(profileProvider).value?.role == MerchantRole.supplier.name;
+        ref.watch(profileProvider).value?.isVerifiedSeller ?? false;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -656,8 +692,10 @@ class _BecomeASellerCard extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
-    final isSeller =
-        ref.watch(profileProvider).value?.role == MerchantRole.supplier.name;
+    final profile = ref.watch(profileProvider).value;
+    final isSeller = profile?.isVerifiedSeller ?? false;
+    final isPending =
+        !isSeller && profile?.role == MerchantRole.supplier.name;
 
     return Container(
       clipBehavior: Clip.antiAlias,
@@ -716,15 +754,27 @@ class _BecomeASellerCard extends ConsumerWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        isSeller ? Icons.check_circle : Icons.bolt_rounded,
-                        size: 13,
-                        color: colorScheme.onPrimary,
-                      ),
+                      if (isPending)
+                        SizedBox(
+                          width: 13,
+                          height: 13,
+                          child: HourglassIcon(
+                            size: 13,
+                            color: colorScheme.onPrimary,
+                          ),
+                        )
+                      else
+                        Icon(
+                          isSeller ? Icons.check_circle : Icons.bolt_rounded,
+                          size: 13,
+                          color: colorScheme.onPrimary,
+                        ),
                       const SizedBox(width: 4),
                       Text(
                         isSeller
                             ? l10n.profileSellerActiveBadge
+                            : isPending
+                            ? l10n.profileSellerPendingBadge
                             : l10n.profileSellerProgramBadge,
                         style: textTheme.labelSmall?.copyWith(
                           color: colorScheme.onPrimary,
@@ -739,6 +789,8 @@ class _BecomeASellerCard extends ConsumerWidget {
                 Text(
                   isSeller
                       ? l10n.profileSellerActiveTitle
+                      : isPending
+                      ? l10n.profileSellerPendingTitle
                       : l10n.profileSellerTitle,
                   style: textTheme.titleLarge?.copyWith(
                     color: colorScheme.onPrimary,
@@ -750,6 +802,8 @@ class _BecomeASellerCard extends ConsumerWidget {
                 Text(
                   isSeller
                       ? l10n.profileSellerActiveSubtitle
+                      : isPending
+                      ? l10n.profileSellerPendingSubtitle
                       : l10n.profileSellerSubtitle,
                   style: textTheme.bodySmall?.copyWith(
                     color: colorScheme.onPrimary.withValues(alpha: 0.85),
@@ -762,9 +816,15 @@ class _BecomeASellerCard extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(20),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(20),
-                    onTap: () => isSeller
-                        ? context.goNamed('marketplace')
-                        : context.pushNamed('becomeSeller'),
+                    onTap: () {
+                      if (isSeller) {
+                        context.goNamed('marketplace');
+                      } else if (isPending) {
+                        showSellerApprovalPendingDialog(context, ref);
+                      } else {
+                        context.pushNamed('becomeSeller');
+                      }
+                    },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 18,
@@ -776,6 +836,8 @@ class _BecomeASellerCard extends ConsumerWidget {
                           Text(
                             isSeller
                                 ? l10n.profileSellerGoToMarketplace
+                                : isPending
+                                ? l10n.profileSellerPendingCta
                                 : l10n.profileSellerCta,
                             style: textTheme.labelLarge?.copyWith(
                               color: colorScheme.primary,
@@ -783,13 +845,16 @@ class _BecomeASellerCard extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(width: 6),
-                          Icon(
-                            isSeller
-                                ? Icons.storefront_rounded
-                                : Icons.arrow_forward_rounded,
-                            size: 16,
-                            color: colorScheme.primary,
-                          ),
+                          if (isPending)
+                            HourglassIcon(size: 16, color: colorScheme.primary)
+                          else
+                            Icon(
+                              isSeller
+                                  ? Icons.storefront_rounded
+                                  : Icons.arrow_forward_rounded,
+                              size: 16,
+                              color: colorScheme.primary,
+                            ),
                         ],
                       ),
                     ),

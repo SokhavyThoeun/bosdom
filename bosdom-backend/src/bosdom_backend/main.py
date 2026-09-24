@@ -4,6 +4,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+from .db import engine
+from .models import UserNotification
 from .routers import (
     admin,
     ads_consent,
@@ -21,6 +23,10 @@ from .routers import (
     shop,
     wishlist,
 )
+
+# The notifications table is new; create it if the SQL migration hasn't been
+# applied yet so the feed works instead of erroring (no-op once it exists).
+UserNotification.__table__.create(bind=engine, checkfirst=True)
 
 app = FastAPI(title="Bosdom Backend")
 

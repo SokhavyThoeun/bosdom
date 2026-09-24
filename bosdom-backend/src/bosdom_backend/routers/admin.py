@@ -23,6 +23,7 @@ from ..models import (
     Shop,
 )
 from ..utils.images import save_image_as_webp
+from .notifications import NotificationTarget, push_notification
 from .chat import (
     CHAT_IMAGES_DIR,
     MessageOut,
@@ -33,6 +34,7 @@ from .disputes import (
     DISPUTE_STATUS_CASE_OPEN,
     DISPUTE_STATUS_RESOLVED,
     VALID_FAULTS,
+    notify_dispute_settled,
     settle_dispute,
 )
 from .orders import (
@@ -92,6 +94,109 @@ def get_stats(db: Session = Depends(get_db)) -> AdminStats:
         .filter(Profile.verification_status == "pending")
         .count(),
     )
+
+
+class AdminNotificationOut(BaseModel):
+    kind: str
+    title: str
+    body: str
+    route: str
+    created_at: datetime | None
+
+
+@router.get(
+    "/notifications",
+    response_model=list[AdminNotificationOut],
+    dependencies=_admin_only,
+)
+def list_admin_notifications(
+    db: Session = Depends(get_db),
+) -> list[AdminNotificationOut]:
+    """Everything currently waiting on an admin, newest first: unread support
+    chats plus open reports, disputes, KYC reviews, payouts and co-buy leaves.
+    Derived live from each item's own status, so it clears as they're handled."""
+    items: list[AdminNotificationOut] = []
+
+    for conversation in (
+        db.query(Conversation).filter(Conversation.seller_id == SUPPORT_AGENT_ID).all()
+    ):
+        out = _support_conversation_out(db, conversation)
+        if out.unread_count > 0:
+            n = out.unread_count
+            items.append(
+                AdminNotificationOut(
+                    kind="support",
+                    title=f"{out.user_name} messaged Support",
+                    body=out.last_message_preview
+                    or f"{n} new message{'s' if n != 1 else ''}",
+                    route="/support",
+                    created_at=out.last_message_at,
+                )
+            )
+
+    for r in db.query(SellerReport).filter(SellerReport.status == "open").all():
+        seller = db.get(Profile, r.seller_id)
+        items.append(
+            AdminNotificationOut(
+                kind="report",
+                title=f"Seller report: {seller.name if seller else 'a seller'}",
+                body=r.reason,
+                route="/orders",
+                created_at=r.created_at,
+            )
+        )
+
+    for d in db.query(Dispute).filter(Dispute.status != "resolved").all():
+        items.append(
+            AdminNotificationOut(
+                kind="dispute",
+                title="Order problem reported",
+                body=d.reason,
+                route="/orders",
+                created_at=d.created_at,
+            )
+        )
+
+    for profile in db.query(Profile).filter(Profile.verification_status == "pending"):
+        items.append(
+            AdminNotificationOut(
+                kind="kyc",
+                title=f"{profile.name or 'A seller'} submitted registration",
+                body="Seller registration is waiting for review.",
+                route="/sellers",
+                created_at=None,
+            )
+        )
+
+    for o in db.query(Order).filter(
+        Order.payout_requested_at.is_not(None), Order.payout_eta_at.is_(None)
+    ):
+        items.append(
+            AdminNotificationOut(
+                kind="payout",
+                title="Payout requested",
+                body=f"{o.product_name} - ${seller_amount_for(o):.2f}",
+                route="/orders",
+                created_at=o.payout_requested_at,
+            )
+        )
+
+    for row in db.query(CoBuyParticipant).filter(
+        CoBuyParticipant.status == "leave_requested"
+    ):
+        items.append(
+            AdminNotificationOut(
+                kind="co_buy_leave",
+                title="Co-buy leave request",
+                body=row.leave_reason or "A buyer wants to leave a co-buy deal.",
+                route="/orders",
+                created_at=row.leave_requested_at,
+            )
+        )
+
+    epoch = datetime.min.replace(tzinfo=timezone.utc)
+    items.sort(key=lambda i: i.created_at or epoch, reverse=True)
+    return items
 
 
 class AdminKycDocOut(BaseModel):
@@ -227,7 +332,19 @@ def verify_profile(profile_id: str, db: Session = Depends(get_db)) -> AdminUserO
     profile.verification_status = "verified"
     db.commit()
     db.refresh(profile)
+    push_notification(
+        db,
+        profile.id,
+        "system",
+        "You're a verified seller",
+        "Your seller registration was approved. You can start selling now.",
+        NotificationTarget(route="sellerDashboard"),
+    )
     return _user_out(profile)
+
+
+class AdminProfileRejectRequest(BaseModel):
+    reason: str = ""
 
 
 @router.post(
@@ -235,13 +352,29 @@ def verify_profile(profile_id: str, db: Session = Depends(get_db)) -> AdminUserO
     response_model=AdminUserOut,
     dependencies=_admin_only,
 )
-def reject_profile(profile_id: str, db: Session = Depends(get_db)) -> AdminUserOut:
-    """Denies a pending KYC submission. The seller stays "rejected" until
-    they re-upload their national ID, which resets them to "pending" for
-    another review (see upload_kyc_document in routers/profile.py)."""
+def reject_profile(
+    profile_id: str,
+    body: AdminProfileRejectRequest,
+    db: Session = Depends(get_db),
+) -> AdminUserOut:
+    """Denies a pending KYC submission and drops the account back to a
+    normal buyer ("retailer"), who can go through Become a Seller again.
+    Re-uploading the national ID resets the status to "pending" for another
+    review (see upload_kyc_document in routers/profile.py)."""
     profile = _get_profile_or_404(db, profile_id)
     profile.verification_status = "rejected"
+    profile.role = "retailer"
     db.commit()
+    reason = body.reason.strip()
+    push_notification(
+        db,
+        profile.id,
+        "system",
+        "Seller registration was not approved",
+        (f"Reason: {reason}. " if reason else "")
+        + "You can fix this and submit a new seller registration.",
+        NotificationTarget(route="becomeSeller"),
+    )
     db.refresh(profile)
     return _user_out(profile)
 
@@ -530,6 +663,14 @@ def approve_payout_request(
     )
     db.commit()
     db.refresh(order)
+    push_notification(
+        db,
+        order.seller_id,
+        "payment",
+        "Payout approved",
+        f"Your withdrawal for {order.product_name} is on its way to your bank.",
+        NotificationTarget(route="sellerOrderDetail", params={"id": order.id}),
+    )
     return _payout_requests_out(db, [order])[0]
 
 
@@ -712,9 +853,10 @@ def admin_resolve_dispute(
     if dispute.status != DISPUTE_STATUS_CASE_OPEN:
         raise HTTPException(status_code=409, detail="Open the case first")
 
-    settle_dispute(db, dispute, payload.resolution, payload.fault)
+    order = settle_dispute(db, dispute, payload.resolution, payload.fault)
     db.commit()
     db.refresh(dispute)
+    notify_dispute_settled(db, dispute, order)
     return _dispute_out(db, dispute)
 
 
@@ -846,6 +988,17 @@ def get_support_conversation(
     return detail
 
 
+def _notify_support_reply(db: Session, conversation, preview: str) -> None:
+    push_notification(
+        db,
+        conversation.buyer_id,
+        "chat",
+        "New message from BosDom Support",
+        preview,
+        NotificationTarget(route="liveChat"),
+    )
+
+
 @router.post(
     "/support/conversations/{conversation_id}/reply",
     response_model=MessageOut,
@@ -868,6 +1021,7 @@ def reply_to_support_conversation(
     conversation.seller_last_read_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(message)
+    _notify_support_reply(db, conversation, text)
     return message
 
 
@@ -893,6 +1047,7 @@ def reply_to_support_conversation_with_image(
     conversation.seller_last_read_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(message)
+    _notify_support_reply(db, conversation, "📷 Photo")
     return message
 
 
@@ -1008,6 +1163,19 @@ def refund_buyer_for_seller_report(
         if report.refund_due_at is None:
             report.refund_due_at = now + COURIER_REFUND_DELAY
     db.commit()
+    push_notification(
+        db,
+        order.buyer_id,
+        "order",
+        "Refund on the way" if payload.immediate else "Refund approved",
+        f"Your report for {order.product_name} was approved."
+        + (
+            " The money is back with you."
+            if payload.immediate
+            else " The refund will arrive within a few days."
+        ),
+        NotificationTarget(route="orderDetail", params={"id": order.id}),
+    )
     return {"status": report.status}
 
 
@@ -1118,6 +1286,14 @@ def approve_co_buy_leave(
     row.refunded_at = now
     row.leave_resolved_at = now
     db.commit()
+    push_notification(
+        db,
+        row.buyer_id,
+        "co_buy",
+        "Leave request approved",
+        "You're out of the co-buy deal and your payment is being refunded.",
+        NotificationTarget(route="coBuyDetail", params={"id": row.pool_id}),
+    )
     return _co_buy_leaves_out(db, [row])[0]
 
 
@@ -1141,4 +1317,13 @@ def reject_co_buy_leave(
     row.leave_admin_note = body.note.strip() or None
     row.leave_resolved_at = datetime.now(timezone.utc)
     db.commit()
+    push_notification(
+        db,
+        row.buyer_id,
+        "co_buy",
+        "Leave request declined",
+        (f"Reason: {row.leave_admin_note}. " if row.leave_admin_note else "")
+        + "You're still in the deal and your payment stays held.",
+        NotificationTarget(route="coBuyDetail", params={"id": row.pool_id}),
+    )
     return _co_buy_leaves_out(db, [row])[0]

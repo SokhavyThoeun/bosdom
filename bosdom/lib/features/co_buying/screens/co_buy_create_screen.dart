@@ -8,10 +8,31 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/dotted_border_box.dart';
+import '../../marketplace/models/category.dart';
 import '../models/co_buy_session.dart';
 import '../providers/co_buy_provider.dart';
 
 const _kMaxPhotos = 4;
+
+class _CategorySpecCopy {
+  const _CategorySpecCopy({
+    required this.weightLabel,
+    required this.weightHint,
+    required this.originHint,
+    required this.gradeLabel,
+    required this.gradeHint,
+    required this.packagingHint,
+    required this.targetQtyHint,
+  });
+
+  final String weightLabel;
+  final String weightHint;
+  final String originHint;
+  final String gradeLabel;
+  final String gradeHint;
+  final String packagingHint;
+  final String targetQtyHint;
+}
 
 enum _Duration {
   oneDay('1 day left'),
@@ -82,13 +103,74 @@ class _CoBuyCreateFormState extends ConsumerState<_CoBuyCreateForm> {
   final _targetQtyController = TextEditingController();
   final _unitLabelController = TextEditingController();
   final _minOrderQtyController = TextEditingController();
+  final _weightController = TextEditingController();
+  final _originController = TextEditingController();
+  final _gradeController = TextEditingController();
+  final _packagingController = TextEditingController();
   final _picker = ImagePicker();
 
+  String? _category;
   _Duration _duration = _Duration.threeDays;
   bool _autoRenew = false;
   bool _isSaving = false;
   final List<XFile?> _photos = List.filled(_kMaxPhotos, null);
   String? _existingCoverUrl;
+
+  _CategorySpecCopy _specCopyFor(AppLocalizations l10n) {
+    switch (_category) {
+      case 'Electronics':
+        return _CategorySpecCopy(
+          weightLabel: l10n.addListingWeightLabelElectronics,
+          weightHint: l10n.addListingWeightHintElectronics,
+          originHint: l10n.addListingOriginHintElectronics,
+          gradeLabel: l10n.addListingGradeLabel,
+          gradeHint: l10n.addListingGradeHintElectronics,
+          packagingHint: l10n.addListingPackagingHintElectronics,
+          targetQtyHint: l10n.coBuyCreateTargetQtyHintElectronics,
+        );
+      case 'Clothing':
+        return _CategorySpecCopy(
+          weightLabel: l10n.addListingWeightLabelClothing,
+          weightHint: l10n.addListingWeightHintClothing,
+          originHint: l10n.addListingOriginHintClothing,
+          gradeLabel: l10n.addListingGradeLabelMaterial,
+          gradeHint: l10n.addListingGradeHintClothing,
+          packagingHint: l10n.addListingPackagingHintClothing,
+          targetQtyHint: l10n.coBuyCreateTargetQtyHintClothing,
+        );
+      case 'Beauty':
+        return _CategorySpecCopy(
+          weightLabel: l10n.addListingWeightLabelBeauty,
+          weightHint: l10n.addListingWeightHintBeauty,
+          originHint: l10n.addListingOriginHintBeauty,
+          gradeLabel: l10n.addListingGradeLabel,
+          gradeHint: l10n.addListingGradeHintBeauty,
+          packagingHint: l10n.addListingPackagingHintBeauty,
+          targetQtyHint: l10n.coBuyCreateTargetQtyHintBeauty,
+        );
+      case 'Home':
+        return _CategorySpecCopy(
+          weightLabel: l10n.addListingWeightLabel,
+          weightHint: l10n.addListingWeightHintHome,
+          originHint: l10n.addListingOriginHintHome,
+          gradeLabel: l10n.addListingGradeLabelMaterial,
+          gradeHint: l10n.addListingGradeHintHome,
+          packagingHint: l10n.addListingPackagingHintHome,
+          targetQtyHint: l10n.coBuyCreateTargetQtyHintHome,
+        );
+      case 'Food & Bev':
+      default:
+        return _CategorySpecCopy(
+          weightLabel: l10n.addListingWeightLabel,
+          weightHint: l10n.addListingWeightHint,
+          originHint: l10n.addListingOriginHint,
+          gradeLabel: l10n.addListingGradeLabel,
+          gradeHint: l10n.addListingGradeHint,
+          packagingHint: l10n.addListingPackagingHint,
+          targetQtyHint: l10n.coBuyCreateTargetQtyHint,
+        );
+    }
+  }
 
   bool get _isEditing => widget.editSessionId != null;
   String get _editSessionId => widget.editSessionId!;
@@ -99,12 +181,17 @@ class _CoBuyCreateFormState extends ConsumerState<_CoBuyCreateForm> {
     final session = widget.initialSession;
     if (session == null) return;
     _productNameController.text = session.productName;
+    _category = session.category.isNotEmpty ? session.category : null;
     _descriptionController.text = session.description;
     _priceController.text = session.price.toStringAsFixed(2);
     _originalPriceController.text = session.originalPrice.toStringAsFixed(2);
     _targetQtyController.text = '${session.targetQty}';
     _unitLabelController.text = session.unitLabel;
     _minOrderQtyController.text = '${session.minOrderQty}';
+    _weightController.text = session.weight;
+    _originController.text = session.origin;
+    _gradeController.text = session.grade;
+    _packagingController.text = session.packaging;
     _duration = _Duration.values.firstWhere(
       (d) => d.timeLeftText == session.timeLeft,
       orElse: () => _Duration.threeDays,
@@ -125,6 +212,10 @@ class _CoBuyCreateFormState extends ConsumerState<_CoBuyCreateForm> {
     _targetQtyController.dispose();
     _unitLabelController.dispose();
     _minOrderQtyController.dispose();
+    _weightController.dispose();
+    _originController.dispose();
+    _gradeController.dispose();
+    _packagingController.dispose();
     super.dispose();
   }
 
@@ -166,6 +257,10 @@ class _CoBuyCreateFormState extends ConsumerState<_CoBuyCreateForm> {
     final minOrderQty = int.parse(_minOrderQtyController.text.trim());
     final originalPrice = double.parse(_originalPriceController.text.trim());
     final price = double.parse(_priceController.text.trim());
+    final weight = _weightController.text.trim();
+    final origin = _originController.text.trim();
+    final grade = _gradeController.text.trim();
+    final packaging = _packagingController.text.trim();
 
     try {
       if (_isEditing) {
@@ -174,6 +269,7 @@ class _CoBuyCreateFormState extends ConsumerState<_CoBuyCreateForm> {
             .updateDeal(
               _editSessionId,
               productName: productName,
+              category: _category ?? '',
               targetQty: targetQty,
               unitLabel: unitLabel,
               perUnitLabel: 'per $unitLabel',
@@ -183,6 +279,10 @@ class _CoBuyCreateFormState extends ConsumerState<_CoBuyCreateForm> {
               price: price,
               description: description,
               autoRenew: _autoRenew,
+              weight: weight,
+              origin: origin,
+              grade: grade,
+              packaging: packaging,
               photos: photos,
             );
         if (!mounted) return;
@@ -196,6 +296,7 @@ class _CoBuyCreateFormState extends ConsumerState<_CoBuyCreateForm> {
             .read(coBuyProvider.notifier)
             .create(
               productName: productName,
+              category: _category ?? '',
               targetQty: targetQty,
               unitLabel: unitLabel,
               perUnitLabel: 'per $unitLabel',
@@ -205,6 +306,10 @@ class _CoBuyCreateFormState extends ConsumerState<_CoBuyCreateForm> {
               price: price,
               description: description,
               autoRenew: _autoRenew,
+              weight: weight,
+              origin: origin,
+              grade: grade,
+              packaging: packaging,
               photos: photos,
             );
         if (!mounted) return;
@@ -243,6 +348,7 @@ class _CoBuyCreateFormState extends ConsumerState<_CoBuyCreateForm> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
+    final specCopy = _specCopyFor(l10n);
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -309,6 +415,7 @@ class _CoBuyCreateFormState extends ConsumerState<_CoBuyCreateForm> {
                         _AppTextField(
                           label: l10n.coBuyCreateProductNameLabel,
                           controller: _productNameController,
+                          icon: Icons.inventory_2_outlined,
                           hintText: l10n.coBuyCreateProductNameHint,
                           textCapitalization: TextCapitalization.words,
                           validator: (value) =>
@@ -317,12 +424,92 @@ class _CoBuyCreateFormState extends ConsumerState<_CoBuyCreateForm> {
                               : null,
                         ),
                         const SizedBox(height: 20),
+                        _CategoryDropdown(
+                          value: _category,
+                          label: l10n.addListingCategoryLabel,
+                          hintText: l10n.addListingCategoryHint,
+                          errorText: l10n.addListingCategoryRequired,
+                          onChanged: (value) =>
+                              setState(() => _category = value),
+                        ),
+                        const SizedBox(height: 20),
                         _AppTextField(
                           label: l10n.coBuyCreateDescriptionLabel,
                           controller: _descriptionController,
+                          icon: Icons.description_outlined,
                           hintText: l10n.coBuyCreateDescriptionHint,
                           textCapitalization: TextCapitalization.sentences,
                           maxLines: 3,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    _SectionCard(
+                      title: l10n.addListingSpecsLabel,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: _AppTextField(
+                                label: specCopy.weightLabel,
+                                controller: _weightController,
+                                icon: Icons.scale_outlined,
+                                hintText: specCopy.weightHint,
+                                validator: (value) =>
+                                    (value == null || value.trim().isEmpty)
+                                    ? l10n.addListingWeightRequired
+                                    : null,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _AppTextField(
+                                label: l10n.addListingOriginLabel,
+                                controller: _originController,
+                                icon: Icons.public,
+                                hintText: specCopy.originHint,
+                                textCapitalization: TextCapitalization.words,
+                                validator: (value) =>
+                                    (value == null || value.trim().isEmpty)
+                                    ? l10n.addListingOriginRequired
+                                    : null,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: _AppTextField(
+                                label: specCopy.gradeLabel,
+                                controller: _gradeController,
+                                icon: Icons.workspace_premium_outlined,
+                                hintText: specCopy.gradeHint,
+                                textCapitalization: TextCapitalization.words,
+                                validator: (value) =>
+                                    (value == null || value.trim().isEmpty)
+                                    ? l10n.addListingGradeRequired
+                                    : null,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _AppTextField(
+                                label: l10n.addListingPackagingLabel,
+                                controller: _packagingController,
+                                icon: Icons.archive_outlined,
+                                hintText: specCopy.packagingHint,
+                                textCapitalization: TextCapitalization.words,
+                                validator: (value) =>
+                                    (value == null || value.trim().isEmpty)
+                                    ? l10n.addListingPackagingRequired
+                                    : null,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -333,6 +520,7 @@ class _CoBuyCreateFormState extends ConsumerState<_CoBuyCreateForm> {
                         _AppTextField(
                           label: l10n.coBuyCreateOriginalPriceLabel,
                           controller: _originalPriceController,
+                          icon: Icons.attach_money,
                           hintText: r'$0.00',
                           keyboardType: const TextInputType.numberWithOptions(
                             decimal: true,
@@ -355,6 +543,7 @@ class _CoBuyCreateFormState extends ConsumerState<_CoBuyCreateForm> {
                         _AppTextField(
                           label: l10n.coBuyCreateUnitLabelLabel,
                           controller: _unitLabelController,
+                          icon: Icons.straighten,
                           hintText: l10n.coBuyCreateUnitLabelHint,
                           validator: (value) =>
                               (value == null || value.trim().isEmpty)
@@ -382,7 +571,7 @@ class _CoBuyCreateFormState extends ConsumerState<_CoBuyCreateForm> {
                         _AppTextField(
                           label: l10n.coBuyCreateTargetQtyLabel,
                           controller: _targetQtyController,
-                          hintText: l10n.coBuyCreateTargetQtyHint,
+                          hintText: specCopy.targetQtyHint,
                           keyboardType: TextInputType.number,
                           validator: (value) => _validatePositiveInt(
                             value,
@@ -514,69 +703,47 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return ClipRRect(
-      borderRadius: const BorderRadius.only(
-        bottomLeft: Radius.circular(28),
-        bottomRight: Radius.circular(28),
-      ),
-      child: DecoratedBox(
-        decoration: BoxDecoration(color: colorScheme.primary),
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            24,
-            MediaQuery.of(context).padding.top + 16,
-            24,
-            20,
-          ),
-          child: SizedBox(
-            height: 96,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Align(
-                  alignment: Alignment.topLeft,
-                  child: InkWell(
-                    onTap: () => context.pop(),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 4,
-                        horizontal: 2,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.arrow_back_ios_new,
-                            color: colorScheme.onPrimary,
-                            size: 16,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            l10n.commonBack,
-                            style: textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onPrimary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
+    return DecoratedBox(
+      decoration: BoxDecoration(color: colorScheme.primary),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          24,
+          MediaQuery.of(context).padding.top + 10,
+          24,
+          14,
+        ),
+        child: SizedBox(
+          height: 68,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Align(
+                alignment: Alignment.topLeft,
+                child: InkWell(
+                  onTap: () => context.pop(),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Icon(
+                      Icons.arrow_back,
+                      color: colorScheme.onPrimary,
+                      size: 20,
                     ),
                   ),
                 ),
-                Text(
-                  isEditing
-                      ? l10n.coBuyCreateEditScreenTitle
-                      : l10n.coBuyCreateScreenTitle,
-                  textAlign: TextAlign.center,
-                  style: textTheme.headlineSmall?.copyWith(
-                    color: colorScheme.onPrimary,
-                    fontWeight: FontWeight.bold,
-                  ),
+              ),
+              Text(
+                isEditing
+                    ? l10n.coBuyCreateEditScreenTitle
+                    : l10n.coBuyCreateScreenTitle,
+                textAlign: TextAlign.center,
+                style: textTheme.headlineSmall?.copyWith(
+                  color: colorScheme.onPrimary,
+                  fontWeight: FontWeight.bold,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -854,11 +1021,59 @@ InputDecoration _fieldDecoration({String? hintText}) {
   );
 }
 
+InputDecoration _iconFieldDecoration({
+  required String label,
+  IconData? icon,
+  String? hintText,
+  int maxLines = 1,
+}) {
+  return InputDecoration(
+    labelText: label.toUpperCase(),
+    floatingLabelBehavior: FloatingLabelBehavior.always,
+    hintText: hintText,
+    hintMaxLines: maxLines,
+    hintStyle: const TextStyle(fontWeight: FontWeight.w400),
+    filled: true,
+    fillColor: Colors.white,
+    isDense: true,
+    prefixIcon: icon == null
+        ? null
+        : Icon(icon, color: AppColors.brandCrimson, size: 20),
+    prefixIconConstraints: icon == null
+        ? null
+        : const BoxConstraints(minWidth: 44, minHeight: 24),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    labelStyle: const TextStyle(
+      color: AppColors.brandCrimson,
+      fontWeight: FontWeight.bold,
+      letterSpacing: 0.6,
+      fontSize: 12,
+    ),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: const BorderSide(color: AppColors.roseDivider),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: const BorderSide(color: AppColors.roseDivider),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: const BorderSide(color: AppColors.brandCrimson, width: 1.5),
+    ),
+    errorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: const BorderSide(color: Colors.red),
+    ),
+  );
+}
+
 class _AppTextField extends StatelessWidget {
   const _AppTextField({
     required this.label,
     required this.controller,
     required this.hintText,
+    this.icon,
     this.keyboardType,
     this.textCapitalization = TextCapitalization.none,
     this.maxLines = 1,
@@ -868,6 +1083,7 @@ class _AppTextField extends StatelessWidget {
   final String label;
   final TextEditingController controller;
   final String hintText;
+  final IconData? icon;
   final TextInputType? keyboardType;
   final TextCapitalization textCapitalization;
   final int maxLines;
@@ -876,6 +1092,31 @@ class _AppTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    if (icon != null) {
+      final field = TextFormField(
+        controller: controller,
+        keyboardType: keyboardType,
+        textCapitalization: textCapitalization,
+        maxLines: maxLines == 1 ? 1 : null,
+        minLines: maxLines == 1 ? 1 : null,
+        expands: maxLines != 1,
+        textAlignVertical: TextAlignVertical.center,
+        style: textTheme.bodyMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+          color: AppColors.warmBlack,
+        ),
+        decoration: _iconFieldDecoration(
+          label: label,
+          icon: icon,
+          hintText: hintText,
+          maxLines: maxLines,
+        ),
+        validator: validator,
+      );
+      return maxLines == 1
+          ? field
+          : SizedBox(height: 22.0 * maxLines + 40, child: field);
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -900,6 +1141,49 @@ class _AppTextField extends StatelessWidget {
           validator: validator,
         ),
       ],
+    );
+  }
+}
+
+class _CategoryDropdown extends StatelessWidget {
+  const _CategoryDropdown({
+    required this.value,
+    required this.label,
+    required this.hintText,
+    required this.errorText,
+    required this.onChanged,
+  });
+
+  final String? value;
+  final String label;
+  final String hintText;
+  final String errorText;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButtonFormField<String>(
+      initialValue: value,
+      isExpanded: true,
+      icon: const Icon(
+        Icons.keyboard_arrow_down,
+        color: AppColors.brandCrimson,
+      ),
+      decoration: _iconFieldDecoration(
+        label: label,
+        icon: Icons.category_outlined,
+        hintText: hintText,
+      ),
+      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+        fontWeight: FontWeight.w600,
+        color: AppColors.warmBlack,
+      ),
+      items: [
+        for (final category in kCategories)
+          DropdownMenuItem(value: category.label, child: Text(category.label)),
+      ],
+      validator: (value) => value == null ? errorText : null,
+      onChanged: onChanged,
     );
   }
 }

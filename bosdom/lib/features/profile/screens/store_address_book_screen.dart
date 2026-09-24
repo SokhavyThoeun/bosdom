@@ -9,6 +9,34 @@ import '../providers/store_address_provider.dart';
 class StoreAddressBookScreen extends ConsumerWidget {
   const StoreAddressBookScreen({super.key});
 
+  Future<void> _confirmDelete(
+    BuildContext context,
+    WidgetRef ref,
+    StoreAddress address,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.addressDeleteConfirmTitle),
+        content: Text(l10n.addressDeleteConfirmMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.addressCancelButton),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.addressDeleteAction),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      ref.read(storeAddressBookProvider.notifier).deleteAddress(address.id);
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -48,6 +76,9 @@ class StoreAddressBookScreen extends ConsumerWidget {
                       address: address,
                       colorScheme: colorScheme,
                       textTheme: textTheme,
+                      onEdit: () =>
+                          context.pushNamed('addStoreAddress', extra: address),
+                      onDelete: () => _confirmDelete(context, ref, address),
                       onSelect: () => ref
                           .read(storeAddressBookProvider.notifier)
                           .setDefault(address.id),
@@ -134,12 +165,16 @@ class _StoreAddressCard extends StatelessWidget {
     required this.colorScheme,
     required this.textTheme,
     required this.onSelect,
+    required this.onEdit,
+    required this.onDelete,
   });
 
   final StoreAddress address;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
   final VoidCallback onSelect;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -241,11 +276,68 @@ class _StoreAddressCard extends StatelessWidget {
                         color: colorScheme.onSurfaceVariant,
                       ),
                     ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        _CardAction(
+                          icon: Icons.edit_outlined,
+                          label: l10n.addressEditAction,
+                          color: colorScheme.primary,
+                          onTap: onEdit,
+                        ),
+                        const SizedBox(width: 16),
+                        _CardAction(
+                          icon: Icons.delete_outline,
+                          label: l10n.addressDeleteAction,
+                          color: colorScheme.onSurfaceVariant,
+                          onTap: onDelete,
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CardAction extends StatelessWidget {
+  const _CardAction({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(6),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: color),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: color,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
         ),
       ),
     );

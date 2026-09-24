@@ -7,6 +7,7 @@ import '../../core/models/admin_models.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/async_loader.dart';
 import '../../shared/widgets/charts.dart';
+import '../../shared/widgets/motion.dart';
 import '../../shared/widgets/status_pill.dart';
 
 /// Everything the dashboard shows, fetched once. Analytics are derived
@@ -73,9 +74,6 @@ double? _trend(List<double> v) {
   return (cur - prev) / prev * 100;
 }
 
-bool _counted(AdminOrder o) =>
-    o.status != 'cancelled' && o.status != 'refunded';
-
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
@@ -106,14 +104,16 @@ class _DashboardBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final money = NumberFormat.compactCurrency(symbol: r'$');
     final orders = data.orders;
-    final counted = orders.where(_counted).toList();
-    final revenue = counted.fold<double>(0, (s, o) => s + o.totalAmount);
+    final commission = orders.fold<double>(
+      0,
+      (s, o) => s + (o.platformFee ?? 0),
+    );
 
     final ordersDaily = _daily(orders, (o) => o.createdAt);
-    final revenueDaily = _daily(
-      counted,
+    final commissionDaily = _daily(
+      orders.where((o) => o.platformFee != null),
       (o) => o.createdAt,
-      weight: (o) => o.totalAmount,
+      weight: (o) => o.platformFee ?? 0,
     );
     final usersDaily = _daily(data.users, (u) => u.createdAt);
     final sellersDaily = _daily(data.sellers, (s) => s.createdAt);
@@ -145,36 +145,37 @@ class _DashboardBody extends StatelessWidget {
             minTile: 230,
             children: [
               _KpiCard(
-                label: 'Total Revenue',
-                value: money.format(revenue),
-                series: revenueDaily,
+                label: 'Commission Earned',
+                value: commission,
+                format: money.format,
+                series: commissionDaily,
                 color: AppColors.trustGreen,
                 onTap: () => context.go('/orders'),
               ),
               _KpiCard(
                 label: 'Orders',
-                value: '${data.stats.orderCount}',
+                value: data.stats.orderCount.toDouble(),
                 series: ordersDaily,
                 color: AppColors.brandCrimson,
                 onTap: () => context.go('/orders'),
               ),
               _KpiCard(
                 label: 'Buyers',
-                value: '${data.stats.buyerCount}',
+                value: data.stats.buyerCount.toDouble(),
                 series: usersDaily,
                 color: AppColors.infoBlue,
                 onTap: () => context.go('/users'),
               ),
               _KpiCard(
                 label: 'Sellers',
-                value: '${data.stats.sellerCount}',
+                value: data.stats.sellerCount.toDouble(),
                 series: sellersDaily,
                 color: AppColors.alertAmber,
                 onTap: () => context.go('/sellers'),
               ),
               _KpiCard(
                 label: 'Listings',
-                value: '${data.stats.listingCount}',
+                value: data.stats.listingCount.toDouble(),
                 series: listingsDaily,
                 color: AppColors.ratingGold,
                 onTap: () => context.go('/listings'),
@@ -187,17 +188,29 @@ class _DashboardBody extends StatelessWidget {
               final wide = c.maxWidth >= 900;
               final trend = _Panel(
                 title: 'Activity',
-                subtitle: 'Orders and sign-ups per day',
+                subtitle: 'Orders, sign-ups and new listings per day',
                 height: 300,
                 legend: const [
                   ('Orders', AppColors.brandCrimson),
-                  ('New users', AppColors.infoBlue),
+                  ('New buyers', AppColors.infoBlue),
+                  ('New sellers', AppColors.alertAmber),
+                  ('New listings', AppColors.ratingGold),
                 ],
                 child: AreaChart(
                   xLabels: labels,
                   series: [
                     ChartSeries('Orders', AppColors.brandCrimson, ordersDaily),
-                    ChartSeries('New users', AppColors.infoBlue, usersDaily),
+                    ChartSeries('New buyers', AppColors.infoBlue, usersDaily),
+                    ChartSeries(
+                      'New sellers',
+                      AppColors.alertAmber,
+                      sellersDaily,
+                    ),
+                    ChartSeries(
+                      'New listings',
+                      AppColors.ratingGold,
+                      listingsDaily,
+                    ),
                   ],
                 ),
               );
@@ -241,9 +254,28 @@ class _DashboardBody extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   _Panel(
-                    title: 'Top sellers',
-                    subtitle: 'By order value',
-                    child: _TopSellers(orders: counted),
+                    title: 'Commission',
+                    subtitle: 'Platform fee: 4% (3% for reduced-fee sellers)',
+                    child: _CommissionSummary(orders: orders),
+                  ),
+                  const SizedBox(height: 20),
+                  _Panel(
+                    title: 'New this week',
+                    subtitle: 'Joined or uploaded in the last 7 days',
+                    child: _NewActivity(
+                      buyers: usersDaily
+                          .sublist(7)
+                          .fold<double>(0, (a, b) => a + b)
+                          .toInt(),
+                      sellers: sellersDaily
+                          .sublist(7)
+                          .fold<double>(0, (a, b) => a + b)
+                          .toInt(),
+                      listings: listingsDaily
+                          .sublist(7)
+                          .fold<double>(0, (a, b) => a + b)
+                          .toInt(),
+                    ),
                   ),
                 ],
               );
@@ -325,11 +357,22 @@ class _Grid extends StatelessWidget {
       return Wrap(
         spacing: gap,
         runSpacing: gap,
-        children: [for (final ch in children) SizedBox(width: w, child: ch)],
+        children: [
+          for (var i = 0; i < children.length; i++)
+            SizedBox(
+              width: w,
+              child: Reveal(
+                delay: Duration(milliseconds: 70 * i),
+                child: children[i],
+              ),
+            ),
+        ],
       );
     },
   );
 }
+
+String _whole(double v) => v.round().toString();
 
 class _KpiCard extends StatelessWidget {
   const _KpiCard({
@@ -338,10 +381,12 @@ class _KpiCard extends StatelessWidget {
     required this.series,
     required this.color,
     required this.onTap,
+    this.format = _whole,
   });
 
   final String label;
-  final String value;
+  final double value;
+  final String Function(double) format;
   final List<double> series;
   final Color color;
   final VoidCallback onTap;
@@ -350,76 +395,79 @@ class _KpiCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = _trend(series);
     final up = (t ?? 0) >= 0;
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  color: AppColors.warmTaupe,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    value,
-                    style: const TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.5,
-                    ),
+    return HoverLift(
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: AppColors.warmTaupe,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
                   ),
-                  const SizedBox(width: 8),
-                  if (t != null)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 5),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            up ? Icons.trending_up : Icons.trending_down,
-                            size: 16,
-                            color: up
-                                ? AppColors.trustGreen
-                                : const Color(0xFFB3261E),
-                          ),
-                          const SizedBox(width: 2),
-                          Text(
-                            '${t.abs().round()}%',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    CountUp(
+                      value: value,
+                      format: format,
+                      style: const TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    if (t != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 5),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              up ? Icons.trending_up : Icons.trending_down,
+                              size: 16,
                               color: up
                                   ? AppColors.trustGreen
                                   : const Color(0xFFB3261E),
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 2),
+                            Text(
+                              '${t.abs().round()}%',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: up
+                                    ? AppColors.trustGreen
+                                    : const Color(0xFFB3261E),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              SizedBox(
-                height: 38,
-                child: Sparkline(values: series, color: color),
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                'vs previous 7 days',
-                style: TextStyle(color: AppColors.warmTaupe, fontSize: 11),
-              ),
-            ],
+                  ],
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  height: 38,
+                  child: Sparkline(values: series, color: color),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'vs previous 7 days',
+                  style: TextStyle(color: AppColors.warmTaupe, fontSize: 11),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -445,75 +493,78 @@ class _Panel extends StatelessWidget {
   final List<(String, Color)>? legend;
 
   @override
-  Widget build(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    if (subtitle != null)
-                      Text(
-                        subtitle!,
-                        style: const TextStyle(
-                          color: AppColors.warmTaupe,
-                          fontSize: 12.5,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              ?action,
-            ],
-          ),
-          if (legend != null) ...[
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 16,
+  Widget build(BuildContext context) => Reveal(
+    delay: const Duration(milliseconds: 300),
+    child: Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                for (final (label, color) in legend!)
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        width: 9,
-                        height: 9,
-                        decoration: BoxDecoration(
-                          color: color,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
                       Text(
-                        label,
+                        title,
                         style: const TextStyle(
-                          fontSize: 12.5,
-                          color: AppColors.warmTaupe,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
+                      if (subtitle != null)
+                        Text(
+                          subtitle!,
+                          style: const TextStyle(
+                            color: AppColors.warmTaupe,
+                            fontSize: 12.5,
+                          ),
+                        ),
                     ],
                   ),
+                ),
+                ?action,
               ],
             ),
+            if (legend != null) ...[
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 16,
+                children: [
+                  for (final (label, color) in legend!)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 9,
+                          height: 9,
+                          decoration: BoxDecoration(
+                            color: color,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          label,
+                          style: const TextStyle(
+                            fontSize: 12.5,
+                            color: AppColors.warmTaupe,
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ],
+            const SizedBox(height: 16),
+            if (height != null)
+              SizedBox(height: height! - 90, child: child)
+            else
+              child,
           ],
-          const SizedBox(height: 16),
-          if (height != null)
-            SizedBox(height: height! - 90, child: child)
-          else
-            child,
-        ],
+        ),
       ),
     ),
   );
@@ -654,8 +705,12 @@ class _RecentOrders extends StatelessWidget {
             Expanded(flex: 3, child: Text('BUYER', style: head)),
             Expanded(flex: 3, child: Text('STATUS', style: head)),
             SizedBox(
-              width: 80,
-              child: Text('TOTAL', style: head, textAlign: TextAlign.right),
+              width: 100,
+              child: Text(
+                'COMMISSION',
+                style: head,
+                textAlign: TextAlign.right,
+              ),
             ),
           ],
         ),
@@ -692,9 +747,11 @@ class _RecentOrders extends StatelessWidget {
                   ),
                 ),
                 SizedBox(
-                  width: 80,
+                  width: 100,
                   child: Text(
-                    currency.format(o.totalAmount),
+                    o.platformFee == null
+                        ? '—'
+                        : currency.format(o.platformFee),
                     textAlign: TextAlign.right,
                     style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
@@ -777,67 +834,129 @@ class _Attention extends StatelessWidget {
   }
 }
 
-class _TopSellers extends StatelessWidget {
-  const _TopSellers({required this.orders});
+class _NewActivity extends StatelessWidget {
+  const _NewActivity({
+    required this.buyers,
+    required this.sellers,
+    required this.listings,
+  });
 
-  final List<AdminOrder> orders;
+  final int buyers;
+  final int sellers;
+  final int listings;
 
   @override
   Widget build(BuildContext context) {
-    final totals = <String, double>{};
-    for (final o in orders) {
-      totals.update(
-        o.sellerName,
-        (v) => v + o.totalAmount,
-        ifAbsent: () => o.totalAmount,
-      );
-    }
-    final top = totals.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    if (top.isEmpty) {
-      return const Text(
-        'No sales yet',
-        style: TextStyle(color: AppColors.warmTaupe),
-      );
-    }
-    final max = top.first.value;
-    final currency = NumberFormat.compactCurrency(symbol: r'$');
-    return Column(
-      children: [
-        for (final e in top.take(5))
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 7),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        e.key,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                    Text(
-                      currency.format(e.value),
-                      style: const TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: LinearProgressIndicator(
-                    value: max <= 0 ? 0 : e.value / max,
-                    minHeight: 6,
-                    backgroundColor: AppColors.blushSurface,
-                    color: AppColors.brandCrimson,
-                  ),
-                ),
-              ],
+    Widget row(IconData icon, Color color, String label, int n) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(9),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
+          Text(
+            '+$n',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: n > 0 ? color : AppColors.warmTaupe,
+            ),
+          ),
+        ],
+      ),
+    );
+    return Column(
+      children: [
+        row(Icons.person_add_alt, AppColors.infoBlue, 'New buyers', buyers),
+        row(
+          Icons.storefront_outlined,
+          AppColors.alertAmber,
+          'New sellers',
+          sellers,
+        ),
+        row(
+          Icons.add_box_outlined,
+          AppColors.ratingGold,
+          'New listings',
+          listings,
+        ),
+      ],
+    );
+  }
+}
+
+/// Earned = fees already taken on released orders. Pending = the 4% we
+/// expect from orders still in escrow, dispute or awaiting payment.
+class _CommissionSummary extends StatelessWidget {
+  const _CommissionSummary({required this.orders});
+
+  final List<AdminOrder> orders;
+
+  static const _pendingStatuses = {'held', 'pending', 'disputed'};
+
+  @override
+  Widget build(BuildContext context) {
+    final money = NumberFormat.currency(symbol: r'$');
+    final earnedOrders = orders.where((o) => o.platformFee != null).toList();
+    final earned = earnedOrders.fold<double>(0, (a, o) => a + o.platformFee!);
+    final pending = orders
+        .where(
+          (o) => o.platformFee == null && _pendingStatuses.contains(o.status),
+        )
+        .fold<double>(0, (a, o) => a + o.totalAmount * 0.04);
+    final avg = earnedOrders.isEmpty ? 0.0 : earned / earnedOrders.length;
+    final total = earned + pending;
+
+    Widget row(Color color, String label, String value) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Container(
+            width: 9,
+            height: 9,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 8),
+          Expanded(child: Text(label, style: const TextStyle(fontSize: 13))),
+          Text(
+            value,
+            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+          ),
+        ],
+      ),
+    );
+    return Column(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: total <= 0 ? 0 : earned / total),
+            duration: const Duration(milliseconds: 1000),
+            curve: Curves.easeOutCubic,
+            builder: (context, v, _) => LinearProgressIndicator(
+              value: v,
+              minHeight: 8,
+              backgroundColor: AppColors.blushSurface,
+              color: AppColors.trustGreen,
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        row(AppColors.trustGreen, 'Earned (released)', money.format(earned)),
+        row(AppColors.infoBlue, 'Pending (in escrow)', money.format(pending)),
+        row(AppColors.warmTaupe, 'Avg per released order', money.format(avg)),
       ],
     );
   }

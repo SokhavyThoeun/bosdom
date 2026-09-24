@@ -1,7 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/api/admin_api_client.dart';
 import '../../core/auth/admin_session.dart';
+import '../../core/models/admin_models.dart';
 import '../../core/theme/app_colors.dart';
 
 class AdminShell extends StatelessWidget {
@@ -413,14 +419,504 @@ class _TopBar extends StatelessWidget {
             ),
           ],
           const Spacer(),
-          IconButton(
-            tooltip: 'Support inbox',
-            onPressed: () => context.go('/support'),
-            icon: const Icon(Icons.notifications_none_rounded),
-          ),
+          const _NotificationBell(),
           const SizedBox(width: 8),
           const _AdminAvatar(size: 34),
         ],
+      ),
+    );
+  }
+}
+
+/// Bell in the top bar: a red count of everything still unread that is waiting
+/// on an admin (support chats, reports, disputes, KYC, payouts, co-buy leaves)
+/// with a panel that lists them by day. Polls so new items show up live.
+class _NotificationBell extends StatefulWidget {
+  const _NotificationBell();
+
+  @override
+  State<_NotificationBell> createState() => _NotificationBellState();
+}
+
+String _notificationId(AdminNotification n) =>
+    '${n.kind}|${n.title}|${n.body}|${n.createdAt?.millisecondsSinceEpoch}';
+
+class _NotificationBellState extends State<_NotificationBell> {
+  static const _pollInterval = Duration(seconds: 15);
+  static const _readKey = 'bosdom_admin_read_notifications';
+
+  List<AdminNotification> _items = const [];
+  final Set<String> _read = {};
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _restoreRead().then((_) => _load());
+    _timer = Timer.periodic(_pollInterval, (_) => _load());
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _restoreRead() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _read.addAll(prefs.getStringList(_readKey) ?? const []);
+    } catch (_) {}
+  }
+
+  Future<void> _persistRead() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      // Only remember ids that still exist, so the list can't grow forever.
+      final live = {for (final n in _items) _notificationId(n)};
+      _read.retainAll(live);
+      await prefs.setStringList(_readKey, _read.toList());
+    } catch (_) {}
+  }
+
+  Future<void> _load() async {
+    try {
+      final items = await AdminApiClient.fetchNotifications();
+      if (mounted) setState(() => _items = items);
+    } catch (_) {
+      // Keep the last list; the next tick retries.
+    }
+  }
+
+  int get _unread =>
+      _items.where((n) => !_read.contains(_notificationId(n))).length;
+
+  void _markRead(Iterable<AdminNotification> items) {
+    setState(() => _read.addAll(items.map(_notificationId)));
+    _persistRead();
+  }
+
+  Future<void> _open() async {
+    await _load();
+    if (!mounted) return;
+    await showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Close notifications',
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 120),
+      transitionBuilder: (context, animation, _, child) =>
+          FadeTransition(opacity: animation, child: child),
+      pageBuilder: (dialogContext, _, _) => SafeArea(
+        child: Align(
+          alignment: Alignment.topRight,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 64, right: 16, left: 16),
+            child: _NotificationPanel(
+              items: _items,
+              read: _read,
+              onChanged: (changed) => _markRead(changed),
+              onOpen: (n) {
+                _markRead([n]);
+                Navigator.of(dialogContext).pop();
+                context.go(n.route);
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final count = _unread;
+    return IconButton(
+      tooltip: 'Notifications',
+      onPressed: _open,
+      icon: Badge(
+        isLabelVisible: count > 0,
+        label: Text(count > 99 ? '99+' : '$count'),
+        backgroundColor: AppColors.brandCrimson,
+        child: const Icon(Icons.notifications_none_rounded),
+      ),
+    );
+  }
+}
+
+class _NotificationPanel extends StatefulWidget {
+  const _NotificationPanel({
+    required this.items,
+    required this.read,
+    required this.onChanged,
+    required this.onOpen,
+  });
+
+  final List<AdminNotification> items;
+  final Set<String> read;
+  final ValueChanged<List<AdminNotification>> onChanged;
+  final ValueChanged<AdminNotification> onOpen;
+
+  @override
+  State<_NotificationPanel> createState() => _NotificationPanelState();
+}
+
+class _NotificationPanelState extends State<_NotificationPanel> {
+  bool _isRead(AdminNotification n) => widget.read.contains(_notificationId(n));
+
+  void _mark(List<AdminNotification> changed) {
+    widget.onChanged(changed);
+    setState(() {});
+  }
+
+  static String _dayLabel(DateTime day) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final diff = today.difference(DateTime(day.year, day.month, day.day));
+    if (diff.inDays == 0) return 'TODAY';
+    if (diff.inDays == 1) return 'YESTERDAY';
+    return DateFormat('EEE, d MMM yyyy').format(day).toUpperCase();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final unread = widget.items.where((n) => !_isRead(n)).length;
+
+    // Newest first, grouped by calendar day (items without a time count as now).
+    final rows = <Object>[];
+    String? lastLabel;
+    for (final n in widget.items) {
+      final label = _dayLabel(n.createdAt ?? DateTime.now());
+      if (label != lastLabel) {
+        rows.add(label);
+        lastLabel = label;
+      }
+      rows.add(n);
+    }
+
+    return Material(
+      color: Colors.white,
+      elevation: 10,
+      shadowColor: Colors.black26,
+      borderRadius: BorderRadius.circular(14),
+      clipBehavior: Clip.antiAlias,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 440,
+          maxHeight: MediaQuery.sizeOf(context).height * 0.75,
+        ),
+        child: SizedBox(
+          width: 440,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 16, 16, 12),
+                child: Row(
+                  children: [
+                    const Text(
+                      'Notifications',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    if (unread > 0)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.brandCrimson,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          '$unread',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    const Spacer(),
+                    TextButton(
+                      onPressed: unread == 0 ? null : () => _mark(widget.items),
+                      child: const Text(
+                        'Mark all as read',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1, color: AppColors.roseDivider),
+              if (widget.items.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 48),
+                  child: Text(
+                    'You\'re all caught up',
+                    style: TextStyle(color: AppColors.warmTaupe),
+                  ),
+                )
+              else
+                Flexible(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: rows.length,
+                    itemBuilder: (context, index) {
+                      final row = rows[index];
+                      if (row is String) return _DayHeader(label: row);
+                      final n = row as AdminNotification;
+                      return _NotificationCard(
+                        notification: n,
+                        unread: !_isRead(n),
+                        onToggleRead: () => _mark([n]),
+                        onOpen: () => widget.onOpen(n),
+                      );
+                    },
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DayHeader extends StatelessWidget {
+  const _DayHeader({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      color: const Color(0xFFF5F3F1),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: AppColors.warmTaupe,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.4,
+        ),
+      ),
+    );
+  }
+}
+
+class _NotificationCard extends StatelessWidget {
+  const _NotificationCard({
+    required this.notification,
+    required this.unread,
+    required this.onToggleRead,
+    required this.onOpen,
+  });
+
+  final AdminNotification notification;
+  final bool unread;
+  final VoidCallback onToggleRead;
+  final VoidCallback onOpen;
+
+  static IconData _iconFor(String kind) => switch (kind) {
+    'support' => Icons.support_agent,
+    'report' => Icons.flag_outlined,
+    'dispute' => Icons.report_problem_outlined,
+    'kyc' => Icons.badge_outlined,
+    'payout' => Icons.payments_outlined,
+    'co_buy_leave' => Icons.group_remove_outlined,
+    _ => Icons.info_outline,
+  };
+
+  static String _kindLabel(String kind) => switch (kind) {
+    'support' => 'Support chat',
+    'report' => 'Seller report',
+    'dispute' => 'Dispute',
+    'kyc' => 'Registration',
+    'payout' => 'Payout',
+    'co_buy_leave' => 'Co-buy',
+    _ => 'Update',
+  };
+
+  static const _urgent = {'report', 'dispute'};
+
+  @override
+  Widget build(BuildContext context) {
+    final n = notification;
+    final at = n.createdAt;
+    return InkWell(
+      onTap: onOpen,
+      child: Container(
+        decoration: BoxDecoration(
+          color: unread ? AppColors.petalWhite : Colors.white,
+          border: const Border(bottom: BorderSide(color: Color(0x33DEC8C8))),
+        ),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                width: 4,
+                color: unread ? AppColors.brandCrimson : Colors.transparent,
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 16, 12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: 44,
+                        height: 44,
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: const BoxDecoration(
+                                color: AppColors.blushSurface,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                _iconFor(n.kind),
+                                size: 20,
+                                color: AppColors.brandCrimson,
+                              ),
+                            ),
+                            if (_urgent.contains(n.kind))
+                              Positioned(
+                                right: 0,
+                                bottom: 0,
+                                child: Container(
+                                  width: 18,
+                                  height: 18,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.ratingGold,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.priority_high,
+                                    size: 12,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              n.title,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: unread
+                                    ? FontWeight.w700
+                                    : FontWeight.w600,
+                                height: 1.3,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              n.body,
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: AppColors.warmTaupe,
+                                fontSize: 13.5,
+                                height: 1.4,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                const Text(
+                                  'VIEW',
+                                  style: TextStyle(
+                                    color: AppColors.brandCrimson,
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 13,
+                                    letterSpacing: 0.4,
+                                  ),
+                                ),
+                                const Spacer(),
+                                Flexible(
+                                  child: Text(
+                                    at == null
+                                        ? _kindLabel(n.kind)
+                                        : '${_kindLabel(n.kind)}   '
+                                              '${DateFormat('d MMM yyyy HH:mm').format(at)}',
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: AppColors.warmTaupe,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Tooltip(
+                        message: unread ? 'Mark as read' : 'Read',
+                        child: InkResponse(
+                          onTap: unread ? onToggleRead : null,
+                          radius: 16,
+                          child: Padding(
+                            padding: const EdgeInsets.all(4),
+                            child: Container(
+                              width: 18,
+                              height: 18,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: unread
+                                      ? AppColors.warmTaupe
+                                      : AppColors.roseDivider,
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: unread
+                                  ? Center(
+                                      child: Container(
+                                        width: 8,
+                                        height: 8,
+                                        decoration: const BoxDecoration(
+                                          color: AppColors.warmTaupe,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                    )
+                                  : null,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -11,6 +11,7 @@ import '../../profile/models/shop_profile.dart';
 import '../../profile/providers/profile_provider.dart';
 import '../../profile/providers/shop_profile_provider.dart';
 import '../../profile/services/profile_service.dart';
+import '../../profile/widgets/seller_approval_gate.dart';
 import '../models/merchant_role.dart';
 import '../services/signup_draft.dart';
 
@@ -156,17 +157,25 @@ class _BusinessInfoScreenState extends ConsumerState<BusinessInfoScreen> {
     );
   }
 
-  Future<void> _saveShopProfile() async {
-    await ref.read(shopProfileProvider.notifier).save(_buildShopProfile());
-    if (_logoFile != null) {
-      await ref
-          .read(shopProfileProvider.notifier)
-          .uploadLogo(File(_logoFile!.path));
-    }
-    if (_storePhotos.isNotEmpty) {
-      await ref
-          .read(shopProfileProvider.notifier)
-          .uploadStorePhotos(_storePhotos.map((f) => File(f.path)).toList());
+  /// Saves the shop's text fields, then the logo and store photos.
+  /// Returns false (without throwing) if any step fails, so callers can
+  /// still complete onboarding but let the user know images need a retry.
+  Future<bool> _saveShopProfile() async {
+    try {
+      await ref.read(shopProfileProvider.notifier).save(_buildShopProfile());
+      if (_logoFile != null) {
+        await ref
+            .read(shopProfileProvider.notifier)
+            .uploadLogo(File(_logoFile!.path));
+      }
+      if (_storePhotos.isNotEmpty) {
+        await ref
+            .read(shopProfileProvider.notifier)
+            .uploadStorePhotos(_storePhotos.map((f) => File(f.path)).toList());
+      }
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 
@@ -186,17 +195,20 @@ class _BusinessInfoScreenState extends ConsumerState<BusinessInfoScreen> {
           // this form itself is mock (no real KYC/backend wiring yet).
         }
       }
-      try {
-        await _saveShopProfile();
-      } catch (_) {
-        // Shop fields can still be edited later from Shop Profile; don't
-        // block seller activation on this save failing.
-      }
+      final shopSaved = await _saveShopProfile();
       if (!mounted) return;
       final l10n = AppLocalizations.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.profileSellerActivatedSnackbar)),
+        SnackBar(
+          content: Text(
+            shopSaved
+                ? l10n.profileSellerActivatedSnackbar
+                : l10n.profileShopPhotosUploadFailed,
+          ),
+        ),
       );
+      await showSellerAwaitingApprovalDialog(context);
+      if (!mounted) return;
       context.goNamed('profile');
       return;
     }
@@ -208,13 +220,23 @@ class _BusinessInfoScreenState extends ConsumerState<BusinessInfoScreen> {
       // what actually marks the account as onboarded rather than abandoned
       // mid-signup. See ProfileService.completeOnboarding.
       await ProfileService.completeOnboarding();
-      try {
-        await _saveShopProfile();
-      } catch (_) {
-        // Same as above — don't block account creation on this.
-      }
+      final shopSaved = await _saveShopProfile();
       SignupDraft.clear();
-      if (mounted) context.goNamed('marketplace');
+      if (mounted && !shopSaved) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context).profileShopPhotosUploadFailed,
+            ),
+          ),
+        );
+      }
+      if (mounted) {
+        if (widget.role == MerchantRole.supplier) {
+          await showSellerAwaitingApprovalDialog(context);
+        }
+        if (mounted) context.goNamed('marketplace');
+      }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(

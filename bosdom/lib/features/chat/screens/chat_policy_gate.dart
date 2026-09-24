@@ -56,12 +56,7 @@ class _ChatPolicyScreenState extends ConsumerState<_ChatPolicyScreen> {
               top: false,
               bottom: false,
               child: ListView(
-                padding: EdgeInsets.fromLTRB(
-                  20,
-                  20,
-                  20,
-                  8 + MediaQuery.of(context).padding.bottom,
-                ),
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
                 children: [
                   Text(
                     l10n.chatPolicyIntro,
@@ -96,13 +91,20 @@ class _ChatPolicyScreenState extends ConsumerState<_ChatPolicyScreen> {
                       setState(() => _agreed = value);
                     },
                   ),
-                  const SizedBox(height: 20),
-                  _ContinueButton(
-                    enabled: _agreed,
-                    onTap: () => ref.read(chatPolicyProvider.notifier).accept(),
-                  ),
                 ],
               ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+              20,
+              4,
+              20,
+              16 + MediaQuery.of(context).padding.bottom,
+            ),
+            child: _ContinueButton(
+              enabled: _agreed,
+              onTap: () => ref.read(chatPolicyProvider.notifier).accept(),
             ),
           ),
         ],
@@ -130,48 +132,36 @@ class _Header extends StatelessWidget {
           24,
           14,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Align(
-              alignment: Alignment.topLeft,
-              child: InkWell(
-                onTap: () => context.canPop()
-                    ? context.pop()
-                    : context.goNamed('profile'),
-                borderRadius: BorderRadius.circular(8),
-                child: Icon(
-                  Icons.arrow_back,
-                  color: colorScheme.onPrimary,
-                  size: 20,
+        child: SizedBox(
+          height: 68,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Align(
+                alignment: Alignment.topLeft,
+                child: InkWell(
+                  onTap: () => context.canPop()
+                      ? context.pop()
+                      : context.goNamed('profile'),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Icon(
+                    Icons.arrow_back,
+                    color: colorScheme.onPrimary,
+                    size: 20,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: colorScheme.onPrimary.withValues(alpha: 0.16),
-                shape: BoxShape.circle,
+              Text(
+                l10n.chatPolicyHeaderTitle,
+                textAlign: TextAlign.center,
+                style: textTheme.headlineSmall?.copyWith(
+                  color: colorScheme.onPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              alignment: Alignment.center,
-              child: Icon(
-                Icons.gpp_good_outlined,
-                color: colorScheme.onPrimary,
-                size: 26,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              l10n.chatPolicyHeaderTitle,
-              textAlign: TextAlign.center,
-              style: textTheme.headlineSmall?.copyWith(
-                color: colorScheme.onPrimary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -259,7 +249,7 @@ class _AgreementCheckbox extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         onTap: () => onChanged(!value),
         child: Container(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
             color: value
                 ? AppColors.blushSurface.withValues(alpha: 0.6)
@@ -270,25 +260,25 @@ class _AgreementCheckbox extends StatelessWidget {
             ),
           ),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Checkbox(
                 value: value,
+                visualDensity: VisualDensity.compact,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 onChanged: (v) => onChanged(v ?? false),
                 activeColor: AppColors.brandCrimson,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(6),
                 ),
               ),
+              const SizedBox(width: 8),
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: Text(
-                    AppLocalizations.of(context).chatPolicyAgreementText,
-                    style: textTheme.bodySmall?.copyWith(
-                      color: AppColors.warmBlack,
-                      height: 1.4,
-                    ),
+                child: Text(
+                  AppLocalizations.of(context).chatPolicyAgreementText,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: AppColors.warmBlack,
+                    height: 1.4,
                   ),
                 ),
               ),

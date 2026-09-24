@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/config/api_config.dart';
 import '../models/app_notification.dart';
@@ -13,9 +14,16 @@ class NotificationsPage {
 }
 
 abstract final class NotificationService {
+  static Map<String, String> get _authHeaders {
+    final token = Supabase.instance.client.auth.currentSession?.accessToken;
+    if (token == null) throw Exception('Not signed in');
+    return {'Authorization': 'Bearer $token'};
+  }
+
   static Future<NotificationsPage> fetchAll() async {
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/notifications'),
+      headers: _authHeaders,
     );
 
     if (response.statusCode != 200) {
@@ -35,6 +43,7 @@ abstract final class NotificationService {
   static Future<int> markRead(String id) async {
     final response = await http.post(
       Uri.parse('${ApiConfig.baseUrl}/notifications/$id/read'),
+      headers: _authHeaders,
     );
 
     if (response.statusCode != 200) {
@@ -48,6 +57,7 @@ abstract final class NotificationService {
   static Future<void> markAllRead() async {
     final response = await http.post(
       Uri.parse('${ApiConfig.baseUrl}/notifications/read-all'),
+      headers: _authHeaders,
     );
 
     if (response.statusCode != 200) {

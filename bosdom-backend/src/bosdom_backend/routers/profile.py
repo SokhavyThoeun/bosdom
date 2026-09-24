@@ -86,7 +86,14 @@ def _get_or_create(db: Session, user: CurrentUser) -> Profile:
 def get_profile(
     user: CurrentUser = Depends(get_current_user), db: Session = Depends(get_db)
 ) -> Profile:
-    return _get_or_create(db, user)
+    profile = _get_or_create(db, user)
+    if profile.verification_status == "rejected" and profile.role == "supplier":
+        # Accounts rejected before rejection reverted the role would
+        # otherwise stay stuck in the seller view.
+        profile.role = "retailer"
+        db.commit()
+        db.refresh(profile)
+    return profile
 
 
 @router.post("/me", response_model=ProfileOut)

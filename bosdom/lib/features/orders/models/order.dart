@@ -264,7 +264,9 @@ class Order {
   /// Short human-facing order number (e.g. `BD-98517`), derived from the
   /// backend's UUID `id` so it stays unique without showing the raw UUID.
   String get displayNumber {
-    final digits = id.replaceAll(RegExp('[^0-9A-Za-z]'), '');
+    final digits = id
+        .replaceFirst('cobuy-', '')
+        .replaceAll(RegExp('[^0-9A-Za-z]'), '');
     final shortCode = digits.length >= 5
         ? digits.substring(0, 5)
         : digits.padLeft(5, '0');

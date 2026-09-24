@@ -18,8 +18,6 @@ import '../../../shared/utils/mock_images.dart';
 import '../../../shared/widgets/checkout_progress_stepper.dart';
 import '../../cart/providers/cart_provider.dart';
 import '../../co_buying/providers/co_buy_provider.dart';
-import '../../co_buying/services/co_buy_pool_service.dart'
-    show CoBuyJoinException;
 import '../../orders/providers/orders_provider.dart';
 import '../../orders/services/order_service.dart';
 
@@ -95,24 +93,6 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   _PaymentMethod _selectedMethod = _PaymentMethod.card;
   bool _isPaying = false;
   bool _orderConfirmed = false;
-
-  /// Backing out of this screen before paying for a co-buy join leaves a
-  /// stale pending_payment reservation behind — release it here so the
-  /// buyer lands back on "Join Co-Buy" instead of a stuck "Continue to
-  /// Payment" the next time they open this deal.
-  void _cancelStaleCoBuyJoinOnExit() {
-    if (_orderConfirmed) return;
-    final coBuyPoolId = widget.coBuyPoolId;
-    if (coBuyPoolId == null) return;
-    final notifier = ref.read(coBuyProvider.notifier);
-    unawaited(() async {
-      try {
-        await notifier.leave(coBuyPoolId);
-      } on CoBuyJoinException {
-        // Already resolved through another path — nothing left to clean up.
-      }
-    }());
-  }
 
   Future<void> _onPayNowPressed() async {
     final confirmed = await showModalBottomSheet<bool>(
@@ -261,131 +241,125 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
 
-    return PopScope(
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) _cancelStaleCoBuyJoinOnExit();
-      },
-      child: Scaffold(
-        body: Column(
-          children: [
-            _PaymentHeader(colorScheme: colorScheme, textTheme: textTheme),
-            Expanded(
-              child: SafeArea(
-                top: false,
-                bottom: false,
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-                      child: CheckoutProgressStepper(
-                        currentStep: CheckoutStep.payment,
-                        completed: _orderConfirmed,
+    return Scaffold(
+      body: Column(
+        children: [
+          _PaymentHeader(colorScheme: colorScheme, textTheme: textTheme),
+          Expanded(
+            child: SafeArea(
+              top: false,
+              bottom: false,
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+                    child: CheckoutProgressStepper(
+                      currentStep: CheckoutStep.payment,
+                      completed: _orderConfirmed,
+                    ),
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                l10n.checkoutOrderItemsLabel,
+                                style: textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const Spacer(),
+                              Text(
+                                l10n.checkoutItemsCount(widget.items.length),
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          _OrderItemsSection(
+                            items: widget.items,
+                            colorScheme: colorScheme,
+                            textTheme: textTheme,
+                          ),
+                          const SizedBox(height: 20),
+                          Text(
+                            l10n.paymentSelectMethodLabel,
+                            style: textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          _PaymentMethodTile(
+                            imageAsset: 'assets/images/visa-mastercard.webp',
+                            imagePadding: 6,
+                            title: l10n.paymentCardMethodTitle,
+                            subtitle: l10n.paymentMethodSubtitleVisaMastercard,
+                            selected: _selectedMethod == _PaymentMethod.card,
+                            onTap: () => setState(
+                              () => _selectedMethod = _PaymentMethod.card,
+                            ),
+                            colorScheme: colorScheme,
+                            textTheme: textTheme,
+                          ),
+                          const SizedBox(height: 12),
+                          _PaymentMethodTile(
+                            imageAsset: 'assets/images/bakong-logo.png',
+                            title: l10n.paymentKhqrMethodTitle,
+                            subtitle: l10n.paymentKhqrSubtitle,
+                            selected: _selectedMethod == _PaymentMethod.khqr,
+                            onTap: () => setState(
+                              () => _selectedMethod = _PaymentMethod.khqr,
+                            ),
+                            colorScheme: colorScheme,
+                            textTheme: textTheme,
+                          ),
+                          const SizedBox(height: 24),
+                          _AmountToPayCard(
+                            amount: widget.amount,
+                            colorScheme: colorScheme,
+                            textTheme: textTheme,
+                          ),
+                        ],
                       ),
                     ),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  l10n.checkoutOrderItemsLabel,
-                                  style: textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
+                  ),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      24,
+                      0,
+                      24,
+                      20 + MediaQuery.of(context).padding.bottom,
+                    ),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: _isPaying ? null : _onPayNowPressed,
+                        child: _isPaying
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.4,
+                                  valueColor: AlwaysStoppedAnimation(
+                                    Colors.white,
                                   ),
                                 ),
-                                const Spacer(),
-                                Text(
-                                  l10n.checkoutItemsCount(widget.items.length),
-                                  style: textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            _OrderItemsSection(
-                              items: widget.items,
-                              colorScheme: colorScheme,
-                              textTheme: textTheme,
-                            ),
-                            const SizedBox(height: 20),
-                            Text(
-                              l10n.paymentSelectMethodLabel,
-                              style: textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            _PaymentMethodTile(
-                              imageAsset: 'assets/images/visa-mastercard.webp',
-                              imagePadding: 6,
-                              title: l10n.paymentCardMethodTitle,
-                              subtitle:
-                                  l10n.paymentMethodSubtitleVisaMastercard,
-                              selected: _selectedMethod == _PaymentMethod.card,
-                              onTap: () => setState(
-                                () => _selectedMethod = _PaymentMethod.card,
-                              ),
-                              colorScheme: colorScheme,
-                              textTheme: textTheme,
-                            ),
-                            const SizedBox(height: 12),
-                            _PaymentMethodTile(
-                              imageAsset: 'assets/images/bakong-logo.png',
-                              title: l10n.paymentKhqrMethodTitle,
-                              subtitle: l10n.paymentKhqrSubtitle,
-                              selected: _selectedMethod == _PaymentMethod.khqr,
-                              onTap: () => setState(
-                                () => _selectedMethod = _PaymentMethod.khqr,
-                              ),
-                              colorScheme: colorScheme,
-                              textTheme: textTheme,
-                            ),
-                            const SizedBox(height: 24),
-                            _AmountToPayCard(
-                              amount: widget.amount,
-                              colorScheme: colorScheme,
-                              textTheme: textTheme,
-                            ),
-                          ],
-                        ),
+                              )
+                            : Text(l10n.paymentPayNowButton),
                       ),
                     ),
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(
-                        24,
-                        0,
-                        24,
-                        20 + MediaQuery.of(context).padding.bottom,
-                      ),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: FilledButton(
-                          onPressed: _isPaying ? null : _onPayNowPressed,
-                          child: _isPaying
-                              ? const SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.4,
-                                    valueColor: AlwaysStoppedAnimation(
-                                      Colors.white,
-                                    ),
-                                  ),
-                                )
-                              : Text(l10n.paymentPayNowButton),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

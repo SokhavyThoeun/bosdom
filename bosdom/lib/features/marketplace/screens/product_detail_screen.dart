@@ -781,6 +781,8 @@ class _SellerRow extends StatelessWidget {
               ),
               Text(
                 product.location,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: textTheme.bodySmall?.copyWith(color: mutedTextColor),
               ),
               InkWell(

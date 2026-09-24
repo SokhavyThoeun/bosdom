@@ -69,7 +69,7 @@ class ProductListTile extends ConsumerWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Stack(
-        clipBehavior: Clip.hardEdge,
+        clipBehavior: Clip.antiAlias,
         children: [
           Container(
             padding: const EdgeInsets.all(12),

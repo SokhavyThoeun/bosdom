@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
+import 'motion.dart';
 
 /// Tiny trend line for KPI cards.
 class Sparkline extends StatelessWidget {
@@ -12,8 +13,12 @@ class Sparkline extends StatelessWidget {
   final Color color;
 
   @override
-  Widget build(BuildContext context) =>
-      CustomPaint(painter: _SparkPainter(values, color), size: Size.infinite);
+  Widget build(BuildContext context) => DrawIn(
+    child: CustomPaint(
+      painter: _SparkPainter(values, color),
+      size: Size.infinite,
+    ),
+  );
 }
 
 class _SparkPainter extends CustomPainter {
@@ -88,8 +93,13 @@ class AreaChart extends StatelessWidget {
   final List<String> xLabels;
 
   @override
-  Widget build(BuildContext context) =>
-      CustomPaint(painter: _AreaPainter(series, xLabels), size: Size.infinite);
+  Widget build(BuildContext context) => DrawIn(
+    duration: const Duration(milliseconds: 1400),
+    child: CustomPaint(
+      painter: _AreaPainter(series, xLabels),
+      size: Size.infinite,
+    ),
+  );
 }
 
 class _AreaPainter extends CustomPainter {
@@ -220,15 +230,21 @@ class DonutChart extends StatelessWidget {
   final Widget? center;
 
   @override
-  Widget build(BuildContext context) => CustomPaint(
-    painter: _DonutPainter(slices),
-    child: Center(child: center),
+  Widget build(BuildContext context) => TweenAnimationBuilder<double>(
+    tween: Tween(begin: 0, end: 1),
+    duration: const Duration(milliseconds: 1000),
+    curve: Curves.easeOutCubic,
+    builder: (context, t, _) => CustomPaint(
+      painter: _DonutPainter(slices, t),
+      child: Center(child: center),
+    ),
   );
 }
 
 class _DonutPainter extends CustomPainter {
-  _DonutPainter(this.slices);
+  _DonutPainter(this.slices, this.progress);
   final List<DonutSlice> slices;
+  final double progress;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -250,7 +266,7 @@ class _DonutPainter extends CustomPainter {
     const gap = 0.04;
     for (final s in slices) {
       if (s.value <= 0) continue;
-      final sweep = s.value / total * math.pi * 2;
+      final sweep = s.value / total * math.pi * 2 * progress;
       canvas.drawArc(
         rect,
         start + gap / 2,
@@ -267,5 +283,6 @@ class _DonutPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_DonutPainter old) => old.slices != slices;
+  bool shouldRepaint(_DonutPainter old) =>
+      old.slices != slices || old.progress != progress;
 }

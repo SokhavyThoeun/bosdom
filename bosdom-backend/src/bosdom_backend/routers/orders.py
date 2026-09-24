@@ -21,6 +21,7 @@ from ..models import (
     Shop,
 )
 from ..utils.images import save_image_as_webp
+from .notifications import NotificationTarget, push_notification
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
@@ -216,6 +217,8 @@ def auto_release_due_orders(db: Session) -> None:
             order, now, auto=True, fee_rate=fee_rate_for(db, order.seller_id, now)
         )
     db.commit()
+    for order in due:
+        notify_order_released(db, order)
 
 
 def seller_amount_for(order: Order) -> float:
@@ -224,6 +227,37 @@ def seller_amount_for(order: Order) -> float:
     if order.seller_amount is not None:
         return order.seller_amount
     return round(order.total_amount * (1 - PLATFORM_FEE_RATE), 2)
+
+
+def _notify_buyer(
+    db: Session, order: Order, title: str, body: str, route: str = "orderDetail"
+) -> None:
+    push_notification(
+        db,
+        order.buyer_id,
+        "order",
+        title,
+        body,
+        NotificationTarget(route=route, params={"id": order.id}),
+    )
+
+
+def notify_order_released(db: Session, order: Order) -> None:
+    """Funds went to the seller: tell them, and ask the buyer to rate."""
+    push_notification(
+        db,
+        order.seller_id,
+        "escrow",
+        "Funds released from escrow",
+        f"Payment for {order.product_name} was released to you.",
+        NotificationTarget(route="sellerOrderDetail", params={"id": order.id}),
+    )
+    _notify_buyer(
+        db,
+        order,
+        "How was your order?",
+        f"Rate the seller for {order.product_name} to help other buyers.",
+    )
 
 
 def _transition(order: Order, new_status: str) -> None:
@@ -700,6 +734,14 @@ def pay_order(
     order.paid_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(order)
+    push_notification(
+        db,
+        order.seller_id,
+        "order",
+        "New order received",
+        f"{order.quantity} × {order.product_name} was paid and is held in escrow. Confirm and ship it.",
+        NotificationTarget(route="sellerOrderDetail", params={"id": order.id}),
+    )
     return _order_out_single(db, order)
 
 
@@ -723,6 +765,7 @@ def confirm_order(
     order.seller_confirmed_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(order)
+    _notify_buyer(db, order, "Order confirmed", "The seller confirmed your order and is preparing it.")
     return _order_out_single(db, order)
 
 
@@ -767,6 +810,13 @@ def ship_order(
         order.seller_confirmed_at = now
     db.commit()
     db.refresh(order)
+    _notify_buyer(
+        db,
+        order,
+        "Your order has shipped",
+        f"{order.product_name} is on its way with {courier} (tracking {tracking_number}).",
+        route="deliveryTracking",
+    )
     return _order_out_single(db, order)
 
 
@@ -796,6 +846,12 @@ def mark_delivered(
     order.review_deadline_at = now + REVIEW_WINDOW
     db.commit()
     db.refresh(order)
+    _notify_buyer(
+        db,
+        order,
+        "Your order was delivered",
+        f"{order.product_name} arrived. Check it and confirm, or report a problem before the review window ends.",
+    )
     return _order_out_single(db, order)
 
 
@@ -893,6 +949,7 @@ def release_order(
     release_funds(order, now, fee_rate=fee_rate_for(db, order.seller_id, now))
     db.commit()
     db.refresh(order)
+    notify_order_released(db, order)
     return _order_out_single(db, order)
 
 
@@ -910,6 +967,14 @@ def cancel_order(
     order.cancelled_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(order)
+    push_notification(
+        db,
+        order.seller_id,
+        "order",
+        "Order cancelled",
+        f"The buyer cancelled the order for {order.product_name}.",
+        NotificationTarget(route="sellerOrderDetail", params={"id": order.id}),
+    )
     return _order_out_single(db, order)
 
 

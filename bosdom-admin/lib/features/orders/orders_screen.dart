@@ -996,7 +996,6 @@ class _SellerReportDialog extends StatelessWidget {
   }
 }
 
-
 class _CoBuyLeavesTab extends StatelessWidget {
   const _CoBuyLeavesTab();
 
@@ -1136,15 +1135,15 @@ class _CoBuyLeavesTab extends StatelessWidget {
                                           ),
                                           TextButton(
                                             style: TextButton.styleFrom(
-                                              foregroundColor:
-                                                  const Color(0xFFB3261E),
+                                              foregroundColor: const Color(
+                                                0xFFB3261E,
+                                              ),
                                             ),
-                                            onPressed: () =>
-                                                _rejectWithNote(
-                                                  context,
-                                                  request,
-                                                  reload,
-                                                ),
+                                            onPressed: () => _rejectWithNote(
+                                              context,
+                                              request,
+                                              reload,
+                                            ),
                                             child: const Text('Reject'),
                                           ),
                                         ],

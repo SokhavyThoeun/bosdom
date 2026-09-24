@@ -11,21 +11,44 @@ import '../../features/users/users_screen.dart';
 import '../../shared/widgets/admin_shell.dart';
 import '../auth/admin_session.dart';
 
+/// Fade-through: the old page fades out and drifts up while the new one
+/// fades in from below with a slight scale, so navigation feels continuous.
 CustomTransitionPage<void> _fadeThroughPage(GoRouterState state, Widget child) {
   return CustomTransitionPage<void>(
     key: state.pageKey,
     child: child,
-    transitionDuration: const Duration(milliseconds: 220),
-    reverseTransitionDuration: const Duration(milliseconds: 180),
+    transitionDuration: const Duration(milliseconds: 380),
+    reverseTransitionDuration: const Duration(milliseconds: 240),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      final fade = CurvedAnimation(parent: animation, curve: Curves.easeOut);
-      final slide = Tween<Offset>(
-        begin: const Offset(0, 0.02),
-        end: Offset.zero,
-      ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
+      final inCurve = CurvedAnimation(
+        parent: animation,
+        curve: const Interval(0.25, 1, curve: Curves.easeOutCubic),
+      );
+      final outCurve = CurvedAnimation(
+        parent: secondaryAnimation,
+        curve: const Interval(0, 0.5, curve: Curves.easeIn),
+      );
       return FadeTransition(
-        opacity: fade,
-        child: SlideTransition(position: slide, child: child),
+        opacity: ReverseAnimation(outCurve),
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: Offset.zero,
+            end: const Offset(0, -0.015),
+          ).animate(outCurve),
+          child: FadeTransition(
+            opacity: inCurve,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, 0.035),
+                end: Offset.zero,
+              ).animate(inCurve),
+              child: ScaleTransition(
+                scale: Tween<double>(begin: 0.985, end: 1).animate(inCurve),
+                child: child,
+              ),
+            ),
+          ),
+        ),
       );
     },
   );

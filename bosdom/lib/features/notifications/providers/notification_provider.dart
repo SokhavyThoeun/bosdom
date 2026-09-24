@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../auth/models/merchant_role.dart';
@@ -20,11 +22,25 @@ const _kSellerOnlyCategories = {
   NotificationCategory.payment,
 };
 
+const _kPollInterval = Duration(seconds: 10);
+
 class NotificationNotifier extends AsyncNotifier<NotificationState> {
   @override
   Future<NotificationState> build() async {
+    // Alerts are created server-side (e.g. an admin replying in Live Chat), so
+    // poll to surface them without needing an app restart.
+    final timer = Timer.periodic(_kPollInterval, (_) => _poll());
+    ref.onDispose(timer.cancel);
     final page = await NotificationService.fetchAll();
     return _stateForRole(page.items);
+  }
+
+  Future<void> _poll() async {
+    try {
+      await refresh();
+    } catch (_) {
+      // Keep the last good state; the next tick retries.
+    }
   }
 
   Future<void> refresh() async {

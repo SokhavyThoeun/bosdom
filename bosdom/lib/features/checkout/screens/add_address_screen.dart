@@ -8,7 +8,14 @@ import '../models/address.dart';
 import '../providers/address_provider.dart';
 
 class AddAddressScreen extends ConsumerStatefulWidget {
-  const AddAddressScreen({super.key, this.selectionMode = false});
+  const AddAddressScreen({
+    super.key,
+    this.selectionMode = false,
+    this.existing,
+  });
+
+  /// When set, the form edits this address instead of creating a new one.
+  final Address? existing;
 
   /// When true, this screen was opened while picking a delivery address for
   /// an in-progress checkout: saving returns straight to the checkout.
@@ -28,6 +35,23 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
   String? _district;
   String? _sangkat;
   bool _isDefault = true;
+
+  @override
+  void initState() {
+    super.initState();
+    final a = widget.existing;
+    if (a == null) return;
+    _labelController.text = a.label;
+    _houseController.text = a.houseNumber;
+    _landmarkController.text = a.landmark ?? '';
+    _phoneController.text = a.phone;
+    _province = kCambodiaProvinces.contains(a.province)
+        ? a.province
+        : kCambodiaProvinces.first;
+    _district = a.district;
+    _sangkat = a.sangkatName;
+    _isDefault = a.isDefault;
+  }
 
   Map<String, List<String>>? get _districtsForProvince =>
       kCambodiaDistricts[_province];
@@ -70,22 +94,27 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
       if (_sangkat != null) 'Sangkat $_sangkat',
       if (_district != null) 'Khan $_district',
     ].join(', ');
-    ref
-        .read(addressBookProvider.notifier)
-        .addAddress(
-          Address(
-            id: DateTime.now().microsecondsSinceEpoch.toString(),
-            label: _labelController.text.trim(),
-            houseNumber: _houseController.text.trim(),
-            sangkat: sangkatLine,
-            province: _province ?? kCambodiaProvinces.first,
-            phone: _phoneController.text.trim(),
-            landmark: _landmarkController.text.trim().isEmpty
-                ? null
-                : _landmarkController.text.trim(),
-            isDefault: _isDefault,
-          ),
-        );
+    final existing = widget.existing;
+    final address = Address(
+      id: existing?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
+      label: _labelController.text.trim(),
+      houseNumber: _houseController.text.trim(),
+      sangkat: sangkatLine,
+      province: _province ?? kCambodiaProvinces.first,
+      phone: _phoneController.text.trim(),
+      landmark: _landmarkController.text.trim().isEmpty
+          ? null
+          : _landmarkController.text.trim(),
+      district: _district,
+      sangkatName: _sangkat,
+      isDefault: _isDefault,
+    );
+    final notifier = ref.read(addressBookProvider.notifier);
+    if (existing != null) {
+      notifier.updateAddress(address);
+    } else {
+      notifier.addAddress(address);
+    }
     final popsToReturn = widget.selectionMode ? 2 : 1;
     for (var i = 0; i < popsToReturn && context.canPop(); i++) {
       context.pop();
@@ -105,6 +134,7 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
             colorScheme: colorScheme,
             textTheme: textTheme,
             onBack: _goBack,
+            isEdit: widget.existing != null,
           ),
           Expanded(
             child: SafeArea(
@@ -203,11 +233,13 @@ class _AddAddressHeader extends StatelessWidget {
     required this.colorScheme,
     required this.textTheme,
     required this.onBack,
+    required this.isEdit,
   });
 
   final ColorScheme colorScheme;
   final TextTheme textTheme;
   final VoidCallback onBack;
+  final bool isEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -240,7 +272,9 @@ class _AddAddressHeader extends StatelessWidget {
                 ),
               ),
               Text(
-                l10n.addressAddScreenTitle,
+                isEdit
+                    ? l10n.addressEditScreenTitle
+                    : l10n.addressAddScreenTitle,
                 textAlign: TextAlign.center,
                 style: textTheme.headlineSmall?.copyWith(
                   color: colorScheme.onPrimary,

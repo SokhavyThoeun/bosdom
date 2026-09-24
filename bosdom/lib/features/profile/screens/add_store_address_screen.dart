@@ -4,13 +4,17 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../../shared/utils/cambodia_locations.dart';
 import '../models/store_address.dart';
 import '../providers/store_address_provider.dart';
 
 final _kEmailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
 
 class AddStoreAddressScreen extends ConsumerStatefulWidget {
-  const AddStoreAddressScreen({super.key});
+  const AddStoreAddressScreen({super.key, this.editing});
+
+  /// When non-null, the form edits this address instead of creating one.
+  final StoreAddress? editing;
 
   @override
   ConsumerState<AddStoreAddressScreen> createState() =>
@@ -22,22 +26,51 @@ class _AddStoreAddressScreenState extends ConsumerState<AddStoreAddressScreen> {
   final _labelController = TextEditingController();
   final _storeNameController = TextEditingController();
   final _businessTypeController = TextEditingController();
-  final _fullAddressController = TextEditingController();
-  final _districtController = TextEditingController();
-  final _provinceController = TextEditingController();
+  final _houseController = TextEditingController();
+  final _streetController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _hoursController = TextEditingController();
+  String? _province;
+  String? _district;
+  String? _sangkat;
   bool _isDefault = true;
+
+  bool get _isEditing => widget.editing != null;
+
+  Map<String, List<String>>? get _districtsForProvince =>
+      kCambodiaDistricts[_province];
+
+  @override
+  void initState() {
+    super.initState();
+    final a = widget.editing;
+    if (a == null) return;
+    _labelController.text = a.label;
+    _storeNameController.text = a.storeName;
+    _businessTypeController.text = a.businessType;
+    _phoneController.text = a.phone;
+    _emailController.text = a.email;
+    _hoursController.text = a.operatingHours;
+    _province = a.province;
+    _isDefault = a.isDefault;
+    // fullAddress is stored as 'No. <house>, Street <street>' and district as
+    // 'Sangkat <sangkat>, Khan <khan>'; unpack them back into the form.
+    final addr = RegExp(r'^No\. (.*), Street (.*)$').firstMatch(a.fullAddress);
+    _houseController.text = addr?.group(1) ?? a.fullAddress;
+    _streetController.text = addr?.group(2) ?? '';
+    final loc = RegExp(r'^Sangkat (.*), Khan (.*)$').firstMatch(a.district);
+    _sangkat = loc?.group(1);
+    _district = loc?.group(2);
+  }
 
   @override
   void dispose() {
     _labelController.dispose();
     _storeNameController.dispose();
     _businessTypeController.dispose();
-    _fullAddressController.dispose();
-    _districtController.dispose();
-    _provinceController.dispose();
+    _houseController.dispose();
+    _streetController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
     _hoursController.dispose();
@@ -52,23 +85,29 @@ class _AddStoreAddressScreenState extends ConsumerState<AddStoreAddressScreen> {
   void _save() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    ref
-        .read(storeAddressBookProvider.notifier)
-        .addAddress(
-          StoreAddress(
-            id: DateTime.now().microsecondsSinceEpoch.toString(),
-            label: _labelController.text.trim(),
-            storeName: _storeNameController.text.trim(),
-            businessType: _businessTypeController.text.trim(),
-            fullAddress: _fullAddressController.text.trim(),
-            district: _districtController.text.trim(),
-            province: _provinceController.text.trim(),
-            phone: _phoneController.text.trim(),
-            email: _emailController.text.trim(),
-            operatingHours: _hoursController.text.trim(),
-            isDefault: _isDefault,
-          ),
-        );
+    final notifier = ref.read(storeAddressBookProvider.notifier);
+    final address = StoreAddress(
+      id:
+          widget.editing?.id ??
+          DateTime.now().microsecondsSinceEpoch.toString(),
+      label: _labelController.text.trim(),
+      storeName: _storeNameController.text.trim(),
+      businessType: _businessTypeController.text.trim(),
+      fullAddress:
+          'No. ${_houseController.text.trim()}, '
+          'Street ${_streetController.text.trim()}',
+      district: 'Sangkat $_sangkat, Khan $_district',
+      province: _province!,
+      phone: _phoneController.text.trim(),
+      email: _emailController.text.trim(),
+      operatingHours: _hoursController.text.trim(),
+      isDefault: _isDefault,
+    );
+    if (_isEditing) {
+      notifier.updateAddress(address);
+    } else {
+      notifier.addAddress(address);
+    }
     context.pop();
   }
 
@@ -82,10 +121,17 @@ class _AddStoreAddressScreenState extends ConsumerState<AddStoreAddressScreen> {
       backgroundColor: colorScheme.surface,
       body: Column(
         children: [
-          _Header(colorScheme: colorScheme, textTheme: textTheme),
+          _Header(
+            colorScheme: colorScheme,
+            textTheme: textTheme,
+            title: _isEditing
+                ? l10n.storeAddressEditScreenTitle
+                : l10n.storeAddressAddScreenTitle,
+          ),
           Expanded(
             child: SafeArea(
               top: false,
+              bottom: false,
               child: Form(
                 key: _formKey,
                 child: ListView(
@@ -121,28 +167,53 @@ class _AddStoreAddressScreenState extends ConsumerState<AddStoreAddressScreen> {
                     ),
                     const SizedBox(height: 20),
                     _AppTextField(
-                      label: l10n.storeAddressFullAddressFieldLabel,
-                      controller: _fullAddressController,
-                      hintText: l10n.storeAddressFullAddressFieldHint,
-                      textCapitalization: TextCapitalization.sentences,
-                      maxLines: 2,
+                      label: l10n.storeAddressHouseFieldLabel,
+                      controller: _houseController,
+                      hintText: l10n.storeAddressHouseFieldHint,
                       validator: (value) => _required(value, l10n),
                     ),
                     const SizedBox(height: 20),
                     _AppTextField(
-                      label: l10n.storeAddressDistrictFieldLabel,
-                      controller: _districtController,
-                      hintText: l10n.storeAddressDistrictFieldHint,
-                      textCapitalization: TextCapitalization.words,
+                      label: l10n.storeAddressStreetFieldLabel,
+                      controller: _streetController,
+                      hintText: l10n.storeAddressStreetFieldHint,
                       validator: (value) => _required(value, l10n),
                     ),
                     const SizedBox(height: 20),
-                    _AppTextField(
-                      label: l10n.storeAddressProvinceFieldLabel,
-                      controller: _provinceController,
-                      hintText: l10n.storeAddressProvinceFieldHint,
-                      textCapitalization: TextCapitalization.words,
+                    _AppDropdownField(
+                      label: l10n.addressProvinceFieldLabel,
+                      hintText: l10n.addressProvinceFieldHint,
+                      value: _province,
+                      items: kCambodiaProvinces,
                       validator: (value) => _required(value, l10n),
+                      onChanged: (value) => setState(() {
+                        _province = value;
+                        _district = null;
+                        _sangkat = null;
+                      }),
+                    ),
+                    const SizedBox(height: 20),
+                    _AppDropdownField(
+                      label: l10n.addressDistrictFieldLabel,
+                      hintText: l10n.addressDistrictFieldHint,
+                      value: _district,
+                      items: _districtsForProvince?.keys.toList() ?? const [],
+                      validator: (value) => _required(value, l10n),
+                      onChanged: (value) => setState(() {
+                        _district = value;
+                        _sangkat = null;
+                      }),
+                    ),
+                    const SizedBox(height: 20),
+                    _AppDropdownField(
+                      label: l10n.addressSangkatFieldLabel,
+                      hintText: l10n.addressSangkatFieldHint,
+                      value: _sangkat,
+                      items: _district == null
+                          ? const []
+                          : _districtsForProvince?[_district] ?? const [],
+                      validator: (value) => _required(value, l10n),
+                      onChanged: (value) => setState(() => _sangkat = value),
                     ),
                     const SizedBox(height: 20),
                     _AppTextField(
@@ -207,77 +278,56 @@ class _AddStoreAddressScreenState extends ConsumerState<AddStoreAddressScreen> {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.colorScheme, required this.textTheme});
+  const _Header({
+    required this.colorScheme,
+    required this.textTheme,
+    required this.title,
+  });
 
+  final String title;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return ClipRRect(
-      borderRadius: const BorderRadius.only(
-        bottomLeft: Radius.circular(28),
-        bottomRight: Radius.circular(28),
-      ),
-      child: DecoratedBox(
-        decoration: BoxDecoration(color: colorScheme.primary),
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            24,
-            MediaQuery.of(context).padding.top + 10,
-            24,
-            14,
-          ),
-          child: SizedBox(
-            height: 68,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Align(
-                  alignment: Alignment.topLeft,
-                  child: InkWell(
-                    onTap: () => context.canPop()
-                        ? context.pop()
-                        : context.goNamed('profile'),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 4,
-                        horizontal: 2,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.arrow_back_ios_new,
-                            color: colorScheme.onPrimary,
-                            size: 16,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            l10n.commonBack,
-                            style: textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onPrimary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                Text(
-                  l10n.storeAddressAddScreenTitle,
-                  textAlign: TextAlign.center,
-                  style: textTheme.headlineSmall?.copyWith(
+    return DecoratedBox(
+      decoration: BoxDecoration(color: colorScheme.primary),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          24,
+          MediaQuery.of(context).padding.top + 10,
+          24,
+          14,
+        ),
+        child: SizedBox(
+          height: 68,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Align(
+                alignment: Alignment.topLeft,
+                child: InkWell(
+                  onTap: () => context.canPop()
+                      ? context.pop()
+                      : context.goNamed('profile'),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Icon(
+                    Icons.arrow_back,
                     color: colorScheme.onPrimary,
-                    fontWeight: FontWeight.bold,
+                    size: 20,
                   ),
                 ),
-              ],
-            ),
+              ),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: textTheme.headlineSmall?.copyWith(
+                  color: colorScheme.onPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -320,7 +370,6 @@ class _AppTextField extends StatelessWidget {
     required this.hintText,
     this.keyboardType,
     this.textCapitalization = TextCapitalization.none,
-    this.maxLines = 1,
     this.validator,
   });
 
@@ -329,7 +378,6 @@ class _AppTextField extends StatelessWidget {
   final String hintText;
   final TextInputType? keyboardType;
   final TextCapitalization textCapitalization;
-  final int maxLines;
   final String? Function(String?)? validator;
 
   @override
@@ -350,13 +398,70 @@ class _AppTextField extends StatelessWidget {
           controller: controller,
           keyboardType: keyboardType,
           textCapitalization: textCapitalization,
-          maxLines: maxLines,
+
           style: textTheme.bodyMedium?.copyWith(
             fontWeight: FontWeight.w600,
             color: AppColors.warmBlack,
           ),
           decoration: _fieldDecoration(hintText: hintText),
           validator: validator,
+        ),
+      ],
+    );
+  }
+}
+
+class _AppDropdownField extends StatelessWidget {
+  const _AppDropdownField({
+    required this.label,
+    required this.hintText,
+    required this.value,
+    required this.items,
+    required this.onChanged,
+    this.validator,
+  });
+
+  final String label;
+  final String hintText;
+  final String? value;
+  final List<String> items;
+  final ValueChanged<String?> onChanged;
+  final String? Function(String?)? validator;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: textTheme.bodySmall?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppColors.warmTaupe,
+          ),
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          // Keyed on the item list so a cascading parent change resets it.
+          key: ValueKey(items),
+          initialValue: items.contains(value) ? value : null,
+          isExpanded: true,
+          icon: const Icon(
+            Icons.keyboard_arrow_down,
+            color: AppColors.brandCrimson,
+          ),
+          style: textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppColors.warmBlack,
+          ),
+          decoration: _fieldDecoration(hintText: hintText),
+          items: [
+            for (final item in items)
+              DropdownMenuItem(value: item, child: Text(item)),
+          ],
+          validator: validator,
+          onChanged: items.isEmpty ? null : onChanged,
         ),
       ],
     );

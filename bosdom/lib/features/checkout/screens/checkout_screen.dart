@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +9,9 @@ import '../../../shared/services/shipping_fee_calculator.dart';
 import '../../../shared/utils/currency_format.dart';
 import '../../../shared/widgets/checkout_progress_stepper.dart';
 import '../../../shared/widgets/price_display.dart';
+import '../../co_buying/providers/co_buy_provider.dart';
+import '../../co_buying/services/co_buy_pool_service.dart'
+    show CoBuyJoinException;
 import '../../payment/screens/payment_screen.dart' show OrderLineSummary;
 import '../../profile/providers/profile_provider.dart';
 import '../../../shared/utils/mock_images.dart';
@@ -124,9 +129,13 @@ const _kShippingOptions = [
 ];
 
 class CheckoutScreen extends ConsumerStatefulWidget {
-  const CheckoutScreen({super.key, this.items});
+  const CheckoutScreen({super.key, this.items, this.coBuyPoolId});
 
   final List<CheckoutLineItem>? items;
+
+  /// Set when this checkout is for a co-buy join: the reservation is released
+  /// if the buyer backs out, and the id is forwarded so payment holds it.
+  final String? coBuyPoolId;
 
   @override
   ConsumerState<CheckoutScreen> createState() => _CheckoutScreenState();
@@ -134,6 +143,21 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   String _selectedShippingId = _kShippingOptions.first.id;
+
+  /// Backing out of a co-buy checkout leaves a stale pending_payment
+  /// reservation behind — release it so the deal shows "Join Co-Buy" again.
+  void _cancelStaleCoBuyJoinOnExit() {
+    final coBuyPoolId = widget.coBuyPoolId;
+    if (coBuyPoolId == null) return;
+    final notifier = ref.read(coBuyProvider.notifier);
+    unawaited(() async {
+      try {
+        await notifier.leave(coBuyPoolId);
+      } on CoBuyJoinException {
+        // Already resolved through another path — nothing left to clean up.
+      }
+    }());
+  }
 
   List<CheckoutLineItem> get _items => widget.items ?? _kCheckoutItems;
 
@@ -185,143 +209,153 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final effectiveShippingId = _effectiveShippingId(shippingQuotes);
     final shipping = shippingQuotes[effectiveShippingId]?.fee ?? 0.0;
 
-    return Scaffold(
-      body: Column(
-        children: [
-          _CheckoutHeader(colorScheme: colorScheme, textTheme: textTheme),
-          Expanded(
-            child: SafeArea(
-              top: false,
-              bottom: false,
-              child: ListView(
-                padding: EdgeInsets.fromLTRB(
-                  16,
-                  20,
-                  16,
-                  8 + MediaQuery.of(context).padding.bottom,
-                ),
-                children: [
-                  const CheckoutProgressStepper(
-                    currentStep: CheckoutStep.checkout,
+    return PopScope(
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) _cancelStaleCoBuyJoinOnExit();
+      },
+      child: Scaffold(
+        body: Column(
+          children: [
+            _CheckoutHeader(colorScheme: colorScheme, textTheme: textTheme),
+            Expanded(
+              child: SafeArea(
+                top: false,
+                bottom: false,
+                child: ListView(
+                  padding: EdgeInsets.fromLTRB(
+                    16,
+                    20,
+                    16,
+                    8 + MediaQuery.of(context).padding.bottom,
                   ),
-                  const SizedBox(height: 20),
-                  Text(
-                    l10n.checkoutDeliveryAddressLabel,
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+                  children: [
+                    const CheckoutProgressStepper(
+                      currentStep: CheckoutStep.checkout,
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  _DeliveryAddressCard(
-                    address: defaultAddress,
-                    colorScheme: colorScheme,
-                    textTheme: textTheme,
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Text(
-                        l10n.checkoutOrderItemsLabel,
-                        style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                    const SizedBox(height: 20),
+                    Text(
+                      l10n.checkoutDeliveryAddressLabel,
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
-                      const Spacer(),
-                      Text(
-                        l10n.checkoutItemsCount(_items.length),
-                        style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  _OrderItemsCard(
-                    items: _items,
-                    colorScheme: colorScheme,
-                    textTheme: textTheme,
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    l10n.checkoutShippingMethodLabel,
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  for (final option in _kShippingOptions) ...[
-                    _ShippingOptionTile(
-                      option: option,
-                      quote: shippingQuotes[option.id],
-                      selected: option.id == effectiveShippingId,
-                      onTap: () =>
-                          setState(() => _selectedShippingId = option.id),
+                    const SizedBox(height: 10),
+                    _DeliveryAddressCard(
+                      address: defaultAddress,
                       colorScheme: colorScheme,
                       textTheme: textTheme,
                     ),
-                    const SizedBox(height: 10),
-                  ],
-                  const SizedBox(height: 10),
-                  _OrderSummaryCard(
-                    subtotal: _subtotal,
-                    shipping: shipping,
-                    escrowFee: _escrowFee(shipping),
-                    total: _total(shipping),
-                    colorScheme: colorScheme,
-                    textTheme: textTheme,
-                  ),
-                  const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      Icon(Icons.cancel, size: 16, color: colorScheme.primary),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          l10n.checkoutEscrowNotice,
-                          style: textTheme.bodySmall?.copyWith(
-                            color: colorScheme.primary,
-                            fontWeight: FontWeight.w600,
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Text(
+                          l10n.checkoutOrderItemsLabel,
+                          style: textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  FilledButton(
-                    onPressed: () => context.pushNamed(
-                      'payment',
-                      extra: {
-                        'amount': _total(shipping),
-                        'itemCount': _items.length,
-                        'shippingName': profile?.name ?? '',
-                        'shippingAddress': defaultAddress == null
-                            ? ''
-                            : '${defaultAddress.addressLine}, ${defaultAddress.cityLine}',
-                        'shippingPhone':
-                            defaultAddress?.phone ?? profile?.phone ?? '',
-                        'items': [
-                          for (final item in _items)
-                            OrderLineSummary(
-                              icon: item.icon,
-                              imageUrl: item.imageUrl,
-                              name: item.name,
-                              qtyLabel: item.qtyLabel,
-                              total: item.total,
-                              seller: item.seller,
-                              sellerLogoOverride: item.sellerLogoOverride,
-                              listingId: item.listingId,
-                              quantity: item.quantity,
-                            ),
-                        ],
-                      },
+                        const Spacer(),
+                        Text(
+                          l10n.checkoutItemsCount(_items.length),
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
                     ),
-                    child: Text(l10n.checkoutContinueToPayment),
-                  ),
-                ],
+                    const SizedBox(height: 10),
+                    _OrderItemsCard(
+                      items: _items,
+                      colorScheme: colorScheme,
+                      textTheme: textTheme,
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      l10n.checkoutShippingMethodLabel,
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    for (final option in _kShippingOptions) ...[
+                      _ShippingOptionTile(
+                        option: option,
+                        quote: shippingQuotes[option.id],
+                        selected: option.id == effectiveShippingId,
+                        onTap: () =>
+                            setState(() => _selectedShippingId = option.id),
+                        colorScheme: colorScheme,
+                        textTheme: textTheme,
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+                    const SizedBox(height: 10),
+                    _OrderSummaryCard(
+                      subtotal: _subtotal,
+                      shipping: shipping,
+                      escrowFee: _escrowFee(shipping),
+                      total: _total(shipping),
+                      colorScheme: colorScheme,
+                      textTheme: textTheme,
+                    ),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.cancel,
+                          size: 16,
+                          color: colorScheme.primary,
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            l10n.checkoutEscrowNotice,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    FilledButton(
+                      onPressed: () => context.pushNamed(
+                        'payment',
+                        extra: {
+                          'amount': _total(shipping),
+                          'itemCount': _items.length,
+                          'coBuyPoolId': widget.coBuyPoolId,
+                          'shippingName': profile?.name ?? '',
+                          'shippingAddress': defaultAddress == null
+                              ? ''
+                              : '${defaultAddress.addressLine}, ${defaultAddress.cityLine}',
+                          'shippingPhone':
+                              defaultAddress?.phone ?? profile?.phone ?? '',
+                          'items': [
+                            for (final item in _items)
+                              OrderLineSummary(
+                                icon: item.icon,
+                                imageUrl: item.imageUrl,
+                                name: item.name,
+                                qtyLabel: item.qtyLabel,
+                                total: item.total,
+                                seller: item.seller,
+                                sellerLogoOverride: item.sellerLogoOverride,
+                                listingId: item.listingId,
+                                quantity: item.quantity,
+                              ),
+                          ],
+                        },
+                      ),
+                      child: Text(l10n.checkoutContinueToPayment),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

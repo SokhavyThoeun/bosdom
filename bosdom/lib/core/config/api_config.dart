@@ -1,13 +1,21 @@
-/// Dev backend addresses for the two networks this app gets tested on.
-/// Flip [_useUniversity] and hot-reload when you switch networks — no
-/// in-app UI, no persisted state.
+/// Dev backend addresses for the networks this app gets tested on.
+///
+/// `scripts/dev.sh` detects the Mac's current LAN IP and passes it in via
+/// `--dart-define=API_BASE_URL=...`, so switching networks needs no edit here.
+/// The constants below are only the fallback for a bare `flutter run`: flip
+/// [_useUniversity] and hot-restart when you switch networks.
 abstract final class ApiConfig {
-  static const _homeIp = 'http://192.168.18.45:8000';
-  static const _universityIp = 'http://192.168.1.63:8000';
+  static const _homeIp = 'http://192.168.18.89:8000';
+  static const _universityIp = 'http://172.21.1.205:8000';
 
   static const _useUniversity = false;
 
-  static const baseUrl = _useUniversity ? _universityIp : _homeIp;
+  static const _fallbackUrl = _useUniversity ? _universityIp : _homeIp;
+
+  static const baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: _fallbackUrl,
+  );
 
   /// Resolves an avatar path returned by the backend into a loadable URL.
   ///

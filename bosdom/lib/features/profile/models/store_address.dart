@@ -43,4 +43,32 @@ class StoreAddress {
     operatingHours: operatingHours,
     isDefault: isDefault ?? this.isDefault,
   );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'label': label,
+    'storeName': storeName,
+    'businessType': businessType,
+    'fullAddress': fullAddress,
+    'district': district,
+    'province': province,
+    'phone': phone,
+    'email': email,
+    'operatingHours': operatingHours,
+    'isDefault': isDefault,
+  };
+
+  factory StoreAddress.fromJson(Map<String, dynamic> json) => StoreAddress(
+    id: json['id'] as String,
+    label: json['label'] as String,
+    storeName: json['storeName'] as String,
+    businessType: json['businessType'] as String,
+    fullAddress: json['fullAddress'] as String,
+    district: json['district'] as String,
+    province: json['province'] as String,
+    phone: json['phone'] as String,
+    email: json['email'] as String,
+    operatingHours: json['operatingHours'] as String,
+    isDefault: json['isDefault'] as bool? ?? false,
+  );
 }

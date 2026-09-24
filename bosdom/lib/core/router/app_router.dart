@@ -17,6 +17,7 @@ import '../../features/chat/screens/chat_detail_screen.dart';
 import '../../features/chat/screens/chat_policy_gate.dart';
 import '../../features/chat/screens/chat_screen.dart';
 import '../../features/chat/screens/live_chat_screen.dart';
+import '../../features/checkout/models/address.dart';
 import '../../features/checkout/screens/add_address_screen.dart';
 import '../../features/checkout/screens/address_book_screen.dart';
 import '../../features/checkout/screens/checkout_screen.dart';
@@ -33,6 +34,7 @@ import '../../features/orders/screens/order_detail_screen.dart';
 import '../../features/orders/screens/orders_screen.dart';
 import '../../features/payment/screens/payment_screen.dart';
 import '../../features/profile/models/faq_category.dart';
+import '../../features/profile/models/store_address.dart';
 import '../../features/profile/screens/about_screen.dart';
 import '../../features/profile/screens/add_listing_screen.dart';
 import '../../features/profile/screens/edit_profile_screen.dart';
@@ -239,8 +241,11 @@ abstract final class AppRouter {
       GoRoute(
         path: '/checkout/add-address',
         name: 'addAddress',
-        builder: (context, state) =>
-            AddAddressScreen(selectionMode: state.extra as bool? ?? false),
+        builder: (context, state) {
+          final extra = state.extra;
+          if (extra is Address) return AddAddressScreen(existing: extra);
+          return AddAddressScreen(selectionMode: extra as bool? ?? false);
+        },
       ),
       GoRoute(
         path: '/profile/co-buy-deals',
@@ -302,7 +307,8 @@ abstract final class AppRouter {
       GoRoute(
         path: '/profile/store-addresses/add',
         name: 'addStoreAddress',
-        builder: (context, state) => const AddStoreAddressScreen(),
+        builder: (context, state) =>
+            AddStoreAddressScreen(editing: state.extra as StoreAddress?),
       ),
       GoRoute(
         path: '/profile/payment-currency',
@@ -358,6 +364,7 @@ abstract final class AppRouter {
           if (extra is Map) {
             return CheckoutScreen(
               items: (extra['items'] as List?)?.cast<CheckoutLineItem>(),
+              coBuyPoolId: extra['coBuyPoolId'] as String?,
             );
           }
           return const CheckoutScreen();

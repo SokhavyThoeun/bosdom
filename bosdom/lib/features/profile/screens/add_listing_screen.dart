@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flex_color_picker/flex_color_picker.dart';
@@ -41,6 +42,24 @@ const _kColorPalette = [
   _PaletteColor('Sky Blue', Color(0xFF7EC8E3), '#7EC8E3'),
 ];
 
+class _CategorySpecCopy {
+  const _CategorySpecCopy({
+    required this.weightLabel,
+    required this.weightHint,
+    required this.originHint,
+    required this.gradeLabel,
+    required this.gradeHint,
+    required this.packagingHint,
+  });
+
+  final String weightLabel;
+  final String weightHint;
+  final String originHint;
+  final String gradeLabel;
+  final String gradeHint;
+  final String packagingHint;
+}
+
 class AddListingScreen extends StatefulWidget {
   const AddListingScreen({super.key});
 
@@ -74,6 +93,57 @@ class _AddListingScreenState extends State<AddListingScreen> {
   final List<_PaletteColor> _customColors = [];
 
   bool get _showVariants => _kVariantCategories.contains(_category);
+
+  _CategorySpecCopy _specCopyFor(AppLocalizations l10n) {
+    switch (_category) {
+      case 'Electronics':
+        return _CategorySpecCopy(
+          weightLabel: l10n.addListingWeightLabelElectronics,
+          weightHint: l10n.addListingWeightHintElectronics,
+          originHint: l10n.addListingOriginHintElectronics,
+          gradeLabel: l10n.addListingGradeLabel,
+          gradeHint: l10n.addListingGradeHintElectronics,
+          packagingHint: l10n.addListingPackagingHintElectronics,
+        );
+      case 'Clothing':
+        return _CategorySpecCopy(
+          weightLabel: l10n.addListingWeightLabelClothing,
+          weightHint: l10n.addListingWeightHintClothing,
+          originHint: l10n.addListingOriginHintClothing,
+          gradeLabel: l10n.addListingGradeLabelMaterial,
+          gradeHint: l10n.addListingGradeHintClothing,
+          packagingHint: l10n.addListingPackagingHintClothing,
+        );
+      case 'Beauty':
+        return _CategorySpecCopy(
+          weightLabel: l10n.addListingWeightLabelBeauty,
+          weightHint: l10n.addListingWeightHintBeauty,
+          originHint: l10n.addListingOriginHintBeauty,
+          gradeLabel: l10n.addListingGradeLabel,
+          gradeHint: l10n.addListingGradeHintBeauty,
+          packagingHint: l10n.addListingPackagingHintBeauty,
+        );
+      case 'Home':
+        return _CategorySpecCopy(
+          weightLabel: l10n.addListingWeightLabel,
+          weightHint: l10n.addListingWeightHintHome,
+          originHint: l10n.addListingOriginHintHome,
+          gradeLabel: l10n.addListingGradeLabelMaterial,
+          gradeHint: l10n.addListingGradeHintHome,
+          packagingHint: l10n.addListingPackagingHintHome,
+        );
+      case 'Food & Bev':
+      default:
+        return _CategorySpecCopy(
+          weightLabel: l10n.addListingWeightLabel,
+          weightHint: l10n.addListingWeightHint,
+          originHint: l10n.addListingOriginHint,
+          gradeLabel: l10n.addListingGradeLabel,
+          gradeHint: l10n.addListingGradeHint,
+          packagingHint: l10n.addListingPackagingHint,
+        );
+    }
+  }
 
   List<String> get _availableSizes => [
     ..._kSizePresets,
@@ -192,6 +262,26 @@ class _AddListingScreenState extends State<AddListingScreen> {
     setState(() => _photos[index] = null);
   }
 
+  /// Pulls the backend's `detail` message out of a
+  /// `Failed to create listing: <response body>` exception, so the user
+  /// sees the real reason (e.g. pending seller approval) instead of a
+  /// generic error.
+  String? _serverErrorDetail(Object error) {
+    final message = error.toString();
+    const prefix = 'Exception: Failed to create listing: ';
+    if (!message.startsWith(prefix)) return null;
+    final body = message.substring(prefix.length);
+    try {
+      final decoded = jsonDecode(body);
+      if (decoded is Map && decoded['detail'] is String) {
+        return decoded['detail'] as String;
+      }
+    } catch (_) {
+      // Response body wasn't JSON; fall back to the generic message.
+    }
+    return null;
+  }
+
   Future<void> _submit() async {
     final l10n = AppLocalizations.of(context);
     final formValid = _formKey.currentState?.validate() ?? false;
@@ -199,19 +289,36 @@ class _AddListingScreenState extends State<AddListingScreen> {
     setState(() => _showCoverPhotoError = !hasCoverPhoto);
     if (!formValid || !hasCoverPhoto) return;
 
+    final price = double.tryParse(_priceController.text.trim());
+    final moqQty = int.tryParse(_moqController.text.trim());
+    final stockQty = int.tryParse(_stockController.text.trim());
+    final samplePrice = _sampleTestingEnabled
+        ? double.tryParse(_samplePriceController.text.trim())
+        : null;
+    if (price == null ||
+        moqQty == null ||
+        stockQty == null ||
+        (_sampleTestingEnabled && samplePrice == null)) {
+      // The per-field validators should already catch this, but fall back
+      // to a friendly message instead of letting a raw parse exception
+      // reach the snackbar (e.g. a field built offscreen never validated).
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.addListingCreateErrorSnackbar)));
+      return;
+    }
+
     setState(() => _isSaving = true);
     try {
       await ListingService.create(
         productName: _productNameController.text.trim(),
         category: _category!,
-        price: double.parse(_priceController.text.trim()),
-        moqQty: int.parse(_moqController.text.trim()),
-        stockQty: int.parse(_stockController.text.trim()),
+        price: price,
+        moqQty: moqQty,
+        stockQty: stockQty,
         description: _descriptionController.text.trim(),
         sampleTestingEnabled: _sampleTestingEnabled,
-        samplePrice: _sampleTestingEnabled
-            ? double.parse(_samplePriceController.text.trim())
-            : null,
+        samplePrice: samplePrice,
         sizes: _selectedSizes.toList(),
         colors: [
           for (final palette in _availableColors)
@@ -232,11 +339,15 @@ class _AddListingScreenState extends State<AddListingScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.addListingCreatedSnackbar)));
       context.pop();
-    } catch (_) {
+    } catch (e) {
+      debugPrint('Add listing failed: $e');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.addListingCreateErrorSnackbar)),
-      );
+      final message =
+          _serverErrorDetail(e) ??
+          '${l10n.addListingCreateErrorSnackbar} ($e)';
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -247,6 +358,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
+    final specCopy = _specCopyFor(l10n);
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -256,10 +368,16 @@ class _AddListingScreenState extends State<AddListingScreen> {
           Expanded(
             child: SafeArea(
               top: false,
+              bottom: false,
               child: Form(
                 key: _formKey,
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    24,
+                    20,
+                    24 + MediaQuery.of(context).padding.bottom,
+                  ),
                   children: [
                     _AppTextField(
                       label: l10n.addListingProductNameLabel,
@@ -272,7 +390,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
                           ? l10n.addListingProductNameRequired
                           : null,
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 24),
                     _CategoryDropdown(
                       value: _category,
                       hintText: l10n.addListingCategoryHint,
@@ -321,7 +439,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 24),
                       Text(
                         l10n.variantColorLabel,
                         style: textTheme.bodyMedium?.copyWith(
@@ -347,7 +465,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
                         ],
                       ),
                     ],
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 24),
                     _AppTextField(
                       label: l10n.addListingPriceLabel,
                       controller: _priceController,
@@ -359,7 +477,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
                       validator: (value) =>
                           _validatePositiveDouble(value, l10n),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 24),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -427,10 +545,10 @@ class _AddListingScreenState extends State<AddListingScreen> {
                       children: [
                         Expanded(
                           child: _AppTextField(
-                            label: l10n.addListingWeightLabel,
+                            label: specCopy.weightLabel,
                             controller: _weightController,
                             icon: Icons.scale_outlined,
-                            hintText: l10n.addListingWeightHint,
+                            hintText: specCopy.weightHint,
                             validator: (value) {
                               if ((value ?? '').trim().isEmpty) {
                                 return l10n.addListingWeightRequired;
@@ -445,7 +563,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
                             label: l10n.addListingOriginLabel,
                             controller: _originController,
                             icon: Icons.public,
-                            hintText: l10n.addListingOriginHint,
+                            hintText: specCopy.originHint,
                             textCapitalization: TextCapitalization.words,
                             validator: (value) {
                               if ((value ?? '').trim().isEmpty) {
@@ -457,16 +575,16 @@ class _AddListingScreenState extends State<AddListingScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 24),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
                           child: _AppTextField(
-                            label: l10n.addListingGradeLabel,
+                            label: specCopy.gradeLabel,
                             controller: _gradeController,
                             icon: Icons.workspace_premium_outlined,
-                            hintText: l10n.addListingGradeHint,
+                            hintText: specCopy.gradeHint,
                             textCapitalization: TextCapitalization.words,
                             validator: (value) {
                               if ((value ?? '').trim().isEmpty) {
@@ -482,7 +600,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
                             label: l10n.addListingPackagingLabel,
                             controller: _packagingController,
                             icon: Icons.archive_outlined,
-                            hintText: l10n.addListingPackagingHint,
+                            hintText: specCopy.packagingHint,
                             textCapitalization: TextCapitalization.words,
                             validator: (value) {
                               if ((value ?? '').trim().isEmpty) {
@@ -562,7 +680,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
                           setState(() => _sampleTestingEnabled = value),
                     ),
                     if (_sampleTestingEnabled) ...[
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 24),
                       _AppTextField(
                         label: l10n.addListingSamplePriceLabel,
                         controller: _samplePriceController,
@@ -575,7 +693,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
                             _validatePositiveDouble(value, l10n, sample: true),
                       ),
                     ],
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 32),
                     FilledButton(
                       onPressed: _isSaving ? null : _submit,
                       style: FilledButton.styleFrom(

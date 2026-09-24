@@ -90,6 +90,7 @@ abstract final class CoBuyPoolService {
     String method,
     Uri uri, {
     required String productName,
+    required String category,
     required String description,
     required double price,
     required double originalPrice,
@@ -101,11 +102,16 @@ abstract final class CoBuyPoolService {
     required bool autoRenew,
     required List<String> sizes,
     required List<ProductColorOption> colorOptions,
+    required String weight,
+    required String origin,
+    required String grade,
+    required String packaging,
     required List<File> photos,
   }) async {
     final request = http.MultipartRequest(method, uri)
       ..headers.addAll(_authHeaders)
       ..fields['product_name'] = productName
+      ..fields['category'] = category
       ..fields['description'] = description
       ..fields['price'] = price.toString()
       ..fields['original_price'] = originalPrice.toString()
@@ -119,7 +125,11 @@ abstract final class CoBuyPoolService {
       ..fields['colors'] = jsonEncode([
         for (final color in colorOptions)
           {'name': color.name, 'hex': _colorToHex(color.color)},
-      ]);
+      ])
+      ..fields['weight'] = weight
+      ..fields['origin'] = origin
+      ..fields['grade'] = grade
+      ..fields['packaging'] = packaging;
 
     for (final photo in photos) {
       request.files.add(
@@ -139,6 +149,7 @@ abstract final class CoBuyPoolService {
 
   static Future<CoBuySession> createPool({
     required String productName,
+    String category = '',
     required String description,
     required double price,
     required double originalPrice,
@@ -150,12 +161,17 @@ abstract final class CoBuyPoolService {
     required bool autoRenew,
     List<String> sizes = const [],
     List<ProductColorOption> colorOptions = const [],
+    String weight = '',
+    String origin = '',
+    String grade = '',
+    String packaging = '',
     List<File> photos = const [],
   }) async {
     final request = await _poolFormRequest(
       'POST',
       Uri.parse('${ApiConfig.baseUrl}/co-buy/pools'),
       productName: productName,
+      category: category,
       description: description,
       price: price,
       originalPrice: originalPrice,
@@ -167,6 +183,10 @@ abstract final class CoBuyPoolService {
       autoRenew: autoRenew,
       sizes: sizes,
       colorOptions: colorOptions,
+      weight: weight,
+      origin: origin,
+      grade: grade,
+      packaging: packaging,
       photos: photos,
     );
     final response = await http.Response.fromStream(
@@ -183,6 +203,7 @@ abstract final class CoBuyPoolService {
   static Future<CoBuySession> updatePool(
     String id, {
     required String productName,
+    String category = '',
     required String description,
     required double price,
     required double originalPrice,
@@ -194,12 +215,17 @@ abstract final class CoBuyPoolService {
     required bool autoRenew,
     List<String> sizes = const [],
     List<ProductColorOption> colorOptions = const [],
+    String weight = '',
+    String origin = '',
+    String grade = '',
+    String packaging = '',
     List<File> photos = const [],
   }) async {
     final request = await _poolFormRequest(
       'PUT',
       Uri.parse('${ApiConfig.baseUrl}/co-buy/pools/me/$id'),
       productName: productName,
+      category: category,
       description: description,
       price: price,
       originalPrice: originalPrice,
@@ -211,6 +237,10 @@ abstract final class CoBuyPoolService {
       autoRenew: autoRenew,
       sizes: sizes,
       colorOptions: colorOptions,
+      weight: weight,
+      origin: origin,
+      grade: grade,
+      packaging: packaging,
       photos: photos,
     );
     final response = await http.Response.fromStream(

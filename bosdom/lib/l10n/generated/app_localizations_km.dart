@@ -653,6 +653,25 @@ class AppLocalizationsKm extends AppLocalizations {
   String get addressAddScreenTitle => 'បន្ថែមអាសយដ្ឋាន';
 
   @override
+  String get addressEditScreenTitle => 'កែសម្រួលអាសយដ្ឋាន';
+
+  @override
+  String get addressEditAction => 'កែ';
+
+  @override
+  String get addressDeleteAction => 'លុប';
+
+  @override
+  String get addressDeleteConfirmTitle => 'លុបអាសយដ្ឋាន?';
+
+  @override
+  String get addressDeleteConfirmMessage =>
+      'អាសយដ្ឋាននេះនឹងត្រូវបានលុបចេញពីសៀវភៅអាសយដ្ឋានរបស់អ្នក។';
+
+  @override
+  String get addressCancelButton => 'បោះបង់';
+
+  @override
   String get addressBookSelectionSubtitle =>
       'ចុចលើអាសយដ្ឋានមួយដើម្បីដឹកជញ្ជូនមកទីនេះ';
 
@@ -673,6 +692,9 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get storeAddressAddScreenTitle => 'បន្ថែមអាសយដ្ឋានហាង';
+
+  @override
+  String get storeAddressEditScreenTitle => 'កែសម្រួលអាសយដ្ឋានហាង';
 
   @override
   String get storeAddressLabelFieldLabel => 'ស្លាកអាសយដ្ឋាន';
@@ -698,6 +720,18 @@ class AppLocalizationsKm extends AppLocalizations {
   @override
   String get storeAddressFullAddressFieldHint =>
       'ឧ. ផ្ទះលេខ ១២៤, ផ្លូវ ២៧១, សង្កាត់បឹងសាឡាង';
+
+  @override
+  String get storeAddressHouseFieldLabel => 'ផ្ទះលេខ';
+
+  @override
+  String get storeAddressHouseFieldHint => 'ឧ. ១២៤';
+
+  @override
+  String get storeAddressStreetFieldLabel => 'ផ្លូវលេខ';
+
+  @override
+  String get storeAddressStreetFieldHint => 'ឧ. ២៧១';
 
   @override
   String get storeAddressDistrictFieldLabel => 'សង្កាត់ / ស្រុក';
@@ -835,7 +869,7 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get liveChatStatusOnline =>
-      'ក្រុមគាំទ្រ • ឆ្លើយតបថ្ងៃច័ន្ទ-សុក្រ ម៉ោង ៨ ព្រឹក - ៦ ល្ងាច';
+      'ក្រុមគាំទ្រ • ឆ្លើយតបថ្ងៃច័ន្ទ-អាទិត្យ ម៉ោង ៨ ព្រឹក - ៦ ល្ងាច';
 
   @override
   String get liveChatStatusOffline =>
@@ -1128,7 +1162,19 @@ class AppLocalizationsKm extends AppLocalizations {
   String get coBuyCreateTargetQtyLabel => 'បរិមាណគោលដៅ';
 
   @override
-  String get coBuyCreateTargetQtyHint => 'ឧ. 50';
+  String get coBuyCreateTargetQtyHint => 'ឧ. 1000 kg';
+
+  @override
+  String get coBuyCreateTargetQtyHintElectronics => 'ឧ. 200 units';
+
+  @override
+  String get coBuyCreateTargetQtyHintClothing => 'ឧ. 500 pcs';
+
+  @override
+  String get coBuyCreateTargetQtyHintBeauty => 'ឧ. 300 units';
+
+  @override
+  String get coBuyCreateTargetQtyHintHome => 'ឧ. 150 units';
 
   @override
   String get coBuyCreateTargetQtyRequired => 'ត្រូវការបរិមាណគោលដៅ';
@@ -2311,7 +2357,24 @@ class AppLocalizationsKm extends AppLocalizations {
       'ឥឡូវនេះអ្នកគឺជាផ្នែកមួយនៃកម្មវិធីអ្នកលក់!';
 
   @override
+  String get profileShopPhotosUploadFailed =>
+      'ព័ត៌មានហាងត្រូវបានរក្សាទុក ប៉ុន្តែឡូហ្គោ/រូបថតមិនអាចផ្ទុកឡើងបានទេ — សូមបន្ថែមវាពេលក្រោយពីទំព័រព័ត៌មានហាង។';
+
+  @override
   String get profileSellerGoToMarketplace => 'ទៅកាន់ទីផ្សារ';
+
+  @override
+  String get profileSellerPendingBadge => 'កំពុងរង់ចាំការអនុម័ត';
+
+  @override
+  String get profileSellerPendingTitle => 'ហាងរបស់អ្នកកំពុងត្រូវបានពិនិត្យ';
+
+  @override
+  String get profileSellerPendingSubtitle =>
+      'ក្រុមការងាររបស់យើងកំពុងពិនិត្យការចុះឈ្មោះរបស់អ្នក។ អ្នកនឹងទទួលបានការជូនដំណឹងនៅពេលវាត្រូវបានអនុម័ត។';
+
+  @override
+  String get profileSellerPendingCta => 'ពិនិត្យស្ថានភាព';
 
   @override
   String get profileEditProfileLabel => 'កែសម្រួលប្រវត្តិរូប';
@@ -2398,7 +2461,7 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get sellerApprovalPendingMessage =>
-      'ហាងរបស់អ្នកកំពុងត្រូវបានត្រួតពិនិត្យដោយក្រុមការងាររបស់យើង។ អ្នកនឹងទទួលបានការជូនដំណឹងនៅពេលវាត្រូវបានអនុម័ត ហើយអាចចាប់ផ្តើមបន្ថែមទំនិញបាន។ ចន្លោះពេលនេះ សូមរីករាយនឹងការទិញទំនិញ!';
+      'អរគុណដែលបានចុះឈ្មោះ! ក្រុមការងាររបស់យើងកំពុងត្រួតពិនិត្យហាងរបស់អ្នក ហើយនឹងអនុម័តក្នុងរយៈពេល ២៤ ម៉ោង។ អ្នកនឹងទទួលបានការជូនដំណឹងនៅពេលវាត្រូវបានអនុម័ត ហើយអាចប្រើមុខងារអ្នកលក់ទាំងអស់បាន។ ចន្លោះពេលនេះ សូមរីករាយនឹងការទិញទំនិញ!';
 
   @override
   String get sellerApprovalRejectedTitle => 'ការផ្ទៀងផ្ទាត់មិនបានអនុម័ត';
@@ -3022,6 +3085,66 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get addListingPackagingRequired => 'សូមបញ្ចូលប្រភេទកញ្ចប់ខ្ចប់';
+
+  @override
+  String get addListingWeightLabelElectronics => 'ទម្ងន់ក្នុងមួយឯកតា';
+
+  @override
+  String get addListingWeightHintElectronics => 'ឧ. 500g';
+
+  @override
+  String get addListingOriginHintElectronics => 'ឧ. ចិន';
+
+  @override
+  String get addListingGradeHintElectronics => 'ឧ. កម្រិត A, ឧស្សាហកម្ម';
+
+  @override
+  String get addListingPackagingHintElectronics => 'ឧ. ប្រអប់លក់រាយ, 10/កេស';
+
+  @override
+  String get addListingWeightLabelClothing => 'ទម្ងន់ក្រណាត់';
+
+  @override
+  String get addListingWeightHintClothing => 'ឧ. 180 GSM';
+
+  @override
+  String get addListingOriginHintClothing => 'ឧ. វៀតណាម';
+
+  @override
+  String get addListingGradeLabelMaterial => 'សម្ភារៈ';
+
+  @override
+  String get addListingGradeHintClothing => 'ឧ. កប្បាស 100%';
+
+  @override
+  String get addListingPackagingHintClothing => 'ឧ. ថង់ប្លាស្ទិក, 1/កញ្ចប់';
+
+  @override
+  String get addListingWeightLabelBeauty => 'ទម្ងន់សុទ្ធ / បរិមាណ';
+
+  @override
+  String get addListingWeightHintBeauty => 'ឧ. 50ml / 100g';
+
+  @override
+  String get addListingOriginHintBeauty => 'ឧ. កូរ៉េខាងត្បូង';
+
+  @override
+  String get addListingGradeHintBeauty => 'ឧ. កម្រិតគ្រឿងសម្អាង';
+
+  @override
+  String get addListingPackagingHintBeauty => 'ឧ. ដបកញ្ចក់, ដាក់ប្រអប់';
+
+  @override
+  String get addListingWeightHintHome => 'ឧ. 5kg ក្នុងមួយឯកតា';
+
+  @override
+  String get addListingOriginHintHome => 'ឧ. ឥណ្ឌូនេស៊ី';
+
+  @override
+  String get addListingGradeHintHome => 'ឧ. ឈើអុកសុទ្ធ';
+
+  @override
+  String get addListingPackagingHintHome => 'ឧ. ប្រអប់អត់ផ្គុំ';
 
   @override
   String get addListingPhotosLabel => 'រូបភាពផលិតផល';

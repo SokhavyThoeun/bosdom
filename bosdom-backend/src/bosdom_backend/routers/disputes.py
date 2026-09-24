@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from ..auth import CurrentUser, get_current_user
 from ..db import get_db
 from ..utils.images import save_image_as_webp
+from .notifications import NotificationTarget, push_notification
 from ..models import Dispute, DisputeEvidence, Order, SellerReport
 from .orders import (
     STATUS_DISPUTED,
@@ -69,6 +70,29 @@ def settle_dispute(
     dispute.fault = fault
     dispute.resolved_at = now
     return order
+
+
+def notify_dispute_settled(db: Session, dispute: Dispute, order: Order) -> None:
+    """Tells both sides how a dispute ended. Call after the commit."""
+    released = dispute.resolution == RESOLUTION_RELEASE
+    push_notification(
+        db,
+        order.buyer_id,
+        "order",
+        "Dispute resolved",
+        f"Your dispute for {order.product_name} ended: "
+        + ("funds were released to the seller." if released else "you were refunded."),
+        NotificationTarget(route="orderDetail", params={"id": order.id}),
+    )
+    push_notification(
+        db,
+        order.seller_id,
+        "order",
+        "Dispute resolved",
+        f"The dispute for {order.product_name} ended: "
+        + ("funds were released to you." if released else "the buyer was refunded."),
+        NotificationTarget(route="sellerOrderDetail", params={"id": order.id}),
+    )
 
 
 def _get_dispute_for_participant(db: Session, dispute_id: str, user_id: str) -> Dispute:
@@ -267,9 +291,10 @@ def resolve_dispute(
     if dispute.status == DISPUTE_STATUS_RESOLVED:
         raise HTTPException(status_code=409, detail="Dispute already resolved")
 
-    settle_dispute(db, dispute, RESOLUTION_REFUND, fault="seller")
+    order = settle_dispute(db, dispute, RESOLUTION_REFUND, fault="seller")
     db.commit()
     db.refresh(dispute)
+    notify_dispute_settled(db, dispute, order)
     return dispute
 
 

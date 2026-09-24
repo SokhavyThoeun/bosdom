@@ -1292,6 +1292,42 @@ abstract class AppLocalizations {
   /// **'Add Address'**
   String get addressAddScreenTitle;
 
+  /// No description provided for @addressEditScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Address'**
+  String get addressEditScreenTitle;
+
+  /// No description provided for @addressEditAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get addressEditAction;
+
+  /// No description provided for @addressDeleteAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get addressDeleteAction;
+
+  /// No description provided for @addressDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete address?'**
+  String get addressDeleteConfirmTitle;
+
+  /// No description provided for @addressDeleteConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This address will be removed from your address book.'**
+  String get addressDeleteConfirmMessage;
+
+  /// No description provided for @addressCancelButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get addressCancelButton;
+
   /// No description provided for @addressBookSelectionSubtitle.
   ///
   /// In en, this message translates to:
@@ -1333,6 +1369,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add Store Address'**
   String get storeAddressAddScreenTitle;
+
+  /// No description provided for @storeAddressEditScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Store Address'**
+  String get storeAddressEditScreenTitle;
 
   /// No description provided for @storeAddressLabelFieldLabel.
   ///
@@ -1381,6 +1423,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'e.g. No. 124, Street 271, Sangkat Boeung Salang'**
   String get storeAddressFullAddressFieldHint;
+
+  /// No description provided for @storeAddressHouseFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'HOUSE NUMBER'**
+  String get storeAddressHouseFieldLabel;
+
+  /// No description provided for @storeAddressHouseFieldHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 124'**
+  String get storeAddressHouseFieldHint;
+
+  /// No description provided for @storeAddressStreetFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'STREET NUMBER'**
+  String get storeAddressStreetFieldLabel;
+
+  /// No description provided for @storeAddressStreetFieldHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 271'**
+  String get storeAddressStreetFieldHint;
 
   /// No description provided for @storeAddressDistrictFieldLabel.
   ///
@@ -1631,7 +1697,7 @@ abstract class AppLocalizations {
   /// No description provided for @liveChatStatusOnline.
   ///
   /// In en, this message translates to:
-  /// **'Support team • Replies Mon-Fri, 8 AM - 6 PM'**
+  /// **'Support team • Replies Mon-Sun, 8 AM - 6 PM'**
   String get liveChatStatusOnline;
 
   /// No description provided for @liveChatStatusOffline.
@@ -2122,6 +2188,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'e.g. 1000 kg'**
   String get coBuyCreateTargetQtyHint;
+
+  /// No description provided for @coBuyCreateTargetQtyHintElectronics.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 200 units'**
+  String get coBuyCreateTargetQtyHintElectronics;
+
+  /// No description provided for @coBuyCreateTargetQtyHintClothing.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 500 pcs'**
+  String get coBuyCreateTargetQtyHintClothing;
+
+  /// No description provided for @coBuyCreateTargetQtyHintBeauty.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 300 units'**
+  String get coBuyCreateTargetQtyHintBeauty;
+
+  /// No description provided for @coBuyCreateTargetQtyHintHome.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 150 units'**
+  String get coBuyCreateTargetQtyHintHome;
 
   /// No description provided for @coBuyCreateTargetQtyRequired.
   ///
@@ -4203,11 +4293,41 @@ abstract class AppLocalizations {
   /// **'You\'re now part of the Seller Program!'**
   String get profileSellerActivatedSnackbar;
 
+  /// No description provided for @profileShopPhotosUploadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop details saved, but your logo/photos didn\'t upload — add them later from Shop Profile.'**
+  String get profileShopPhotosUploadFailed;
+
   /// No description provided for @profileSellerGoToMarketplace.
   ///
   /// In en, this message translates to:
   /// **'Go to Marketplace'**
   String get profileSellerGoToMarketplace;
+
+  /// No description provided for @profileSellerPendingBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'APPROVAL PENDING'**
+  String get profileSellerPendingBadge;
+
+  /// No description provided for @profileSellerPendingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Shop is Under Review'**
+  String get profileSellerPendingTitle;
+
+  /// No description provided for @profileSellerPendingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Our team is reviewing your registration. You\'ll get a notification once it\'s approved.'**
+  String get profileSellerPendingSubtitle;
+
+  /// No description provided for @profileSellerPendingCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Check Status'**
+  String get profileSellerPendingCta;
 
   /// No description provided for @profileEditProfileLabel.
   ///
@@ -4368,7 +4488,7 @@ abstract class AppLocalizations {
   /// No description provided for @sellerApprovalPendingMessage.
   ///
   /// In en, this message translates to:
-  /// **'Your shop is being reviewed by our team. You\'ll be notified once it\'s approved and you can start listing products. In the meantime, feel free to shop around!'**
+  /// **'Thanks for registering! Our team is reviewing your shop and will approve it within 24 hours. You\'ll get a notification once it\'s approved, and then you can use all the seller features. In the meantime, feel free to shop around!'**
   String get sellerApprovalPendingMessage;
 
   /// No description provided for @sellerApprovalRejectedTitle.
@@ -5462,6 +5582,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please enter a packaging type'**
   String get addListingPackagingRequired;
+
+  /// No description provided for @addListingWeightLabelElectronics.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit Weight'**
+  String get addListingWeightLabelElectronics;
+
+  /// No description provided for @addListingWeightHintElectronics.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 500g'**
+  String get addListingWeightHintElectronics;
+
+  /// No description provided for @addListingOriginHintElectronics.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. China'**
+  String get addListingOriginHintElectronics;
+
+  /// No description provided for @addListingGradeHintElectronics.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Grade A, Industrial'**
+  String get addListingGradeHintElectronics;
+
+  /// No description provided for @addListingPackagingHintElectronics.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Retail box, 10/carton'**
+  String get addListingPackagingHintElectronics;
+
+  /// No description provided for @addListingWeightLabelClothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Fabric Weight'**
+  String get addListingWeightLabelClothing;
+
+  /// No description provided for @addListingWeightHintClothing.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 180 GSM'**
+  String get addListingWeightHintClothing;
+
+  /// No description provided for @addListingOriginHintClothing.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Vietnam'**
+  String get addListingOriginHintClothing;
+
+  /// No description provided for @addListingGradeLabelMaterial.
+  ///
+  /// In en, this message translates to:
+  /// **'Material'**
+  String get addListingGradeLabelMaterial;
+
+  /// No description provided for @addListingGradeHintClothing.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 100% Cotton'**
+  String get addListingGradeHintClothing;
+
+  /// No description provided for @addListingPackagingHintClothing.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Poly bag, 1/pack'**
+  String get addListingPackagingHintClothing;
+
+  /// No description provided for @addListingWeightLabelBeauty.
+  ///
+  /// In en, this message translates to:
+  /// **'Net Weight / Volume'**
+  String get addListingWeightLabelBeauty;
+
+  /// No description provided for @addListingWeightHintBeauty.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 50ml / 100g'**
+  String get addListingWeightHintBeauty;
+
+  /// No description provided for @addListingOriginHintBeauty.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. South Korea'**
+  String get addListingOriginHintBeauty;
+
+  /// No description provided for @addListingGradeHintBeauty.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Cosmetic Grade'**
+  String get addListingGradeHintBeauty;
+
+  /// No description provided for @addListingPackagingHintBeauty.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Glass bottle, boxed'**
+  String get addListingPackagingHintBeauty;
+
+  /// No description provided for @addListingWeightHintHome.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 5kg per unit'**
+  String get addListingWeightHintHome;
+
+  /// No description provided for @addListingOriginHintHome.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Indonesia'**
+  String get addListingOriginHintHome;
+
+  /// No description provided for @addListingGradeHintHome.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Solid Oak'**
+  String get addListingGradeHintHome;
+
+  /// No description provided for @addListingPackagingHintHome.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Flat-pack carton'**
+  String get addListingPackagingHintHome;
 
   /// No description provided for @addListingPhotosLabel.
   ///

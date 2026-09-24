@@ -26,6 +26,7 @@ class CoBuySession {
     required this.price,
     required this.joined,
     this.sellerRating = 4.8,
+    this.category = '',
     this.description = '',
     this.autoRenew = false,
     this.myStatus,
@@ -34,6 +35,10 @@ class CoBuySession {
     this.photoUrls = const [],
     this.sizes = const [],
     this.colorOptions = const [],
+    this.weight = '',
+    this.origin = '',
+    this.grade = '',
+    this.packaging = '',
   });
 
   final String id;
@@ -43,7 +48,12 @@ class CoBuySession {
   /// real photo has been uploaded.
   final String imageQuery;
   final String productName;
+  final String category;
   final String description;
+  final String weight;
+  final String origin;
+  final String grade;
+  final String packaging;
   final String sellerName;
   final double sellerRating;
   final String sellerLocation;
@@ -138,6 +148,7 @@ class CoBuySession {
       icon: Icons.shopping_bag_rounded,
       imageQuery: queryWords.isEmpty ? 'product' : queryWords,
       productName: productName,
+      category: json['category'] as String? ?? '',
       description: json['description'] as String,
       sellerName: json['seller_name'] as String,
       sellerLocation: (json['seller_location'] as String).isNotEmpty
@@ -163,6 +174,10 @@ class CoBuySession {
       photoUrls: photoUrls,
       sizes: sizes,
       colorOptions: colors,
+      weight: json['weight'] as String? ?? '',
+      origin: json['origin'] as String? ?? '',
+      grade: json['grade'] as String? ?? '',
+      packaging: json['packaging'] as String? ?? '',
     );
   }
 }

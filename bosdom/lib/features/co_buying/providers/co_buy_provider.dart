@@ -18,6 +18,7 @@ class CoBuyNotifier extends AsyncNotifier<List<CoBuySession>> {
   /// Creates a new co-buy deal, started by the current seller.
   Future<CoBuySession> create({
     required String productName,
+    String category = '',
     required String description,
     required double price,
     required double originalPrice,
@@ -29,10 +30,15 @@ class CoBuyNotifier extends AsyncNotifier<List<CoBuySession>> {
     required bool autoRenew,
     List<String> sizes = const [],
     List<ProductColorOption> colorOptions = const [],
+    String weight = '',
+    String origin = '',
+    String grade = '',
+    String packaging = '',
     List<File> photos = const [],
   }) async {
     final session = await CoBuyPoolService.createPool(
       productName: productName,
+      category: category,
       description: description,
       price: price,
       originalPrice: originalPrice,
@@ -44,6 +50,10 @@ class CoBuyNotifier extends AsyncNotifier<List<CoBuySession>> {
       autoRenew: autoRenew,
       sizes: sizes,
       colorOptions: colorOptions,
+      weight: weight,
+      origin: origin,
+      grade: grade,
+      packaging: packaging,
       photos: photos,
     );
     ref.invalidateSelf();
@@ -55,6 +65,7 @@ class CoBuyNotifier extends AsyncNotifier<List<CoBuySession>> {
   Future<void> updateDeal(
     String id, {
     required String productName,
+    String category = '',
     required String description,
     required double price,
     required double originalPrice,
@@ -66,11 +77,16 @@ class CoBuyNotifier extends AsyncNotifier<List<CoBuySession>> {
     required bool autoRenew,
     List<String> sizes = const [],
     List<ProductColorOption> colorOptions = const [],
+    String weight = '',
+    String origin = '',
+    String grade = '',
+    String packaging = '',
     List<File> photos = const [],
   }) async {
     await CoBuyPoolService.updatePool(
       id,
       productName: productName,
+      category: category,
       description: description,
       price: price,
       originalPrice: originalPrice,
@@ -82,6 +98,10 @@ class CoBuyNotifier extends AsyncNotifier<List<CoBuySession>> {
       autoRenew: autoRenew,
       sizes: sizes,
       colorOptions: colorOptions,
+      weight: weight,
+      origin: origin,
+      grade: grade,
+      packaging: packaging,
       photos: photos,
     );
     ref.invalidateSelf();
