@@ -120,8 +120,8 @@ h1 em { font-style: normal; color: var(--crimson); }
   font-size: 14px;
 }
 
-/* Hero screenshot */
-.hero-visual { position: relative; display: grid; place-items: center; min-height: 560px; }
+/* Hero phones: Co-Buy in front, two screens fanned behind */
+.hero-visual { position: relative; display: grid; place-items: center; min-height: 640px; }
 .khmer-mark {
   position: absolute;
   font: 700 clamp(120px, 16vw, 200px)/1 "Kantumruy Pro", sans-serif;
@@ -129,13 +129,107 @@ h1 em { font-style: normal; color: var(--crimson); }
   -webkit-text-stroke: 1.5px var(--divider);
   user-select: none;
   white-space: nowrap;
+  animation: mark-in 1.4s cubic-bezier(0.2, 0.7, 0.2, 1) 0.2s backwards,
+             drift 14s ease-in-out 1.6s infinite alternate;
 }
-.screen-shot {
+.phones {
+  --mx: 0;
+  --my: 0;
+  --spread: 0;
   position: relative;
-  width: min(300px, 78vw);
+  width: 100%;
+  height: 640px;
+}
+.phone {
+  --x: 0px;
+  --r: 0deg;
+  --s: 1;
+  --depth: 1;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--w);
+  margin: 0;
+  transform: translate(-50%, -50%)
+             translateX(calc(var(--x) * (1 + var(--spread) * 0.35)))
+             rotate(calc(var(--r) * (1 + var(--spread) * 0.5)))
+             scale(var(--s));
+  translate: calc(var(--mx) * var(--depth) * 10px) calc(var(--my) * var(--depth) * 8px);
+  transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1), translate 0.5s ease-out;
+  animation: fan-in 1.1s cubic-bezier(0.2, 0.8, 0.2, 1) var(--delay, 0s) backwards;
+}
+.phone img {
+  width: 100%;
   height: auto;
   filter: drop-shadow(0 30px 40px rgba(92, 23, 23, 0.28));
+  animation: bob 6s ease-in-out var(--bob, 1.2s) infinite alternate;
 }
+.phone-center { --w: 290px; --depth: 1.6; --delay: 0.25s; z-index: 2; }
+.phone-left,
+.phone-right { --w: 236px; --s: 0.96; --depth: 0.7; z-index: 1; }
+.phone-left { --x: -170px; --r: -9deg; --delay: 0.45s; --bob: 2.2s; }
+.phone-right { --x: 170px; --r: 9deg; --delay: 0.55s; --bob: 3s; }
+.phone-left img,
+.phone-right img { filter: drop-shadow(0 20px 28px rgba(92, 23, 23, 0.22)); }
+@media (hover: hover) {
+  .phone-left:hover,
+  .phone-right:hover { --s: 1.04; z-index: 3; }
+  .phone-left:hover { --r: -3deg; }
+  .phone-right:hover { --r: 3deg; }
+}
+
+@keyframes fan-in {
+  from { opacity: 0; transform: translate(-50%, -38%) scale(0.86); }
+}
+@keyframes bob {
+  to { transform: translateY(-14px); }
+}
+@keyframes mark-in {
+  from { opacity: 0; transform: scale(0.9); letter-spacing: 0.08em; }
+}
+@keyframes drift {
+  to { transform: translateX(-18px) rotate(-2deg); }
+}
+
+/* Hero copy rises in line by line */
+.hero-copy > * { animation: rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) backwards; }
+.hero-copy > :nth-child(2) { animation-delay: 0.08s; }
+.hero-copy > :nth-child(3) { animation-delay: 0.16s; }
+.hero-copy > :nth-child(4) { animation-delay: 0.24s; }
+.hero-copy > :nth-child(5) { animation-delay: 0.32s; }
+@keyframes rise {
+  from { opacity: 0; transform: translateY(22px); }
+}
+
+/* Download button: a light sweep every few seconds */
+.btn-primary { position: relative; overflow: hidden; isolation: isolate; }
+.btn-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 -60%;
+  width: 45%;
+  z-index: -1;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+  transform: skewX(-20deg);
+  animation: shine 4.5s ease-in-out 1.6s infinite;
+}
+@keyframes shine {
+  0%, 60% { left: -60%; }
+  100% { left: 130%; }
+}
+.btn-primary svg { transition: transform 0.25s; }
+.btn-primary:hover svg { transform: translateY(2px); }
+
+/* Scroll reveal (only hidden when JS is there to show it again) */
+.js .reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s ease-out var(--d, 0ms),
+              transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) var(--d, 0ms);
+}
+.js .reveal.in { opacity: 1; transform: none; }
+.feature svg { transition: transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.feature:hover svg { transform: translateY(-3px) rotate(-6deg); }
 
 /* ---------- Sections ---------- */
 .section { padding: 96px 0; }
@@ -224,7 +318,12 @@ h2 { font-size: clamp(32px, 4.4vw, 48px); line-height: 1.08; font-weight: 700; m
 @media (max-width: 900px) {
   .hero { padding: 48px 0 64px; }
   .hero-grid, .install-grid { grid-template-columns: 1fr; }
-  .hero-visual { min-height: 520px; }
+  .hero-visual { min-height: 540px; }
+  .phones { height: 540px; }
+  .phone-center { --w: 250px; }
+  .phone-left, .phone-right { --w: 204px; }
+  .phone-left { --x: -150px; }
+  .phone-right { --x: 150px; }
   .features { grid-template-columns: 1fr 1fr; }
   .steps { grid-template-columns: 1fr; gap: 32px; }
   .install-grid { gap: 48px; }
@@ -237,8 +336,15 @@ h2 { font-size: clamp(32px, 4.4vw, 48px); line-height: 1.08; font-weight: 700; m
   .features { grid-template-columns: 1fr; }
   .cta-row .btn { flex: 1 1 100%; }
   .qr { display: none; }
+  .hero-visual, .phones { min-height: 0; height: 460px; }
+  .phone-center { --w: 212px; }
+  .phone-left, .phone-right { --w: 168px; }
+  .phone-left { --x: -104px; }
+  .phone-right { --x: 104px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .js .reveal { opacity: 1; transform: none; }
 }
