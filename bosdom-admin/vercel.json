@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "(command -v unzip || dnf install -y unzip) && ([ -d .flutter-sdk ] || git clone https://github.com/flutter/flutter.git --branch 3.44.9 --depth 1 .flutter-sdk) && .flutter-sdk/bin/flutter config --no-analytics && .flutter-sdk/bin/flutter pub get",
+  "buildCommand": ".flutter-sdk/bin/flutter build web --release --dart-define=API_BASE_URL=https://bosdom-backend.onrender.com",
+  "outputDirectory": "build/web"
+}
