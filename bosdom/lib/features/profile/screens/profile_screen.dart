@@ -694,8 +694,7 @@ class _BecomeASellerCard extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final profile = ref.watch(profileProvider).value;
     final isSeller = profile?.isVerifiedSeller ?? false;
-    final isPending =
-        !isSeller && profile?.role == MerchantRole.supplier.name;
+    final isPending = !isSeller && profile?.role == MerchantRole.supplier.name;
 
     return Container(
       clipBehavior: Clip.antiAlias,

@@ -373,7 +373,12 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                   ),
                   Expanded(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+                      padding: EdgeInsets.fromLTRB(
+                        24,
+                        24,
+                        24,
+                        16 + MediaQuery.of(context).padding.bottom,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
@@ -465,33 +470,26 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                             colorScheme: colorScheme,
                             textTheme: textTheme,
                           ),
+                          const SizedBox(height: 20),
+                          SizedBox(
+                            width: double.infinity,
+                            child: FilledButton(
+                              onPressed: _isPaying ? null : _onPayNowPressed,
+                              child: _isPaying
+                                  ? const SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.4,
+                                        valueColor: AlwaysStoppedAnimation(
+                                          Colors.white,
+                                        ),
+                                      ),
+                                    )
+                                  : Text(l10n.paymentPayNowButton),
+                            ),
+                          ),
                         ],
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      24,
-                      0,
-                      24,
-                      20 + MediaQuery.of(context).padding.bottom,
-                    ),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: _isPaying ? null : _onPayNowPressed,
-                        child: _isPaying
-                            ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.4,
-                                  valueColor: AlwaysStoppedAnimation(
-                                    Colors.white,
-                                  ),
-                                ),
-                              )
-                            : Text(l10n.paymentPayNowButton),
                       ),
                     ),
                   ),

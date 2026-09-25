@@ -524,6 +524,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Couldn\'t update your cart. Please try again.';
 
   @override
+  String get cartSampleLabel => 'Sample';
+
+  @override
+  String get cartSampleOrderPlaced => 'Sample order placed';
+
+  @override
+  String cartSampleOrderFailedCooldown(String message) {
+    return 'Couldn\'t place the sample order: $message';
+  }
+
+  @override
   String get checkoutDeliveryAddressLabel => 'Delivery Address';
 
   @override
@@ -1616,6 +1627,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get productDetailSampleRequestedSnackbar => 'Sample purchased';
 
   @override
+  String get productDetailSampleAddedToCartSnackbar => 'Sample added to cart';
+
+  @override
   String productDetailAddToCartButton(String price) {
     return 'Add to Cart · $price';
   }
@@ -1627,7 +1641,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get productDetailSampleCooldownActive => 'Cooldown Active';
 
   @override
-  String get productDetailRequestSample => 'Buy Sample';
+  String get productDetailRequestSample => 'Add Sample to Cart';
 
   @override
   String productDetailSampleCooldownNote(String date) {

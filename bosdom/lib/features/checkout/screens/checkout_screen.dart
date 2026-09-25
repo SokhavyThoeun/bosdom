@@ -12,6 +12,11 @@ import '../../../shared/widgets/price_display.dart';
 import '../../co_buying/providers/co_buy_provider.dart';
 import '../../co_buying/services/co_buy_pool_service.dart'
     show CoBuyJoinException;
+import '../../marketplace/models/product.dart';
+import '../../marketplace/models/sample_order.dart'
+    show SampleCooldownException, SampleOrderException;
+import '../../marketplace/providers/sample_gate_provider.dart';
+import '../../cart/providers/cart_provider.dart';
 import '../../payment/screens/payment_screen.dart' show OrderLineSummary;
 import '../../profile/providers/profile_provider.dart';
 import '../../../shared/utils/mock_images.dart';
@@ -33,6 +38,8 @@ class CheckoutLineItem {
     // to a rough average wholesale-carton estimate rather than 0 (which
     // would silently understate the shipping estimate to nothing).
     this.weightKg = 1.0,
+    this.isSample = false,
+    this.product,
   });
 
   final IconData icon;
@@ -57,6 +64,15 @@ class CheckoutLineItem {
   /// Total weight for this line (already accounts for quantity) — used to
   /// pick the right weight bracket in [estimateShippingFee].
   final double weightKg;
+
+  /// True when this line is a product sample rather than a wholesale
+  /// order — samples skip escrow/payment and are placed directly via
+  /// `POST /sample-orders` when checkout continues.
+  final bool isSample;
+
+  /// The full product, needed only for sample lines so checkout can reuse
+  /// [SampleGateNotifier.requestSample]'s real-vs-demo listing handling.
+  final Product? product;
 
   /// The seller's real shop logo when available, else a generated mock logo.
   String get sellerLogoUrl => sellerLogoOverride ?? mockStoreLogoUrl(seller);
@@ -112,8 +128,8 @@ const _kOriginProvince = 'Phnom Penh';
 
 const _kShippingOptions = [
   _ShippingOption(
-    id: 'vireak',
-    name: kVireakBunthamCarrier,
+    id: 'vet',
+    name: kVetLogisticCarrier,
     logoAsset: 'assets/images/shipping/vet-express.png',
   ),
   _ShippingOption(
@@ -161,10 +177,15 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   List<CheckoutLineItem> get _items => widget.items ?? _kCheckoutItems;
 
-  double get _subtotal => _items.fold(0, (sum, item) => sum + item.total);
+  // Samples have no escrow/payment step, so they never contribute to the
+  // paid subtotal/shipping/escrow fee — only their own line card shows a
+  // price.
+  double get _subtotal =>
+      _items.where((i) => !i.isSample).fold(0, (sum, item) => sum + item.total);
 
-  double get _totalWeightKg =>
-      _items.fold(0, (sum, item) => sum + item.weightKg);
+  double get _totalWeightKg => _items
+      .where((i) => !i.isSample)
+      .fold(0, (sum, item) => sum + item.weightKg);
 
   /// Every offered carrier's live quote for this shipment's actual weight
   /// and route, keyed by [_ShippingOption.id] — `null` where the carrier
@@ -179,6 +200,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         destinationProvince: destinationProvince,
       ),
   };
+
+  /// Amount charged at checkout: pay-on-delivery carriers (Grab Express)
+  /// collect their fee from the buyer on receipt, so it adds nothing here.
+  double _chargedShipping(ShippingQuote? quote) =>
+      quote == null || quote.payOnDelivery ? 0.0 : quote.fee;
 
   /// Falls back to the first carrier that can actually serve this shipment
   /// when the selected one can't (e.g. the buyer picked Grab Express, then
@@ -197,6 +223,53 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   double _total(double shipping) => _subtotal + shipping + _escrowFee(shipping);
 
+  bool _isPlacingSamples = false;
+
+  /// Places any sample lines directly via `POST /sample-orders` (samples
+  /// have no escrow/payment step) before navigating to payment with just
+  /// the remaining wholesale items. Returns the wholesale items that
+  /// should be paid for, or `null` if the caller should not navigate to
+  /// payment at all (nothing left to pay for).
+  Future<List<CheckoutLineItem>?> _placeSamplesAndGetWholesaleItems() async {
+    final l10n = AppLocalizations.of(context);
+    final sampleItems = _items.where((item) => item.isSample).toList();
+    final wholesaleItems = _items.where((item) => !item.isSample).toList();
+
+    if (sampleItems.isEmpty) return wholesaleItems;
+
+    setState(() => _isPlacingSamples = true);
+    for (final item in sampleItems) {
+      final product = item.product;
+      if (product == null) continue;
+      try {
+        await ref.read(sampleGateProvider.notifier).requestSample(product);
+        if (!mounted) return null;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.cartSampleOrderPlaced)));
+        await ref
+            .read(cartProvider.notifier)
+            .removeSampleLine('sample:${product.id}');
+      } on SampleCooldownException catch (error) {
+        if (!mounted) return null;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.cartSampleOrderFailedCooldown(error.message)),
+          ),
+        );
+      } on SampleOrderException catch (error) {
+        if (!mounted) return null;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.cartSampleOrderFailedCooldown(error.message)),
+          ),
+        );
+      }
+    }
+    if (mounted) setState(() => _isPlacingSamples = false);
+    return wholesaleItems;
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -207,7 +280,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final destinationProvince = defaultAddress?.province ?? _kOriginProvince;
     final shippingQuotes = _shippingQuotes(destinationProvince);
     final effectiveShippingId = _effectiveShippingId(shippingQuotes);
-    final shipping = shippingQuotes[effectiveShippingId]?.fee ?? 0.0;
+    final shipping = _chargedShipping(shippingQuotes[effectiveShippingId]);
 
     return PopScope(
       onPopInvokedWithResult: (didPop, result) {
@@ -277,18 +350,19 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    for (final option in _kShippingOptions) ...[
-                      _ShippingOptionTile(
-                        option: option,
-                        quote: shippingQuotes[option.id],
-                        selected: option.id == effectiveShippingId,
-                        onTap: () =>
-                            setState(() => _selectedShippingId = option.id),
-                        colorScheme: colorScheme,
-                        textTheme: textTheme,
-                      ),
-                      const SizedBox(height: 10),
-                    ],
+                    for (final option in _kShippingOptions)
+                      if (shippingQuotes[option.id] != null) ...[
+                        _ShippingOptionTile(
+                          option: option,
+                          quote: shippingQuotes[option.id],
+                          selected: option.id == effectiveShippingId,
+                          onTap: () =>
+                              setState(() => _selectedShippingId = option.id),
+                          colorScheme: colorScheme,
+                          textTheme: textTheme,
+                        ),
+                        const SizedBox(height: 10),
+                      ],
                     const SizedBox(height: 10),
                     _OrderSummaryCard(
                       subtotal: _subtotal,
@@ -320,36 +394,61 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     ),
                     const SizedBox(height: 20),
                     FilledButton(
-                      onPressed: () => context.pushNamed(
-                        'payment',
-                        extra: {
-                          'amount': _total(shipping),
-                          'shippingFee': shipping,
-                          'itemCount': _items.length,
-                          'coBuyPoolId': widget.coBuyPoolId,
-                          'shippingName': profile?.name ?? '',
-                          'shippingAddress': defaultAddress == null
-                              ? ''
-                              : '${defaultAddress.addressLine}, ${defaultAddress.cityLine}',
-                          'shippingPhone':
-                              defaultAddress?.phone ?? profile?.phone ?? '',
-                          'items': [
-                            for (final item in _items)
-                              OrderLineSummary(
-                                icon: item.icon,
-                                imageUrl: item.imageUrl,
-                                name: item.name,
-                                qtyLabel: item.qtyLabel,
-                                total: item.total,
-                                seller: item.seller,
-                                sellerLogoOverride: item.sellerLogoOverride,
-                                listingId: item.listingId,
-                                quantity: item.quantity,
+                      onPressed: _isPlacingSamples
+                          ? null
+                          : () async {
+                              final wholesaleItems =
+                                  await _placeSamplesAndGetWholesaleItems();
+                              if (wholesaleItems == null || !context.mounted) {
+                                return;
+                              }
+                              if (wholesaleItems.isEmpty) {
+                                Navigator.of(context).maybePop();
+                                return;
+                              }
+                              context.pushNamed(
+                                'payment',
+                                extra: {
+                                  'amount': _total(shipping),
+                                  'shippingFee': shipping,
+                                  'itemCount': wholesaleItems.length,
+                                  'coBuyPoolId': widget.coBuyPoolId,
+                                  'shippingName': profile?.name ?? '',
+                                  'shippingAddress': defaultAddress == null
+                                      ? ''
+                                      : '${defaultAddress.addressLine}, ${defaultAddress.cityLine}',
+                                  'shippingPhone':
+                                      defaultAddress?.phone ??
+                                      profile?.phone ??
+                                      '',
+                                  'items': [
+                                    for (final item in wholesaleItems)
+                                      OrderLineSummary(
+                                        icon: item.icon,
+                                        imageUrl: item.imageUrl,
+                                        name: item.name,
+                                        qtyLabel: item.qtyLabel,
+                                        total: item.total,
+                                        seller: item.seller,
+                                        sellerLogoOverride:
+                                            item.sellerLogoOverride,
+                                        listingId: item.listingId,
+                                        quantity: item.quantity,
+                                      ),
+                                  ],
+                                },
+                              );
+                            },
+                      child: _isPlacingSamples
+                          ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: colorScheme.onPrimary,
                               ),
-                          ],
-                        },
-                      ),
-                      child: Text(l10n.checkoutContinueToPayment),
+                            )
+                          : Text(l10n.checkoutContinueToPayment),
                     ),
                   ],
                 ),
@@ -761,12 +860,15 @@ class _ShippingOptionTile extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
-                            child: Text(
-                              option.name,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                option.name,
+                                maxLines: 1,
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
@@ -783,12 +885,17 @@ class _ShippingOptionTile extends ConsumerWidget {
                         ],
                       ),
                       const SizedBox(height: 2),
-                      Text(
-                        available
-                            ? quote.etaLabel
-                            : l10n.checkoutShippingUnavailableLabel,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          available
+                              ? quote.etaLabel
+                              : l10n.checkoutShippingUnavailableLabel,
+                          maxLines: 1,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ),
                     ],

@@ -5,13 +5,25 @@ import '../../marketplace/services/listings_service.dart';
 import '../services/cart_service.dart';
 
 class CartLine {
-  CartLine({required this.product, required this.quantity}) : selected = true;
+  CartLine({
+    required this.product,
+    required this.quantity,
+    this.isSample = false,
+    String? cartItemId,
+  }) : selected = true,
+       cartItemId = cartItemId ?? product.id;
 
   final Product product;
   int quantity;
   bool selected;
+  final bool isSample;
 
-  double get unitPrice => product.priceValue;
+  /// The raw key this line is stored under in the backend cart —
+  /// `product.id` for wholesale lines, `"sample:${product.id}"` for samples.
+  final String cartItemId;
+
+  double get unitPrice =>
+      isSample ? product.samplePriceValue : product.priceValue;
   double get lineTotal => unitPrice * quantity;
 }
 
@@ -28,14 +40,26 @@ class CartGroup {
 }
 
 class CartNotifier extends AsyncNotifier<List<CartLine>> {
+  static const _samplePrefix = 'sample:';
+
   @override
   Future<List<CartLine>> build() async {
     final quantities = await CartService.fetchCart();
     final lines = await Future.wait(
       quantities.entries.map((entry) async {
+        final rawId = entry.key;
+        final isSample = rawId.startsWith(_samplePrefix);
+        final listingId = isSample
+            ? rawId.substring(_samplePrefix.length)
+            : rawId;
         try {
-          final product = await ListingsService.resolveProduct(entry.key);
-          return CartLine(product: product, quantity: entry.value);
+          final product = await ListingsService.resolveProduct(listingId);
+          return CartLine(
+            product: product,
+            quantity: entry.value,
+            isSample: isSample,
+            cartItemId: rawId,
+          );
         } catch (_) {
           // The listing behind this cart line may have been deleted since
           // it was added; drop it rather than failing the whole cart.
@@ -70,7 +94,7 @@ class CartNotifier extends AsyncNotifier<List<CartLine>> {
     final optimistic = [...previous];
     for (final (product, quantity) in items) {
       final index = optimistic.indexWhere(
-        (line) => line.product.id == product.id,
+        (line) => !line.isSample && line.product.id == product.id,
       );
       if (index != -1) {
         optimistic[index].quantity += quantity;
@@ -88,6 +112,54 @@ class CartNotifier extends AsyncNotifier<List<CartLine>> {
     } catch (_) {
       state = AsyncData(previous);
       return false;
+    }
+  }
+
+  /// Adds [product] to the cart as a sample line (fixed quantity 1, priced
+  /// at its sample price). Only one sample line can be in the cart at a
+  /// time — the backend only allows one active sample order per buyer, so
+  /// adding a new sample replaces whichever one was there before.
+  Future<bool> addSample(Product product) async {
+    final previous = _lines;
+    final cartItemId = '$_samplePrefix${product.id}';
+    final existingSample = previous.where((line) => line.isSample).toList();
+    final optimistic = [
+      for (final line in previous)
+        if (!line.isSample) line,
+      CartLine(
+        product: product,
+        quantity: 1,
+        isSample: true,
+        cartItemId: cartItemId,
+      ),
+    ];
+    state = AsyncData(optimistic);
+
+    try {
+      for (final old in existingSample) {
+        if (old.cartItemId != cartItemId) {
+          await CartService.removeItem(old.cartItemId);
+        }
+      }
+      await CartService.addItem(cartItemId, 1);
+      return true;
+    } catch (_) {
+      state = AsyncData(previous);
+      return false;
+    }
+  }
+
+  /// Drops the sample line after its order has been placed at checkout.
+  Future<void> removeSampleLine(String cartItemId) async {
+    final previous = _lines;
+    state = AsyncData(
+      previous.where((line) => line.cartItemId != cartItemId).toList(),
+    );
+    try {
+      await CartService.removeItem(cartItemId);
+    } catch (_) {
+      // Best-effort: the sample order already succeeded, so leaving the
+      // line behind to be pruned on next sync is fine.
     }
   }
 
@@ -111,6 +183,9 @@ class CartNotifier extends AsyncNotifier<List<CartLine>> {
   }
 
   Future<bool> changeQuantity(CartLine line, int delta) async {
+    // Sample lines are always exactly quantity 1.
+    if (line.isSample) return true;
+
     final previousQuantity = line.quantity;
     final nextQuantity = (previousQuantity + delta).clamp(
       line.product.moqValue,
@@ -122,7 +197,7 @@ class CartNotifier extends AsyncNotifier<List<CartLine>> {
     state = AsyncData([..._lines]);
 
     try {
-      await CartService.updateQuantity(line.product.id, nextQuantity);
+      await CartService.updateQuantity(line.cartItemId, nextQuantity);
       return true;
     } catch (_) {
       line.quantity = previousQuantity;
@@ -136,7 +211,7 @@ class CartNotifier extends AsyncNotifier<List<CartLine>> {
     state = AsyncData(previous.where((l) => l != line).toList());
 
     try {
-      await CartService.removeItem(line.product.id);
+      await CartService.removeItem(line.cartItemId);
       return true;
     } catch (_) {
       state = AsyncData(previous);
@@ -144,13 +219,18 @@ class CartNotifier extends AsyncNotifier<List<CartLine>> {
     }
   }
 
-  /// Drops cart lines for products just checked out and paid for (matched
-  /// by real backend listing id) — mock/co-buy lines have no listing id to
-  /// match, so they're untouched.
+  /// Drops wholesale cart lines for products just checked out and paid for
+  /// (matched by real backend listing id) — mock/co-buy lines have no
+  /// listing id to match, so they're untouched. Sample lines are never
+  /// paid through this path (see [removeSampleLine]).
   Future<void> removeByListingIds(Set<String> listingIds) async {
     if (listingIds.isEmpty) return;
     state = AsyncData(
-      _lines.where((line) => !listingIds.contains(line.product.id)).toList(),
+      _lines
+          .where(
+            (line) => line.isSample || !listingIds.contains(line.product.id),
+          )
+          .toList(),
     );
     try {
       await CartService.removeItems(listingIds);

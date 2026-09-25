@@ -65,9 +65,12 @@ class CartScreen extends ConsumerWidget {
                   final allSelected =
                       groups.isNotEmpty &&
                       groups.every((group) => group.allSelected);
+                  // Samples have no escrow/payment step, so they never
+                  // contribute to the paid subtotal/shipping/escrow fee —
+                  // only their own line card shows a price.
                   final subtotal = groups
                       .expand((group) => group.lines)
-                      .where((line) => line.selected)
+                      .where((line) => line.selected && !line.isSample)
                       .fold(0.0, (sum, line) => sum + line.lineTotal);
                   const shipping = 45.0;
                   final escrowFee = subtotal * 0.02;
@@ -124,7 +127,8 @@ class CartScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 32),
                       FilledButton(
-                        onPressed: subtotal > 0
+                        onPressed:
+                            groups.expand((g) => g.lines).any((l) => l.selected)
                             ? () => context.pushNamed(
                                 'checkout',
                                 extra: {
@@ -137,8 +141,13 @@ class CartScreen extends ConsumerWidget {
                                         icon: line.product.icon,
                                         imageUrl: line.product.imageUrl,
                                         name: line.product.name,
-                                        qtyLabel: _qtyLabelFor(line),
+                                        qtyLabel: line.isSample
+                                            ? l10n.cartSampleLabel
+                                            : _qtyLabelFor(line),
                                         quantity: line.quantity,
+                                        weightKg:
+                                            line.product.unitWeightKg *
+                                            line.quantity,
                                         total: line.lineTotal,
                                         seller: line.product.seller,
                                         sellerLogoOverride:
@@ -146,6 +155,8 @@ class CartScreen extends ConsumerWidget {
                                         listingId: line.product.isRealListing
                                             ? line.product.id
                                             : null,
+                                        isSample: line.isSample,
+                                        product: line.product,
                                       ),
                                   ],
                                 },
@@ -293,7 +304,7 @@ class _CartGroupCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: colorScheme.outline),
+        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -360,8 +371,9 @@ class _CartGroupCard extends StatelessWidget {
               ),
             ],
           ),
-          for (final line in group.lines) ...[
-            const Divider(height: 16),
+          const SizedBox(height: 10),
+          for (final (index, line) in group.lines.indexed) ...[
+            if (index > 0) const SizedBox(height: 10),
             _CartLineTile(
               line: line,
               onToggle: (value) => onLineToggle(line, value),
@@ -402,101 +414,150 @@ class _CartLineTile extends ConsumerWidget {
     final product = line.product;
     final l10n = AppLocalizations.of(context);
 
-    return Slidable(
-      key: ValueKey(product.name),
-      endActionPane: ActionPane(
-        motion: const DrawerMotion(),
-        extentRatio: 0.4,
-        children: [
-          SlidableAction(
-            onPressed: (_) => onWishlist(),
-            backgroundColor: Colors.amber.shade700,
-            foregroundColor: Colors.white,
-            icon: Icons.favorite,
-            label: l10n.cartWishlistAction,
-          ),
-          SlidableAction(
-            onPressed: (_) => onDelete(),
-            backgroundColor: colorScheme.primary,
-            foregroundColor: colorScheme.onPrimary,
-            icon: Icons.delete_outline,
-            label: l10n.commonDelete,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: colorScheme.outline),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Checkbox(
-            value: line.selected,
-            onChanged: onToggle,
-            activeColor: colorScheme.primary,
-            visualDensity: VisualDensity.compact,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(14),
+        child: Slidable(
+          key: ValueKey(line.cartItemId),
+          endActionPane: ActionPane(
+            motion: const DrawerMotion(),
+            extentRatio: 0.4,
+            children: [
+              SlidableAction(
+                onPressed: (_) => onWishlist(),
+                backgroundColor: Colors.amber.shade700,
+                foregroundColor: Colors.white,
+                icon: Icons.favorite,
+                label: l10n.cartWishlistAction,
+              ),
+              SlidableAction(
+                onPressed: (_) => onDelete(),
+                backgroundColor: colorScheme.primary,
+                foregroundColor: colorScheme.onPrimary,
+                icon: Icons.delete_outline,
+                label: l10n.commonDelete,
+              ),
+            ],
           ),
-          const SizedBox(width: 6),
-          Container(
-            width: 56,
-            height: 56,
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              color: colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Image.network(
-              product.imageUrl,
-              fit: BoxFit.cover,
-              loadingBuilder: (context, child, progress) => progress == null
-                  ? child
-                  : Icon(product.icon, color: colorScheme.primary, size: 24),
-              errorBuilder: (context, error, stackTrace) =>
-                  Icon(product.icon, color: colorScheme.primary, size: 24),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  product.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
+                Checkbox(
+                  value: line.selected,
+                  onChanged: onToggle,
+                  activeColor: colorScheme.primary,
+                  visualDensity: VisualDensity.compact,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                const SizedBox(width: 6),
+                Container(
+                  width: 56,
+                  height: 56,
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Image.network(
+                    product.imageUrl,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, progress) =>
+                        progress == null
+                        ? child
+                        : Icon(
+                            product.icon,
+                            color: colorScheme.primary,
+                            size: 24,
+                          ),
+                    errorBuilder: (context, error, stackTrace) => Icon(
+                      product.icon,
+                      color: colorScheme.primary,
+                      size: 24,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  l10n.cartUnitPrice(formatPrice(ref, product.priceValue)),
-                  style: textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Text(
-                      formatPrice(ref, line.lineTotal),
-                      style: textTheme.titleMedium?.copyWith(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.bold,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        product.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                    const Spacer(),
-                    _QuantityStepper(
-                      quantity: line.quantity,
-                      minQuantity: product.moqValue,
-                      onChanged: onQuantityChanged,
-                      colorScheme: colorScheme,
-                      textTheme: textTheme,
-                    ),
-                  ],
+                      const SizedBox(height: 2),
+                      Text(
+                        l10n.cartUnitPrice(
+                          formatPrice(ref, product.priceValue),
+                        ),
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Text(
+                            formatPrice(ref, line.lineTotal),
+                            style: textTheme.titleMedium?.copyWith(
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const Spacer(),
+                          if (line.isSample)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primaryContainer,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                l10n.cartSampleLabel,
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            )
+                          else
+                            _QuantityStepper(
+                              quantity: line.quantity,
+                              minQuantity: product.moqValue,
+                              onChanged: onQuantityChanged,
+                              colorScheme: colorScheme,
+                              textTheme: textTheme,
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

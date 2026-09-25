@@ -242,6 +242,16 @@
   "cartEmptyState": "Your cart is empty",
   "cartLoadErrorMessage": "Couldn't load your cart. Tap to retry.",
   "cartUpdateErrorSnackbar": "Couldn't update your cart. Please try again.",
+  "cartSampleLabel": "Sample",
+  "cartSampleOrderPlaced": "Sample order placed",
+  "cartSampleOrderFailedCooldown": "Couldn't place the sample order: {message}",
+  "@cartSampleOrderFailedCooldown": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
   "checkoutDeliveryAddressLabel": "Delivery Address",
   "checkoutOrderItemsLabel": "Order Items",
   "checkoutItemsCount": "{count} Items",
@@ -826,6 +836,7 @@
     }
   },
   "productDetailSampleRequestedSnackbar": "Sample purchased",
+  "productDetailSampleAddedToCartSnackbar": "Sample added to cart",
   "productDetailAddToCartButton": "Add to Cart · {price}",
   "@productDetailAddToCartButton": {
     "placeholders": {
@@ -836,7 +847,7 @@
   },
   "productDetailSampleAlreadyRequested": "Sample Already Bought",
   "productDetailSampleCooldownActive": "Cooldown Active",
-  "productDetailRequestSample": "Buy Sample",
+  "productDetailRequestSample": "Add Sample to Cart",
   "productDetailSampleCooldownNote": "You can buy another sample after {date}.",
   "@productDetailSampleCooldownNote": {
     "placeholders": {

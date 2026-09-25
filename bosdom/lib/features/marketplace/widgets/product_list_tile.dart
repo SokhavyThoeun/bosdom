@@ -72,6 +72,9 @@ class ProductListTile extends ConsumerWidget {
         clipBehavior: Clip.antiAlias,
         children: [
           Container(
+            // Minimum height so short cards match tall ones; taller text
+            // (2-line titles) may still grow the card instead of overflowing.
+            constraints: const BoxConstraints(minHeight: 120),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.white,
@@ -87,6 +90,11 @@ class ProductListTile extends ConsumerWidget {
                   clipBehavior: Clip.antiAlias,
                   decoration: BoxDecoration(
                     color: colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  // Border painted above the image so photo edges never
+                  // bleed over it or leave ragged corners.
+                  foregroundDecoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
                       color: colorScheme.outline.withValues(alpha: 0.6),

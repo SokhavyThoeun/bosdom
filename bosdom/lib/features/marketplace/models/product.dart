@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../shared/models/variant_option.dart';
+import '../../../shared/services/shipping_fee_calculator.dart'
+    show parseWeightKg;
 import '../../../shared/utils/mock_images.dart';
 
 class Product {
@@ -77,6 +79,12 @@ class Product {
   /// Real backend user id of the seller, for starting a chat conversation.
   /// `null` for mock products, which have no real counterpart to message.
   final String? sellerId;
+
+  /// Weight of one ordered unit in kg, read from the seller's [weight] spec
+  /// (e.g. "25kg per bag") or, failing that, the product name (e.g. "(25kg)").
+  /// Falls back to 1 kg when the listing states no weight at all.
+  double get unitWeightKg =>
+      parseWeightKg(weight) ?? parseWeightKg(name) ?? 1.0;
 
   bool get hasVariants => sizes.isNotEmpty || colorOptions.isNotEmpty;
 

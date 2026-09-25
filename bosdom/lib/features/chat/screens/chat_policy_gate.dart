@@ -56,7 +56,12 @@ class _ChatPolicyScreenState extends ConsumerState<_ChatPolicyScreen> {
               top: false,
               bottom: false,
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  20,
+                  20,
+                  16 + MediaQuery.of(context).padding.bottom,
+                ),
                 children: [
                   Text(
                     l10n.chatPolicyIntro,
@@ -91,20 +96,13 @@ class _ChatPolicyScreenState extends ConsumerState<_ChatPolicyScreen> {
                       setState(() => _agreed = value);
                     },
                   ),
+                  const SizedBox(height: 24),
+                  _ContinueButton(
+                    enabled: _agreed,
+                    onTap: () => ref.read(chatPolicyProvider.notifier).accept(),
+                  ),
                 ],
               ),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              20,
-              4,
-              20,
-              16 + MediaQuery.of(context).padding.bottom,
-            ),
-            child: _ContinueButton(
-              enabled: _agreed,
-              onTap: () => ref.read(chatPolicyProvider.notifier).accept(),
             ),
           ),
         ],

@@ -300,9 +300,9 @@ class _ProductDetailBodyState extends ConsumerState<_ProductDetailBody> {
                             onSampleQtyChanged: _changeSampleQty,
                             sampleEligibility: sampleEligibility.value,
                             isSampleGateLoading: sampleEligibility.isLoading,
-                            onRequestSample: () => ref
-                                .read(sampleGateProvider.notifier)
-                                .requestSample(product),
+                            onAddSample: () => ref
+                                .read(cartProvider.notifier)
+                                .addSample(product),
                             onAddToCart: () => ref
                                 .read(cartProvider.notifier)
                                 .addItems([(product, _wholesaleQty)]),
@@ -1003,7 +1003,7 @@ class _BuyBox extends ConsumerStatefulWidget {
     required this.onSampleQtyChanged,
     required this.sampleEligibility,
     required this.isSampleGateLoading,
-    required this.onRequestSample,
+    required this.onAddSample,
     required this.onAddToCart,
     required this.colorScheme,
     required this.textTheme,
@@ -1021,7 +1021,7 @@ class _BuyBox extends ConsumerStatefulWidget {
   final ValueChanged<int> onSampleQtyChanged;
   final SampleEligibility? sampleEligibility;
   final bool isSampleGateLoading;
-  final Future<SampleOrder> Function() onRequestSample;
+  final Future<bool> Function() onAddSample;
   final Future<bool> Function() onAddToCart;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
@@ -1058,37 +1058,18 @@ class _BuyBoxState extends ConsumerState<_BuyBox> {
     setState(() => _isAddingToCart = false);
   }
 
-  Future<void> _handleRequestSample() async {
+  Future<void> _handleAddSample() async {
     setState(() => _isSubmittingSample = true);
     final l10n = AppLocalizations.of(context);
-    try {
-      await widget.onRequestSample();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.productDetailSampleRequestedSnackbar)),
-      );
-    } on SampleCooldownException catch (error) {
-      if (!mounted) return;
-      final eligibleAt = error.eligibleAt;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            eligibleAt != null
-                ? l10n.productDetailSampleCooldownNote(
-                    _formatEligibleAt(eligibleAt),
-                  )
-                : error.message,
-          ),
-        ),
-      );
-    } on SampleOrderException catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.message)));
-    } finally {
-      if (mounted) setState(() => _isSubmittingSample = false);
-    }
+    final succeeded = await widget.onAddSample();
+    if (!mounted) return;
+    final message = succeeded
+        ? l10n.productDetailSampleAddedToCartSnackbar
+        : l10n.cartUpdateErrorSnackbar;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+    setState(() => _isSubmittingSample = false);
   }
 
   @override
@@ -1167,7 +1148,7 @@ class _BuyBoxState extends ConsumerState<_BuyBox> {
                 ? (_isAddingToCart ? null : _handleAddToCart)
                 : (isSampleGateLoading || onCooldown || _isSubmittingSample)
                 ? null
-                : _handleRequestSample,
+                : _handleAddSample,
             child: _isAddingToCart || _isSubmittingSample
                 ? SizedBox(
                     width: 20,

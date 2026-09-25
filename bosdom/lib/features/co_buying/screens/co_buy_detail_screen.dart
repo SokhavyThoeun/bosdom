@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../shared/services/shipping_fee_calculator.dart'
+    show parseWeightKg;
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/models/variant_option.dart';
 import '../../../shared/widgets/app_snack_bar.dart';
@@ -391,6 +393,11 @@ class _CoBuyDetailBodyState extends ConsumerState<_CoBuyDetailBody> {
               seller: session.sellerName,
               sellerLogoOverride: session.sellerLogoOverride,
               quantity: quantity,
+              weightKg:
+                  (parseWeightKg(session.weight) ??
+                      parseWeightKg(session.productName) ??
+                      1.0) *
+                  quantity,
             ),
           ],
         },

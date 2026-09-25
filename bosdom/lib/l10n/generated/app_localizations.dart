@@ -1058,6 +1058,24 @@ abstract class AppLocalizations {
   /// **'Couldn\'t update your cart. Please try again.'**
   String get cartUpdateErrorSnackbar;
 
+  /// No description provided for @cartSampleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample'**
+  String get cartSampleLabel;
+
+  /// No description provided for @cartSampleOrderPlaced.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample order placed'**
+  String get cartSampleOrderPlaced;
+
+  /// No description provided for @cartSampleOrderFailedCooldown.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t place the sample order: {message}'**
+  String cartSampleOrderFailedCooldown(String message);
+
   /// No description provided for @checkoutDeliveryAddressLabel.
   ///
   /// In en, this message translates to:
@@ -2997,6 +3015,12 @@ abstract class AppLocalizations {
   /// **'Sample purchased'**
   String get productDetailSampleRequestedSnackbar;
 
+  /// No description provided for @productDetailSampleAddedToCartSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample added to cart'**
+  String get productDetailSampleAddedToCartSnackbar;
+
   /// No description provided for @productDetailAddToCartButton.
   ///
   /// In en, this message translates to:
@@ -3018,7 +3042,7 @@ abstract class AppLocalizations {
   /// No description provided for @productDetailRequestSample.
   ///
   /// In en, this message translates to:
-  /// **'Buy Sample'**
+  /// **'Add Sample to Cart'**
   String get productDetailRequestSample;
 
   /// No description provided for @productDetailSampleCooldownNote.

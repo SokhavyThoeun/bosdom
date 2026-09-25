@@ -302,9 +302,9 @@ class _AddListingScreenState extends State<AddListingScreen> {
       // The per-field validators should already catch this, but fall back
       // to a friendly message instead of letting a raw parse exception
       // reach the snackbar (e.g. a field built offscreen never validated).
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.addListingCreateErrorSnackbar)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.addListingCreateErrorSnackbar)),
+      );
       return;
     }
 
@@ -343,8 +343,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
       debugPrint('Add listing failed: $e');
       if (!mounted) return;
       final message =
-          _serverErrorDetail(e) ??
-          '${l10n.addListingCreateErrorSnackbar} ($e)';
+          _serverErrorDetail(e) ?? '${l10n.addListingCreateErrorSnackbar} ($e)';
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(message)));

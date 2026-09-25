@@ -531,6 +531,17 @@ class AppLocalizationsKm extends AppLocalizations {
       'មិនអាចធ្វើបច្ចុប្បន្នភាពកន្ត្រករបស់អ្នកបានទេ។ សូមព្យាយាមម្តងទៀត។';
 
   @override
+  String get cartSampleLabel => 'គំរូ';
+
+  @override
+  String get cartSampleOrderPlaced => 'បានដាក់បញ្ជាទិញគំរូ';
+
+  @override
+  String cartSampleOrderFailedCooldown(String message) {
+    return 'មិនអាចដាក់បញ្ជាទិញគំរូបានទេ៖ $message';
+  }
+
+  @override
   String get checkoutDeliveryAddressLabel => 'អាសយដ្ឋានដឹកជញ្ជូន';
 
   @override
@@ -1635,6 +1646,9 @@ class AppLocalizationsKm extends AppLocalizations {
   String get productDetailSampleRequestedSnackbar => 'បានទិញគំរូ';
 
   @override
+  String get productDetailSampleAddedToCartSnackbar => 'បានដាក់គំរូចូលរទេះ';
+
+  @override
   String productDetailAddToCartButton(String price) {
     return 'ដាក់ចូលរទេះ · $price';
   }
@@ -1646,7 +1660,7 @@ class AppLocalizationsKm extends AppLocalizations {
   String get productDetailSampleCooldownActive => 'កំពុងស្ថិតក្នុងរយៈពេលរង់ចាំ';
 
   @override
-  String get productDetailRequestSample => 'ទិញគំរូ';
+  String get productDetailRequestSample => 'ដាក់គំរូចូលរទេះ';
 
   @override
   String productDetailSampleCooldownNote(String date) {

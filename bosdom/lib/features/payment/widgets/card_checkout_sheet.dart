@@ -40,6 +40,19 @@ class _CardCheckoutSheetState extends State<CardCheckoutSheet> {
 })()
 ''';
 
+  /// Hides PayWay's merchant strip (back arrow, logo, merchant name) so the
+  /// page opens straight on the card form. `.header.text-center.bg-white` is
+  /// the exact element its hosted-mobile component renders for that strip.
+  static const _hideMerchantHeader = '''
+(function () {
+  if (document.getElementById('bosdom-hide-header')) return;
+  var style = document.createElement('style');
+  style.id = 'bosdom-hide-header';
+  style.textContent = '.header.text-center.bg-white { display: none !important; }';
+  document.head.appendChild(style);
+})()
+''';
+
   late final WebViewController _controller;
   Timer? _pollTimer;
   bool _polling = false;
@@ -88,6 +101,7 @@ class _CardCheckoutSheetState extends State<CardCheckoutSheet> {
     final host = Uri.tryParse(url)?.host ?? '';
     var reply = '';
     if (host.endsWith('payway.com.kh')) {
+      _controller.runJavaScript(_hideMerchantHeader).catchError((_) {});
       try {
         final result = await _controller.runJavaScriptReturningResult(
           _detectJsonReply,
