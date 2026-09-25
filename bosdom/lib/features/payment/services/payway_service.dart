@@ -94,7 +94,7 @@ class PaymentException implements Exception {
 }
 
 abstract final class PaywayService {
-  static const _timeout = Duration(seconds: 20);
+  static const _timeout = ApiConfig.requestTimeout;
 
   static Map<String, String> get _authHeaders {
     final token = Supabase.instance.client.auth.currentSession?.accessToken;

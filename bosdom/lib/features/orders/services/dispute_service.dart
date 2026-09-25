@@ -37,7 +37,7 @@ class OrderDispute {
 }
 
 abstract final class DisputeService {
-  static const _timeout = Duration(seconds: 10);
+  static const _timeout = ApiConfig.requestTimeout;
 
   static Map<String, String> get _authHeaders {
     final token = Supabase.instance.client.auth.currentSession?.accessToken;
@@ -102,7 +102,7 @@ abstract final class DisputeService {
       );
     }
     final response = await http.Response.fromStream(
-      await request.send().timeout(const Duration(seconds: 30)),
+      await request.send().timeout(ApiConfig.requestTimeout),
     );
     if (response.statusCode != 200) {
       throw Exception(response.body);

@@ -6,6 +6,9 @@
 /// network-independent — no LAN IP to flip when moving between home and
 /// university, which used to cause silent login timeouts.
 abstract final class ApiConfig {
+  /// How long a request may take before giving up. Generous because the
+  /// free Render instance sleeps when idle and takes up to a minute to wake.
+  static const requestTimeout = Duration(seconds: 60);
   static const _port = 8000;
 
   static const _deployedUrl = String.fromEnvironment('API_BASE_URL');

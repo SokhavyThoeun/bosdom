@@ -5,6 +5,9 @@
 /// The constants below are only the fallback for a bare `flutter run`: flip
 /// [_useUniversity] and hot-restart when you switch networks.
 abstract final class ApiConfig {
+  /// How long a request may take before giving up. Generous because the
+  /// free Render instance sleeps when idle and takes up to a minute to wake.
+  static const requestTimeout = Duration(seconds: 60);
   static const _homeIp = 'http://192.168.18.89:8000';
   static const _universityIp = 'http://172.21.1.205:8000';
 

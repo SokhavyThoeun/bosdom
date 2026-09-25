@@ -9,7 +9,7 @@ import '../../../core/config/api_config.dart';
 import '../models/order.dart';
 
 abstract final class OrderService {
-  static const _timeout = Duration(seconds: 10);
+  static const _timeout = ApiConfig.requestTimeout;
 
   static Map<String, String> get _authHeaders {
     final token = Supabase.instance.client.auth.currentSession?.accessToken;
@@ -166,7 +166,7 @@ abstract final class OrderService {
         contentType: MediaType.parse(mimeType),
       ),
     );
-    final streamed = await request.send().timeout(const Duration(seconds: 30));
+    final streamed = await request.send().timeout(ApiConfig.requestTimeout);
     final response = await http.Response.fromStream(streamed);
     if (response.statusCode != 200) {
       throw Exception(response.body);

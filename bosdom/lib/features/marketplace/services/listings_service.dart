@@ -72,7 +72,7 @@ Product _productFromJson(Map<String, dynamic> json) {
 }
 
 abstract final class ListingsService {
-  static const _timeout = Duration(seconds: 15);
+  static const _timeout = ApiConfig.requestTimeout;
 
   static Future<List<Product>> fetchListings({
     String? q,

@@ -24,7 +24,7 @@ String _colorToHex(Color color) =>
     '#${color.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}';
 
 abstract final class CoBuyPoolService {
-  static const _timeout = Duration(seconds: 15);
+  static const _timeout = ApiConfig.requestTimeout;
 
   static Map<String, String> get _authHeaders {
     final token = Supabase.instance.client.auth.currentSession?.accessToken;

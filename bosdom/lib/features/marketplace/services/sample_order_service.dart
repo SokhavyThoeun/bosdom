@@ -7,7 +7,7 @@ import '../../../core/config/api_config.dart';
 import '../models/sample_order.dart';
 
 abstract final class SampleOrderService {
-  static const _timeout = Duration(seconds: 8);
+  static const _timeout = ApiConfig.requestTimeout;
 
   static Map<String, String> get _authHeaders {
     final token = Supabase.instance.client.auth.currentSession?.accessToken;

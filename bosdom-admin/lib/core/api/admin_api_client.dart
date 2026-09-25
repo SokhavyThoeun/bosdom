@@ -22,7 +22,7 @@ class AdminApiException implements Exception {
 }
 
 abstract final class AdminApiClient {
-  static const _timeout = Duration(seconds: 10);
+  static const _timeout = ApiConfig.requestTimeout;
 
   static Map<String, String> get _authHeaders {
     final token = adminSession.token;
@@ -67,7 +67,7 @@ abstract final class AdminApiClient {
       throw AdminApiException(
         0,
         'Cannot reach the backend at ${ApiConfig.baseUrl}. '
-        'Is uvicorn running on port 8000?',
+        'Check your connection and try again.',
       );
     }
     final json = await _decodeOrThrow(response);
