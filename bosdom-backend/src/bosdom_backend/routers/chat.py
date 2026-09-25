@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from pydantic import BaseModel
@@ -20,7 +19,7 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 FLAG_RESTRICTION_THRESHOLD = 3
 FLAG_RESTRICTION_DURATION = timedelta(hours=24)
 
-CHAT_IMAGES_DIR = Path(__file__).resolve().parent.parent / "media" / "chat_images"
+CHAT_IMAGES_FOLDER = "chat_images"
 
 # Reserved seller-side id for the "BosDom Support" inbox. A support thread is
 # an ordinary Conversation (buyer_id = the user, seller_id = this), so the
@@ -414,12 +413,12 @@ def send_image_message(
     if not is_support:
         _require_can_send(db, user)
 
-    filename = save_image_as_webp(file, CHAT_IMAGES_DIR, conversation.id)
+    image_url = save_image_as_webp(file, CHAT_IMAGES_FOLDER, conversation.id)
 
     message = Message(
         conversation_id=conversation.id,
         sender_id=user.id,
-        image_url=f"/media/chat_images/{filename}",
+        image_url=image_url,
         flagged=False,
     )
     db.add(message)

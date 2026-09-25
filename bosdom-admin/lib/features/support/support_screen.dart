@@ -820,13 +820,13 @@ class _MessageBubble extends StatelessWidget {
                       child: InkWell(
                         onTap: () => showPhotoViewer(
                           context,
-                          '${ApiConfig.baseUrl}$imageUrl',
+                          ApiConfig.mediaUrl(imageUrl),
                         ),
                         borderRadius: BorderRadius.circular(12),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: Image.network(
-                            '${ApiConfig.baseUrl}$imageUrl',
+                            ApiConfig.mediaUrl(imageUrl),
                             width: imageSize,
                             height: imageSize,
                             fit: BoxFit.cover,

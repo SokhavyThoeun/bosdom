@@ -59,7 +59,7 @@ void _downloadSellerInfo(AdminSeller seller) {
     buffer.writeln('None uploaded');
   } else {
     for (final url in seller.shopPhotoUrls) {
-      buffer.writeln('${ApiConfig.baseUrl}$url');
+      buffer.writeln(ApiConfig.mediaUrl(url));
     }
   }
   buffer
@@ -69,7 +69,7 @@ void _downloadSellerInfo(AdminSeller seller) {
     buffer.writeln('None uploaded');
   } else {
     for (final doc in seller.kycDocuments) {
-      buffer.writeln('${doc.docType}: ${ApiConfig.baseUrl}${doc.fileUrl}');
+      buffer.writeln('${doc.docType}: ${ApiConfig.mediaUrl(doc.fileUrl)}');
     }
   }
 
@@ -281,7 +281,7 @@ class _KycDocsCell extends StatelessWidget {
         for (final doc in documents)
           InkWell(
             onTap: () =>
-                web.window.open('${ApiConfig.baseUrl}${doc.fileUrl}', '_blank'),
+                web.window.open(ApiConfig.mediaUrl(doc.fileUrl), '_blank'),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 2),
               child: Text(
@@ -317,12 +317,12 @@ class _StorePhotosCell extends StatelessWidget {
       children: [
         for (final url in photoUrls) ...[
           InkWell(
-            onTap: () => showPhotoViewer(context, '${ApiConfig.baseUrl}$url'),
+            onTap: () => showPhotoViewer(context, ApiConfig.mediaUrl(url)),
             borderRadius: BorderRadius.circular(6),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(6),
               child: Image.network(
-                '${ApiConfig.baseUrl}$url',
+                ApiConfig.mediaUrl(url),
                 width: 40,
                 height: 40,
                 fit: BoxFit.cover,
@@ -363,7 +363,7 @@ class _SellerReviewDialog extends StatelessWidget {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Image.network(
-                        '${ApiConfig.baseUrl}${seller.shopLogoUrl}',
+                        ApiConfig.mediaUrl(seller.shopLogoUrl),
                         width: 48,
                         height: 48,
                         fit: BoxFit.cover,
@@ -439,13 +439,13 @@ class _SellerReviewDialog extends StatelessWidget {
                               InkWell(
                                 onTap: () => showPhotoViewer(
                                   context,
-                                  '${ApiConfig.baseUrl}$url',
+                                  ApiConfig.mediaUrl(url),
                                 ),
                                 borderRadius: BorderRadius.circular(8),
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
                                   child: Image.network(
-                                    '${ApiConfig.baseUrl}$url',
+                                    ApiConfig.mediaUrl(url),
                                     width: 88,
                                     height: 88,
                                     fit: BoxFit.cover,

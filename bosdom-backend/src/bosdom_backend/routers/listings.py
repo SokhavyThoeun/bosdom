@@ -1,5 +1,4 @@
 import json
-from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from pydantic import BaseModel
@@ -13,7 +12,6 @@ from ..utils.images import save_image_as_webp
 
 router = APIRouter(prefix="/listings", tags=["listings"])
 
-PHOTOS_DIR = Path(__file__).resolve().parent.parent / "media" / "listing_photos"
 _MAX_PHOTOS = 5
 
 
@@ -108,11 +106,7 @@ def _save_photos(seller_id: str, photos: list[UploadFile]) -> list[str]:
             status_code=400, detail=f"Up to {_MAX_PHOTOS} photos are allowed"
         )
 
-    urls = []
-    for photo in photos:
-        filename = save_image_as_webp(photo, PHOTOS_DIR, seller_id)
-        urls.append(f"/media/listing_photos/{filename}")
-    return urls
+    return [save_image_as_webp(photo, "listing_photos", seller_id) for photo in photos]
 
 
 @router.post("/me", response_model=ListingOut)

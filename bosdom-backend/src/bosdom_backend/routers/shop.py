@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from pydantic import BaseModel
@@ -13,8 +12,6 @@ from ..utils.images import save_image_as_webp
 
 router = APIRouter(prefix="/shop", tags=["shop"])
 
-LOGO_DIR = Path(__file__).resolve().parent.parent / "media" / "shop_logos"
-PHOTOS_DIR = Path(__file__).resolve().parent.parent / "media" / "shop_photos"
 _MAX_STORE_PHOTOS = 4
 
 
@@ -98,10 +95,10 @@ def upload_logo(
     user: CurrentUser = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> Shop:
-    filename = save_image_as_webp(file, LOGO_DIR, user.id)
+    logo_url = save_image_as_webp(file, "shop_logos", user.id)
 
     shop = _get_or_create(db, user)
-    shop.logo_url = f"/media/shop_logos/{filename}"
+    shop.logo_url = logo_url
     db.commit()
     db.refresh(shop)
     return shop
@@ -119,10 +116,7 @@ def upload_store_photos(
             status_code=400, detail=f"Up to {_MAX_STORE_PHOTOS} store photos are allowed"
         )
 
-    urls = []
-    for photo in uploaded:
-        filename = save_image_as_webp(photo, PHOTOS_DIR, user.id)
-        urls.append(f"/media/shop_photos/{filename}")
+    urls = [save_image_as_webp(photo, "shop_photos", user.id) for photo in uploaded]
 
     shop = _get_or_create(db, user)
     shop.photo_urls = urls

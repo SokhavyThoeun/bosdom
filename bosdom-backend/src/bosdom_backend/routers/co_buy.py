@@ -1,6 +1,4 @@
-import uuid
 from datetime import datetime, timezone
-from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
@@ -9,13 +7,12 @@ from sqlalchemy.orm import Session
 from ..auth import CurrentUser, get_current_user
 from ..db import get_db
 from ..models import CoBuyParticipant, CoBuyPool, Profile, Shop
+from ..utils.images import save_image_as_webp
 from .listings import ColorOptionOut, _parse_colors, _parse_sizes
 from .notifications import NotificationTarget, push_notification
 
 router = APIRouter(prefix="/co-buy", tags=["co-buy"])
 
-PHOTOS_DIR = Path(__file__).resolve().parent.parent / "media" / "co_buy_photos"
-_ALLOWED_PHOTO_TYPES = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
 _MAX_PHOTOS = 4
 
 
@@ -61,17 +58,7 @@ def _save_photos(seller_id: str, photos: list[UploadFile]) -> list[str]:
             status_code=400, detail=f"Up to {_MAX_PHOTOS} photos are allowed"
         )
 
-    PHOTOS_DIR.mkdir(parents=True, exist_ok=True)
-    urls = []
-    for photo in photos:
-        ext = _ALLOWED_PHOTO_TYPES.get(photo.content_type or "")
-        if ext is None:
-            raise HTTPException(status_code=400, detail="Unsupported image type")
-        filename = f"{seller_id}-{uuid.uuid4().hex[:8]}{ext}"
-        with (PHOTOS_DIR / filename).open("wb") as out:
-            out.write(photo.file.read())
-        urls.append(f"/media/co_buy_photos/{filename}")
-    return urls
+    return [save_image_as_webp(photo, "co_buy_photos", seller_id) for photo in photos]
 
 
 # Only paid participants count toward the pool. A pending leave request still

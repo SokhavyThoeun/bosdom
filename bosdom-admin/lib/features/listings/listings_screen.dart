@@ -367,7 +367,7 @@ class _ProductThumbnail extends StatelessWidget {
         ),
       );
     }
-    final url = '${ApiConfig.baseUrl}${photoUrls.first}';
+    final url = ApiConfig.mediaUrl(photoUrls.first);
     return InkWell(
       onTap: () => web.window.open(url, '_blank'),
       borderRadius: BorderRadius.circular(6),

@@ -1,6 +1,5 @@
 import uuid
 from datetime import datetime
-from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
@@ -9,13 +8,12 @@ from sqlalchemy.orm import Session
 from ..auth import CurrentUser, get_current_user
 from ..db import get_db
 from ..models import KycDocument, Profile
-from ..utils.images import save_image_as_webp
+from .. import storage
+from ..utils.images import encode_webp, save_image_as_webp
 
 router = APIRouter(prefix="/profile", tags=["profile"])
 
-AVATAR_DIR = Path(__file__).resolve().parent.parent / "media" / "avatars"
 
-KYC_DIR = Path(__file__).resolve().parent.parent / "media" / "kyc_documents"
 _ALLOWED_KYC_TYPES = {
     "image/jpeg": ".jpg",
     "image/png": ".png",
@@ -135,10 +133,10 @@ def upload_avatar(
     user: CurrentUser = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> Profile:
-    filename = save_image_as_webp(file, AVATAR_DIR, user.id)
+    avatar_url = save_image_as_webp(file, "avatars", user.id)
 
     profile = _get_or_create(db, user)
-    profile.avatar_url = f"/media/avatars/{filename}"
+    profile.avatar_url = avatar_url
     db.commit()
     db.refresh(profile)
     return profile
@@ -170,10 +168,16 @@ def upload_kyc_document(
     if ext is None:
         raise HTTPException(status_code=400, detail="Unsupported file type")
 
-    KYC_DIR.mkdir(parents=True, exist_ok=True)
+    data = file.file.read()
+    content_type = "application/pdf"
+    if ext != ".pdf":
+        try:
+            data = encode_webp(data)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        ext, content_type = ".webp", "image/webp"
     filename = f"{user.id}-{doc_type}-{uuid.uuid4().hex[:8]}{ext}"
-    with (KYC_DIR / filename).open("wb") as out:
-        out.write(file.file.read())
+    file_url = storage.upload_private(f"kyc_documents/{filename}", data, content_type)
 
     profile = _get_or_create(db, user)
 
@@ -183,13 +187,13 @@ def upload_kyc_document(
         .one_or_none()
     )
     if existing is not None:
-        existing.file_url = f"/media/kyc_documents/{filename}"
+        existing.file_url = file_url
     else:
         db.add(
             KycDocument(
                 profile_id=user.id,
                 doc_type=doc_type,
-                file_url=f"/media/kyc_documents/{filename}",
+                file_url=file_url,
             )
         )
 

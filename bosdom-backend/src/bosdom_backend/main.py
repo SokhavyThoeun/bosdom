@@ -1,9 +1,8 @@
-from pathlib import Path
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
 
+from . import storage
 from .db import engine
 from .models import PaywayPayment, UserNotification
 from .routers import (
@@ -30,6 +29,7 @@ from .routers import (
 # exist).
 UserNotification.__table__.create(bind=engine, checkfirst=True)
 PaywayPayment.__table__.create(bind=engine, checkfirst=True)
+storage.ensure_buckets()
 
 app = FastAPI(title="Bosdom Backend")
 
@@ -57,9 +57,14 @@ app.include_router(listings.router)
 app.include_router(sample_orders.router)
 app.include_router(admin.router)
 
-_media_dir = Path(__file__).resolve().parent / "media"
-_media_dir.mkdir(exist_ok=True)
-app.mount("/media", StaticFiles(directory=_media_dir), name="media")
+@app.get("/media/{path:path}")
+def media(path: str) -> RedirectResponse:
+    """Uploads live in Supabase Storage. Private files (KYC, dispute
+    evidence) are stored as `/media/private/...` and get a short-lived signed
+    URL; any leftover relative public path goes to its public URL."""
+    if path.startswith("private/"):
+        return RedirectResponse(storage.signed_url(path.removeprefix("private/")))
+    return RedirectResponse(storage.public_url(path))
 
 
 @app.get("/health")

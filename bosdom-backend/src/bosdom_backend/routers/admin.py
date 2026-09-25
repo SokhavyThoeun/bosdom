@@ -25,7 +25,7 @@ from ..models import (
 from ..utils.images import save_image_as_webp
 from .notifications import NotificationTarget, push_notification
 from .chat import (
-    CHAT_IMAGES_DIR,
+    CHAT_IMAGES_FOLDER,
     MessageOut,
     SUPPORT_AGENT_ID,
     get_or_create_support_conversation,
@@ -1036,12 +1036,12 @@ def reply_to_support_conversation_with_image(
     db: Session = Depends(get_db),
 ) -> Message:
     conversation = _support_conversation_or_404(db, conversation_id)
-    filename = save_image_as_webp(file, CHAT_IMAGES_DIR, conversation.id)
+    image_url = save_image_as_webp(file, CHAT_IMAGES_FOLDER, conversation.id)
 
     message = Message(
         conversation_id=conversation.id,
         sender_id=SUPPORT_AGENT_ID,
-        image_url=f"/media/chat_images/{filename}",
+        image_url=image_url,
     )
     db.add(message)
     conversation.seller_last_read_at = datetime.now(timezone.utc)

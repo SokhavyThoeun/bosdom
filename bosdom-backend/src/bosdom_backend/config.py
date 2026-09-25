@@ -6,6 +6,8 @@ class Settings(BaseSettings):
 
     database_url: str = "sqlite:///./bosdom.db"
     supabase_url: str = ""
+    # Server-side only: uploads to Supabase Storage (see storage.py).
+    supabase_service_role_key: str = ""
 
     # Admin panel — a single hardcoded operator account, deliberately
     # separate from Supabase Auth/`Profile` since there's no admin role

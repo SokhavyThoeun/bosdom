@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
@@ -24,11 +23,6 @@ from .notifications import NotificationTarget, push_notification
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
-REVIEW_PHOTOS_DIR = Path(__file__).resolve().parent.parent / "media" / "review_photos"
-SHIPPING_PHOTOS_DIR = (
-    Path(__file__).resolve().parent.parent / "media" / "shipping_photos"
-)
-DELIVERY_PROOF_DIR = Path(__file__).resolve().parent.parent / "media" / "delivery_proofs"
 # Mirrors the frontend's `_kMaxPhotos` (rate_review_sheet.dart).
 _MAX_REVIEW_PHOTOS = 6
 
@@ -744,9 +738,8 @@ def confirm_order(
     return _order_out_single(db, order)
 
 
-def _save_fulfilment_photo(photo: UploadFile, dest_dir: Path, folder: str, user_id: str) -> str:
-    filename = save_image_as_webp(photo, dest_dir, user_id)
-    return f"/media/{folder}/{filename}"
+def _save_fulfilment_photo(photo: UploadFile, folder: str, user_id: str) -> str:
+    return save_image_as_webp(photo, folder, user_id)
 
 
 @router.post("/{order_id}/ship", response_model=OrderOut)
@@ -776,7 +769,7 @@ def ship_order(
 
     now = datetime.now(timezone.utc)
     order.shipping_photo_url = _save_fulfilment_photo(
-        photo, SHIPPING_PHOTOS_DIR, "shipping_photos", user.id
+        photo, "shipping_photos", user.id
     )
     order.courier = courier
     order.tracking_number = tracking_number
@@ -815,7 +808,7 @@ def mark_delivered(
 
     now = datetime.now(timezone.utc)
     order.delivery_proof_url = _save_fulfilment_photo(
-        photo, DELIVERY_PROOF_DIR, "delivery_proofs", user.id
+        photo, "delivery_proofs", user.id
     )
     order.delivered_at = now
     order.review_deadline_at = now + REVIEW_WINDOW
@@ -983,11 +976,7 @@ def _save_review_photos(buyer_id: str, photos: list[UploadFile]) -> list[str]:
             status_code=400, detail=f"Up to {_MAX_REVIEW_PHOTOS} photos are allowed"
         )
 
-    urls = []
-    for photo in photos:
-        filename = save_image_as_webp(photo, REVIEW_PHOTOS_DIR, buyer_id)
-        urls.append(f"/media/review_photos/{filename}")
-    return urls
+    return [save_image_as_webp(photo, "review_photos", buyer_id) for photo in photos]
 
 
 @router.post("/{order_id}/review", response_model=OrderOut)

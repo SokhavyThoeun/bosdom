@@ -1,6 +1,5 @@
 import uuid
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
@@ -8,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from ..auth import CurrentUser, get_current_user
 from ..db import get_db
+from .. import storage
 from ..utils.images import save_image_as_webp
 from .notifications import NotificationTarget, push_notification
 from ..models import Dispute, DisputeEvidence, Order, SellerReport
@@ -25,7 +25,6 @@ from .orders import (
 
 router = APIRouter(tags=["disputes"])
 
-EVIDENCE_DIR = Path(__file__).resolve().parent.parent / "media" / "dispute_evidence"
 _ALLOWED_EVIDENCE_TYPES = {
     "video/mp4": ".mp4",
     "video/quicktime": ".mov",
@@ -247,14 +246,12 @@ def upload_evidence(
     if ext is None:
         raise HTTPException(status_code=400, detail="Unsupported video type")
 
-    EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
     filename = f"{dispute.id}-{uuid.uuid4().hex[:8]}{ext}"
-    with (EVIDENCE_DIR / filename).open("wb") as out:
-        out.write(file.file.read())
-
-    evidence = DisputeEvidence(
-        dispute_id=dispute.id, file_url=f"/media/dispute_evidence/{filename}"
+    file_url = storage.upload_private(
+        f"dispute_evidence/{filename}", file.file.read(), file.content_type or ""
     )
+
+    evidence = DisputeEvidence(dispute_id=dispute.id, file_url=file_url)
     db.add(evidence)
     dispute.status = DISPUTE_STATUS_UNDER_REVIEW
     db.commit()
@@ -322,9 +319,6 @@ def seller_reply(
     return dispute
 
 
-SELLER_REPORT_PHOTOS_DIR = (
-    Path(__file__).resolve().parent.parent / "media" / "seller_report_photos"
-)
 _MAX_SELLER_REPORT_PHOTOS = 3
 
 
@@ -361,9 +355,7 @@ def report_as_seller(
             detail=f"Up to {_MAX_SELLER_REPORT_PHOTOS} photos are allowed",
         )
     photo_urls = [
-        f"/media/seller_report_photos/"
-        f"{save_image_as_webp(photo, SELLER_REPORT_PHOTOS_DIR, user.id)}"
-        for photo in photos
+        save_image_as_webp(photo, "seller_report_photos", user.id) for photo in photos
     ]
     report = SellerReport(
         order_id=order.id,
