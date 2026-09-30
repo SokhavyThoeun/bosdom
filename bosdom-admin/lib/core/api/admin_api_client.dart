@@ -30,6 +30,38 @@ abstract final class AdminApiClient {
     return {'Authorization': 'Bearer $token'};
   }
 
+  /// Render's free tier spins the backend down after inactivity; the first
+  /// request to wake it can fail outright (connection reset) rather than
+  /// just being slow, before it ever gets a chance to respond. Retry a few
+  /// times with backoff so that cold start is invisible to the admin.
+  static Future<http.Response> _withRetry(
+    Future<http.Response> Function() send,
+  ) async {
+    const delays = [Duration(seconds: 4), Duration(seconds: 8)];
+    for (var attempt = 0; ; attempt++) {
+      try {
+        return await send().timeout(_timeout);
+      } on TimeoutException {
+        if (attempt >= delays.length) {
+          throw AdminApiException(
+            0,
+            'Cannot reach the backend at ${ApiConfig.baseUrl}. '
+            'Check your connection and try again.',
+          );
+        }
+      } on http.ClientException {
+        if (attempt >= delays.length) {
+          throw AdminApiException(
+            0,
+            'Cannot reach the backend at ${ApiConfig.baseUrl}. '
+            'It may still be waking up — try again in a moment.',
+          );
+        }
+      }
+      await Future.delayed(delays[attempt]);
+    }
+  }
+
   static Future<Map<String, dynamic>> _decodeOrThrow(
     http.Response response,
   ) async {
@@ -54,33 +86,24 @@ abstract final class AdminApiClient {
   }
 
   static Future<String> login(String email, String password) async {
-    final http.Response response;
-    try {
-      response = await http
-          .post(
-            Uri.parse('${ApiConfig.baseUrl}/admin/auth/login'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'email': email, 'password': password}),
-          )
-          .timeout(_timeout);
-    } on TimeoutException {
-      throw AdminApiException(
-        0,
-        'Cannot reach the backend at ${ApiConfig.baseUrl}. '
-        'Check your connection and try again.',
-      );
-    }
+    final response = await _withRetry(
+      () => http.post(
+        Uri.parse('${ApiConfig.baseUrl}/admin/auth/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'password': password}),
+      ),
+    );
     final json = await _decodeOrThrow(response);
     return json['access_token'] as String;
   }
 
   static Future<AdminStats> fetchStats() async {
-    final response = await http
-        .get(
-          Uri.parse('${ApiConfig.baseUrl}/admin/stats'),
-          headers: _authHeaders,
-        )
-        .timeout(_timeout);
+    final response = await _withRetry(
+      () => http.get(
+        Uri.parse('${ApiConfig.baseUrl}/admin/stats'),
+        headers: _authHeaders,
+      ),
+    );
     return AdminStats.fromJson(await _decodeOrThrow(response));
   }
 
@@ -88,9 +111,9 @@ abstract final class AdminApiClient {
     String path,
     T Function(Map<String, dynamic>) fromJson,
   ) async {
-    final response = await http
-        .get(Uri.parse('${ApiConfig.baseUrl}$path'), headers: _authHeaders)
-        .timeout(_timeout);
+    final response = await _withRetry(
+      () => http.get(Uri.parse('${ApiConfig.baseUrl}$path'), headers: _authHeaders),
+    );
     if (response.statusCode < 200 || response.statusCode >= 300) {
       await _decodeOrThrow(response);
     }
@@ -131,13 +154,13 @@ abstract final class AdminApiClient {
   /// Get-or-create the support thread with [userId] so an admin can message
   /// them first; returns the conversation id.
   static Future<String> startSupportConversation(String userId) async {
-    final response = await http
-        .post(
-          Uri.parse('${ApiConfig.baseUrl}/admin/support/conversations'),
-          headers: {..._authHeaders, 'Content-Type': 'application/json'},
-          body: jsonEncode({'user_id': userId}),
-        )
-        .timeout(_timeout);
+    final response = await _withRetry(
+      () => http.post(
+        Uri.parse('${ApiConfig.baseUrl}/admin/support/conversations'),
+        headers: {..._authHeaders, 'Content-Type': 'application/json'},
+        body: jsonEncode({'user_id': userId}),
+      ),
+    );
     final json = await _decodeOrThrow(response);
     return json['id'] as String;
   }
@@ -145,14 +168,14 @@ abstract final class AdminApiClient {
   static Future<List<AdminSupportMessage>> fetchSupportMessages(
     String conversationId,
   ) async {
-    final response = await http
-        .get(
-          Uri.parse(
-            '${ApiConfig.baseUrl}/admin/support/conversations/$conversationId',
-          ),
-          headers: _authHeaders,
-        )
-        .timeout(_timeout);
+    final response = await _withRetry(
+      () => http.get(
+        Uri.parse(
+          '${ApiConfig.baseUrl}/admin/support/conversations/$conversationId',
+        ),
+        headers: _authHeaders,
+      ),
+    );
     final json = await _decodeOrThrow(response);
     return (json['messages'] as List)
         .map((m) => AdminSupportMessage.fromJson(m as Map<String, dynamic>))
@@ -163,15 +186,15 @@ abstract final class AdminApiClient {
     String conversationId,
     String text,
   ) async {
-    final response = await http
-        .post(
-          Uri.parse(
-            '${ApiConfig.baseUrl}/admin/support/conversations/$conversationId/reply',
-          ),
-          headers: {..._authHeaders, 'Content-Type': 'application/json'},
-          body: jsonEncode({'text': text}),
-        )
-        .timeout(_timeout);
+    final response = await _withRetry(
+      () => http.post(
+        Uri.parse(
+          '${ApiConfig.baseUrl}/admin/support/conversations/$conversationId/reply',
+        ),
+        headers: {..._authHeaders, 'Content-Type': 'application/json'},
+        body: jsonEncode({'text': text}),
+      ),
+    );
     await _decodeOrThrow(response);
   }
 
@@ -180,25 +203,25 @@ abstract final class AdminApiClient {
     List<int> bytes,
     String filename,
   ) async {
-    final request =
-        http.MultipartRequest(
-            'POST',
-            Uri.parse(
-              '${ApiConfig.baseUrl}/admin/support/conversations/$conversationId/reply-image',
-            ),
-          )
-          ..headers.addAll(_authHeaders)
-          ..files.add(
-            http.MultipartFile.fromBytes(
-              'file',
-              bytes,
-              filename: filename,
-              contentType: _imageMediaType(filename),
-            ),
-          );
-    final response = await http.Response.fromStream(
-      await request.send().timeout(_timeout),
-    );
+    final response = await _withRetry(() async {
+      final request =
+          http.MultipartRequest(
+              'POST',
+              Uri.parse(
+                '${ApiConfig.baseUrl}/admin/support/conversations/$conversationId/reply-image',
+              ),
+            )
+            ..headers.addAll(_authHeaders)
+            ..files.add(
+              http.MultipartFile.fromBytes(
+                'file',
+                bytes,
+                filename: filename,
+                contentType: _imageMediaType(filename),
+              ),
+            );
+      return http.Response.fromStream(await request.send());
+    });
     await _decodeOrThrow(response);
   }
 
@@ -220,9 +243,12 @@ abstract final class AdminApiClient {
   }
 
   static Future<void> _post(String path) async {
-    final response = await http
-        .post(Uri.parse('${ApiConfig.baseUrl}$path'), headers: _authHeaders)
-        .timeout(_timeout);
+    final response = await _withRetry(
+      () => http.post(
+        Uri.parse('${ApiConfig.baseUrl}$path'),
+        headers: _authHeaders,
+      ),
+    );
     await _decodeOrThrow(response);
   }
 
@@ -282,13 +308,13 @@ abstract final class AdminApiClient {
       _post('/admin/disputes/$id/open-case');
 
   static Future<void> _postJson(String path, Map<String, dynamic> body) async {
-    final response = await http
-        .post(
-          Uri.parse('${ApiConfig.baseUrl}$path'),
-          headers: {..._authHeaders, 'Content-Type': 'application/json'},
-          body: jsonEncode(body),
-        )
-        .timeout(_timeout);
+    final response = await _withRetry(
+      () => http.post(
+        Uri.parse('${ApiConfig.baseUrl}$path'),
+        headers: {..._authHeaders, 'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      ),
+    );
     await _decodeOrThrow(response);
   }
 
