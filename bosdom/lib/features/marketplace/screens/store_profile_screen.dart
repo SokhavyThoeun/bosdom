@@ -307,7 +307,9 @@ class _StoreHeader extends ConsumerWidget {
                             ],
                           ],
                         ),
+                        const SizedBox(height: 4),
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Icon(
                               Icons.star,
@@ -388,6 +390,7 @@ class _StoreHeader extends ConsumerWidget {
                             ],
                           ],
                         ),
+                        const SizedBox(height: 4),
                         Text(
                           seller.location,
                           maxLines: 1,

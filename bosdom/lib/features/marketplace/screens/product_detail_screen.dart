@@ -14,6 +14,7 @@ import '../../../shared/widgets/full_screen_image_viewer.dart';
 import '../../../shared/widgets/variant_selector.dart';
 import '../../../shared/widgets/verified_badge_icon.dart';
 import '../../cart/providers/cart_provider.dart';
+import '../../profile/providers/shop_profile_provider.dart';
 import '../../wishlist/providers/wishlist_provider.dart';
 import '../models/product.dart';
 import '../models/sample_order.dart';
@@ -358,8 +359,8 @@ class _Header extends StatelessWidget {
           24,
           14,
         ),
-        child: SizedBox(
-          height: _kHeaderContentHeight,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: _kHeaderContentHeight),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -695,7 +696,7 @@ class _ImageGalleryState extends State<_ImageGallery> {
   }
 }
 
-class _SellerRow extends StatelessWidget {
+class _SellerRow extends ConsumerWidget {
   const _SellerRow({
     required this.product,
     required this.colorScheme,
@@ -709,13 +710,20 @@ class _SellerRow extends StatelessWidget {
   final bool light;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final primaryTextColor = light ? colorScheme.onPrimary : null;
     final mutedTextColor = light
         ? colorScheme.onPrimary.withValues(alpha: 0.8)
         : colorScheme.onSurfaceVariant;
     final linkColor = light ? colorScheme.onPrimary : colorScheme.primary;
+    final bestSellerColor = light ? colorScheme.onPrimary : colorScheme.primary;
+    final sellerId = product.sellerId;
+    final shopProfile = sellerId == null
+        ? null
+        : ref.watch(shopProfileByIdProvider(sellerId)).value;
+    final powerSeller = shopProfile?.highVolume ?? false;
+    final bestSeller = shopProfile?.bestSeller ?? false;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -777,6 +785,70 @@ class _SellerRow extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
+                  if (powerSeller) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.shade700,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.military_tech,
+                            size: 13,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            l10n.storePowerSellerBadge,
+                            style: textTheme.labelSmall?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  if (bestSeller) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: light
+                            ? colorScheme.onPrimary.withValues(alpha: 0.2)
+                            : colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.workspace_premium,
+                            size: 13,
+                            color: bestSellerColor,
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            l10n.storeBestSellerBadge,
+                            style: textTheme.labelSmall?.copyWith(
+                              color: bestSellerColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
               Text(
