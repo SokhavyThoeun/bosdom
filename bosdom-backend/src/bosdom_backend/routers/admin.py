@@ -39,6 +39,7 @@ from .disputes import (
 )
 from .orders import (
     fee_rate_for,
+    is_best_seller,
     COURIER_REFUND_DELAY,
     auto_release_due_orders,
     freeze_order,
@@ -224,6 +225,10 @@ class AdminSellerOut(BaseModel):
     shop_logo_url: str
     shop_photo_urls: list[str]
     kyc_documents: list[AdminKycDocOut]
+    # "Best Seller" badge: current effective state, and the admin override
+    # behind it (null = automatic, by tenure).
+    shop_best_seller: bool
+    shop_best_seller_override: bool | None
 
 
 @router.get("/sellers", response_model=list[AdminSellerOut], dependencies=_admin_only)
@@ -250,6 +255,7 @@ def list_sellers(db: Session = Depends(get_db)) -> list[AdminSellerOut]:
             AdminKycDocOut(doc_type=row.doc_type, file_url=row.file_url)
         )
 
+    now = datetime.now(timezone.utc)
     result = []
     for p in profiles:
         pid = str(p.id)
@@ -275,9 +281,73 @@ def list_sellers(db: Session = Depends(get_db)) -> list[AdminSellerOut]:
                 shop_logo_url=shop.logo_url if shop else "",
                 shop_photo_urls=shop.photo_urls if shop else [],
                 kyc_documents=kyc_by_profile.get(pid, []),
+                shop_best_seller=is_best_seller(shop, now) if shop else False,
+                shop_best_seller_override=shop.best_seller_override if shop else None,
             )
         )
     return result
+
+
+def _get_shop_or_404(db: Session, seller_id: str) -> Shop:
+    shop = db.get(Shop, seller_id)
+    if shop is None:
+        raise HTTPException(status_code=404, detail="Shop not found")
+    return shop
+
+
+def _shop_best_seller_state(shop: Shop) -> dict[str, bool | None]:
+    return {
+        "best_seller": is_best_seller(shop, datetime.now(timezone.utc)),
+        "best_seller_override": shop.best_seller_override,
+    }
+
+
+@router.post(
+    "/shops/{seller_id}/best-seller/grant",
+    dependencies=_admin_only,
+)
+def grant_best_seller(
+    seller_id: str, db: Session = Depends(get_db)
+) -> dict[str, bool | None]:
+    """Manually award the "Best Seller" badge, overriding the automatic
+    tenure check (e.g. for a shop worth featuring early)."""
+    shop = _get_shop_or_404(db, seller_id)
+    shop.best_seller_override = True
+    db.commit()
+    db.refresh(shop)
+    return _shop_best_seller_state(shop)
+
+
+@router.post(
+    "/shops/{seller_id}/best-seller/revoke",
+    dependencies=_admin_only,
+)
+def revoke_best_seller(
+    seller_id: str, db: Session = Depends(get_db)
+) -> dict[str, bool | None]:
+    """Manually take away the "Best Seller" badge, e.g. after a long-tenured
+    shop goes inactive or its sales drop off."""
+    shop = _get_shop_or_404(db, seller_id)
+    shop.best_seller_override = False
+    db.commit()
+    db.refresh(shop)
+    return _shop_best_seller_state(shop)
+
+
+@router.post(
+    "/shops/{seller_id}/best-seller/reset",
+    dependencies=_admin_only,
+)
+def reset_best_seller(
+    seller_id: str, db: Session = Depends(get_db)
+) -> dict[str, bool | None]:
+    """Clear the manual override and go back to the automatic tenure-based
+    badge."""
+    shop = _get_shop_or_404(db, seller_id)
+    shop.best_seller_override = None
+    db.commit()
+    db.refresh(shop)
+    return _shop_best_seller_state(shop)
 
 
 class AdminUserOut(BaseModel):

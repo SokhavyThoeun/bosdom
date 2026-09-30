@@ -241,6 +241,15 @@ abstract final class AdminApiClient {
   static Future<void> unsuspendProfile(String id) =>
       _post('/admin/profiles/$id/unsuspend');
 
+  static Future<void> grantBestSeller(String sellerId) =>
+      _post('/admin/shops/$sellerId/best-seller/grant');
+
+  static Future<void> revokeBestSeller(String sellerId) =>
+      _post('/admin/shops/$sellerId/best-seller/revoke');
+
+  static Future<void> resetBestSeller(String sellerId) =>
+      _post('/admin/shops/$sellerId/best-seller/reset');
+
   static Future<void> takedownListing(String id) =>
       _post('/admin/listings/$id/takedown');
 

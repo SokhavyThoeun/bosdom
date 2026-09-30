@@ -1772,6 +1772,9 @@ class AppLocalizationsKm extends AppLocalizations {
   String get storePowerSellerBadge => 'អ្នកលក់កម្រិតខ្ពស់';
 
   @override
+  String get storeBestSellerBadge => 'អ្នកលក់ល្អបំផុត';
+
+  @override
   String get storeProfileRatingBreakdownTitle => 'ការបំបែកការវាយតម្លៃ';
 
   @override

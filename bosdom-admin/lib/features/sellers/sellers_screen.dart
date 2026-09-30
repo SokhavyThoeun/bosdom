@@ -416,6 +416,14 @@ class _SellerReviewDialog extends StatelessWidget {
                       _InfoRow('Shop email', seller.shopEmail),
                       if (seller.shopStoreUrl.isNotEmpty)
                         _InfoRow('Online store URL', seller.shopStoreUrl),
+                      _InfoRow(
+                        'Best Seller badge',
+                        !seller.shopBestSeller
+                            ? 'No'
+                            : seller.shopBestSellerOverride == true
+                            ? 'Yes (manually granted)'
+                            : 'Yes (by tenure)',
+                      ),
                       const SizedBox(height: 12),
                       Text(
                         seller.shopDescription.isEmpty
@@ -638,10 +646,89 @@ class _SellerActions extends StatelessWidget {
           ),
           child: Text(seller.isSuspended ? 'Unsuspend' : 'Suspend'),
         ),
+        _BestSellerMenu(seller: seller, reload: reload),
       ],
     );
   }
 }
+
+/// "Best Seller" is normally earned automatically once a shop has stayed on
+/// the platform long enough, but an admin can grant it early or revoke it
+/// manually (e.g. after a long-tenured shop goes inactive) — and reset back
+/// to the automatic behavior at any time.
+class _BestSellerMenu extends StatelessWidget {
+  const _BestSellerMenu({required this.seller, required this.reload});
+
+  final AdminSeller seller;
+  final VoidCallback reload;
+
+  @override
+  Widget build(BuildContext context) {
+    final override = seller.shopBestSellerOverride;
+    return PopupMenuButton<_BestSellerAction>(
+      tooltip: 'Best Seller badge',
+      icon: Icon(
+        Icons.workspace_premium,
+        size: 20,
+        color: seller.shopBestSeller
+            ? const Color(0xFFB8860B)
+            : AppColors.warmTaupe,
+      ),
+      onSelected: (action) => _runBestSellerAction(context, action),
+      itemBuilder: (context) => [
+        if (override != true)
+          const PopupMenuItem(
+            value: _BestSellerAction.grant,
+            child: Text('Grant Best Seller'),
+          ),
+        if (override != false)
+          const PopupMenuItem(
+            value: _BestSellerAction.revoke,
+            child: Text('Revoke Best Seller'),
+          ),
+        if (override != null)
+          const PopupMenuItem(
+            value: _BestSellerAction.reset,
+            child: Text('Reset to automatic'),
+          ),
+      ],
+    );
+  }
+
+  void _runBestSellerAction(BuildContext context, _BestSellerAction action) {
+    final (title, message, confirmLabel, call) = switch (action) {
+      _BestSellerAction.grant => (
+        'Grant Best Seller?',
+        '${seller.name} will show the Best Seller badge, regardless of how long they\'ve been on the platform.',
+        'Grant',
+        () => AdminApiClient.grantBestSeller(seller.id),
+      ),
+      _BestSellerAction.revoke => (
+        'Revoke Best Seller?',
+        '${seller.name} will lose the Best Seller badge, even once they\'d otherwise qualify by tenure.',
+        'Revoke',
+        () => AdminApiClient.revokeBestSeller(seller.id),
+      ),
+      _BestSellerAction.reset => (
+        'Reset to automatic?',
+        'The Best Seller badge will go back to being earned automatically by tenure for ${seller.name}.',
+        'Reset',
+        () => AdminApiClient.resetBestSeller(seller.id),
+      ),
+    };
+    confirmAndRun(
+      context,
+      title: title,
+      message: message,
+      confirmLabel: confirmLabel,
+      destructive: action == _BestSellerAction.revoke,
+      action: call,
+      onSuccess: reload,
+    );
+  }
+}
+
+enum _BestSellerAction { grant, revoke, reset }
 
 /// Asks for the reason first: it is sent to the seller as a notification so
 /// they know what to fix before registering again.

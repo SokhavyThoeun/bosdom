@@ -1752,6 +1752,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storePowerSellerBadge => 'Power Seller';
 
   @override
+  String get storeBestSellerBadge => 'Best Seller';
+
+  @override
   String get storeProfileRatingBreakdownTitle => 'Rating breakdown';
 
   @override

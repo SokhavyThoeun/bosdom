@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from ..auth import CurrentUser, get_current_user
 from ..db import get_db
 from ..models import Shop
-from .orders import is_high_volume_seller
+from .orders import is_best_seller, is_high_volume_seller
 from ..utils.images import save_image_as_webp
 
 router = APIRouter(prefix="/shop", tags=["shop"])
@@ -29,6 +29,8 @@ class ShopOut(BaseModel):
     photo_urls: list[str] = []
     # "Power Seller" badge — see `is_high_volume_seller` in routers/orders.py.
     high_volume: bool = False
+    # "Best Seller" badge — see `is_best_seller` in routers/orders.py.
+    best_seller: bool = False
 
     model_config = {"from_attributes": True}
 
@@ -56,8 +58,10 @@ def _get_or_create(db: Session, user: CurrentUser) -> Shop:
 
 
 def _with_badge(db: Session, shop: Shop) -> ShopOut:
+    now = datetime.now(timezone.utc)
     out = ShopOut.model_validate(shop)
-    out.high_volume = is_high_volume_seller(db, shop.id, datetime.now(timezone.utc))
+    out.high_volume = is_high_volume_seller(db, shop.id, now)
+    out.best_seller = is_best_seller(shop, now)
     return out
 
 

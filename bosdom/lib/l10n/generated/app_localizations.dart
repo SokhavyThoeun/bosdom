@@ -3237,6 +3237,12 @@ abstract class AppLocalizations {
   /// **'Power Seller'**
   String get storePowerSellerBadge;
 
+  /// No description provided for @storeBestSellerBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Best Seller'**
+  String get storeBestSellerBadge;
+
   /// No description provided for @storeProfileRatingBreakdownTitle.
   ///
   /// In en, this message translates to:

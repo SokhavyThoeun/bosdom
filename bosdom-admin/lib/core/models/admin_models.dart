@@ -59,6 +59,8 @@ class AdminSeller {
     required this.shopLogoUrl,
     required this.shopPhotoUrls,
     required this.kycDocuments,
+    required this.shopBestSeller,
+    required this.shopBestSellerOverride,
   });
 
   factory AdminSeller.fromJson(Map<String, dynamic> json) => AdminSeller(
@@ -83,6 +85,8 @@ class AdminSeller {
     kycDocuments: (json['kyc_documents'] as List)
         .map((e) => AdminKycDocument.fromJson(e as Map<String, dynamic>))
         .toList(),
+    shopBestSeller: json['shop_best_seller'] as bool? ?? false,
+    shopBestSellerOverride: json['shop_best_seller_override'] as bool?,
   );
 
   final String id;
@@ -104,6 +108,14 @@ class AdminSeller {
   final String shopLogoUrl;
   final List<String> shopPhotoUrls;
   final List<AdminKycDocument> kycDocuments;
+
+  /// Current effective "Best Seller" badge state (tenure-based, or an admin
+  /// override).
+  final bool shopBestSeller;
+
+  /// The admin override behind [shopBestSeller]: null = automatic (by
+  /// tenure), true/false = manually granted or revoked.
+  final bool? shopBestSellerOverride;
 }
 
 class AdminUser {

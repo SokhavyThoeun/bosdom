@@ -12,6 +12,7 @@ class ShopProfile {
     this.logoUrl = '',
     this.photoUrls = const [],
     this.highVolume = false,
+    this.bestSeller = false,
   });
 
   factory ShopProfile.fromJson(Map<String, dynamic> json) => ShopProfile(
@@ -28,6 +29,7 @@ class ShopProfile {
     photoUrls:
         (json['photo_urls'] as List<dynamic>?)?.cast<String>() ?? const [],
     highVolume: json['high_volume'] as bool? ?? false,
+    bestSeller: json['best_seller'] as bool? ?? false,
   );
 
   final String shopName;
@@ -45,6 +47,10 @@ class ShopProfile {
   /// Earned the "Power Seller" badge (more than 40 confirmed orders in a
   /// month) — set by the backend, never edited by the seller.
   final bool highVolume;
+
+  /// Earned the "Best Seller" badge (shop has stayed on the platform for
+  /// at least a year) — set by the backend, never edited by the seller.
+  final bool bestSeller;
 
   Map<String, dynamic> toJson() => {
     'shop_name': shopName,
@@ -83,5 +89,6 @@ class ShopProfile {
     logoUrl: logoUrl ?? this.logoUrl,
     photoUrls: photoUrls ?? this.photoUrls,
     highVolume: highVolume,
+    bestSeller: bestSeller,
   );
 }

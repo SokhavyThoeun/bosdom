@@ -73,6 +73,12 @@ class Shop(Base):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
     )
+    # "Best Seller" badge admin override: null = automatic (by tenure), true/
+    # false = an admin manually granted or revoked it. See is_best_seller in
+    # routers/orders.py.
+    best_seller_override: Mapped[bool | None] = mapped_column(
+        Boolean, nullable=True, default=None
+    )
 
 
 class Listing(Base):

@@ -60,6 +60,10 @@ PLATFORM_FEE_RATE = 0.04
 REDUCED_FEE_RATE = 0.03
 HIGH_VOLUME_ORDERS = 40
 
+# "Best Seller" badge: awarded once a shop has stayed on the platform for
+# at least this long, regardless of order volume.
+BEST_SELLER_TENURE_DAYS = 365
+
 # Where sellers can withdraw released earnings.
 PAYOUT_BANKS = {"ABA", "Wing"}
 
@@ -107,6 +111,20 @@ def is_high_volume_seller(db: Session, seller_id: str, now: datetime) -> bool:
         return True
     last_month = _month_start(now) - timedelta(days=1)
     return confirmed_orders_in_month(db, seller_id, last_month) > HIGH_VOLUME_ORDERS
+
+
+def is_best_seller(shop: Shop, now: datetime) -> bool:
+    """Whether the shop earns the "Best Seller" badge. An admin's manual
+    override (`best_seller_override`) always wins; otherwise it's earned
+    automatically once the shop has stayed on the platform for at least
+    `BEST_SELLER_TENURE_DAYS`."""
+    if shop.best_seller_override is not None:
+        return shop.best_seller_override
+    if shop.created_at is None:
+        return False
+    return (_aware(now) - _aware(shop.created_at)) >= timedelta(
+        days=BEST_SELLER_TENURE_DAYS
+    )
 
 
 def release_funds(

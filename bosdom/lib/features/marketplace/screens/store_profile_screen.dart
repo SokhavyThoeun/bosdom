@@ -201,10 +201,11 @@ class _StoreHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final powerSeller =
-        sellerId != null &&
-        (ref.watch(shopProfileByIdProvider(sellerId!)).value?.highVolume ??
-            false);
+    final shopProfile = sellerId != null
+        ? ref.watch(shopProfileByIdProvider(sellerId!)).value
+        : null;
+    final powerSeller = shopProfile?.highVolume ?? false;
+    final bestSeller = shopProfile?.bestSeller ?? false;
     return DecoratedBox(
       decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
@@ -345,6 +346,39 @@ class _StoreHeader extends ConsumerWidget {
                                       l10n.storePowerSellerBadge,
                                       style: textTheme.labelSmall?.copyWith(
                                         color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                            if (bestSeller) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.onPrimary.withValues(
+                                    alpha: 0.2,
+                                  ),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.workspace_premium,
+                                      size: 13,
+                                      color: colorScheme.onPrimary,
+                                    ),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      l10n.storeBestSellerBadge,
+                                      style: textTheme.labelSmall?.copyWith(
+                                        color: colorScheme.onPrimary,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
