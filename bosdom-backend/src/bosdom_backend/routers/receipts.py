@@ -1,4 +1,5 @@
 import io
+import logging
 from pathlib import Path
 
 import httpx
@@ -6,6 +7,8 @@ from fastapi import APIRouter, Response
 from fpdf import FPDF
 from PIL import Image
 from pydantic import BaseModel, Field
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/receipts", tags=["receipts"])
 
@@ -43,12 +46,14 @@ class ReceiptRequest(BaseModel):
 def _fetch_image(url: str | None) -> Image.Image | None:
     """Download an image and normalise it for fpdf; None if unavailable."""
     if not url:
+        logger.warning("Receipt image skipped: no URL")
         return None
     try:
         res = httpx.get(url, timeout=8, follow_redirects=True)
         res.raise_for_status()
         return Image.open(io.BytesIO(res.content)).convert("RGB")
     except Exception:
+        logger.warning("Receipt image fetch failed: %s", url, exc_info=True)
         return None
 
 
