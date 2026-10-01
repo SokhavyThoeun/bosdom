@@ -902,6 +902,17 @@ class _SellerReportDialog extends StatelessWidget {
                         ],
                       ),
                     ],
+                    if (!report.canRefund && !report.isResolved) ...[
+                      const SizedBox(height: 16),
+                      Text(
+                        'This order is already ${report.orderStatus}, so the '
+                        'buyer can\'t be refunded from here.',
+                        style: TextStyle(
+                          color: AppColors.warmTaupe,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
                     if (report.isRefundPending &&
                         report.refundDueAt != null) ...[
                       const SizedBox(height: 16),
@@ -933,7 +944,26 @@ class _SellerReportDialog extends StatelessWidget {
                     userId: report.sellerId,
                     label: 'Message seller',
                   ),
-                  if (report.canRefund && !report.isRefundPending)
+                  if (report.canRefund && report.isOutOfStock)
+                    TextButton(
+                      onPressed: () => confirmAndRun(
+                        context,
+                        title: 'Refund the buyer?',
+                        message:
+                            'The seller is out of stock. The order is cancelled '
+                            'and the buyer\'s money is returned right away.',
+                        confirmLabel: 'Refund buyer',
+                        action: () => AdminApiClient.refundBuyerForSellerReport(
+                          report.id,
+                          immediate: true,
+                        ),
+                        onSuccess: done,
+                      ),
+                      child: const Text('Refund buyer'),
+                    ),
+                  if (report.canRefund &&
+                      !report.isRefundPending &&
+                      !report.isOutOfStock)
                     TextButton(
                       onPressed: () => confirmAndRun(
                         context,

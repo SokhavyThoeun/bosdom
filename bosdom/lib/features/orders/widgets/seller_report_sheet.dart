@@ -10,7 +10,7 @@ import '../services/dispute_service.dart';
 
 const _kMaxPhotos = 3;
 
-enum _Reason { delayed, lost, unreachable, address, other }
+enum _Reason { delayed, lost, unreachable, address, outOfStock, other }
 
 extension on _Reason {
   String label(AppLocalizations l10n) => switch (this) {
@@ -18,6 +18,7 @@ extension on _Reason {
     _Reason.lost => l10n.sellerReportReasonLost,
     _Reason.unreachable => l10n.sellerReportReasonUnreachable,
     _Reason.address => l10n.sellerReportReasonAddress,
+    _Reason.outOfStock => l10n.sellerReportReasonOutOfStock,
     _Reason.other => l10n.ordersReportReasonOther,
   };
 
@@ -27,6 +28,7 @@ extension on _Reason {
     _Reason.lost => 'parcel_lost_or_damaged',
     _Reason.unreachable => 'buyer_unreachable',
     _Reason.address => 'address_problem',
+    _Reason.outOfStock => 'out_of_stock',
     _Reason.other => 'other',
   };
 }

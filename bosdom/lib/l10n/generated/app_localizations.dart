@@ -3483,6 +3483,12 @@ abstract class AppLocalizations {
   /// **'Address problem'**
   String get sellerReportReasonAddress;
 
+  /// No description provided for @sellerReportReasonOutOfStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of stock'**
+  String get sellerReportReasonOutOfStock;
+
   /// No description provided for @sellerReportSubmittedSnackbar.
   ///
   /// In en, this message translates to:

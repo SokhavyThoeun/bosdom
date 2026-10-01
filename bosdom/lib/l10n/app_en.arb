@@ -991,6 +991,7 @@
   "sellerReportReasonLost": "Parcel lost or damaged",
   "sellerReportReasonUnreachable": "Buyer unreachable",
   "sellerReportReasonAddress": "Address problem",
+  "sellerReportReasonOutOfStock": "Out of stock",
   "sellerReportSubmittedSnackbar": "Report sent. An admin will follow up and update the buyer.",
   "sellerReportFailedSnackbar": "Couldn't send the report: {error}",
   "@sellerReportFailedSnackbar": {

@@ -569,6 +569,7 @@
   "sellerReportReasonLost": "កញ្ចប់បាត់ ឬខូច",
   "sellerReportReasonUnreachable": "ទាក់ទងអ្នកទិញមិនបាន",
   "sellerReportReasonAddress": "បញ្ហាអាសយដ្ឋាន",
+  "sellerReportReasonOutOfStock": "អស់ស្តុក",
   "sellerReportSubmittedSnackbar": "បានផ្ញើរបាយការណ៍។ អ្នកគ្រប់គ្រងនឹងតាមដាន ហើយជូនដំណឹងអ្នកទិញ។",
   "sellerReportFailedSnackbar": "មិនអាចផ្ញើរបាយការណ៍បានទេ: {error}",
   "@sellerReportFailedSnackbar": {

@@ -1907,6 +1907,9 @@ class AppLocalizationsKm extends AppLocalizations {
   String get sellerReportReasonAddress => 'បញ្ហាអាសយដ្ឋាន';
 
   @override
+  String get sellerReportReasonOutOfStock => 'អស់ស្តុក';
+
+  @override
   String get sellerReportSubmittedSnackbar =>
       'បានផ្ញើរបាយការណ៍។ អ្នកគ្រប់គ្រងនឹងតាមដាន ហើយជូនដំណឹងអ្នកទិញ។';
 

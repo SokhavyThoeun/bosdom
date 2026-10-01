@@ -1886,6 +1886,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sellerReportReasonAddress => 'Address problem';
 
   @override
+  String get sellerReportReasonOutOfStock => 'Out of stock';
+
+  @override
   String get sellerReportSubmittedSnackbar =>
       'Report sent. An admin will follow up and update the buyer.';
 

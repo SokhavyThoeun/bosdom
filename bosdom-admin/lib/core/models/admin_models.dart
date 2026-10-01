@@ -545,6 +545,7 @@ class AdminSellerReport {
 
   bool get isResolved => status == 'resolved';
   bool get isRefundPending => status == 'refund_pending';
+  bool get isOutOfStock => reason == 'out_of_stock';
 
   /// Money can't be returned once the order is already paid out, refunded or
   /// cancelled (the backend enforces this too).
@@ -559,6 +560,7 @@ class AdminSellerReport {
     'parcel_lost_or_damaged' => 'Parcel lost or damaged',
     'buyer_unreachable' => 'Buyer unreachable',
     'address_problem' => 'Address problem',
+    'out_of_stock' => 'Out of stock',
     _ => 'Other',
   };
 }
