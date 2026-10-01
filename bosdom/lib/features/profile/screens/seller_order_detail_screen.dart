@@ -394,19 +394,16 @@ class _SellerOrderDetailBodyState
                     ),
                     child: Text(l10n.orderDetailTrackDeliveryButton),
                   ),
-                  if (order.status == OrderStatus.held &&
-                      (order.isShipped || order.isDelivered)) ...[
-                    const SizedBox(height: 12),
-                    OutlinedButton.icon(
-                      onPressed: () => showSellerReportSheet(context, order),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: colorScheme.primary,
-                        side: BorderSide(color: colorScheme.primary),
-                      ),
-                      icon: const Icon(Icons.report_gmailerrorred_outlined),
-                      label: Text(l10n.sellerReportButton),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: () => showSellerReportSheet(context, order),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: colorScheme.primary,
+                      side: BorderSide(color: colorScheme.primary),
                     ),
-                  ],
+                    icon: const Icon(Icons.report_gmailerrorred_outlined),
+                    label: Text(l10n.sellerReportButton),
+                  ),
                   const SizedBox(height: 12),
                   OutlinedButton.icon(
                     onPressed: _isSavingReceipt
