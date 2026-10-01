@@ -3255,6 +3255,18 @@ abstract class AppLocalizations {
   /// **'Best Seller'**
   String get storeBestSellerBadge;
 
+  /// No description provided for @storeProfileShowMoreReviews.
+  ///
+  /// In en, this message translates to:
+  /// **'Show more reviews'**
+  String get storeProfileShowMoreReviews;
+
+  /// No description provided for @storeProfileShowFewerReviews.
+  ///
+  /// In en, this message translates to:
+  /// **'Show fewer reviews'**
+  String get storeProfileShowFewerReviews;
+
   /// No description provided for @storeProfileRatingBreakdownTitle.
   ///
   /// In en, this message translates to:

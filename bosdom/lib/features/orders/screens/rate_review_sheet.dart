@@ -88,6 +88,7 @@ class _RateReviewSheetState extends ConsumerState<_RateReviewSheet> {
       ref.invalidate(orderByIdProvider(orderId));
       ref.invalidate(ordersProvider);
       ref.invalidate(sellerOrdersProvider);
+      ref.invalidate(sellerReviewsProvider(widget.order.sellerId));
       if (!mounted) return;
       Navigator.of(context).pop();
       ScaffoldMessenger.of(

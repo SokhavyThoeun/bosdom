@@ -531,6 +531,8 @@
   "storeProfileTopSellerChip": "អ្នកលក់កំពូល",
   "storePowerSellerBadge": "អ្នកលក់កម្រិតខ្ពស់",
   "storeBestSellerBadge": "អ្នកលក់ល្អបំផុត",
+  "storeProfileShowMoreReviews": "បង្ហាញការវាយតម្លៃបន្ថែម",
+  "storeProfileShowFewerReviews": "បង្ហាញតិចជាងនេះ",
   "storeProfileRatingBreakdownTitle": "ការបំបែកការវាយតម្លៃ",
   "storeProfileRecentReviewsTitle": "ការវាយតម្លៃថ្មីៗ",
   "categoryResultsSearchHint": "ស្វែងរកផលិតផល...",

@@ -78,6 +78,30 @@ class Seller {
   final Map<int, int> ratingBreakdown;
   final List<SellerReview> reviews;
 
+  /// Same seller with its headline rating replaced by the real average of
+  /// buyer reviews (the mock rating is only a placeholder until then).
+  Seller withRating(double newRating, String newReviewsCount) => Seller(
+    name: name,
+    icon: icon,
+    rating: newRating,
+    location: location,
+    verified: verified,
+    productsCount: productsCount,
+    ordersCount: ordersCount,
+    about: about,
+    businessType: businessType,
+    yearEstablished: yearEstablished,
+    minimumOrder: minimumOrder,
+    responseTime: responseTime,
+    shipping: shipping,
+    certifications: certifications,
+    highlights: highlights,
+    reviewsCount: newReviewsCount,
+    recommendPercent: recommendPercent,
+    ratingBreakdown: ratingBreakdown,
+    reviews: reviews,
+  );
+
   /// Clean mock logo for this store.
   String get logoUrl => mockStoreLogoUrl(name);
 }
@@ -198,12 +222,87 @@ Seller sellerFor(
             icon: Icons.storefront_outlined,
           ),
         ],
-        // No written feedback for these sellers yet, but the rating summary
-        // (recommend %, response time chip, breakdown) still has plausible
-        // placeholder stats so the reviews tab looks consistent — only the
-        // "Recent Reviews" list is left out.
+        // Placeholder stats + a few believable written reviews so the
+        // reviews tab looks like a lived-in shop (real buyer reviews replace
+        // all of this once the seller has any).
         reviewsCount: '340',
         recommendPercent: (rating / 5 * 100).round(),
         ratingBreakdown: const {5: 65, 4: 22, 3: 8, 2: 3, 1: 2},
+        reviews: const [
+          SellerReview(
+            reviewerName: 'Sreyneang C.',
+            date: '3 days ago',
+            rating: 5,
+            comment:
+                'Ordered for my mini mart in Kandal. Arrived the next day and '
+                'nothing was damaged. Will order again.',
+          ),
+          SellerReview(
+            reviewerName: 'Vannak P.',
+            date: '1 week ago',
+            rating: 4,
+            comment:
+                'Price is better than the market. Replied slowly one evening '
+                'but everything was sorted the next morning.',
+          ),
+          SellerReview(
+            reviewerName: 'Bopha L.',
+            date: '3 weeks ago',
+            rating: 5,
+            comment:
+                'Good quality, same as the photos. Packaging was neat and the '
+                'delivery guy called before arriving.',
+          ),
+          SellerReview(
+            reviewerName: 'Rithy S.',
+            date: '1 month ago',
+            rating: 3,
+            comment:
+                'Products are fine but delivery took 4 days to Siem Reap, '
+                'longer than I expected.',
+          ),
+          SellerReview(
+            reviewerName: 'Chanthou M.',
+            date: '1 month ago',
+            rating: 5,
+            comment: 'Third order now. Always consistent, never short on count.',
+          ),
+          SellerReview(
+            reviewerName: 'Sokunthea K.',
+            date: '2 months ago',
+            rating: 4,
+            comment:
+                'Good for restaurant supply. Wish the minimum order was a '
+                'little lower, but the quality makes up for it.',
+          ),
+          SellerReview(
+            reviewerName: 'Piseth H.',
+            date: '2 months ago',
+            rating: 5,
+            comment: 'Fast chat replies and they sent a video of the parcel.',
+          ),
+          SellerReview(
+            reviewerName: 'Davy T.',
+            date: '3 months ago',
+            rating: 4,
+            comment:
+                'Items matched the description. One box had a dented corner '
+                'but the seller offered a discount on my next order.',
+          ),
+          SellerReview(
+            reviewerName: 'Kosal R.',
+            date: '3 months ago',
+            rating: 5,
+            comment: 'Recommended. Price per carton is hard to beat.',
+          ),
+          SellerReview(
+            reviewerName: 'Maly V.',
+            date: '4 months ago',
+            rating: 2,
+            comment:
+                'Order was delayed two days with no update. Product itself '
+                'was okay.',
+          ),
+        ],
       );
 }

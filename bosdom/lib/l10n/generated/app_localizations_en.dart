@@ -1761,6 +1761,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeBestSellerBadge => 'Best Seller';
 
   @override
+  String get storeProfileShowMoreReviews => 'Show more reviews';
+
+  @override
+  String get storeProfileShowFewerReviews => 'Show fewer reviews';
+
+  @override
   String get storeProfileRatingBreakdownTitle => 'Rating breakdown';
 
   @override

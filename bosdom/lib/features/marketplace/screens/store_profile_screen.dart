@@ -50,17 +50,17 @@ class StoreProfileScreen extends ConsumerWidget {
   }
 }
 
-class _StoreProfileBody extends StatefulWidget {
+class _StoreProfileBody extends ConsumerStatefulWidget {
   const _StoreProfileBody({required this.sellerName, required this.products});
 
   final String sellerName;
   final List<Product> products;
 
   @override
-  State<_StoreProfileBody> createState() => _StoreProfileBodyState();
+  ConsumerState<_StoreProfileBody> createState() => _StoreProfileBodyState();
 }
 
-class _StoreProfileBodyState extends State<_StoreProfileBody>
+class _StoreProfileBodyState extends ConsumerState<_StoreProfileBody>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController = TabController(
     length: 3,
@@ -69,6 +69,26 @@ class _StoreProfileBodyState extends State<_StoreProfileBody>
   bool _isFavorite = false;
 
   Seller get seller {
+    final base = _baseSeller;
+    final sellerId = widget.products.isEmpty
+        ? null
+        : widget.products.first.sellerId;
+    if (sellerId == null) return base;
+    // Real buyer reviews override the placeholder headline rating, so the
+    // header, stats bar and Reviews tab all agree.
+    final reviews =
+        ref.watch(sellerReviewsProvider(sellerId)).value ??
+        const <OrderReview>[];
+    if (reviews.isEmpty) return base;
+    final average =
+        reviews.fold<int>(0, (sum, r) => sum + r.rating) / reviews.length;
+    return base.withRating(
+      double.parse(average.toStringAsFixed(1)),
+      '${reviews.length}',
+    );
+  }
+
+  Seller get _baseSeller {
     if (widget.products.isEmpty) {
       return sellerFor(
         widget.sellerName,
@@ -1053,14 +1073,11 @@ class _ReviewsTab extends ConsumerWidget {
               const SizedBox(height: 10),
             ]
           else
-            for (final review in seller.reviews) ...[
-              _ReviewCard(
-                review: review,
-                colorScheme: colorScheme,
-                textTheme: textTheme,
-              ),
-              const SizedBox(height: 10),
-            ],
+            _MockReviewList(
+              reviews: seller.reviews,
+              colorScheme: colorScheme,
+              textTheme: textTheme,
+            ),
         ],
       ],
     );
@@ -1185,6 +1202,59 @@ class _RatingBreakdownRow extends StatelessWidget {
   }
 }
 
+/// Shows the first few reviews with a "show more" toggle, so a store claiming
+/// hundreds of reviews doesn't look like it only ever got three.
+class _MockReviewList extends StatefulWidget {
+  const _MockReviewList({
+    required this.reviews,
+    required this.colorScheme,
+    required this.textTheme,
+  });
+
+  final List<SellerReview> reviews;
+  final ColorScheme colorScheme;
+  final TextTheme textTheme;
+
+  static const _initialCount = 4;
+
+  @override
+  State<_MockReviewList> createState() => _MockReviewListState();
+}
+
+class _MockReviewListState extends State<_MockReviewList> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final canExpand = widget.reviews.length > _MockReviewList._initialCount;
+    final shown = _expanded || !canExpand
+        ? widget.reviews
+        : widget.reviews.take(_MockReviewList._initialCount).toList();
+    return Column(
+      children: [
+        for (final review in shown) ...[
+          _ReviewCard(
+            review: review,
+            colorScheme: widget.colorScheme,
+            textTheme: widget.textTheme,
+          ),
+          const SizedBox(height: 10),
+        ],
+        if (canExpand)
+          TextButton(
+            onPressed: () => setState(() => _expanded = !_expanded),
+            child: Text(
+              _expanded
+                  ? l10n.storeProfileShowFewerReviews
+                  : l10n.storeProfileShowMoreReviews,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
 class _ReviewCard extends StatelessWidget {
   const _ReviewCard({
     required this.review,
@@ -1196,8 +1266,21 @@ class _ReviewCard extends StatelessWidget {
   final ColorScheme colorScheme;
   final TextTheme textTheme;
 
+  // Soft tinted (background, initial) pairs so reviewers don't all share one
+  // brand-colored avatar; picked per name so a reviewer keeps their color.
+  static const _avatarPalette = [
+    (Color(0xFFFCE4D6), Color(0xFFB4532A)),
+    (Color(0xFFDDEBF7), Color(0xFF2F6492)),
+    (Color(0xFFE2F0D9), Color(0xFF4C7A34)),
+    (Color(0xFFEADCF4), Color(0xFF7A4A9B)),
+    (Color(0xFFFFF2CC), Color(0xFF8A6D0B)),
+  ];
+
   @override
   Widget build(BuildContext context) {
+    final avatar = _avatarPalette[
+        review.reviewerName.codeUnits.fold<int>(0, (a, b) => a + b) %
+            _avatarPalette.length];
     return _SectionCard(
       colorScheme: colorScheme,
       child: Column(
@@ -1208,14 +1291,14 @@ class _ReviewCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 18,
-                backgroundColor: colorScheme.primary,
+                backgroundColor: avatar.$1,
                 child: Text(
                   review.reviewerName.isNotEmpty
                       ? review.reviewerName[0].toUpperCase()
                       : '?',
                   style: TextStyle(
-                    color: colorScheme.onPrimary,
-                    fontWeight: FontWeight.bold,
+                    color: avatar.$2,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
