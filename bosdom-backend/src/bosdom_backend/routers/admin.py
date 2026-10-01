@@ -42,6 +42,7 @@ from .orders import (
     is_best_seller,
     COURIER_REFUND_DELAY,
     auto_release_due_orders,
+    cancel_unpaid_order,
     freeze_order,
     refund_order,
     seller_amount_for,
@@ -1216,12 +1217,29 @@ def refund_buyer_for_seller_report(
     order = db.get(Order, report.order_id)
     if order is None:
         raise HTTPException(status_code=404, detail="Order not found")
-    if order.status not in ("held", "disputed"):
+    if order.status not in ("pending_payment", "held", "disputed"):
         raise HTTPException(
             status_code=409,
             detail=f"Cannot refund a '{order.status}' order",
         )
     now = datetime.now(timezone.utc)
+    if order.status == "pending_payment":
+        # The buyer never paid, so there's no money to return — just cancel.
+        cancel_unpaid_order(order, now)
+        report.status = "resolved"
+        report.resolution = "refunded"
+        report.refund_due_at = None
+        db.commit()
+        push_notification(
+            db,
+            order.buyer_id,
+            "order",
+            "Order cancelled",
+            f"Your order for {order.product_name} was cancelled. "
+            "You were not charged.",
+            NotificationTarget(route="orderDetail", params={"id": order.id}),
+        )
+        return {"status": report.status}
     if payload.immediate:
         refund_order(db, order, now)
         report.status = "resolved"

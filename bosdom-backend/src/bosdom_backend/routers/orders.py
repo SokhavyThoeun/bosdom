@@ -161,6 +161,12 @@ def refund_order(db: Session, order: Order, now: datetime) -> None:
         dispute.resolved_at = now
 
 
+def cancel_unpaid_order(order: Order, now: datetime) -> None:
+    """Cancels an order the buyer never paid for — nothing to refund."""
+    _transition(order, STATUS_CANCELLED)
+    order.cancelled_at = now
+
+
 def freeze_order(order: Order, now: datetime) -> None:
     """Moves a held order to `disputed` and stops its review timer so it
     can't auto-release while a refund is pending."""
