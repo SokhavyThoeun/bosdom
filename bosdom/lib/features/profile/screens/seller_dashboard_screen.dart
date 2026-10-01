@@ -11,8 +11,10 @@ import '../../../shared/widgets/hourglass_icon.dart';
 import '../../../shared/widgets/order_status_badge.dart';
 import '../../orders/models/order.dart';
 import '../../orders/providers/orders_provider.dart';
+import '../models/earnings.dart';
 import '../models/seller_order.dart';
 import '../models/shop_profile.dart';
+import '../providers/my_inventory_provider.dart';
 import '../providers/profile_provider.dart';
 import '../providers/shop_profile_provider.dart';
 import '../widgets/seller_approval_gate.dart';
@@ -32,8 +34,21 @@ class SellerDashboardScreen extends ConsumerWidget {
     final shop = ref.watch(shopProfileProvider).value;
     final isVerifiedSeller =
         ref.watch(profileProvider).value?.isVerifiedSeller ?? false;
-    final recentOrders =
-        ref.watch(sellerOrdersProvider).value?.take(3).toList() ?? const [];
+    final orders = ref.watch(sellerOrdersProvider).value ?? const [];
+    final recentOrders = orders.take(3).toList();
+    final productCount = ref.watch(myInventoryProvider).value?.length ?? 0;
+    final pendingCount = orders
+        .where(
+          (order) =>
+              order.status == OrderStatus.held && !order.isSellerConfirmed,
+        )
+        .length;
+    final releasedRevenue = EarningsSummary(
+      orders
+          .map(EarningsTransaction.fromOrder)
+          .whereType<EarningsTransaction>()
+          .toList(),
+    ).releasedTotal;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -59,6 +74,9 @@ class SellerDashboardScreen extends ConsumerWidget {
                     _StoreSummaryCard(
                       shop: shop,
                       isVerifiedSeller: isVerifiedSeller,
+                      revenue: releasedRevenue,
+                      pendingOrderCount: pendingCount,
+                      productCount: productCount,
                       colorScheme: colorScheme,
                       textTheme: textTheme,
                     ),
@@ -125,6 +143,7 @@ class SellerDashboardScreen extends ConsumerWidget {
         ref.read(profileProvider.notifier).refresh(),
         ref.read(shopProfileProvider.notifier).refresh(),
         ref.read(sellerOrdersProvider.notifier).refresh(),
+        ref.refresh(myInventoryProvider.future),
       ]);
     } catch (_) {
       if (!context.mounted) return;
@@ -207,21 +226,27 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _StoreSummaryCard extends StatelessWidget {
+class _StoreSummaryCard extends ConsumerWidget {
   const _StoreSummaryCard({
     required this.shop,
     required this.isVerifiedSeller,
+    required this.revenue,
+    required this.pendingOrderCount,
+    required this.productCount,
     required this.colorScheme,
     required this.textTheme,
   });
 
   final ShopProfile? shop;
   final bool isVerifiedSeller;
+  final double revenue;
+  final int pendingOrderCount;
+  final int productCount;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final shopName = shop?.shopName ?? '';
     final logoUrl = ApiConfig.resolveAvatarUrl(shop?.logoUrl);
@@ -320,7 +345,7 @@ class _StoreSummaryCard extends StatelessWidget {
                 Expanded(
                   child: _SummaryStat(
                     label: l10n.sellerDashboardRevenueLabel,
-                    value: '\$1,240',
+                    value: formatPrice(ref, revenue),
                     colorScheme: colorScheme,
                     textTheme: textTheme,
                   ),
@@ -329,7 +354,9 @@ class _StoreSummaryCard extends StatelessWidget {
                 Expanded(
                   child: _SummaryStat(
                     label: l10n.sellerDashboardPendingLabel,
-                    value: l10n.sellerDashboardPendingOrdersLabel(8),
+                    value: l10n.sellerDashboardPendingOrdersLabel(
+                      pendingOrderCount,
+                    ),
                     colorScheme: colorScheme,
                     textTheme: textTheme,
                   ),
@@ -338,7 +365,9 @@ class _StoreSummaryCard extends StatelessWidget {
                 Expanded(
                   child: _SummaryStat(
                     label: l10n.sellerDashboardProductsLabel,
-                    value: l10n.sellerDashboardProductsCountLabel(24),
+                    value: l10n.sellerDashboardProductsCountLabel(
+                      productCount,
+                    ),
                     colorScheme: colorScheme,
                     textTheme: textTheme,
                   ),
