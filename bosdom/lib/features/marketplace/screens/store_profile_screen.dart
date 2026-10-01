@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
-import '../../../shared/widgets/best_seller_badge.dart';
 import '../../../shared/widgets/verified_badge_icon.dart';
 import '../../../shared/widgets/order_review_card.dart';
 import '../../chat/providers/chat_provider.dart';
@@ -206,7 +205,6 @@ class _StoreHeader extends ConsumerWidget {
         ? ref.watch(shopProfileByIdProvider(sellerId!)).value
         : null;
     final powerSeller = shopProfile?.highVolume ?? false;
-    final bestSeller = shopProfile?.bestSeller ?? false;
     return DecoratedBox(
       decoration: BoxDecoration(color: colorScheme.primary),
       child: Padding(
@@ -355,10 +353,6 @@ class _StoreHeader extends ConsumerWidget {
                                   ],
                                 ),
                               ),
-                            ],
-                            if (bestSeller) ...[
-                              const SizedBox(width: 8),
-                              BestSellerBadge(label: l10n.storeBestSellerBadge),
                             ],
                           ],
                         ),
@@ -877,6 +871,9 @@ class _ReviewsTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final isBestSeller = sellerId != null &&
+        (ref.watch(shopProfileByIdProvider(sellerId!)).value?.bestSeller ??
+            false);
 
     // Real buyer reviews (from completed orders) replace the placeholder
     // rating summary once the seller has any.
@@ -937,7 +934,8 @@ class _ReviewsTab extends ConsumerWidget {
     }
 
     final totalBreakdown = ratingBreakdown.values.fold<int>(0, (a, b) => a + b);
-    final hasStats = recommendPercent > 0 || reviewsCount != '0';
+    final hasStats =
+        recommendPercent > 0 || reviewsCount != '0' || isBestSeller;
     final hasReviews = hasReal || seller.reviews.isNotEmpty;
 
     return ListView(
@@ -1000,12 +998,13 @@ class _ReviewsTab extends ConsumerWidget {
                         seller.responseTime.replaceFirst('Within ', ''),
                       ),
                     ),
-                    _ReviewStatChip(
-                      colorScheme: colorScheme,
-                      textTheme: textTheme,
-                      icon: Icons.military_tech_outlined,
-                      label: l10n.storeProfileTopSellerChip,
-                    ),
+                    if (isBestSeller)
+                      _ReviewStatChip(
+                        colorScheme: colorScheme,
+                        textTheme: textTheme,
+                        icon: Icons.military_tech_outlined,
+                        label: l10n.storeProfileTopSellerChip,
+                      ),
                   ],
                 ),
               ],

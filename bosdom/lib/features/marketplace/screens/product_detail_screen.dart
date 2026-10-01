@@ -10,7 +10,6 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/models/variant_option.dart';
 import '../../../shared/utils/currency_format.dart';
 import '../../../shared/widgets/adaptive_network_image.dart';
-import '../../../shared/widgets/best_seller_badge.dart';
 import '../../../shared/widgets/full_screen_image_viewer.dart';
 import '../../../shared/widgets/variant_selector.dart';
 import '../../../shared/widgets/verified_badge_icon.dart';
@@ -723,7 +722,6 @@ class _SellerRow extends ConsumerWidget {
         ? null
         : ref.watch(shopProfileByIdProvider(sellerId)).value;
     final powerSeller = shopProfile?.highVolume ?? false;
-    final bestSeller = shopProfile?.bestSeller ?? false;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -815,10 +813,6 @@ class _SellerRow extends ConsumerWidget {
                         ],
                       ),
                     ),
-                  ],
-                  if (bestSeller) ...[
-                    const SizedBox(width: 8),
-                    BestSellerBadge(label: l10n.storeBestSellerBadge),
                   ],
                 ],
               ),

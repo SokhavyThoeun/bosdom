@@ -114,17 +114,9 @@ def is_high_volume_seller(db: Session, seller_id: str, now: datetime) -> bool:
 
 
 def is_best_seller(shop: Shop, now: datetime) -> bool:
-    """Whether the shop earns the "Best Seller" badge. An admin's manual
-    override (`best_seller_override`) always wins; otherwise it's earned
-    automatically once the shop has stayed on the platform for at least
-    `BEST_SELLER_TENURE_DAYS`."""
-    if shop.best_seller_override is not None:
-        return shop.best_seller_override
-    if shop.created_at is None:
-        return False
-    return (_aware(now) - _aware(shop.created_at)) >= timedelta(
-        days=BEST_SELLER_TENURE_DAYS
-    )
+    """Whether the shop shows the "Top Seller" badge. Admin-granted only:
+    `best_seller_override` must be explicitly true (null/false = no badge)."""
+    return shop.best_seller_override is True
 
 
 def release_funds(
