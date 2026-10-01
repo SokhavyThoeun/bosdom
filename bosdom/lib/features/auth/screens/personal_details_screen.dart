@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../l10n/generated/app_localizations.dart';
 import '../../profile/models/user_profile.dart';
 import '../../profile/services/profile_service.dart';
 import '../models/merchant_role.dart';
@@ -137,11 +138,20 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
     }
   }
 
+  /// Never surfaces a raw exception (e.g. Supabase's "Unacceptable audience
+  /// in id_token: [...]") to the user — only a couple of expected auth
+  /// failures get a specific message, everything else falls back to a
+  /// generic one.
   void _showError(Object error) {
     if (!mounted) return;
+    final l10n = AppLocalizations.of(context);
+    final message =
+        error is AuthApiException && error.code == 'invalid_credentials'
+        ? l10n.authLoginInvalidCredentials
+        : l10n.authLoginGenericError;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text(error.toString())));
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _saveProfile() {

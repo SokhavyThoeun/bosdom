@@ -354,6 +354,10 @@ def join_pool(
     pool = db.get(CoBuyPool, pool_id)
     if pool is None:
         raise HTTPException(status_code=404, detail="Co-buy deal not found")
+    if pool.seller_id == user.id:
+        raise HTTPException(
+            status_code=403, detail="You can't join a co-buy deal from your own shop"
+        )
     if body.quantity < pool.min_order_qty:
         raise HTTPException(
             status_code=400,

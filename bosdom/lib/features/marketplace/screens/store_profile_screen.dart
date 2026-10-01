@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
+import '../../../shared/widgets/best_seller_badge.dart';
 import '../../../shared/widgets/verified_badge_icon.dart';
 import '../../../shared/widgets/order_review_card.dart';
 import '../../chat/providers/chat_provider.dart';
@@ -357,36 +358,7 @@ class _StoreHeader extends ConsumerWidget {
                             ],
                             if (bestSeller) ...[
                               const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: colorScheme.onPrimary.withValues(
-                                    alpha: 0.2,
-                                  ),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.workspace_premium,
-                                      size: 13,
-                                      color: colorScheme.onPrimary,
-                                    ),
-                                    const SizedBox(width: 3),
-                                    Text(
-                                      l10n.storeBestSellerBadge,
-                                      style: textTheme.labelSmall?.copyWith(
-                                        color: colorScheme.onPrimary,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                              BestSellerBadge(label: l10n.storeBestSellerBadge),
                             ],
                           ],
                         ),

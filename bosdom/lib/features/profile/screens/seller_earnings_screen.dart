@@ -414,7 +414,7 @@ class _StatsRowState extends State<_StatsRow>
         Expanded(
           child: _StatTile(
             animation: _slice(0),
-            icon: const Icon(Icons.check_circle_rounded, size: 20),
+            icon: const Icon(Icons.check_rounded, size: 22),
             label: l10n.sellerEarningsReleasedLabel,
             amount: widget.releasedTotal,
             colorScheme: colorScheme,
@@ -425,7 +425,7 @@ class _StatsRowState extends State<_StatsRow>
         Expanded(
           child: _StatTile(
             animation: _slice(1),
-            icon: HourglassIcon(size: 20, color: colorScheme.primary),
+            icon: const HourglassIcon(size: 20, color: Colors.white),
             label: l10n.sellerEarningsInEscrowLabel,
             amount: widget.inEscrowTotal,
             colorScheme: colorScheme,
@@ -533,11 +533,18 @@ class _StatTileState extends ConsumerState<_StatTile> {
                     height: 40,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: accent.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(14),
+                      color: accent,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: accent.withValues(alpha: 0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
                     child: IconTheme(
-                      data: IconThemeData(color: accent),
+                      data: const IconThemeData(color: Colors.white),
                       child: widget.icon,
                     ),
                   ),

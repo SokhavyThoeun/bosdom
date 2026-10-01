@@ -10,6 +10,7 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/models/variant_option.dart';
 import '../../../shared/utils/currency_format.dart';
 import '../../../shared/widgets/adaptive_network_image.dart';
+import '../../../shared/widgets/best_seller_badge.dart';
 import '../../../shared/widgets/full_screen_image_viewer.dart';
 import '../../../shared/widgets/variant_selector.dart';
 import '../../../shared/widgets/verified_badge_icon.dart';
@@ -717,7 +718,6 @@ class _SellerRow extends ConsumerWidget {
         ? colorScheme.onPrimary.withValues(alpha: 0.8)
         : colorScheme.onSurfaceVariant;
     final linkColor = light ? colorScheme.onPrimary : colorScheme.primary;
-    final bestSellerColor = light ? colorScheme.onPrimary : colorScheme.primary;
     final sellerId = product.sellerId;
     final shopProfile = sellerId == null
         ? null
@@ -818,36 +818,7 @@ class _SellerRow extends ConsumerWidget {
                   ],
                   if (bestSeller) ...[
                     const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: light
-                            ? colorScheme.onPrimary.withValues(alpha: 0.2)
-                            : colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.workspace_premium,
-                            size: 13,
-                            color: bestSellerColor,
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                            l10n.storeBestSellerBadge,
-                            style: textTheme.labelSmall?.copyWith(
-                              color: bestSellerColor,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    BestSellerBadge(label: l10n.storeBestSellerBadge),
                   ],
                 ],
               ),

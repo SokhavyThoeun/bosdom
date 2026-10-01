@@ -349,7 +349,7 @@ const kMockProducts = [
   ),
   Product(
     id: '16',
-    name: 'Thai Premium Fish Sauce (Case of 12)',
+    name: 'Premium Anchovy Fish Sauce (Case of 12)',
     price: '\$38.50',
     samplePrice: '\$46.00',
     moq: 'MOQ: 10 Cases',
@@ -359,6 +359,7 @@ const kMockProducts = [
     category: 'Food & Bev',
     imageQuery: 'fish,sauce',
     photoUrl: 'assets/mock_products/fish_sauce_2.jpeg',
+    origin: 'China',
     deliveryFee: 5,
   ),
   Product(

@@ -145,6 +145,12 @@ class AppLocalizationsKm extends AppLocalizations {
   String get authLoginSubtitle => 'ចូលទៅកាន់គណនីលក់ដុំរបស់អ្នក';
 
   @override
+  String get authLoginInvalidCredentials => 'អ៊ីមែល ឬពាក្យសម្ងាត់មិនត្រឹមត្រូវ';
+
+  @override
+  String get authLoginGenericError => 'មានបញ្ហាកើតឡើង។ សូមព្យាយាមម្តងទៀត។';
+
+  @override
   String get authSignupJoiningPrompt => 'ខ្ញុំចូលរួម BosDom ក្នុងនាមជា...';
 
   @override
@@ -2373,7 +2379,7 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get profileShopPhotosUploadFailed =>
-      'ព័ត៌មានហាងត្រូវបានរក្សាទុក ប៉ុន្តែឡូហ្គោ/រូបថតមិនអាចផ្ទុកឡើងបានទេ — សូមបន្ថែមវាពេលក្រោយពីទំព័រព័ត៌មានហាង។';
+      'ព័ត៌មានហាងត្រូវបានរក្សាទុក ប៉ុន្តែឡូហ្គោ/រូបថតមិនអាចផ្ទុកឡើងបានទេ។ សូមបន្ថែមវាពេលក្រោយពីទំព័រព័ត៌មានហាង។';
 
   @override
   String get profileSellerGoToMarketplace => 'ទៅកាន់ទីផ្សារ';

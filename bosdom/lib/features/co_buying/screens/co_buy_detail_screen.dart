@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../shared/services/shipping_fee_calculator.dart'
     show parseWeightKg;
@@ -268,6 +269,21 @@ class _CoBuyDetailBodyState extends ConsumerState<_CoBuyDetailBody> {
                                   textTheme: textTheme,
                                 ),
                               ],
+                              if (session.hasSpecs) ...[
+                                const SizedBox(height: 20),
+                                Text(
+                                  l10n.productDetailSpecsTitle,
+                                  style: textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                _SpecsCard(
+                                  session: session,
+                                  colorScheme: colorScheme,
+                                  textTheme: textTheme,
+                                ),
+                              ],
                               const SizedBox(height: 20),
                               _ProgressCard(
                                 session: session,
@@ -335,6 +351,9 @@ class _CoBuyDetailBodyState extends ConsumerState<_CoBuyDetailBody> {
                           subtotal: subtotal,
                           colorScheme: colorScheme,
                           textTheme: textTheme,
+                          isOwner:
+                              session.sellerId ==
+                              Supabase.instance.client.auth.currentUser?.id,
                           onTap: session.joined
                               ? () => _handleRequestLeave(session: session)
                               : () => _handleJoin(
@@ -900,11 +919,13 @@ class _ImageBannerState extends State<_ImageBanner> {
               separatorBuilder: (_, _) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
                 final selected = index == _selected;
+                final borderWidth = selected ? 2.0 : 1.0;
                 return InkWell(
                   onTap: () => _goTo(index),
                   borderRadius: BorderRadius.circular(10),
                   child: Container(
                     width: 56,
+                    padding: EdgeInsets.all(borderWidth),
                     decoration: BoxDecoration(
                       color: colorScheme.primaryContainer,
                       borderRadius: BorderRadius.circular(10),
@@ -912,13 +933,15 @@ class _ImageBannerState extends State<_ImageBanner> {
                         color: selected
                             ? colorScheme.primary
                             : colorScheme.outline,
-                        width: selected ? 2 : 1,
+                        width: borderWidth,
                       ),
                     ),
-                    clipBehavior: Clip.antiAlias,
-                    child: CoBuyProductImage(
-                      session: widget.session,
-                      iconSize: 22,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10 - borderWidth),
+                      child: CoBuyProductImage(
+                        session: widget.session,
+                        iconSize: 22,
+                      ),
                     ),
                   ),
                 );
@@ -927,6 +950,65 @@ class _ImageBannerState extends State<_ImageBanner> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _SpecsCard extends StatelessWidget {
+  const _SpecsCard({
+    required this.session,
+    required this.colorScheme,
+    required this.textTheme,
+  });
+
+  final CoBuySession session;
+  final ColorScheme colorScheme;
+  final TextTheme textTheme;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final specs = {
+      l10n.productDetailSpecWeight: session.weight,
+      l10n.productDetailSpecOrigin: session.origin,
+      l10n.productDetailSpecGrade: session.grade,
+      l10n.productDetailSpecPackaging: session.packaging,
+    }..removeWhere((_, value) => value.isEmpty);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: colorScheme.outline),
+      ),
+      child: Column(
+        children: [
+          for (final entry in specs.entries) ...[
+            if (entry.key != specs.keys.first)
+              Divider(height: 1, color: colorScheme.outline),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  Text(
+                    entry.key,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    entry.value,
+                    style: textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
@@ -1200,6 +1282,7 @@ class _JoinCoBuyButton extends StatelessWidget {
     required this.colorScheme,
     required this.textTheme,
     required this.onTap,
+    this.isOwner = false,
   });
 
   final bool joined;
@@ -1209,12 +1292,22 @@ class _JoinCoBuyButton extends StatelessWidget {
   final TextTheme textTheme;
   final VoidCallback onTap;
 
+  /// True when the signed-in user is this deal's own seller — sellers can't
+  /// buy or join a co-buy deal from their own shop.
+  final bool isOwner;
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final Color background;
     final Color foreground;
-    if (leavePending) {
+    if (isOwner) {
+      background = Color.alphaBlend(
+        colorScheme.onSurfaceVariant.withValues(alpha: 0.12),
+        colorScheme.surface,
+      );
+      foreground = colorScheme.onSurfaceVariant;
+    } else if (leavePending) {
       // Opaque, so the content scrolling underneath doesn't show through.
       background = Color.alphaBlend(
         colorScheme.onSurfaceVariant.withValues(alpha: 0.12),
@@ -1234,7 +1327,9 @@ class _JoinCoBuyButton extends StatelessWidget {
         : Icons.shopping_bag_rounded;
 
     final formattedSubtotal = '\$${subtotal.toStringAsFixed(2)}';
-    final label = leavePending
+    final label = isOwner
+        ? l10n.coBuyDetailOwnListingLabel
+        : leavePending
         ? l10n.coBuyDetailLeavePendingLabel
         : joined
         ? l10n.coBuyDetailJoinedLabel
@@ -1259,7 +1354,7 @@ class _JoinCoBuyButton extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           borderRadius: BorderRadius.circular(pillRadius),
-          onTap: leavePending ? null : onTap,
+          onTap: (isOwner || leavePending) ? null : onTap,
           child: Container(
             decoration: joined && !leavePending
                 ? BoxDecoration(

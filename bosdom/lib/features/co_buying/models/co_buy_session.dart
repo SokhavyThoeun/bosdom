@@ -12,6 +12,7 @@ class CoBuySession {
     required this.icon,
     required this.imageQuery,
     required this.productName,
+    required this.sellerId,
     required this.sellerName,
     required this.sellerLocation,
     required this.sellerVerified,
@@ -54,6 +55,7 @@ class CoBuySession {
   final String origin;
   final String grade;
   final String packaging;
+  final String sellerId;
   final String sellerName;
   final double sellerRating;
   final String sellerLocation;
@@ -94,6 +96,12 @@ class CoBuySession {
   bool get leavePending => myStatus == 'leave_requested';
 
   bool get hasVariants => sizes.isNotEmpty || colorOptions.isNotEmpty;
+
+  bool get hasSpecs =>
+      weight.isNotEmpty ||
+      origin.isNotEmpty ||
+      grade.isNotEmpty ||
+      packaging.isNotEmpty;
 
   double get progress => currentQty / targetQty;
   int get remainingQty => targetQty - currentQty;
@@ -150,6 +158,7 @@ class CoBuySession {
       productName: productName,
       category: json['category'] as String? ?? '',
       description: json['description'] as String,
+      sellerId: json['seller_id'] as String,
       sellerName: json['seller_name'] as String,
       sellerLocation: (json['seller_location'] as String).isNotEmpty
           ? json['seller_location'] as String

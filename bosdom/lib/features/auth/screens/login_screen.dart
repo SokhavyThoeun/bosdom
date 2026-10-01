@@ -98,11 +98,19 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  /// Never surfaces a raw exception (e.g. Supabase's "Unacceptable audience
+  /// in id_token: [...]") to the user — only a couple of expected auth
+  /// failures get a specific message, everything else falls back to a
+  /// generic one.
   void _showError(Object error) {
     if (!mounted) return;
+    final l10n = AppLocalizations.of(context);
+    final message = error is AuthApiException && error.code == 'invalid_credentials'
+        ? l10n.authLoginInvalidCredentials
+        : l10n.authLoginGenericError;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text(error.toString())));
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _submit() async {

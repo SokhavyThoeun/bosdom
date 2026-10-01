@@ -144,6 +144,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authLoginSubtitle => 'Sign in to your wholesale account';
 
   @override
+  String get authLoginInvalidCredentials => 'Incorrect email or password';
+
+  @override
+  String get authLoginGenericError => 'Something went wrong. Please try again.';
+
+  @override
   String get authSignupJoiningPrompt => 'I am joining BosDom as a...';
 
   @override
@@ -2346,7 +2352,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileShopPhotosUploadFailed =>
-      'Shop details saved, but your logo/photos didn\'t upload — add them later from Shop Profile.';
+      'Shop details saved, but your logo/photos didn\'t upload. Add them later from Shop Profile.';
 
   @override
   String get profileSellerGoToMarketplace => 'Go to Marketplace';

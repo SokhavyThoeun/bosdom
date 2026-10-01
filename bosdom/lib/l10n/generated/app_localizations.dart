@@ -356,6 +356,18 @@ abstract class AppLocalizations {
   /// **'Sign in to your wholesale account'**
   String get authLoginSubtitle;
 
+  /// No description provided for @authLoginInvalidCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect email or password'**
+  String get authLoginInvalidCredentials;
+
+  /// No description provided for @authLoginGenericError.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please try again.'**
+  String get authLoginGenericError;
+
   /// No description provided for @authSignupJoiningPrompt.
   ///
   /// In en, this message translates to:
@@ -4320,7 +4332,7 @@ abstract class AppLocalizations {
   /// No description provided for @profileShopPhotosUploadFailed.
   ///
   /// In en, this message translates to:
-  /// **'Shop details saved, but your logo/photos didn\'t upload — add them later from Shop Profile.'**
+  /// **'Shop details saved, but your logo/photos didn\'t upload. Add them later from Shop Profile.'**
   String get profileShopPhotosUploadFailed;
 
   /// No description provided for @profileSellerGoToMarketplace.
