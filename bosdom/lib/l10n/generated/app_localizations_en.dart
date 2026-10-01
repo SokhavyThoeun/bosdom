@@ -1852,6 +1852,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ordersAlreadyReviewedLabel => 'Reviewed';
 
   @override
+  String get ordersReportedLabel => 'Reported';
+
+  @override
   String get ordersReportButton => 'Report';
 
   @override

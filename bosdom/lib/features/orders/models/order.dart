@@ -282,9 +282,14 @@ class Order {
   bool get isShipped => shippedAt != null;
   bool get isDelivered => deliveredAt != null;
 
-  /// Held funds, parcel on its way or delivered: the buyer can still report
-  /// a problem (until the review timer ends).
-  bool get canReportProblem => status == OrderStatus.held && isShipped;
+  /// Funds still held in escrow (not yet shipped, on its way, or delivered):
+  /// the buyer can report an item/delivery problem for a refund or other
+  /// solution, until the review timer ends.
+  bool get canReportProblem => status == OrderStatus.held;
+
+  /// The buyer already reported a problem on this order (it is now on hold).
+  bool get hasReportedProblem =>
+      status == OrderStatus.disputed && holdSource == 'buyer';
 
   bool get isActive =>
       status == OrderStatus.pendingPayment ||

@@ -558,6 +558,7 @@
   "ordersOrderNumberLabel": "លេខបញ្ជាទិញ #{orderId}",
   "ordersRateReviewButton": "វាយតម្លៃ និងផ្តល់មតិ",
   "ordersAlreadyReviewedLabel": "បានវាយតម្លៃរួច",
+  "ordersReportedLabel": "បានរាយការណ៍",
   "ordersReportButton": "រាយការណ៍",
   "ordersReportLabel": "រាយការណ៍បញ្ជាទិញ",
   "sellerReportButton": "រាយការណ៍បញ្ហាដឹកជញ្ជូន",

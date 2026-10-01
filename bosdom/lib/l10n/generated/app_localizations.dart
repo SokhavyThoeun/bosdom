@@ -3417,6 +3417,12 @@ abstract class AppLocalizations {
   /// **'Reviewed'**
   String get ordersAlreadyReviewedLabel;
 
+  /// No description provided for @ordersReportedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reported'**
+  String get ordersReportedLabel;
+
   /// No description provided for @ordersReportButton.
   ///
   /// In en, this message translates to:

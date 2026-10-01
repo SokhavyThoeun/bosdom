@@ -1873,6 +1873,9 @@ class AppLocalizationsKm extends AppLocalizations {
   String get ordersAlreadyReviewedLabel => 'បានវាយតម្លៃរួច';
 
   @override
+  String get ordersReportedLabel => 'បានរាយការណ៍';
+
+  @override
   String get ordersReportButton => 'រាយការណ៍';
 
   @override

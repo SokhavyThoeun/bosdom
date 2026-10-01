@@ -511,6 +511,15 @@ class _OrderCard extends ConsumerWidget {
                             colorScheme: colorScheme,
                             textTheme: textTheme,
                           ),
+                        ] else if (order.hasReportedProblem) ...[
+                          const SizedBox(width: 10),
+                          _SecondaryActionButton(
+                            icon: Icons.flag_rounded,
+                            label: l10n.ordersReportedLabel,
+                            onTap: null,
+                            colorScheme: colorScheme,
+                            textTheme: textTheme,
+                          ),
                         ],
                       ],
                     ),

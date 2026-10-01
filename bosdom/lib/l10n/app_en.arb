@@ -980,6 +980,7 @@
   },
   "ordersRateReviewButton": "Rate & Review",
   "ordersAlreadyReviewedLabel": "Reviewed",
+  "ordersReportedLabel": "Reported",
   "ordersReportButton": "Report",
   "ordersReportLabel": "Report order",
   "sellerReportButton": "Report a delivery problem",
