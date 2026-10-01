@@ -12,8 +12,10 @@ abstract final class ReceiptService {
       Uri.parse('${ApiConfig.baseUrl}/receipts'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
-        'order_id': order.id,
+        'order_id': order.displayNumber,
         'date': order.dateLabel,
+        'seller_name': order.sellerName,
+        'seller_logo_url': order.sellerLogoUrl,
         'items': [
           {
             'name': order.productName,
@@ -21,6 +23,7 @@ abstract final class ReceiptService {
                 'Qty: ${order.quantity} × '
                 '\$${order.unitPrice.toStringAsFixed(2)}',
             'line_total': order.totalAmount,
+            'image_url': order.imageUrl,
           },
         ],
         'shipping_name': order.shippingName,

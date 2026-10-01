@@ -91,7 +91,7 @@ class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
     try {
       final pdfBytes = await ReceiptService.generateReceiptPdf(order);
       await FileSaver.instance.saveFile(
-        name: 'receipt-${order.id}',
+        name: 'receipt-${order.displayNumber}',
         bytes: pdfBytes,
         fileExtension: 'pdf',
         mimeType: MimeType.pdf,

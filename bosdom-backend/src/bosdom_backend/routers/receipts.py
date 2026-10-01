@@ -1,8 +1,10 @@
 import io
 from pathlib import Path
 
+import httpx
 from fastapi import APIRouter, Response
 from fpdf import FPDF
+from PIL import Image
 from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/receipts", tags=["receipts"])
@@ -17,11 +19,14 @@ class ReceiptItem(BaseModel):
     name: str
     qty_label: str
     line_total: float
+    image_url: str | None = None
 
 
 class ReceiptRequest(BaseModel):
     order_id: str
     date: str
+    seller_name: str | None = None
+    seller_logo_url: str | None = None
     items: list[ReceiptItem]
     shipping_name: str
     shipping_address: str
@@ -33,6 +38,18 @@ class ReceiptRequest(BaseModel):
     shipping_fee: float = 0
     shipping_fee_label: str = "Free"
     total: float = Field(gt=0)
+
+
+def _fetch_image(url: str | None) -> Image.Image | None:
+    """Download an image and normalise it for fpdf; None if unavailable."""
+    if not url:
+        return None
+    try:
+        res = httpx.get(url, timeout=8, follow_redirects=True)
+        res.raise_for_status()
+        return Image.open(io.BytesIO(res.content)).convert("RGB")
+    except Exception:
+        return None
 
 
 def _build_receipt_pdf(receipt: ReceiptRequest) -> bytes:
@@ -92,6 +109,24 @@ def _build_receipt_pdf(receipt: ReceiptRequest) -> bytes:
     pdf.cell(0, 6, f"Placed on {receipt.date}", new_x="LMARGIN", new_y="NEXT")
     pdf.ln(4)
 
+    if receipt.seller_name:
+        row_y = pdf.get_y()
+        logo = _fetch_image(receipt.seller_logo_url)
+        logo_size = 10
+        name_x = 18
+        if logo is not None:
+            pdf.image(logo, x=18, y=row_y, w=logo_size, h=logo_size)
+            name_x = 18 + logo_size + 3
+        pdf.set_xy(name_x, row_y)
+        pdf.set_font("Helvetica", "", 8)
+        pdf.set_text_color(130, 130, 130)
+        pdf.cell(0, 4, "SOLD BY", new_x="LEFT", new_y="NEXT")
+        pdf.set_x(name_x)
+        pdf.set_font("Helvetica", "B", 11)
+        pdf.set_text_color(0, 0, 0)
+        pdf.cell(0, 6, receipt.seller_name, new_x="LMARGIN", new_y="NEXT")
+        pdf.set_y(row_y + logo_size + 4)
+
     pdf.set_font("Helvetica", "B", 12)
     pdf.set_text_color(0, 0, 0)
     pdf.cell(0, 8, "Items Ordered", new_x="LMARGIN", new_y="NEXT")
@@ -100,14 +135,25 @@ def _build_receipt_pdf(receipt: ReceiptRequest) -> bytes:
     pdf.ln(2)
 
     pdf.set_font("Helvetica", "", 10)
+    thumb = 16
     for item in receipt.items:
+        row_y = pdf.get_y()
+        img = _fetch_image(item.image_url)
+        text_x = 18
+        if img is not None:
+            pdf.image(img, x=18, y=row_y, w=thumb, h=thumb)
+            text_x = 18 + thumb + 4
+        pdf.set_xy(text_x, row_y + 1)
         pdf.set_text_color(0, 0, 0)
-        pdf.cell(content_w - 44, 6, item.name, new_x="RIGHT", new_y="TOP")
+        pdf.cell(content_w - 44 - (text_x - 18), 6, item.name, new_x="RIGHT", new_y="TOP")
         pdf.cell(44, 6, f"${item.line_total:,.2f}", align="R", new_x="LMARGIN", new_y="NEXT")
+        pdf.set_x(text_x)
         pdf.set_text_color(110, 110, 110)
         pdf.set_font("Helvetica", "", 9)
         pdf.cell(0, 5, item.qty_label, new_x="LMARGIN", new_y="NEXT")
         pdf.set_font("Helvetica", "", 10)
+        if img is not None:
+            pdf.set_y(max(pdf.get_y(), row_y + thumb))
         pdf.ln(2)
 
     pdf.ln(3)
