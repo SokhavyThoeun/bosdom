@@ -989,7 +989,7 @@ abstract class AppLocalizations {
   /// No description provided for @cartMovedToWishlistSnackbar.
   ///
   /// In en, this message translates to:
-  /// **'{productName} moved to wishlist'**
+  /// **'{productName} added to wishlist'**
   String cartMovedToWishlistSnackbar(String productName);
 
   /// No description provided for @cartProceedToCheckout.

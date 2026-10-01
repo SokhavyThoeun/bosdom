@@ -190,70 +190,114 @@ class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: colorScheme.outlineVariant),
                       ),
-                      child: Row(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            width: 44,
-                            height: 44,
-                            clipBehavior: Clip.antiAlias,
-                            decoration: BoxDecoration(
-                              color: colorScheme.primaryContainer,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: order.imageUrl == null
-                                ? Icon(
-                                    order.icon,
-                                    color: colorScheme.primary,
-                                    size: 20,
-                                  )
-                                : Image.network(
-                                    order.imageUrl!,
-                                    fit: BoxFit.cover,
-                                    loadingBuilder:
-                                        (context, child, progress) =>
-                                            progress == null
-                                            ? child
-                                            : Icon(
-                                                order.icon,
-                                                color: colorScheme.primary,
-                                                size: 20,
-                                              ),
-                                    errorBuilder:
-                                        (context, error, stackTrace) => Icon(
-                                          order.icon,
-                                          color: colorScheme.primary,
-                                          size: 20,
-                                        ),
-                                  ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                          if (order.sellerName != null) ...[
+                            Row(
                               children: [
-                                Text(
-                                  order.productName,
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                CircleAvatar(
+                                  radius: 12,
+                                  backgroundColor: colorScheme.primaryContainer,
+                                  backgroundImage: order.sellerLogoUrl == null
+                                      ? null
+                                      : NetworkImage(order.sellerLogoUrl!),
+                                  child: order.sellerLogoUrl == null
+                                      ? Icon(
+                                          Icons.storefront_outlined,
+                                          size: 14,
+                                          color: colorScheme.primary,
+                                        )
+                                      : null,
                                 ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  l10n.ordersItemCountLabel(order.quantity),
-                                  style: textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    order.sellerName!,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: textTheme.bodySmall?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            formatPrice(ref, order.totalAmount),
-                            style: textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Divider(
+                                height: 1,
+                                color: colorScheme.outlineVariant,
+                              ),
                             ),
+                          ],
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 44,
+                                height: 44,
+                                clipBehavior: Clip.antiAlias,
+                                decoration: BoxDecoration(
+                                  color: colorScheme.primaryContainer,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: order.imageUrl == null
+                                    ? Icon(
+                                        order.icon,
+                                        color: colorScheme.primary,
+                                        size: 20,
+                                      )
+                                    : Image.network(
+                                        order.imageUrl!,
+                                        fit: BoxFit.cover,
+                                        loadingBuilder:
+                                            (context, child, progress) =>
+                                                progress == null
+                                                ? child
+                                                : Icon(
+                                                    order.icon,
+                                                    color: colorScheme.primary,
+                                                    size: 20,
+                                                  ),
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                Icon(
+                                                  order.icon,
+                                                  color: colorScheme.primary,
+                                                  size: 20,
+                                                ),
+                                      ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      order.productName,
+                                      style: textTheme.bodyMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      l10n.ordersItemCountLabel(order.quantity),
+                                      style: textTheme.bodySmall?.copyWith(
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                formatPrice(ref, order.totalAmount),
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -318,24 +362,31 @@ class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
                           textTheme: textTheme,
                         ),
                         const Divider(height: 24),
-                        Row(
-                          children: [
-                            Text(
-                              l10n.orderDetailTotalAmountLabel,
-                              style: textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
+                        InkWell(
+                          borderRadius: BorderRadius.circular(8),
+                          onTap: () => context.pushNamed(
+                            'productDetail',
+                            pathParameters: {'id': order.listingId},
+                          ),
+                          child: Row(
+                            children: [
+                              Text(
+                                l10n.orderDetailTotalAmountLabel,
+                                style: textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                            const Spacer(),
-                            PriceDisplay(
-                              order.totalAmount,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              style: textTheme.titleLarge?.copyWith(
-                                color: colorScheme.primary,
-                                fontWeight: FontWeight.bold,
+                              const Spacer(),
+                              PriceDisplay(
+                                order.totalAmount,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                style: textTheme.titleLarge?.copyWith(
+                                  color: colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ],
                     ),

@@ -33,7 +33,7 @@ class CartScreen extends ConsumerWidget {
     final cartAsync = ref.watch(cartProvider);
     final notifier = ref.read(cartProvider.notifier);
 
-    void moveToWishlist(CartLine line) {
+    void addToWishlist(CartLine line) {
       final wishlistNotifier = ref.read(wishlistProvider.notifier);
       final wishlistId = productWishlistId(line.product.id);
       if (!wishlistNotifier.contains(wishlistId)) {
@@ -44,7 +44,6 @@ class CartScreen extends ConsumerWidget {
           content: Text(l10n.cartMovedToWishlistSnackbar(line.product.name)),
         ),
       );
-      notifier.removeLine(line);
     }
 
     return Scaffold(
@@ -110,7 +109,7 @@ class CartScreen extends ConsumerWidget {
                               notifier.toggleGroup(group, value),
                           onLineToggle: notifier.toggleLine,
                           onQuantityChanged: notifier.changeQuantity,
-                          onWishlist: moveToWishlist,
+                          onWishlist: addToWishlist,
                           onDelete: notifier.removeLine,
                           colorScheme: colorScheme,
                           textTheme: textTheme,

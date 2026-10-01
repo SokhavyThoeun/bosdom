@@ -482,7 +482,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String cartMovedToWishlistSnackbar(String productName) {
-    return '$productName moved to wishlist';
+    return '$productName added to wishlist';
   }
 
   @override

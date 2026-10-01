@@ -488,7 +488,7 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String cartMovedToWishlistSnackbar(String productName) {
-    return '$productName ត្រូវបានផ្លាស់ទៅបញ្ជីចង់បាន';
+    return '$productName ត្រូវបានបន្ថែមទៅបញ្ជីចង់បាន';
   }
 
   @override

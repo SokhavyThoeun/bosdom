@@ -1,7 +1,7 @@
 {
   "cartMovedToWishlistSnackbar": {
-    "en": "{productName} moved to wishlist",
-    "km": "{productName} ត្រូវបានផ្លាស់ទៅបញ្ជីចង់បាន",
+    "en": "{productName} added to wishlist",
+    "km": "{productName} ត្រូវបានបន្ថែមទៅបញ្ជីចង់បាន",
     "placeholders": ["productName"]
   },
   "cartProceedToCheckout": {
