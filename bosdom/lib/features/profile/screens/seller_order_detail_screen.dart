@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/utils/currency_format.dart';
-import '../../../shared/utils/delivery_carrier.dart';
 import '../../../shared/widgets/app_snack_bar.dart';
 import '../../../shared/widgets/price_display.dart';
 import '../../../shared/widgets/order_review_card.dart';
@@ -17,6 +16,7 @@ import '../../orders/providers/orders_provider.dart';
 import '../../orders/services/dispute_service.dart';
 import '../../orders/services/order_service.dart';
 import '../../orders/widgets/fulfilment_sheets.dart';
+import '../../orders/widgets/order_carrier_row.dart';
 import '../../orders/widgets/order_hold_card.dart';
 import '../../orders/widgets/seller_report_sheet.dart';
 import '../../orders/widgets/release_flow_card.dart';
@@ -135,9 +135,6 @@ class _SellerOrderDetailBodyState
     final l10n = AppLocalizations.of(context);
     final order = widget.order;
     final courier = order.courier;
-    final carrierLogoAsset = courier == null
-        ? null
-        : deliveryLogoAsset(courier);
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -199,64 +196,9 @@ class _SellerOrderDetailBodyState
                       title: l10n.orderDetailDeliveryMethodSection,
                       colorScheme: colorScheme,
                       textTheme: textTheme,
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 10),
-                        child: Row(
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: carrierLogoAsset != null
-                                  ? Image.asset(
-                                      carrierLogoAsset,
-                                      width: 56,
-                                      height: 42,
-                                      fit: BoxFit.cover,
-                                    )
-                                  : Container(
-                                      width: 56,
-                                      height: 42,
-                                      alignment: Alignment.center,
-                                      color: colorScheme.primaryContainer,
-                                      child: Icon(
-                                        Icons.local_shipping_outlined,
-                                        color: colorScheme.primary,
-                                        size: 20,
-                                      ),
-                                    ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    l10n.orderDetailCarrierLabel,
-                                    style: textTheme.bodySmall?.copyWith(
-                                      color: colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    courier,
-                                    style: textTheme.bodyMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  if (order.trackingNumber != null) ...[
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      '${l10n.escrowTrackingNumberLabel}: '
-                                      '${order.trackingNumber}',
-                                      style: textTheme.bodySmall?.copyWith(
-                                        color: colorScheme.onSurfaceVariant,
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+                      child: OrderCarrierRow(
+                        courier: courier,
+                        trackingNumber: order.trackingNumber,
                       ),
                     ),
                   ],

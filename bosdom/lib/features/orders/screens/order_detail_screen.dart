@@ -17,6 +17,7 @@ import '../models/order.dart';
 import '../providers/orders_provider.dart';
 import '../services/order_service.dart';
 import '../services/receipt_service.dart';
+import '../widgets/order_carrier_row.dart';
 import '../widgets/order_hold_card.dart';
 import 'rate_review_sheet.dart';
 
@@ -154,6 +155,7 @@ class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
     final order = widget.order;
+    final courier = order.courier;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -340,6 +342,18 @@ class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
                       ],
                     ),
                   ),
+                  if (courier != null) ...[
+                    const SizedBox(height: 16),
+                    _SectionCard(
+                      title: l10n.orderDetailDeliveryMethodSection,
+                      colorScheme: colorScheme,
+                      textTheme: textTheme,
+                      child: OrderCarrierRow(
+                        courier: courier,
+                        trackingNumber: order.trackingNumber,
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   _SectionCard(
                     title: l10n.orderDetailPaymentSummarySection,
