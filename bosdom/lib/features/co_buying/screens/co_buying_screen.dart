@@ -4,10 +4,15 @@ import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
+import '../../../shared/services/shipping_fee_calculator.dart'
+    show parseWeightKg;
+import '../../../shared/widgets/app_snack_bar.dart';
+import '../../checkout/screens/checkout_screen.dart' show CheckoutLineItem;
 import '../../marketplace/widgets/empty_products_notice.dart';
 import '../../wishlist/providers/wishlist_provider.dart';
 import '../models/co_buy_session.dart';
 import '../providers/co_buy_provider.dart';
+import '../services/co_buy_pool_service.dart';
 import '../widgets/co_buy_product_image.dart';
 
 class CoBuyingScreen extends ConsumerWidget {
@@ -64,6 +69,7 @@ class CoBuyingScreen extends ConsumerWidget {
                           ),
                           onShare: (shareContext) =>
                               _shareSession(shareContext, sessions[i]),
+                          onJoin: () => _handleJoin(context, ref, sessions[i]),
                           onToggleWishlist: () => ref
                               .read(wishlistProvider.notifier)
                               .toggle(coBuyWishlistId(sessions[i].id)),
@@ -92,6 +98,70 @@ class CoBuyingScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  /// Same flow as the detail screen's join button: reserve a spot at the
+  /// minimum quantity, then go straight to checkout. Deals with size/color
+  /// options open the detail screen instead so the buyer picks a variant.
+  Future<void> _handleJoin(
+    BuildContext context,
+    WidgetRef ref,
+    CoBuySession session,
+  ) async {
+    if (session.hasVariants) {
+      await context.pushNamed(
+        'coBuyDetail',
+        pathParameters: {'id': session.id},
+      );
+      return;
+    }
+    final l10n = AppLocalizations.of(context);
+    final quantity = session.minOrderQty;
+    final subtotal = quantity * session.price;
+    try {
+      await ref
+          .read(coBuyProvider.notifier)
+          .join(session.id, quantity: quantity);
+      if (!context.mounted) return;
+      await context.pushNamed(
+        'checkout',
+        extra: {
+          'coBuyPoolId': session.id,
+          'items': [
+            CheckoutLineItem(
+              icon: session.icon,
+              imageUrl: session.imageUrl,
+              name: session.productName,
+              qtyLabel: l10n.coBuyDetailQtyLabel(quantity, session.unitLabel),
+              total: subtotal,
+              seller: session.sellerName,
+              sellerLogoOverride: session.sellerLogoOverride,
+              quantity: quantity,
+              weightKg:
+                  (parseWeightKg(session.weight) ??
+                      parseWeightKg(session.productName) ??
+                      1.0) *
+                  quantity,
+            ),
+          ],
+        },
+      );
+      if (context.mounted) ref.invalidate(coBuyProvider);
+    } on CoBuyJoinException catch (error) {
+      if (!context.mounted) return;
+      showAppSnackBar(
+        context,
+        type: AppSnackBarType.error,
+        message: error.message,
+      );
+    } catch (_) {
+      if (!context.mounted) return;
+      showAppSnackBar(
+        context,
+        type: AppSnackBarType.error,
+        message: l10n.cartUpdateErrorSnackbar,
+      );
+    }
   }
 
   Future<void> _shareSession(BuildContext context, CoBuySession session) async {
@@ -278,6 +348,7 @@ class _CoBuyCard extends StatelessWidget {
     required this.textTheme,
     required this.isWishlisted,
     required this.onShare,
+    required this.onJoin,
     required this.onToggleWishlist,
     required this.onOpenDetail,
   });
@@ -287,6 +358,7 @@ class _CoBuyCard extends StatelessWidget {
   final TextTheme textTheme;
   final bool isWishlisted;
   final void Function(BuildContext shareContext) onShare;
+  final Future<void> Function() onJoin;
   final VoidCallback onToggleWishlist;
   final VoidCallback onOpenDetail;
 
@@ -578,7 +650,7 @@ class _CoBuyCard extends StatelessWidget {
                     _JoinButton(
                       colorScheme: colorScheme,
                       textTheme: textTheme,
-                      onTap: onOpenDetail,
+                      onTap: onJoin,
                     ),
                 ],
               ),
@@ -762,7 +834,7 @@ class _FullLockedPill extends StatelessWidget {
   }
 }
 
-class _JoinButton extends StatelessWidget {
+class _JoinButton extends StatefulWidget {
   const _JoinButton({
     required this.colorScheme,
     required this.textTheme,
@@ -771,32 +843,60 @@ class _JoinButton extends StatelessWidget {
 
   final ColorScheme colorScheme;
   final TextTheme textTheme;
-  final VoidCallback onTap;
+  final Future<void> Function() onTap;
+
+  @override
+  State<_JoinButton> createState() => _JoinButtonState();
+}
+
+class _JoinButtonState extends State<_JoinButton> {
+  bool _busy = false;
+
+  Future<void> _handleTap() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      await widget.onTap();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final colorScheme = widget.colorScheme;
 
     return Material(
       color: colorScheme.primary,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
+        onTap: _handleTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 13),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.shopping_bag_rounded,
-                size: 18,
-                color: colorScheme.onPrimary,
-              ),
+              if (_busy)
+                SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.2,
+                    color: colorScheme.onPrimary,
+                  ),
+                )
+              else
+                Icon(
+                  Icons.shopping_bag_rounded,
+                  size: 18,
+                  color: colorScheme.onPrimary,
+                ),
               const SizedBox(width: 8),
               Text(
                 l10n.coBuyingJoinButtonLabel,
-                style: textTheme.labelMedium?.copyWith(
+                style: widget.textTheme.labelMedium?.copyWith(
                   color: colorScheme.onPrimary,
                   fontWeight: FontWeight.bold,
                 ),
