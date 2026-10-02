@@ -7,7 +7,13 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/utils/currency_format.dart';
 import '../../../shared/widgets/checkout_progress_stepper.dart';
 import '../../../shared/widgets/price_display.dart';
-import '../../checkout/screens/checkout_screen.dart' show CheckoutLineItem;
+import '../../checkout/providers/address_provider.dart';
+import '../../checkout/screens/checkout_screen.dart'
+    show
+        CheckoutLineItem,
+        checkoutDestinationProvince,
+        defaultChargedShipping,
+        escrowFeeFor;
 import '../../marketplace/widgets/empty_products_notice.dart';
 import '../../wishlist/providers/wishlist_provider.dart';
 import '../providers/cart_provider.dart';
@@ -67,14 +73,30 @@ class CartScreen extends ConsumerWidget {
                   // Samples have no escrow/payment step, so they never
                   // contribute to the paid subtotal/shipping/escrow fee —
                   // only their own line card shows a price.
-                  final subtotal = groups
+                  final paidLines = groups
                       .expand((group) => group.lines)
                       .where((line) => line.selected && !line.isSample)
-                      .fold(0.0, (sum, line) => sum + line.lineTotal);
-                  const shipping = 45.0;
-                  final escrowFee = subtotal * 0.02;
-                  final total =
-                      subtotal + (subtotal > 0 ? shipping : 0) + escrowFee;
+                      .toList();
+                  final subtotal = paidLines.fold(
+                    0.0,
+                    (sum, line) => sum + line.lineTotal,
+                  );
+                  // Same estimate and fee formula checkout charges, so the
+                  // cart total matches what the buyer is asked to pay.
+                  final shipping = subtotal > 0
+                      ? defaultChargedShipping(
+                          weightKg: paidLines.fold(
+                            0.0,
+                            (sum, line) =>
+                                sum + line.product.unitWeightKg * line.quantity,
+                          ),
+                          destinationProvince: checkoutDestinationProvince(
+                            ref.watch(defaultAddressProvider),
+                          ),
+                        )
+                      : 0.0;
+                  final escrowFee = escrowFeeFor(subtotal, shipping);
+                  final total = subtotal + shipping + escrowFee;
 
                   if (groups.isEmpty) {
                     return _EmptyState(

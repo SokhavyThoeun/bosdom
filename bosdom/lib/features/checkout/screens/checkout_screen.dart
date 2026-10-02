@@ -144,6 +144,37 @@ const _kShippingOptions = [
   ),
 ];
 
+/// Buyer's escrow fee, charged on items + shipping — must match the
+/// backend's `ESCROW_FEE_RATE` (routers/payments.py).
+const kEscrowFeeRate = 0.02;
+
+double escrowFeeFor(double subtotal, double shipping) =>
+    (subtotal + shipping) * kEscrowFeeRate;
+
+/// What checkout will charge for shipping before the buyer picks a carrier:
+/// the first offered carrier that can serve this weight/route, `0` when that
+/// carrier is paid on delivery. Lets the cart preview the same total.
+double defaultChargedShipping({
+  required double weightKg,
+  required String destinationProvince,
+}) {
+  for (final option in _kShippingOptions) {
+    final quote = estimateShippingFee(
+      carrier: option.name,
+      weightKg: weightKg,
+      originProvince: _kOriginProvince,
+      destinationProvince: destinationProvince,
+    );
+    if (quote != null) return quote.payOnDelivery ? 0.0 : quote.fee;
+  }
+  return 0.0;
+}
+
+/// Shipping destination used for estimates — the buyer's default address,
+/// or the origin province when they haven't saved one.
+String checkoutDestinationProvince(Address? defaultAddress) =>
+    defaultAddress?.province ?? _kOriginProvince;
+
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({super.key, this.items, this.coBuyPoolId});
 
@@ -219,7 +250,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         .key;
   }
 
-  double _escrowFee(double shipping) => (_subtotal + shipping) * 0.02;
+  double _escrowFee(double shipping) => escrowFeeFor(_subtotal, shipping);
 
   double _total(double shipping) => _subtotal + shipping + _escrowFee(shipping);
 
@@ -277,7 +308,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final l10n = AppLocalizations.of(context);
     final defaultAddress = ref.watch(defaultAddressProvider);
     final profile = ref.watch(profileProvider).value;
-    final destinationProvince = defaultAddress?.province ?? _kOriginProvince;
+    final destinationProvince = checkoutDestinationProvince(defaultAddress);
     final shippingQuotes = _shippingQuotes(destinationProvince);
     final effectiveShippingId = _effectiveShippingId(shippingQuotes);
     final shipping = _chargedShipping(shippingQuotes[effectiveShippingId]);
