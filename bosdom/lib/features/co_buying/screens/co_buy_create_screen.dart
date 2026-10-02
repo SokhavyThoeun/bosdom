@@ -362,300 +362,296 @@ class _CoBuyCreateFormState extends ConsumerState<_CoBuyCreateForm> {
             isEditing: _isEditing,
           ),
           Expanded(
-            child: SafeArea(
-              top: false,
-              child: Form(
-                key: _formKey,
-                child: ListView(
-                  padding: EdgeInsets.fromLTRB(
-                    20,
-                    24,
-                    20,
-                    16 + MediaQuery.of(context).padding.bottom,
-                  ),
-                  children: [
-                    _SectionCard(
-                      title: l10n.coBuyCreateProductInfoSectionTitle,
-                      children: [
-                        Text(
-                          l10n.coBuyCreatePhotosLabel,
-                          style: textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.warmBlack,
-                          ),
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  24,
+                  20,
+                  16 + MediaQuery.of(context).padding.bottom,
+                ),
+                children: [
+                  _SectionCard(
+                    title: l10n.coBuyCreateProductInfoSectionTitle,
+                    children: [
+                      Text(
+                        l10n.coBuyCreatePhotosLabel,
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.warmBlack,
                         ),
-                        const SizedBox(height: 12),
-                        _CoverPhotoTile(
-                          file: _photos[0],
-                          existingImageUrl: _existingCoverUrl,
-                          onTap: () => _pickPhoto(0),
-                          onRemove: () => _removePhoto(0),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            for (var i = 1; i < _kMaxPhotos; i++) ...[
-                              if (i > 1) const SizedBox(width: 12),
-                              Expanded(
-                                child: _AdditionalPhotoTile(
-                                  file: _photos[i],
-                                  onTap: () => _pickPhoto(i),
-                                  onRemove: () => _removePhoto(i),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          l10n.coBuyCreatePhotosHelper,
-                          style: textTheme.bodySmall?.copyWith(
-                            color: AppColors.roseMist,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        _AppTextField(
-                          label: l10n.coBuyCreateProductNameLabel,
-                          controller: _productNameController,
-                          icon: Icons.inventory_2_outlined,
-                          hintText: l10n.coBuyCreateProductNameHint,
-                          textCapitalization: TextCapitalization.words,
-                          validator: (value) =>
-                              (value == null || value.trim().isEmpty)
-                              ? l10n.coBuyCreateProductNameRequired
-                              : null,
-                        ),
-                        const SizedBox(height: 20),
-                        _CategoryDropdown(
-                          value: _category,
-                          label: l10n.addListingCategoryLabel,
-                          hintText: l10n.addListingCategoryHint,
-                          errorText: l10n.addListingCategoryRequired,
-                          onChanged: (value) =>
-                              setState(() => _category = value),
-                        ),
-                        const SizedBox(height: 20),
-                        _AppTextField(
-                          label: l10n.coBuyCreateDescriptionLabel,
-                          controller: _descriptionController,
-                          icon: Icons.description_outlined,
-                          hintText: l10n.coBuyCreateDescriptionHint,
-                          textCapitalization: TextCapitalization.sentences,
-                          maxLines: 3,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    _SectionCard(
-                      title: l10n.addListingSpecsLabel,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: _AppTextField(
-                                label: specCopy.weightLabel,
-                                controller: _weightController,
-                                icon: Icons.scale_outlined,
-                                hintText: specCopy.weightHint,
-                                validator: (value) =>
-                                    (value == null || value.trim().isEmpty)
-                                    ? l10n.addListingWeightRequired
-                                    : null,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _AppTextField(
-                                label: l10n.addListingOriginLabel,
-                                controller: _originController,
-                                icon: Icons.public,
-                                hintText: specCopy.originHint,
-                                textCapitalization: TextCapitalization.words,
-                                validator: (value) =>
-                                    (value == null || value.trim().isEmpty)
-                                    ? l10n.addListingOriginRequired
-                                    : null,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: _AppTextField(
-                                label: specCopy.gradeLabel,
-                                controller: _gradeController,
-                                icon: Icons.workspace_premium_outlined,
-                                hintText: specCopy.gradeHint,
-                                textCapitalization: TextCapitalization.words,
-                                validator: (value) =>
-                                    (value == null || value.trim().isEmpty)
-                                    ? l10n.addListingGradeRequired
-                                    : null,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _AppTextField(
-                                label: l10n.addListingPackagingLabel,
-                                controller: _packagingController,
-                                icon: Icons.archive_outlined,
-                                hintText: specCopy.packagingHint,
-                                textCapitalization: TextCapitalization.words,
-                                validator: (value) =>
-                                    (value == null || value.trim().isEmpty)
-                                    ? l10n.addListingPackagingRequired
-                                    : null,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    _SectionCard(
-                      title: l10n.coBuyCreatePricingSectionTitle,
-                      children: [
-                        _AppTextField(
-                          label: l10n.coBuyCreateOriginalPriceLabel,
-                          controller: _originalPriceController,
-                          icon: Icons.attach_money,
-                          hintText: r'$0.00',
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
-                          ),
-                          validator: (value) =>
-                              _validatePrice(value, l10n, isOriginal: true),
-                        ),
-                        const SizedBox(height: 20),
-                        _AppTextField(
-                          label: l10n.coBuyCreatePriceLabel,
-                          controller: _priceController,
-                          hintText: r'$0.00',
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
-                          ),
-                          validator: (value) =>
-                              _validatePrice(value, l10n, isOriginal: false),
-                        ),
-                        const SizedBox(height: 20),
-                        _AppTextField(
-                          label: l10n.coBuyCreateUnitLabelLabel,
-                          controller: _unitLabelController,
-                          icon: Icons.straighten,
-                          hintText: l10n.coBuyCreateUnitLabelHint,
-                          validator: (value) =>
-                              (value == null || value.trim().isEmpty)
-                              ? l10n.coBuyCreateUnitLabelRequired
-                              : null,
-                        ),
-                        const SizedBox(height: 20),
-                        _AppTextField(
-                          label: l10n.coBuyCreateMinOrderQtyLabel,
-                          controller: _minOrderQtyController,
-                          hintText: l10n.coBuyCreateMinOrderQtyHint,
-                          keyboardType: TextInputType.number,
-                          validator: (value) => _validatePositiveInt(
-                            value,
-                            l10n.coBuyCreateMinOrderQtyRequired,
-                            l10n.coBuyCreateMinOrderQtyInvalid,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    _SectionCard(
-                      title: l10n.coBuyCreateDealSettingsSectionTitle,
-                      children: [
-                        _AppTextField(
-                          label: l10n.coBuyCreateTargetQtyLabel,
-                          controller: _targetQtyController,
-                          hintText: specCopy.targetQtyHint,
-                          keyboardType: TextInputType.number,
-                          validator: (value) => _validatePositiveInt(
-                            value,
-                            l10n.coBuyCreateTargetQtyRequired,
-                            l10n.coBuyCreateTargetQtyInvalid,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        _DurationDropdown(
-                          label: l10n.coBuyCreateDurationLabel,
-                          value: _duration,
-                          onChanged: (duration) =>
-                              setState(() => _duration = duration),
-                          l10n: l10n,
-                        ),
-                        const SizedBox(height: 20),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                l10n.coBuyCreateAutoRenewLabel,
-                                style: textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.warmBlack,
-                                ),
-                              ),
-                            ),
-                            Switch(
-                              value: _autoRenew,
-                              activeTrackColor: AppColors.brandCrimson,
-                              activeThumbColor: Colors.white,
-                              onChanged: (value) =>
-                                  setState(() => _autoRenew = value),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 28),
-                    FilledButton(
-                      onPressed: _isSaving ? null : _submit,
-                      style: FilledButton.styleFrom(
-                        minimumSize: const Size.fromHeight(52),
                       ),
-                      child: _isSaving
-                          ? const SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.4,
-                                color: Colors.white,
-                              ),
-                            )
-                          : Text(
-                              _isEditing
-                                  ? l10n.commonSaveChanges
-                                  : l10n.coBuyCreateButton,
-                              style: textTheme.labelLarge?.copyWith(
-                                color: colorScheme.onPrimary,
-                                fontWeight: FontWeight.bold,
+                      const SizedBox(height: 12),
+                      _CoverPhotoTile(
+                        file: _photos[0],
+                        existingImageUrl: _existingCoverUrl,
+                        onTap: () => _pickPhoto(0),
+                        onRemove: () => _removePhoto(0),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          for (var i = 1; i < _kMaxPhotos; i++) ...[
+                            if (i > 1) const SizedBox(width: 12),
+                            Expanded(
+                              child: _AdditionalPhotoTile(
+                                file: _photos[i],
+                                onTap: () => _pickPhoto(i),
+                                onRemove: () => _removePhoto(i),
                               ),
                             ),
-                    ),
-                    if (_isEditing) ...[
-                      const SizedBox(height: 12),
-                      OutlinedButton(
-                        onPressed: _isSaving ? null : () => context.pop(),
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size.fromHeight(52),
-                          foregroundColor: AppColors.brandCrimson,
-                          side: const BorderSide(color: AppColors.brandCrimson),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        l10n.coBuyCreatePhotosHelper,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: AppColors.roseMist,
                         ),
-                        child: Text(
-                          l10n.commonCancel,
-                          style: textTheme.labelLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
+                      ),
+                      const SizedBox(height: 20),
+                      _AppTextField(
+                        label: l10n.coBuyCreateProductNameLabel,
+                        controller: _productNameController,
+                        icon: Icons.inventory_2_outlined,
+                        hintText: l10n.coBuyCreateProductNameHint,
+                        textCapitalization: TextCapitalization.words,
+                        validator: (value) =>
+                            (value == null || value.trim().isEmpty)
+                            ? l10n.coBuyCreateProductNameRequired
+                            : null,
+                      ),
+                      const SizedBox(height: 20),
+                      _CategoryDropdown(
+                        value: _category,
+                        label: l10n.addListingCategoryLabel,
+                        hintText: l10n.addListingCategoryHint,
+                        errorText: l10n.addListingCategoryRequired,
+                        onChanged: (value) => setState(() => _category = value),
+                      ),
+                      const SizedBox(height: 20),
+                      _AppTextField(
+                        label: l10n.coBuyCreateDescriptionLabel,
+                        controller: _descriptionController,
+                        icon: Icons.description_outlined,
+                        hintText: l10n.coBuyCreateDescriptionHint,
+                        textCapitalization: TextCapitalization.sentences,
+                        maxLines: 3,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  _SectionCard(
+                    title: l10n.addListingSpecsLabel,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: _AppTextField(
+                              label: specCopy.weightLabel,
+                              controller: _weightController,
+                              icon: Icons.scale_outlined,
+                              hintText: specCopy.weightHint,
+                              validator: (value) =>
+                                  (value == null || value.trim().isEmpty)
+                                  ? l10n.addListingWeightRequired
+                                  : null,
+                            ),
                           ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _AppTextField(
+                              label: l10n.addListingOriginLabel,
+                              controller: _originController,
+                              icon: Icons.public,
+                              hintText: specCopy.originHint,
+                              textCapitalization: TextCapitalization.words,
+                              validator: (value) =>
+                                  (value == null || value.trim().isEmpty)
+                                  ? l10n.addListingOriginRequired
+                                  : null,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: _AppTextField(
+                              label: specCopy.gradeLabel,
+                              controller: _gradeController,
+                              icon: Icons.workspace_premium_outlined,
+                              hintText: specCopy.gradeHint,
+                              textCapitalization: TextCapitalization.words,
+                              validator: (value) =>
+                                  (value == null || value.trim().isEmpty)
+                                  ? l10n.addListingGradeRequired
+                                  : null,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _AppTextField(
+                              label: l10n.addListingPackagingLabel,
+                              controller: _packagingController,
+                              icon: Icons.archive_outlined,
+                              hintText: specCopy.packagingHint,
+                              textCapitalization: TextCapitalization.words,
+                              validator: (value) =>
+                                  (value == null || value.trim().isEmpty)
+                                  ? l10n.addListingPackagingRequired
+                                  : null,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  _SectionCard(
+                    title: l10n.coBuyCreatePricingSectionTitle,
+                    children: [
+                      _AppTextField(
+                        label: l10n.coBuyCreateOriginalPriceLabel,
+                        controller: _originalPriceController,
+                        icon: Icons.attach_money,
+                        hintText: r'$0.00',
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        validator: (value) =>
+                            _validatePrice(value, l10n, isOriginal: true),
+                      ),
+                      const SizedBox(height: 20),
+                      _AppTextField(
+                        label: l10n.coBuyCreatePriceLabel,
+                        controller: _priceController,
+                        hintText: r'$0.00',
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        validator: (value) =>
+                            _validatePrice(value, l10n, isOriginal: false),
+                      ),
+                      const SizedBox(height: 20),
+                      _AppTextField(
+                        label: l10n.coBuyCreateUnitLabelLabel,
+                        controller: _unitLabelController,
+                        icon: Icons.straighten,
+                        hintText: l10n.coBuyCreateUnitLabelHint,
+                        validator: (value) =>
+                            (value == null || value.trim().isEmpty)
+                            ? l10n.coBuyCreateUnitLabelRequired
+                            : null,
+                      ),
+                      const SizedBox(height: 20),
+                      _AppTextField(
+                        label: l10n.coBuyCreateMinOrderQtyLabel,
+                        controller: _minOrderQtyController,
+                        hintText: l10n.coBuyCreateMinOrderQtyHint,
+                        keyboardType: TextInputType.number,
+                        validator: (value) => _validatePositiveInt(
+                          value,
+                          l10n.coBuyCreateMinOrderQtyRequired,
+                          l10n.coBuyCreateMinOrderQtyInvalid,
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 24),
+                  _SectionCard(
+                    title: l10n.coBuyCreateDealSettingsSectionTitle,
+                    children: [
+                      _AppTextField(
+                        label: l10n.coBuyCreateTargetQtyLabel,
+                        controller: _targetQtyController,
+                        hintText: specCopy.targetQtyHint,
+                        keyboardType: TextInputType.number,
+                        validator: (value) => _validatePositiveInt(
+                          value,
+                          l10n.coBuyCreateTargetQtyRequired,
+                          l10n.coBuyCreateTargetQtyInvalid,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      _DurationDropdown(
+                        label: l10n.coBuyCreateDurationLabel,
+                        value: _duration,
+                        onChanged: (duration) =>
+                            setState(() => _duration = duration),
+                        l10n: l10n,
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              l10n.coBuyCreateAutoRenewLabel,
+                              style: textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.warmBlack,
+                              ),
+                            ),
+                          ),
+                          Switch(
+                            value: _autoRenew,
+                            activeTrackColor: AppColors.brandCrimson,
+                            activeThumbColor: Colors.white,
+                            onChanged: (value) =>
+                                setState(() => _autoRenew = value),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 28),
+                  FilledButton(
+                    onPressed: _isSaving ? null : _submit,
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size.fromHeight(52),
+                    ),
+                    child: _isSaving
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.4,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(
+                            _isEditing
+                                ? l10n.commonSaveChanges
+                                : l10n.coBuyCreateButton,
+                            style: textTheme.labelLarge?.copyWith(
+                              color: colorScheme.onPrimary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                  ),
+                  if (_isEditing) ...[
+                    const SizedBox(height: 12),
+                    OutlinedButton(
+                      onPressed: _isSaving ? null : () => context.pop(),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(52),
+                        foregroundColor: AppColors.brandCrimson,
+                        side: const BorderSide(color: AppColors.brandCrimson),
+                      ),
+                      child: Text(
+                        l10n.commonCancel,
+                        style: textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ],
-                ),
+                ],
               ),
             ),
           ),
