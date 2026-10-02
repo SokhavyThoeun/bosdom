@@ -823,7 +823,10 @@ class _ShippingOptionTile extends ConsumerWidget {
                               ),
                             ),
                           ),
-                          if (available) ...[
+                          // Pay-on-delivery carriers (Grab Express) are paid
+                          // by the buyer to the driver at the price Grab
+                          // shows once the seller books it — no fee here.
+                          if (available && !quote.payOnDelivery) ...[
                             const SizedBox(width: 8),
                             Text(
                               formatPrice(ref, quote.fee),
