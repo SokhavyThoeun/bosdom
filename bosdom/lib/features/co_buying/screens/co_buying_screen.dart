@@ -8,7 +8,6 @@ import '../../marketplace/widgets/empty_products_notice.dart';
 import '../../wishlist/providers/wishlist_provider.dart';
 import '../models/co_buy_session.dart';
 import '../providers/co_buy_provider.dart';
-import '../services/co_buy_pool_service.dart';
 import '../widgets/co_buy_product_image.dart';
 
 class CoBuyingScreen extends ConsumerWidget {
@@ -65,8 +64,6 @@ class CoBuyingScreen extends ConsumerWidget {
                           ),
                           onShare: (shareContext) =>
                               _shareSession(shareContext, sessions[i]),
-                          onToggleJoin: () =>
-                              _handleToggleJoin(context, ref, sessions[i]),
                           onToggleWishlist: () => ref
                               .read(wishlistProvider.notifier)
                               .toggle(coBuyWishlistId(sessions[i].id)),
@@ -95,27 +92,6 @@ class CoBuyingScreen extends ConsumerWidget {
         ],
       ),
     );
-  }
-
-  Future<void> _handleToggleJoin(
-    BuildContext context,
-    WidgetRef ref,
-    CoBuySession session,
-  ) async {
-    try {
-      if (session.joined) {
-        await ref.read(coBuyProvider.notifier).leave(session.id);
-      } else {
-        await ref
-            .read(coBuyProvider.notifier)
-            .join(session.id, quantity: session.minOrderQty);
-      }
-    } on CoBuyJoinException catch (error) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.message)));
-    }
   }
 
   Future<void> _shareSession(BuildContext context, CoBuySession session) async {
@@ -302,7 +278,6 @@ class _CoBuyCard extends StatelessWidget {
     required this.textTheme,
     required this.isWishlisted,
     required this.onShare,
-    required this.onToggleJoin,
     required this.onToggleWishlist,
     required this.onOpenDetail,
   });
@@ -312,7 +287,6 @@ class _CoBuyCard extends StatelessWidget {
   final TextTheme textTheme;
   final bool isWishlisted;
   final void Function(BuildContext shareContext) onShare;
-  final VoidCallback onToggleJoin;
   final VoidCallback onToggleWishlist;
   final VoidCallback onOpenDetail;
 
@@ -598,13 +572,13 @@ class _CoBuyCard extends StatelessWidget {
                     _JoinedPill(
                       colorScheme: colorScheme,
                       textTheme: textTheme,
-                      onTap: onToggleJoin,
+                      onTap: onOpenDetail,
                     )
                   else
                     _JoinButton(
                       colorScheme: colorScheme,
                       textTheme: textTheme,
-                      onTap: onToggleJoin,
+                      onTap: onOpenDetail,
                     ),
                 ],
               ),
