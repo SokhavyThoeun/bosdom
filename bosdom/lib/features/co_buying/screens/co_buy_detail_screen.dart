@@ -149,165 +149,171 @@ class _CoBuyDetailBodyState extends ConsumerState<_CoBuyDetailBody> {
                 SafeArea(
                   top: false,
                   bottom: false,
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.only(
-                      bottom: 96 + MediaQuery.of(context).padding.bottom,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _ImageBanner(
-                          session: session,
-                          colorScheme: colorScheme,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: colorScheme.outline,
+                  child: RefreshIndicator(
+                    onRefresh: () => ref.refresh(coBuyProvider.future),
+                    color: colorScheme.primary,
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: EdgeInsets.only(
+                        bottom: 96 + MediaQuery.of(context).padding.bottom,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _ImageBanner(
+                            session: session,
+                            colorScheme: colorScheme,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: colorScheme.outline,
+                                    ),
                                   ),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.baseline,
-                                      textBaseline: TextBaseline.alphabetic,
-                                      children: [
-                                        Text(
-                                          '\$${session.price.toStringAsFixed(2)}',
-                                          style: textTheme.headlineMedium
-                                              ?.copyWith(
-                                                color: colorScheme.primary,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          '\$${session.originalPrice.toStringAsFixed(2)}',
-                                          style: textTheme.bodyMedium?.copyWith(
-                                            color: colorScheme.onSurfaceVariant,
-                                            decoration:
-                                                TextDecoration.lineThrough,
-                                          ),
-                                        ),
-                                        const Spacer(),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 10,
-                                            vertical: 5,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: colorScheme.tertiary
-                                                .withValues(alpha: 0.12),
-                                            borderRadius: BorderRadius.circular(
-                                              20,
-                                            ),
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            l10n.coBuyDetailActiveDealLabel,
-                                            textAlign: TextAlign.center,
-                                            style: textTheme.labelSmall
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.baseline,
+                                        textBaseline: TextBaseline.alphabetic,
+                                        children: [
+                                          Text(
+                                            '\$${session.price.toStringAsFixed(2)}',
+                                            style: textTheme.headlineMedium
                                                 ?.copyWith(
-                                                  color: colorScheme.tertiary,
+                                                  color: colorScheme.primary,
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                           ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            '\$${session.originalPrice.toStringAsFixed(2)}',
+                                            style: textTheme.bodyMedium
+                                                ?.copyWith(
+                                                  color: colorScheme
+                                                      .onSurfaceVariant,
+                                                  decoration: TextDecoration
+                                                      .lineThrough,
+                                                ),
+                                          ),
+                                          const Spacer(),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 5,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: colorScheme.tertiary
+                                                  .withValues(alpha: 0.12),
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                            ),
+                                            alignment: Alignment.center,
+                                            child: Text(
+                                              l10n.coBuyDetailActiveDealLabel,
+                                              textAlign: TextAlign.center,
+                                              style: textTheme.labelSmall
+                                                  ?.copyWith(
+                                                    color: colorScheme.tertiary,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        session.perUnitLabel,
+                                        style: textTheme.bodySmall?.copyWith(
+                                          color: colorScheme.onSurfaceVariant,
                                         ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      session.perUnitLabel,
-                                      style: textTheme.bodySmall?.copyWith(
-                                        color: colorScheme.onSurfaceVariant,
                                       ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      session.productName,
-                                      style: textTheme.titleLarge?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        height: 1.2,
-                                      ),
-                                    ),
-                                    if (session.description.isNotEmpty) ...[
                                       const SizedBox(height: 8),
                                       Text(
-                                        session.description,
-                                        style: textTheme.bodyMedium?.copyWith(
-                                          color: colorScheme.onSurfaceVariant,
-                                          height: 1.4,
+                                        session.productName,
+                                        style: textTheme.titleLarge?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          height: 1.2,
                                         ),
                                       ),
+                                      if (session.description.isNotEmpty) ...[
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          session.description,
+                                          style: textTheme.bodyMedium?.copyWith(
+                                            color: colorScheme.onSurfaceVariant,
+                                            height: 1.4,
+                                          ),
+                                        ),
+                                      ],
                                     ],
-                                  ],
-                                ),
-                              ),
-                              if (session.hasVariants) ...[
-                                const SizedBox(height: 20),
-                                ProductVariantSelector(
-                                  sizes: session.sizes,
-                                  selectedSize: _selectedSize,
-                                  onSizeSelected: (size) =>
-                                      setState(() => _selectedSize = size),
-                                  colorOptions: session.colorOptions,
-                                  selectedColor: _selectedColor,
-                                  onColorSelected: (color) =>
-                                      setState(() => _selectedColor = color),
-                                  colorScheme: colorScheme,
-                                  textTheme: textTheme,
-                                ),
-                              ],
-                              if (session.hasSpecs) ...[
-                                const SizedBox(height: 20),
-                                Text(
-                                  l10n.productDetailSpecsTitle,
-                                  style: textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                const SizedBox(height: 10),
-                                _SpecsCard(
+                                if (session.hasVariants) ...[
+                                  const SizedBox(height: 20),
+                                  ProductVariantSelector(
+                                    sizes: session.sizes,
+                                    selectedSize: _selectedSize,
+                                    onSizeSelected: (size) =>
+                                        setState(() => _selectedSize = size),
+                                    colorOptions: session.colorOptions,
+                                    selectedColor: _selectedColor,
+                                    onColorSelected: (color) =>
+                                        setState(() => _selectedColor = color),
+                                    colorScheme: colorScheme,
+                                    textTheme: textTheme,
+                                  ),
+                                ],
+                                if (session.hasSpecs) ...[
+                                  const SizedBox(height: 20),
+                                  Text(
+                                    l10n.productDetailSpecsTitle,
+                                    style: textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  _SpecsCard(
+                                    session: session,
+                                    colorScheme: colorScheme,
+                                    textTheme: textTheme,
+                                  ),
+                                ],
+                                const SizedBox(height: 20),
+                                _ProgressCard(
                                   session: session,
                                   colorScheme: colorScheme,
                                   textTheme: textTheme,
                                 ),
+                                const SizedBox(height: 20),
+                                _OrderCard(
+                                  session: session,
+                                  quantity: quantity,
+                                  subtotal: subtotal,
+                                  onQuantityChanged: (delta) => setState(() {
+                                    _quantity = (quantity + delta).clamp(
+                                      session.minOrderQty,
+                                      session.targetQty,
+                                    );
+                                  }),
+                                  colorScheme: colorScheme,
+                                  textTheme: textTheme,
+                                ),
                               ],
-                              const SizedBox(height: 20),
-                              _ProgressCard(
-                                session: session,
-                                colorScheme: colorScheme,
-                                textTheme: textTheme,
-                              ),
-                              const SizedBox(height: 20),
-                              _OrderCard(
-                                session: session,
-                                quantity: quantity,
-                                subtotal: subtotal,
-                                onQuantityChanged: (delta) => setState(() {
-                                  _quantity = (quantity + delta).clamp(
-                                    session.minOrderQty,
-                                    session.targetQty,
-                                  );
-                                }),
-                                colorScheme: colorScheme,
-                                textTheme: textTheme,
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
