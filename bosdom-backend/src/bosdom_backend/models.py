@@ -162,8 +162,18 @@ class CoBuyPool(Base):
     unit_label: Mapped[str] = mapped_column(String)
     per_unit_label: Mapped[str] = mapped_column(String)
     min_order_qty: Mapped[int] = mapped_column(Integer)
+    # The seller's chosen run length ("3 days left" etc.); the live countdown
+    # is worked out from `ends_at` (see routers/co_buy.py `_time_left_label`).
     time_left: Mapped[str] = mapped_column(String)
     auto_renew: Mapped[bool] = mapped_column(Boolean, default=False)
+    # When the deal closes if it hasn't reached its target. Null on deals
+    # created before deadlines existed until their clock is started.
+    ends_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    # open -> funded (target reached: the seller can ship) or expired (time
+    # ran out short of the target: everyone refunded in full).
+    status: Mapped[str] = mapped_column(String, default="open")
     photo_urls: Mapped[list[str]] = mapped_column(JSON, default=list)
     sizes: Mapped[list[str]] = mapped_column(JSON, default=list)
     colors: Mapped[list[dict]] = mapped_column(JSON, default=list)

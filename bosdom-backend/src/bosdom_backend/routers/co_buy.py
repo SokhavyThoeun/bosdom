@@ -1,4 +1,5 @@
-from datetime import datetime, timezone
+import re
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
@@ -50,6 +51,12 @@ class CoBuyPoolOut(BaseModel):
     my_status: str | None = None
     my_leave_admin_note: str | None = None
     is_full: bool
+    # open | funded (target reached — the seller can ship) | expired
+    status: str = "open"
+    ends_at: datetime | None = None
+    # The seller's chosen run length ("3 days left"), for the edit form;
+    # `time_left` above is the live countdown.
+    duration: str = ""
 
 
 def _save_photos(seller_id: str, photos: list[UploadFile]) -> list[str]:
@@ -116,7 +123,7 @@ def _serialize_pool(pool: CoBuyPool, db: Session, viewer_id: str) -> CoBuyPoolOu
         per_unit_label=pool.per_unit_label,
         min_order_qty=pool.min_order_qty,
         retailers_joined=len(participants),
-        time_left=pool.time_left,
+        time_left=_time_left_label(pool),
         auto_renew=pool.auto_renew,
         photo_urls=pool.photo_urls,
         sizes=pool.sizes,
@@ -129,6 +136,9 @@ def _serialize_pool(pool: CoBuyPool, db: Session, viewer_id: str) -> CoBuyPoolOu
         my_status=mine.status if mine else None,
         my_leave_admin_note=mine.leave_admin_note if mine else None,
         is_full=current_qty >= pool.target_qty,
+        status=pool.status,
+        ends_at=deadline(pool),
+        duration=pool.time_left,
     )
 
 
@@ -198,6 +208,8 @@ def create_pool(
         min_order_qty=min_order_qty,
         time_left=time_left,
         auto_renew=auto_renew,
+        ends_at=datetime.now(timezone.utc) + duration_of(time_left),
+        status="open",
         photo_urls=photo_urls,
         sizes=_parse_sizes(sizes),
         colors=_parse_colors(colors),
@@ -224,6 +236,7 @@ def create_pool(
 def list_pools(
     user: CurrentUser = Depends(get_current_user), db: Session = Depends(get_db)
 ) -> list[CoBuyPoolOut]:
+    settle_due_pools(db)
     pools = db.query(CoBuyPool).order_by(CoBuyPool.created_at.desc()).all()
     return [_serialize_pool(pool, db, user.id) for pool in pools]
 
@@ -232,6 +245,7 @@ def list_pools(
 def list_my_pools(
     user: CurrentUser = Depends(get_current_user), db: Session = Depends(get_db)
 ) -> list[CoBuyPoolOut]:
+    settle_due_pools(db)
     pools = (
         db.query(CoBuyPool)
         .filter(CoBuyPool.seller_id == user.id)
@@ -290,6 +304,12 @@ def update_pool(
     pool.unit_label = unit_label.strip()
     pool.per_unit_label = per_unit_label.strip()
     pool.min_order_qty = min_order_qty
+    if time_left != pool.time_left or pool.status == "expired":
+        # A new run length restarts the clock — and reopens an expired deal
+        # (its buyers were already refunded).
+        pool.ends_at = datetime.now(timezone.utc) + duration_of(time_left)
+        if pool.status == "expired":
+            pool.status = "open"
     pool.time_left = time_left
     pool.auto_renew = auto_renew
     pool.sizes = _parse_sizes(sizes)
@@ -312,49 +332,12 @@ def delete_pool(
     """Takes the deal down. Anyone who already paid in gets everything back
     (the deal didn't go ahead — not their fault); refused once any share has
     shipped or been paid out."""
-    from .orders import refund_order
-    from .payments import PAYMENT_PAID, PAYMENT_REFUND_DUE
-
     pool = _get_owned_pool(db, user, pool_id)
-    participants = (
-        db.query(CoBuyParticipant).filter(CoBuyParticipant.pool_id == pool.id).all()
-    )
-    paid = [p for p in participants if p.status in _COUNTED_STATUSES]
-    orders = [
-        o
-        for p in paid
-        for o in _linked_orders(db, p, ("held", "disputed", "released"))
-    ]
-    if any(o.status == "released" or o.shipped_at is not None for o in orders):
-        raise HTTPException(
-            status_code=409,
-            detail="Some buyers' shares have already shipped — this deal can't be deleted",
-        )
-
-    now = datetime.now(timezone.utc)
-    for order in orders:
-        refund_order(db, order, now)
-    for participant in paid:
-        if not _linked_orders(db, participant, ("refunded",)):
-            # Paid before joins had an escrow order: queue its payment for a
-            # full refund instead.
-            for payment in db.query(PaywayPayment).filter(
-                PaywayPayment.co_buy_participant_id == participant.id,
-                PaywayPayment.status == PAYMENT_PAID,
-            ):
-                payment.status = PAYMENT_REFUND_DUE
-        participant.status = "refunded"
-        participant.refunded_at = now
-    for participant in participants:
-        if participant.status == "pending_payment":
-            for order in _linked_orders(db, participant, ("pending_payment",)):
-                order.status = "cancelled"
-                order.cancelled_at = now
-            db.delete(participant)
     product_name = pool.product_name
+    buyer_ids = _refund_everyone(db, pool)
     db.delete(pool)
     db.commit()
-    for buyer_id in {p.buyer_id for p in paid}:
+    for buyer_id in buyer_ids:
         push_notification(
             db,
             buyer_id,
@@ -374,6 +357,7 @@ def get_pool(
     pool = db.get(CoBuyPool, pool_id)
     if pool is None:
         raise HTTPException(status_code=404, detail="Co-buy deal not found")
+    settle_pool(db, pool)
     return _serialize_pool(pool, db, user.id)
 
 
@@ -408,6 +392,7 @@ def join_pool(
         raise HTTPException(
             status_code=403, detail="You can't join a co-buy deal from your own shop"
         )
+    ensure_open(db, pool)
     if body.quantity < pool.min_order_qty:
         raise HTTPException(
             status_code=400,
@@ -543,6 +528,173 @@ def _linked_orders(
     )
 
 
+_DURATION_RE = re.compile(r"(\d+)\s*(hour|day|week)", re.IGNORECASE)
+
+
+def duration_of(text: str) -> timedelta:
+    """A deal's run length from the create form's choice ("1 day left",
+    "1 week left", ...); 3 days if it can't be read."""
+    match = _DURATION_RE.search(text or "")
+    if match is None:
+        return timedelta(days=3)
+    n, unit = int(match.group(1)), match.group(2).lower()
+    return {"hour": timedelta(hours=n), "day": timedelta(days=n), "week": timedelta(weeks=n)}[unit]
+
+
+def _aware(dt: datetime) -> datetime:
+    return dt if dt.tzinfo is not None else dt.replace(tzinfo=timezone.utc)
+
+
+def deadline(pool: CoBuyPool) -> datetime:
+    if pool.ends_at is not None:
+        return _aware(pool.ends_at)
+    # Not yet given a clock (see `settle_pool`): it'd start now.
+    return datetime.now(timezone.utc) + duration_of(pool.time_left)
+
+
+def _time_left_label(pool: CoBuyPool) -> str:
+    """The live countdown the app shows. "Expired" is what the app keys its
+    expired state off (`CoBuySession.dealStatus`)."""
+    if pool.status == "expired":
+        return "Expired"
+    if pool.status == "funded":
+        return "Target reached"
+    left = deadline(pool) - datetime.now(timezone.utc)
+    if left <= timedelta(0):
+        return "Expired"
+    if left > timedelta(days=1):
+        # Rounded up, so a fresh 3-day deal reads "3 days left".
+        days = -(-left // timedelta(days=1))
+        return f"{days} days left"
+    hours = -(-left // timedelta(hours=1))
+    if left >= timedelta(hours=1):
+        return f"{hours} hour{'s' if hours != 1 else ''} left"
+    return "Less than 1 hour left"
+
+
+def _refund_everyone(db: Session, pool: CoBuyPool) -> set[str]:
+    """Refunds every paid join in full (the deal didn't go ahead — not the
+    buyers' fault, so the 2% escrow fee goes back too) and drops unpaid
+    reservations. Refused once any share has shipped or been paid out.
+    Doesn't commit; returns the refunded buyers' ids to notify."""
+    from .orders import refund_order
+    from .payments import PAYMENT_PAID, PAYMENT_REFUND_DUE
+
+    participants = (
+        db.query(CoBuyParticipant).filter(CoBuyParticipant.pool_id == pool.id).all()
+    )
+    paid = [p for p in participants if p.status in _COUNTED_STATUSES]
+    orders = [
+        o
+        for p in paid
+        for o in _linked_orders(db, p, ("held", "disputed", "released"))
+    ]
+    if any(o.status == "released" or o.shipped_at is not None for o in orders):
+        raise HTTPException(
+            status_code=409,
+            detail="Some buyers' shares have already shipped — this deal can't be cancelled",
+        )
+    now = datetime.now(timezone.utc)
+    for order in orders:
+        refund_order(db, order, now)
+    for participant in paid:
+        if not _linked_orders(db, participant, ("refunded",)):
+            # Paid before joins had an escrow order: queue its payment for a
+            # full refund instead.
+            for payment in db.query(PaywayPayment).filter(
+                PaywayPayment.co_buy_participant_id == participant.id,
+                PaywayPayment.status == PAYMENT_PAID,
+            ):
+                payment.status = PAYMENT_REFUND_DUE
+        participant.status = "refunded"
+        participant.refunded_at = now
+    for participant in participants:
+        if participant.status == "pending_payment":
+            for order in _linked_orders(db, participant, ("pending_payment",)):
+                order.status = "cancelled"
+                order.cancelled_at = now
+            db.delete(participant)
+    return {p.buyer_id for p in paid}
+
+
+def settle_pool(db: Session, pool: CoBuyPool) -> None:
+    """Moves an open deal on: funded once its target is reached; at its
+    deadline short of the target, renewed (auto-renew) or closed with every
+    buyer refunded in full. Commits and notifies when anything changed."""
+    if pool.status != "open":
+        return
+    if remaining_qty(db, pool) == 0:
+        pool.status = "funded"
+        db.commit()
+        return
+    now = datetime.now(timezone.utc)
+    if pool.ends_at is None:
+        # Created before deals had a real deadline: start its clock now
+        # rather than expiring it on a deadline nobody was ever shown.
+        pool.ends_at = now + duration_of(pool.time_left)
+        db.commit()
+        return
+    ends = deadline(pool)
+    if now < ends:
+        return
+    if pool.auto_renew:
+        step = duration_of(pool.time_left)
+        while ends <= now:
+            ends += step
+        pool.ends_at = ends
+        db.commit()
+        push_notification(
+            db,
+            pool.seller_id,
+            "co_buy",
+            "Co-buy deal renewed",
+            f"{pool.product_name} didn't reach its target in time, so it's open "
+            "for another round.",
+            NotificationTarget(route="coBuyDetail", params={"id": pool.id}),
+        )
+        return
+    buyer_ids = _refund_everyone(db, pool)
+    pool.status = "expired"
+    db.commit()
+    target = NotificationTarget(route="coBuyDetail", params={"id": pool.id})
+    for buyer_id in buyer_ids:
+        push_notification(
+            db,
+            buyer_id,
+            "co_buy",
+            "Co-buy deal didn't reach its target",
+            f"{pool.product_name} closed without enough buyers. You'll get a "
+            "full refund, including the escrow fee.",
+            target,
+        )
+    push_notification(
+        db,
+        pool.seller_id,
+        "co_buy",
+        "Co-buy deal expired",
+        f"{pool.product_name} closed short of its target. Buyers were refunded.",
+        target,
+    )
+
+
+def settle_due_pools(db: Session) -> None:
+    """Runs `settle_pool` over every open deal — on a timer (main.py) and
+    whenever deals are listed, since there's no other scheduler."""
+    for pool in db.query(CoBuyPool).filter(CoBuyPool.status == "open").all():
+        try:
+            settle_pool(db, pool)
+        except HTTPException:
+            # A share already shipped on an expired deal — leave it for review.
+            db.rollback()
+
+
+def ensure_open(db: Session, pool: CoBuyPool) -> None:
+    """Refuses joining or paying into a deal that has closed."""
+    settle_pool(db, pool)
+    if pool.status == "expired":
+        raise HTTPException(status_code=409, detail="This co-buy deal has ended")
+
+
 def remaining_qty(db: Session, pool: CoBuyPool) -> int:
     """Units still open in a deal — only paid joins count toward it."""
     taken = sum(p.quantity for p in _active_participants(db, pool.id))
@@ -566,6 +718,9 @@ def hold_join(
     db.commit()
 
     current = pool.target_qty - remaining_qty(db, pool)
+    if current >= pool.target_qty and pool.status == "open":
+        pool.status = "funded"
+        db.commit()
     target = NotificationTarget(route="coBuyDetail", params={"id": pool.id})
     push_notification(
         db,
@@ -576,7 +731,10 @@ def hold_join(
         target,
     )
     if before < pool.target_qty <= current:
-        body = f"{pool.product_name} hit its group buy target. Checkout closes soon."
+        body = (
+            f"{pool.product_name} hit its group buy target. "
+            "The seller will now ship everyone's share."
+        )
         recipients = {p.buyer_id for p in _active_participants(db, pool.id)}
         recipients.add(pool.seller_id)
         for recipient in recipients:

@@ -923,6 +923,13 @@ def ship_order(
             status_code=409,
             detail="The buyer asked to leave this co-buy deal — wait for the admin's decision",
         )
+    if participant is not None:
+        pool = db.get(CoBuyPool, participant.pool_id)
+        if pool is not None and pool.status != "funded":
+            raise HTTPException(
+                status_code=409,
+                detail="This co-buy deal hasn't reached its target yet — ship once it does",
+            )
     if order.shipped_at is not None:
         raise HTTPException(status_code=409, detail="Order already shipped")
     courier = courier.strip()

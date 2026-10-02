@@ -30,6 +30,7 @@ class CoBuySession {
     this.category = '',
     this.description = '',
     this.autoRenew = false,
+    this.duration = '',
     this.myStatus,
     this.myLeaveAdminNote,
     this.sellerLogoOverride,
@@ -72,6 +73,10 @@ class CoBuySession {
   final bool joined;
   final bool autoRenew;
 
+  /// The seller's chosen run length ("3 days left"); [timeLeft] is the live
+  /// countdown the backend works out from the deal's deadline.
+  final String duration;
+
   /// Real network logo for the seller's shop, when one exists.
   final String? sellerLogoOverride;
 
@@ -109,9 +114,8 @@ class CoBuySession {
   int get savingsPct =>
       (((originalPrice - price) / originalPrice) * 100).round();
 
-  /// A deal that ran out of time without reaching its target is tagged by
-  /// putting "expired" in [timeLeft] — there's no separate deadline clock in
-  /// this data model.
+  /// A deal that ran out of time without reaching its target comes back
+  /// from the backend with [timeLeft] set to "Expired".
   CoBuyDealStatus get dealStatus {
     if (timeLeft.toLowerCase().contains('expired')) {
       return CoBuyDealStatus.expired;
@@ -178,6 +182,7 @@ class CoBuySession {
       price: (json['price'] as num).toDouble(),
       joined: json['joined'] as bool,
       autoRenew: json['auto_renew'] as bool,
+      duration: json['duration'] as String? ?? '',
       myStatus: json['my_status'] as String?,
       myLeaveAdminNote: json['my_leave_admin_note'] as String?,
       photoUrls: photoUrls,

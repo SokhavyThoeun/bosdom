@@ -41,7 +41,8 @@ StoreAddress.__table__.create(bind=engine, checkfirst=True)
 # New columns on existing tables (mirrors supabase/migrations/
 # 20261002110000_order_shipping_and_co_buy_orders.sql and
 # 20261002120000_paid_sample_orders.sql and
-# 20261002130000_buyer_refunds.sql); idempotent.
+# 20261002130000_buyer_refunds.sql and
+# 20261002140000_co_buy_deadlines.sql); idempotent.
 if engine.dialect.name == "postgresql":
     with engine.begin() as conn:
         conn.execute(
@@ -65,6 +66,13 @@ if engine.dialect.name == "postgresql":
         )
         conn.execute(
             text(
+                "alter table co_buy_deal_pools"
+                " add column if not exists ends_at timestamptz,"
+                " add column if not exists status text not null default 'open'"
+            )
+        )
+        conn.execute(
+            text(
                 "alter table payway_payments add column if not exists"
                 " shipping_fee double precision not null default 0,"
                 " add column if not exists refund_sent_at timestamptz"
@@ -84,6 +92,8 @@ def _sync_payments_once() -> None:
     db = SessionLocal()
     try:
         payments.sync_pending_payments(db)
+        # Same timer closes co-buy deals whose time ran out.
+        co_buy.settle_due_pools(db)
     finally:
         db.close()
 

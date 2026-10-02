@@ -12,7 +12,7 @@ from ..auth import CurrentUser, get_current_user
 from ..config import settings
 from ..db import get_db
 from ..models import CoBuyParticipant, CoBuyPool, Listing, Order, PaywayPayment
-from .co_buy import _own_participant, hold_join, remaining_qty
+from .co_buy import _own_participant, ensure_open, hold_join, remaining_qty
 from .notifications import NotificationTarget, push_notification
 from .orders import (
     STATUS_PENDING_PAYMENT,
@@ -146,6 +146,7 @@ def _settle(db: Session, payment: PaywayPayment, apv: str, now: datetime) -> Non
     if (
         participant is not None
         and pool is not None
+        and pool.status != "expired"
         and participant.status == "pending_payment"
         and participant.quantity <= remaining_qty(db, pool)
     ):
@@ -156,7 +157,7 @@ def _settle(db: Session, payment: PaywayPayment, apv: str, now: datetime) -> Non
             mark_order_paid(db, order, payment.payment_option, payment.tran_id)
         return
 
-    # The deal filled up (or the join was dropped) while the buyer was
+    # The deal filled up, closed, or the join was dropped while the buyer was
     # scanning — the money came in but there's no spot left to hold it for.
     if participant is not None and participant.status == "pending_payment":
         db.delete(participant)
@@ -289,6 +290,7 @@ def _open_payment(
         pool = db.get(CoBuyPool, payload.co_buy_pool_id)
         if pool is None:
             raise HTTPException(status_code=404, detail="Co-buy deal not found")
+        ensure_open(db, pool)
         participant = _own_participant(db, pool.id, user.id)
         if participant is None:
             raise HTTPException(status_code=404, detail="Join this deal before paying")

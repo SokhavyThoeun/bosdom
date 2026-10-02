@@ -193,7 +193,9 @@ class _CoBuyCreateFormState extends ConsumerState<_CoBuyCreateForm> {
     _gradeController.text = session.grade;
     _packagingController.text = session.packaging;
     _duration = _Duration.values.firstWhere(
-      (d) => d.timeLeftText == session.timeLeft,
+      (d) =>
+          d.timeLeftText ==
+          (session.duration.isNotEmpty ? session.duration : session.timeLeft),
       orElse: () => _Duration.threeDays,
     );
     _autoRenew = session.autoRenew;
