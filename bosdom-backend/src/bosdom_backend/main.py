@@ -1,10 +1,15 @@
+import asyncio
+import logging
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy import text
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
 from . import storage
-from .db import engine
+from .db import SessionLocal, engine
 from .models import PaywayPayment, StoreAddress, UserNotification
 from .routers import (
     admin,
@@ -67,7 +72,43 @@ if engine.dialect.name == "postgresql":
         )
 storage.ensure_buckets()
 
-app = FastAPI(title="Bosdom Backend")
+# How often pending PayWay payments are re-checked in the background. KHQR
+# codes live 5 minutes and card pages 15, so this catches every payment well
+# within its lifetime.
+_PAYMENT_SYNC_INTERVAL_SECONDS = 30
+
+_log = logging.getLogger(__name__)
+
+
+def _sync_payments_once() -> None:
+    db = SessionLocal()
+    try:
+        payments.sync_pending_payments(db)
+    finally:
+        db.close()
+
+
+async def _payment_sync_loop() -> None:
+    """Settles payments PayWay approved but nobody asked about — the buyer
+    closed the app, and without a public callback URL PayWay can't tell us."""
+    while True:
+        await asyncio.sleep(_PAYMENT_SYNC_INTERVAL_SECONDS)
+        try:
+            await run_in_threadpool(_sync_payments_once)
+        except Exception:  # noqa: BLE001 — keep the loop alive
+            _log.exception("Background payment sync failed")
+
+
+@asynccontextmanager
+async def _lifespan(_: FastAPI):
+    task = asyncio.create_task(_payment_sync_loop())
+    try:
+        yield
+    finally:
+        task.cancel()
+
+
+app = FastAPI(title="Bosdom Backend", lifespan=_lifespan)
 
 app.add_middleware(
     CORSMiddleware,

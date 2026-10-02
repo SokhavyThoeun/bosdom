@@ -7,11 +7,11 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import Session
 
-from .. import payway
+from .. import payway, shipping
 from ..auth import CurrentUser, get_current_user
 from ..config import settings
 from ..db import get_db
-from ..models import CoBuyParticipant, CoBuyPool, Order, PaywayPayment
+from ..models import CoBuyParticipant, CoBuyPool, Listing, Order, PaywayPayment
 from .co_buy import _own_participant, hold_join, remaining_qty
 from .notifications import NotificationTarget, push_notification
 from .orders import (
@@ -37,10 +37,6 @@ CARD_LIFETIME = timedelta(minutes=15)
 # only give up on it a little after its own expiry.
 _EXPIRY_GRACE = timedelta(minutes=2)
 
-# Shipping is still estimated on the device (shipping_fee_calculator.dart);
-# anything above this is not a real courier quote.
-_MAX_SHIPPING_FEE = 500.0
-
 PAYMENT_PENDING = "pending"
 PAYMENT_PAID = "paid"
 PAYMENT_EXPIRED = "expired"
@@ -53,7 +49,13 @@ class PaymentStartRequest(BaseModel):
     # buyer's pending join on a co-buy deal.
     order_ids: list[str] = []
     co_buy_pool_id: str | None = None
+    # Ignored: shipping is priced here (see `_shipping_for`). Older app
+    # versions still send it.
     shipping_fee: float = 0
+    # The courier picked at checkout (shipping.CARRIERS); None = default.
+    carrier: str | None = None
+    # Fallback when the delivery address names no known province.
+    destination_province: str | None = None
     # Co-buy only: where the seller ships this buyer's share (regular orders
     # carry it from `POST /orders`).
     shipping_name: str = ""
@@ -174,6 +176,24 @@ def _settle(db: Session, payment: PaywayPayment, apv: str, now: datetime) -> Non
     )
 
 
+def sync_pending_payments(db: Session) -> int:
+    """Checks every still-pending payment with PayWay — run on a timer (see
+    main.py) so a payment that went through gets its orders marked paid even
+    when the buyer closed the app and PayWay's callback can't reach us.
+    Returns how many were checked."""
+    if not payway.is_configured():
+        return 0
+    pending = (
+        db.query(PaywayPayment).filter(PaywayPayment.status == PAYMENT_PENDING).all()
+    )
+    for payment in pending:
+        try:
+            sync_payment(db, payment)
+        except Exception:  # noqa: BLE001 — one bad payment mustn't stop the rest
+            db.rollback()
+    return len(pending)
+
+
 def sync_payment(db: Session, payment: PaywayPayment) -> None:
     """Brings a pending payment up to date with PayWay's Check Transaction —
     the only thing trusted to say a payment went through."""
@@ -227,18 +247,15 @@ def sync_payment(db: Session, payment: PaywayPayment) -> None:
 
 def _open_payment(
     payload: PaymentStartRequest, user: CurrentUser, db: Session
-) -> tuple[list[str], str | None, float]:
+) -> tuple[list[str], str | None, float, float]:
     """Checks what a new payment would cover and works out its amount.
-    Returns (order ids, co-buy participant id, amount in USD)."""
+    Returns (order ids, co-buy participant id, amount in USD, shipping)."""
     if not payway.is_configured():
         raise HTTPException(status_code=503, detail="Online payments are unavailable")
     if bool(payload.order_ids) == bool(payload.co_buy_pool_id):
         raise HTTPException(
             status_code=422, detail="Pay for either orders or a co-buy join"
         )
-    if not 0 <= payload.shipping_fee <= _MAX_SHIPPING_FEE:
-        raise HTTPException(status_code=422, detail="Invalid shipping fee")
-
     # An earlier QR or card page may have been paid after all — settle
     # those first so this can't charge the buyer twice.
     earlier = (
@@ -288,14 +305,42 @@ def _open_payment(
         participant_id = participant.id
         subtotal = pool.price * participant.quantity
         order = _co_buy_order(db, pool, participant, payload)
-        return (
-            [order.id],
-            participant_id,
-            round((subtotal + payload.shipping_fee) * (1 + ESCROW_FEE_RATE), 2),
-        )
+        orders = [order]
 
-    amount = round((subtotal + payload.shipping_fee) * (1 + ESCROW_FEE_RATE), 2)
-    return list(payload.order_ids), participant_id, amount
+    shipping_fee = _shipping_for(db, orders, payload)
+    amount = round((subtotal + shipping_fee) * (1 + ESCROW_FEE_RATE), 2)
+    return [o.id for o in orders], participant_id, amount, shipping_fee
+
+
+def _shipping_for(
+    db: Session, orders: list[Order], payload: PaymentStartRequest
+) -> float:
+    """What this checkout is charged for shipping, priced from the real
+    weight of what's being bought and the province it's being delivered to
+    — never taken from the app."""
+    weight = 0.0
+    for order in orders:
+        item = db.get(Listing, order.listing_id) or db.get(CoBuyPool, order.listing_id)
+        unit = shipping.unit_weight_kg(
+            item.weight if item else None, item.product_name if item else order.product_name
+        )
+        weight += unit * order.quantity
+    address = orders[0].shipping_address if orders else payload.shipping_address
+    destination = shipping.province_in(address)
+    if destination is None:
+        fallback = (payload.destination_province or "").strip().lower()
+        destination = (
+            fallback if fallback in shipping.KM_FROM_PHNOM_PENH else shipping.ORIGIN_PROVINCE
+        )
+    if payload.carrier is not None and payload.carrier not in shipping.CARRIERS:
+        raise HTTPException(status_code=422, detail="Unknown courier")
+    quote = shipping.quote(payload.carrier, weight, destination)
+    if quote is None:
+        raise HTTPException(
+            status_code=422,
+            detail="This courier can't deliver this order — pick another one",
+        )
+    return quote.charged
 
 
 def _co_buy_order(
@@ -348,7 +393,9 @@ def start_khqr(
     """Opens a PayWay KHQR transaction for one checkout's orders (or one
     co-buy join) and returns the QR to show. Nothing is marked paid here —
     that happens in `sync_payment` once PayWay approves it."""
-    order_ids, participant_id, amount = _open_payment(payload, user, db)
+    order_ids, participant_id, amount, shipping_fee = _open_payment(
+        payload, user, db
+    )
     tran_id = _new_tran_id()
     try:
         checkout = payway.create_khqr(
@@ -366,7 +413,7 @@ def start_khqr(
         order_ids=order_ids,
         co_buy_participant_id=participant_id,
         amount=amount,
-        shipping_fee=payload.shipping_fee,
+        shipping_fee=shipping_fee,
         currency="USD",
         payment_option="khqr",
         expires_at=datetime.now(timezone.utc) + KHQR_LIFETIME,
@@ -419,14 +466,16 @@ def start_card(
     """Opens a Visa/Mastercard/UnionPay/JCB payment. The app shows
     `checkout_url` in a WebView, which hands the buyer to PayWay's hosted
     card page; like KHQR, it's only marked paid once PayWay approves it."""
-    order_ids, participant_id, amount = _open_payment(payload, user, db)
+    order_ids, participant_id, amount, shipping_fee = _open_payment(
+        payload, user, db
+    )
     payment = PaywayPayment(
         tran_id=_new_tran_id(),
         buyer_id=user.id,
         order_ids=order_ids,
         co_buy_participant_id=participant_id,
         amount=amount,
-        shipping_fee=payload.shipping_fee,
+        shipping_fee=shipping_fee,
         currency="USD",
         payment_option="card",
         expires_at=datetime.now(timezone.utc) + CARD_LIFETIME,

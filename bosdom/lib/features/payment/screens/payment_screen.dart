@@ -68,6 +68,8 @@ class PaymentScreen extends ConsumerStatefulWidget {
     super.key,
     required this.amount,
     this.shippingFee = 0,
+    this.carrier,
+    this.destinationProvince,
     this.itemCount = 3,
     this.items = const [],
     this.shippingName = '',
@@ -78,9 +80,14 @@ class PaymentScreen extends ConsumerStatefulWidget {
 
   final double amount;
 
-  /// Part of [amount] that's shipping — the backend adds it to the items
-  /// when working out what PayWay should charge.
+  /// Part of [amount] that's shipping, as estimated here. The backend
+  /// re-prices it from [carrier] and the delivery address and charges that.
   final double shippingFee;
+
+  /// The courier picked at checkout, and the buyer's province (used only
+  /// when the delivery address names none).
+  final String? carrier;
+  final String? destinationProvince;
   final int itemCount;
   final List<OrderLineSummary> items;
   final String shippingName;
@@ -129,12 +136,16 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         checkout = await PaywayService.startCard(
           coBuyPoolId: coBuyPoolId,
           shippingFee: widget.shippingFee,
+          carrier: widget.carrier,
+          destinationProvince: widget.destinationProvince,
           shipTo: _shipTo,
         );
       } else {
         checkout = await PaywayService.startCard(
           orderIds: await _orderIdsToPay(),
           shippingFee: widget.shippingFee,
+          carrier: widget.carrier,
+          destinationProvince: widget.destinationProvince,
         );
       }
     } catch (e) {
@@ -217,12 +228,16 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       payment = await PaywayService.startKhqr(
         coBuyPoolId: coBuyPoolId,
         shippingFee: widget.shippingFee,
+        carrier: widget.carrier,
+        destinationProvince: widget.destinationProvince,
         shipTo: _shipTo,
       );
     } else {
       payment = await PaywayService.startKhqr(
         orderIds: await _orderIdsToPay(),
         shippingFee: widget.shippingFee,
+        carrier: widget.carrier,
+        destinationProvince: widget.destinationProvince,
       );
     }
     _khqrTranId = payment.tranId;

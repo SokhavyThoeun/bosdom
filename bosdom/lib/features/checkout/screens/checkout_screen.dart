@@ -374,6 +374,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                         extra: {
                           'amount': _total(shipping),
                           'shippingFee': shipping,
+                          'carrier': _kShippingOptions
+                              .firstWhere((o) => o.id == effectiveShippingId)
+                              .name,
+                          'destinationProvince': destinationProvince,
                           'itemCount': _items.length,
                           'coBuyPoolId': widget.coBuyPoolId,
                           'shippingName': profile?.name ?? '',

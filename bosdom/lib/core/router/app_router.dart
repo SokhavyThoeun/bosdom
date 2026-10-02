@@ -379,6 +379,8 @@ abstract final class AppRouter {
             return PaymentScreen(
               amount: extra['amount'] as double,
               shippingFee: (extra['shippingFee'] as num?)?.toDouble() ?? 0,
+              carrier: extra['carrier'] as String?,
+              destinationProvince: extra['destinationProvince'] as String?,
               itemCount: extra['itemCount'] as int,
               items:
                   (extra['items'] as List?)?.cast<OrderLineSummary>() ??

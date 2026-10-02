@@ -111,6 +111,8 @@ abstract final class PaywayService {
     String? coBuyPoolId,
     double shippingFee = 0,
     CoBuyShipTo? shipTo,
+    String? carrier,
+    String? destinationProvince,
   }) async {
     final response = await http
         .post(
@@ -120,6 +122,8 @@ abstract final class PaywayService {
             'order_ids': orderIds,
             'co_buy_pool_id': coBuyPoolId,
             'shipping_fee': shippingFee,
+            'carrier': carrier,
+            'destination_province': destinationProvince,
             if (shipTo != null) ...{
               'shipping_name': shipTo.name,
               'shipping_address': shipTo.address,
@@ -144,6 +148,8 @@ abstract final class PaywayService {
     String? coBuyPoolId,
     double shippingFee = 0,
     CoBuyShipTo? shipTo,
+    String? carrier,
+    String? destinationProvince,
   }) async {
     final response = await http
         .post(
@@ -153,6 +159,8 @@ abstract final class PaywayService {
             'order_ids': orderIds,
             'co_buy_pool_id': coBuyPoolId,
             'shipping_fee': shippingFee,
+            'carrier': carrier,
+            'destination_province': destinationProvince,
             if (shipTo != null) ...{
               'shipping_name': shipTo.name,
               'shipping_address': shipTo.address,
