@@ -1342,6 +1342,7 @@
     }
   },
   "sellerEarningsSaleAmountLabel": "Sale amount",
+  "sellerEarningsShippingLabel": "Shipping (paid by buyer)",
   "sellerEarningsPlatformFeeLabel": "Platform fee ({rate}%)",
   "@sellerEarningsPlatformFeeLabel": {
     "placeholders": {

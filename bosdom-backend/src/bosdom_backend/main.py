@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from sqlalchemy import text
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
@@ -31,6 +32,31 @@ from .routers import (
 UserNotification.__table__.create(bind=engine, checkfirst=True)
 PaywayPayment.__table__.create(bind=engine, checkfirst=True)
 StoreAddress.__table__.create(bind=engine, checkfirst=True)
+
+# New columns on existing tables (mirrors supabase/migrations/
+# 20261002110000_order_shipping_and_co_buy_orders.sql); idempotent.
+if engine.dialect.name == "postgresql":
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "alter table escrow_orders"
+                " add column if not exists shipping_fee double precision"
+                " not null default 0,"
+                " add column if not exists co_buy_participant_id text"
+            )
+        )
+        conn.execute(
+            text(
+                "create index if not exists escrow_orders_co_buy_participant_id_idx"
+                " on escrow_orders (co_buy_participant_id)"
+            )
+        )
+        conn.execute(
+            text(
+                "alter table payway_payments add column if not exists"
+                " shipping_fee double precision not null default 0"
+            )
+        )
 storage.ensure_buckets()
 
 app = FastAPI(title="Bosdom Backend")

@@ -59,7 +59,7 @@ def settle_dispute(
         raise HTTPException(status_code=404, detail="Order not found")
     now = datetime.now(timezone.utc)
     if resolution == RESOLUTION_RELEASE:
-        release_funds(order, now, fee_rate=fee_rate_for(db, order.seller_id))
+        release_funds(db, order, now, fee_rate=fee_rate_for(db, order.seller_id))
     else:
         _transition(order, STATUS_REFUNDED)
         order.refunded_at = now

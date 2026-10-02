@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from ..auth import CurrentUser, get_current_user
 from ..db import get_db
-from ..models import CoBuyParticipant, CoBuyPool, Profile, Shop
+from ..models import CoBuyParticipant, CoBuyPool, Order, Profile, Shop
 from ..utils.images import save_image_as_webp
 from .listings import ColorOptionOut, _parse_colors, _parse_sizes
 from .notifications import NotificationTarget, push_notification
@@ -420,6 +420,10 @@ def leave_pool(
     participant = _own_participant(db, pool.id, user.id)
     if participant is not None:
         if participant.status == "pending_payment":
+            # Its unpaid escrow order (made when a payment was started).
+            for order in _linked_orders(db, participant, ("pending_payment",)):
+                order.status = "cancelled"
+                order.cancelled_at = datetime.now(timezone.utc)
             db.delete(participant)
         elif participant.status != "refunded":
             raise HTTPException(
@@ -457,6 +461,11 @@ def request_leave(
         raise HTTPException(
             status_code=409, detail="Your leave request is awaiting admin review."
         )
+    if any(o.shipped_at is not None for o in _linked_orders(db, participant)):
+        raise HTTPException(
+            status_code=409,
+            detail="Your share has already shipped. Report a problem on the order instead.",
+        )
 
     participant.status = "leave_requested"
     participant.leave_reason = reason
@@ -466,6 +475,22 @@ def request_leave(
     db.commit()
     db.refresh(pool)
     return _serialize_pool(pool, db, user.id)
+
+
+def _linked_orders(
+    db: Session,
+    participant: CoBuyParticipant,
+    statuses: tuple[str, ...] = ("held", "disputed"),
+) -> list[Order]:
+    """The escrow orders made for this join (see payments `_co_buy_order`)."""
+    return (
+        db.query(Order)
+        .filter(
+            Order.co_buy_participant_id == participant.id,
+            Order.status.in_(statuses),
+        )
+        .all()
+    )
 
 
 def remaining_qty(db: Session, pool: CoBuyPool) -> int:

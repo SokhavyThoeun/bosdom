@@ -805,6 +805,7 @@
   "sellerEarningsTransactionsCountLabel": "{count} ប្រតិបត្តិការ",
   "sellerEarningsOrderBuyerLabel": "#{id} • {buyer}",
   "sellerEarningsSaleAmountLabel": "ចំនួនលក់",
+  "sellerEarningsShippingLabel": "ថ្លៃដឹកជញ្ជូន (អ្នកទិញបង់)",
   "sellerEarningsPlatformFeeLabel": "ថ្លៃសេវាវេទិកា ({rate}%)",
   "sellerEarningsYourEarningsLabel": "ចំណូលរបស់អ្នក",
   "sellerEarningsWithdrawalLabel": "ការដកប្រាក់",

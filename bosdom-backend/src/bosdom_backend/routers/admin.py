@@ -1370,6 +1370,11 @@ def approve_co_buy_leave(
     the deal (freeing their quantity for others)."""
     row = _pending_leave_or_error(db, participant_id)
     now = datetime.now(timezone.utc)
+    for order in db.query(Order).filter(
+        Order.co_buy_participant_id == row.id,
+        Order.status.in_(("held", "disputed")),
+    ):
+        refund_order(db, order, now)
     row.status = "refunded"
     row.refunded_at = now
     row.leave_resolved_at = now

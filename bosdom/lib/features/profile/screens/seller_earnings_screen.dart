@@ -778,6 +778,14 @@ class _TransactionCard extends ConsumerWidget {
               value: -transaction.platformFee,
               textTheme: textTheme,
             ),
+            if (transaction.shippingFee > 0) ...[
+              const SizedBox(height: 4),
+              _SummaryRow(
+                label: l10n.sellerEarningsShippingLabel,
+                value: transaction.shippingFee,
+                textTheme: textTheme,
+              ),
+            ],
             const SizedBox(height: 4),
             _SummaryRow(
               label: l10n.sellerEarningsYourEarningsLabel,

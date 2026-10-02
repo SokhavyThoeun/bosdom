@@ -258,7 +258,16 @@ class Order(Base):
     product_name: Mapped[str] = mapped_column(String)
     unit_price: Mapped[float] = mapped_column(Float)
     quantity: Mapped[int] = mapped_column(Integer)
+    # Goods only (price x quantity) — the commission is taken on this.
     total_amount: Mapped[float] = mapped_column(Float)
+    # This order's share of the shipping the buyer paid at checkout, passed
+    # on to the seller (who ships it) on release. Set when payment lands.
+    shipping_fee: Mapped[float] = mapped_column(Float, default=0.0)
+    # Set when this order is a paid co-buy join — the deal's participant row
+    # it fulfils (see routers/payments.py `_open_payment`).
+    co_buy_participant_id: Mapped[str | None] = mapped_column(
+        String, nullable=True, index=True
+    )
     shipping_name: Mapped[str] = mapped_column(String, default="")
     shipping_address: Mapped[str] = mapped_column(String, default="")
     shipping_phone: Mapped[str] = mapped_column(String, default="")
@@ -332,7 +341,8 @@ class Order(Base):
     review_remaining_seconds: Mapped[int | None] = mapped_column(
         Integer, nullable=True
     )
-    # Set on release: the platform's cut and what the seller is owed.
+    # Set on release: the platform's cut and what the seller is owed
+    # (goods - platform_fee + shipping_fee).
     platform_fee: Mapped[float | None] = mapped_column(Float, nullable=True)
     seller_amount: Mapped[float | None] = mapped_column(Float, nullable=True)
     auto_released: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -525,6 +535,8 @@ class PaywayPayment(Base):
         String, nullable=True, index=True
     )
     amount: Mapped[float] = mapped_column(Float)
+    # The shipping included in `amount`, split across the orders on settle.
+    shipping_fee: Mapped[float] = mapped_column(Float, default=0.0)
     currency: Mapped[str] = mapped_column(String, default="USD")
     payment_option: Mapped[str] = mapped_column(String, default="khqr")
     # pending -> paid | expired | failed | refund_due (paid, but the co-buy

@@ -14,7 +14,13 @@ from ..db import get_db
 from ..models import CoBuyParticipant, CoBuyPool, Order, PaywayPayment
 from .co_buy import _own_participant, hold_join, remaining_qty
 from .notifications import NotificationTarget, push_notification
-from .orders import STATUS_PENDING_PAYMENT, _aware, mark_order_paid
+from .orders import (
+    STATUS_PENDING_PAYMENT,
+    _aware,
+    allocate_shipping,
+    cancel_unpaid_order,
+    mark_order_paid,
+)
 
 router = APIRouter(prefix="/payments", tags=["payments"])
 
@@ -49,6 +55,11 @@ class PaymentStartRequest(BaseModel):
     order_ids: list[str] = []
     co_buy_pool_id: str | None = None
     shipping_fee: float = 0
+    # Co-buy only: where the seller ships this buyer's share (regular orders
+    # carry it from `POST /orders`).
+    shipping_name: str = ""
+    shipping_address: str = ""
+    shipping_phone: str = ""
 
 
 class KhqrStartOut(BaseModel):
@@ -113,11 +124,16 @@ def _settle(db: Session, payment: PaywayPayment, apv: str, now: datetime) -> Non
     payment.paid_at = now
     db.commit()
 
+    orders = [
+        order
+        for order in (db.get(Order, order_id) for order_id in payment.order_ids)
+        if order is not None and order.status == STATUS_PENDING_PAYMENT
+    ]
+    allocate_shipping(orders, payment.shipping_fee or 0)
+
     if payment.co_buy_participant_id is None:
-        for order_id in payment.order_ids:
-            order = db.get(Order, order_id)
-            if order is not None and order.status == STATUS_PENDING_PAYMENT:
-                mark_order_paid(db, order, payment.payment_option, payment.tran_id)
+        for order in orders:
+            mark_order_paid(db, order, payment.payment_option, payment.tran_id)
         return
 
     participant = db.get(CoBuyParticipant, payment.co_buy_participant_id)
@@ -129,12 +145,18 @@ def _settle(db: Session, payment: PaywayPayment, apv: str, now: datetime) -> Non
         and participant.quantity <= remaining_qty(db, pool)
     ):
         hold_join(db, pool, participant, payment.payment_option, payment.tran_id)
+        # The join's escrow order: from here it ships, releases and pays out
+        # like any other order.
+        for order in orders:
+            mark_order_paid(db, order, payment.payment_option, payment.tran_id)
         return
 
     # The deal filled up (or the join was dropped) while the buyer was
     # scanning — the money came in but there's no spot left to hold it for.
     if participant is not None and participant.status == "pending_payment":
         db.delete(participant)
+    for order in orders:
+        cancel_unpaid_order(order, now)
     payment.status = PAYMENT_REFUND_DUE
     db.commit()
     push_notification(
@@ -254,9 +276,50 @@ def _open_payment(
             )
         participant_id = participant.id
         subtotal = pool.price * participant.quantity
+        order = _co_buy_order(db, pool, participant, payload)
+        return (
+            [order.id],
+            participant_id,
+            round((subtotal + payload.shipping_fee) * (1 + ESCROW_FEE_RATE), 2),
+        )
 
     amount = round((subtotal + payload.shipping_fee) * (1 + ESCROW_FEE_RATE), 2)
     return list(payload.order_ids), participant_id, amount
+
+
+def _co_buy_order(
+    db: Session,
+    pool: CoBuyPool,
+    participant: CoBuyParticipant,
+    payload: PaymentStartRequest,
+) -> Order:
+    """The unpaid escrow order for a co-buy join, reused across payment
+    attempts. Once paid it ships, releases and pays out like any order."""
+    order = (
+        db.query(Order)
+        .filter(
+            Order.co_buy_participant_id == participant.id,
+            Order.status == STATUS_PENDING_PAYMENT,
+        )
+        .first()
+    )
+    if order is None:
+        order = Order(
+            buyer_id=participant.buyer_id,
+            seller_id=pool.seller_id,
+            listing_id=pool.id,
+            co_buy_participant_id=participant.id,
+        )
+        db.add(order)
+    order.product_name = pool.product_name
+    order.unit_price = pool.price
+    order.quantity = participant.quantity
+    order.total_amount = round(pool.price * participant.quantity, 2)
+    order.shipping_name = payload.shipping_name
+    order.shipping_address = payload.shipping_address
+    order.shipping_phone = payload.shipping_phone
+    db.commit()
+    return order
 
 
 def _callback_url() -> str | None:
@@ -292,6 +355,7 @@ def start_khqr(
         order_ids=order_ids,
         co_buy_participant_id=participant_id,
         amount=amount,
+        shipping_fee=payload.shipping_fee,
         currency="USD",
         payment_option="khqr",
         expires_at=datetime.now(timezone.utc) + KHQR_LIFETIME,
@@ -351,6 +415,7 @@ def start_card(
         order_ids=order_ids,
         co_buy_participant_id=participant_id,
         amount=amount,
+        shipping_fee=payload.shipping_fee,
         currency="USD",
         payment_option="card",
         expires_at=datetime.now(timezone.utc) + CARD_LIFETIME,

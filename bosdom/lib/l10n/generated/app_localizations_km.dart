@@ -2578,6 +2578,9 @@ class AppLocalizationsKm extends AppLocalizations {
   String get sellerEarningsSaleAmountLabel => 'ចំនួនលក់';
 
   @override
+  String get sellerEarningsShippingLabel => 'ថ្លៃដឹកជញ្ជូន (អ្នកទិញបង់)';
+
+  @override
   String sellerEarningsPlatformFeeLabel(int rate) {
     return 'ថ្លៃសេវាវេទិកា ($rate%)';
   }

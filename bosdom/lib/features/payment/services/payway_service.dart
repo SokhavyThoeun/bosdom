@@ -110,6 +110,7 @@ abstract final class PaywayService {
     List<String> orderIds = const [],
     String? coBuyPoolId,
     double shippingFee = 0,
+    CoBuyShipTo? shipTo,
   }) async {
     final response = await http
         .post(
@@ -119,6 +120,11 @@ abstract final class PaywayService {
             'order_ids': orderIds,
             'co_buy_pool_id': coBuyPoolId,
             'shipping_fee': shippingFee,
+            if (shipTo != null) ...{
+              'shipping_name': shipTo.name,
+              'shipping_address': shipTo.address,
+              'shipping_phone': shipTo.phone,
+            },
           }),
         )
         .timeout(_timeout);
@@ -137,6 +143,7 @@ abstract final class PaywayService {
     List<String> orderIds = const [],
     String? coBuyPoolId,
     double shippingFee = 0,
+    CoBuyShipTo? shipTo,
   }) async {
     final response = await http
         .post(
@@ -146,6 +153,11 @@ abstract final class PaywayService {
             'order_ids': orderIds,
             'co_buy_pool_id': coBuyPoolId,
             'shipping_fee': shippingFee,
+            if (shipTo != null) ...{
+              'shipping_name': shipTo.name,
+              'shipping_address': shipTo.address,
+              'shipping_phone': shipTo.phone,
+            },
           }),
         )
         .timeout(_timeout);
@@ -206,3 +218,7 @@ abstract final class PaywayService {
     return response.body;
   }
 }
+
+/// Where the seller ships a co-buy buyer's share — regular orders carry it
+/// on the order itself.
+typedef CoBuyShipTo = ({String name, String address, String phone});

@@ -4689,6 +4689,12 @@ abstract class AppLocalizations {
   /// **'Sale amount'**
   String get sellerEarningsSaleAmountLabel;
 
+  /// No description provided for @sellerEarningsShippingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Shipping (paid by buyer)'**
+  String get sellerEarningsShippingLabel;
+
   /// No description provided for @sellerEarningsPlatformFeeLabel.
   ///
   /// In en, this message translates to:

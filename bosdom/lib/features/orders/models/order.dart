@@ -113,6 +113,7 @@ class Order {
     this.sellerConfirmedAt,
     this.releasedAt,
     this.platformFee,
+    this.shippingFee = 0,
     this.releaseRequestedAt,
     this.cancelledAt,
     this.refundedAt,
@@ -156,6 +157,7 @@ class Order {
     sellerConfirmedAt: _parseNullable(json['seller_confirmed_at']),
     releasedAt: _parseNullable(json['released_at']),
     platformFee: (json['platform_fee'] as num?)?.toDouble(),
+    shippingFee: (json['shipping_fee'] as num?)?.toDouble() ?? 0,
     releaseRequestedAt: _parseNullable(json['release_requested_at']),
     cancelledAt: _parseNullable(json['cancelled_at']),
     refundedAt: _parseNullable(json['refunded_at']),
@@ -211,6 +213,10 @@ class Order {
 
   /// The commission actually taken at release; `null` until then.
   final double? platformFee;
+
+  /// Shipping the buyer paid for this order — passed on to the seller with
+  /// their payout ([totalAmount] is goods only).
+  final double shippingFee;
   final DateTime? releaseRequestedAt;
   final DateTime? cancelledAt;
   final DateTime? refundedAt;

@@ -124,6 +124,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         checkout = await PaywayService.startCard(
           coBuyPoolId: coBuyPoolId,
           shippingFee: widget.shippingFee,
+          shipTo: _shipTo,
         );
       } else {
         checkout = await PaywayService.startCard(
@@ -198,6 +199,12 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     if (paid == true && mounted) await _showOrderConfirmed();
   }
 
+  CoBuyShipTo get _shipTo => (
+    name: widget.shippingName,
+    address: widget.shippingAddress,
+    phone: widget.shippingPhone,
+  );
+
   Future<KhqrPayment> _startKhqr() async {
     final coBuyPoolId = widget.coBuyPoolId;
     final KhqrPayment payment;
@@ -205,6 +212,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       payment = await PaywayService.startKhqr(
         coBuyPoolId: coBuyPoolId,
         shippingFee: widget.shippingFee,
+        shipTo: _shipTo,
       );
     } else {
       payment = await PaywayService.startKhqr(

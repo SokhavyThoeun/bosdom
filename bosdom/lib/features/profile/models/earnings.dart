@@ -31,6 +31,7 @@ class EarningsTransaction {
     this.payoutRequestedAt,
     this.payoutEtaAt,
     this.platformFeeRate = kSellerPlatformFeeRate,
+    this.shippingFee = 0,
   });
 
   /// `null` for orders that never reached escrow (unpaid or cancelled), which
@@ -60,6 +61,7 @@ class EarningsTransaction {
       status: status,
       buyerName: order.shippingName,
       saleAmount: order.totalAmount,
+      shippingFee: order.shippingFee,
       payoutRequestedAt: order.payoutRequestedAt,
       payoutEtaAt: order.payoutEtaAt,
       platformFeeRate: order.platformFee != null && order.totalAmount > 0
@@ -75,13 +77,17 @@ class EarningsTransaction {
   final String buyerName;
   final double saleAmount;
   final double platformFeeRate;
+
+  /// Shipping the buyer paid, handed on to the seller (no commission on it).
+  final double shippingFee;
   final DateTime? payoutRequestedAt;
   final DateTime? payoutEtaAt;
 
   double get platformFee => saleAmount * platformFeeRate;
 
-  /// What the seller actually keeps after the platform fee.
-  double get netAmount => saleAmount - platformFee;
+  /// What the seller is paid: the sale minus the platform fee, plus the
+  /// shipping they were paid for.
+  double get netAmount => saleAmount - platformFee + shippingFee;
 
   /// Still sitting in escrow (whether or not release has been requested).
   bool get isHeld =>

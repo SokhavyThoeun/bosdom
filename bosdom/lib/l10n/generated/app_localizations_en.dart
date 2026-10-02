@@ -2551,6 +2551,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sellerEarningsSaleAmountLabel => 'Sale amount';
 
   @override
+  String get sellerEarningsShippingLabel => 'Shipping (paid by buyer)';
+
+  @override
   String sellerEarningsPlatformFeeLabel(int rate) {
     return 'Platform fee ($rate%)';
   }

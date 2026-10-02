@@ -125,6 +125,7 @@ def is_best_seller(shop: Shop, now: datetime) -> bool:
 
 
 def release_funds(
+    db: Session,
     order: Order,
     now: datetime,
     *,
@@ -133,11 +134,19 @@ def release_funds(
 ) -> None:
     """Moves a held/disputed order to `released` and records the fee cut.
     Every release path (buyer confirm, auto-release, admin decision) goes
-    through here so the fee is always taken the same way."""
+    through here so the fee is always taken the same way. The commission is
+    on the goods only; the shipping the buyer paid goes to the seller, who
+    shipped it."""
     _transition(order, STATUS_RELEASED)
     order.released_at = now
     order.platform_fee = round(order.total_amount * fee_rate, 2)
-    order.seller_amount = round(order.total_amount - order.platform_fee, 2)
+    order.seller_amount = round(
+        order.total_amount - order.platform_fee + (order.shipping_fee or 0), 2
+    )
+    participant = _co_buy_participant(db, order)
+    if participant is not None:
+        participant.status = "released"
+        participant.released_at = now
     order.auto_released = auto
     order.review_deadline_at = None
     order.review_remaining_seconds = None
@@ -158,12 +167,42 @@ def refund_order(db: Session, order: Order, now: datetime) -> None:
     order.refunded_at = now
     order.review_deadline_at = None
     order.review_remaining_seconds = None
+    participant = _co_buy_participant(db, order)
+    if participant is not None and participant.status != "refunded":
+        # Frees their quantity in the deal for other buyers.
+        participant.status = "refunded"
+        participant.refunded_at = now
     dispute = db.query(Dispute).filter(Dispute.order_id == order.id).one_or_none()
     if dispute is not None and dispute.status != "resolved":
         dispute.status = "resolved"
         dispute.resolution = "refund"
         dispute.fault = "courier"
         dispute.resolved_at = now
+
+
+def _co_buy_participant(db: Session, order: Order) -> CoBuyParticipant | None:
+    if order.co_buy_participant_id is None:
+        return None
+    return db.get(CoBuyParticipant, order.co_buy_participant_id)
+
+
+def allocate_shipping(orders: list[Order], shipping: float) -> None:
+    """Splits one checkout's shipping across its orders in proportion to
+    their value (evenly if they're all free), the last order taking the
+    rounding remainder so the shares add up to exactly what was paid."""
+    if not orders:
+        return
+    total = sum(o.total_amount for o in orders)
+    left = round(shipping, 2)
+    for i, order in enumerate(orders):
+        if i == len(orders) - 1:
+            share = left
+        elif total > 0:
+            share = round(shipping * order.total_amount / total, 2)
+        else:
+            share = round(shipping / len(orders), 2)
+        order.shipping_fee = share
+        left = round(left - share, 2)
 
 
 def cancel_unpaid_order(order: Order, now: datetime) -> None:
@@ -223,7 +262,7 @@ def auto_release_due_orders(db: Session) -> None:
         return
     for order in due:
         release_funds(
-            order, now, auto=True, fee_rate=fee_rate_for(db, order.seller_id)
+            db, order, now, auto=True, fee_rate=fee_rate_for(db, order.seller_id)
         )
     db.commit()
     for order in due:
@@ -235,7 +274,9 @@ def seller_amount_for(order: Order) -> float:
     released before fees were recorded."""
     if order.seller_amount is not None:
         return order.seller_amount
-    return round(order.total_amount * (1 - PLATFORM_FEE_RATE), 2)
+    return round(
+        order.total_amount * (1 - PLATFORM_FEE_RATE) + (order.shipping_fee or 0), 2
+    )
 
 
 def _notify_buyer(
@@ -368,6 +409,8 @@ class OrderOut(BaseModel):
     review_deadline_at: datetime | None
     review_remaining_seconds: int | None
     platform_fee: float | None
+    # Shipping the buyer paid for this order; added to the seller's payout.
+    shipping_fee: float = 0.0
     seller_amount: float | None
     auto_released: bool
     # Not a column on `escrow_orders` — the listing's own first photo,
@@ -466,7 +509,7 @@ def _attach_hold_info(db: Session, outs: list[OrderOut]) -> list[OrderOut]:
 
 
 def _order_out_single(db: Session, order: Order) -> OrderOut:
-    listing = db.get(Listing, order.listing_id)
+    listing = db.get(Listing, order.listing_id) or db.get(CoBuyPool, order.listing_id)
     image_url = listing.photo_urls[0] if listing and listing.photo_urls else None
     seller_name, seller_logo_url = _seller_info(db, order.seller_id)
     review_row = (
@@ -488,6 +531,10 @@ def _order_out_many(db: Session, orders: list[Order]) -> list[OrderOut]:
         for listing in listings
         if listing.photo_urls
     }
+    # Co-buy orders point at their deal rather than a listing.
+    for pool in db.query(CoBuyPool).filter(CoBuyPool.id.in_(listing_ids)).all():
+        if pool.photo_urls:
+            image_by_listing[pool.id] = pool.photo_urls[0]
 
     seller_ids = {order.seller_id for order in orders}
     shops = {
@@ -609,6 +656,14 @@ def _cobuy_order_out(
 
 
 def _my_cobuy_orders(db: Session, user_id: str) -> list[OrderOut]:
+    """Synthetic order rows for co-buy joins paid before joins got a real
+    escrow `Order` — joins that have one are listed through it instead."""
+    linked = {
+        pid
+        for (pid,) in db.query(Order.co_buy_participant_id).filter(
+            Order.buyer_id == user_id, Order.co_buy_participant_id.is_not(None)
+        )
+    }
     rows = (
         db.query(CoBuyParticipant, CoBuyPool)
         .join(CoBuyPool, CoBuyPool.id == CoBuyParticipant.pool_id)
@@ -618,7 +673,11 @@ def _my_cobuy_orders(db: Session, user_id: str) -> list[OrderOut]:
         )
         .all()
     )
-    return [_cobuy_order_out(db, part, pool) for part, pool in rows]
+    return [
+        _cobuy_order_out(db, part, pool)
+        for part, pool in rows
+        if part.id not in linked
+    ]
 
 
 @router.get("/me", response_model=list[OrderOut])
@@ -781,6 +840,12 @@ def ship_order(
         raise HTTPException(
             status_code=409, detail=f"Order must be '{STATUS_HELD}' to ship"
         )
+    participant = _co_buy_participant(db, order)
+    if participant is not None and participant.status == "leave_requested":
+        raise HTTPException(
+            status_code=409,
+            detail="The buyer asked to leave this co-buy deal — wait for the admin's decision",
+        )
     if order.shipped_at is not None:
         raise HTTPException(status_code=409, detail="Order already shipped")
     courier = courier.strip()
@@ -935,7 +1000,7 @@ def release_order(
         raise HTTPException(status_code=403, detail="Only the buyer can release this order")
 
     now = datetime.now(timezone.utc)
-    release_funds(order, now, fee_rate=fee_rate_for(db, order.seller_id))
+    release_funds(db, order, now, fee_rate=fee_rate_for(db, order.seller_id))
     db.commit()
     db.refresh(order)
     notify_order_released(db, order)
