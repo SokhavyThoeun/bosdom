@@ -139,181 +139,193 @@ class _ProductDetailBodyState extends ConsumerState<_ProductDetailBody> {
               // bottom: false keeps the viewport running to the physical bottom
               // edge; the inset is added to the content padding below instead.
               bottom: false,
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _ImageGallery(product: product, colorScheme: colorScheme),
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(
-                        24,
-                        16,
-                        24,
-                        24 + MediaQuery.of(context).padding.bottom,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: colorScheme.outline),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        product.name,
-                                        style: textTheme.titleLarge?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          height: 1.2,
+              child: RefreshIndicator(
+                onRefresh: () =>
+                    ref.refresh(listingByIdProvider(widget.productId).future),
+                color: colorScheme.primary,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _ImageGallery(product: product, colorScheme: colorScheme),
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          24,
+                          16,
+                          24,
+                          24 + MediaQuery.of(context).padding.bottom,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: colorScheme.outline),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          product.name,
+                                          style: textTheme.titleLarge?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            height: 1.2,
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    _StockBadge(
-                                      inStock: product.inStock,
-                                      colorScheme: colorScheme,
-                                      textTheme: textTheme,
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                Row(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.baseline,
-                                  textBaseline: TextBaseline.alphabetic,
-                                  children: [
-                                    Text(
-                                      formatPrice(
+                                      const SizedBox(width: 12),
+                                      _StockBadge(
+                                        inStock: product.inStock,
+                                        colorScheme: colorScheme,
+                                        textTheme: textTheme,
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.baseline,
+                                    textBaseline: TextBaseline.alphabetic,
+                                    children: [
+                                      Text(
+                                        formatPrice(
+                                          ref,
+                                          _mode == _BuyMode.wholesale
+                                              ? product.priceValue
+                                              : product.samplePriceValue,
+                                        ),
+                                        style: textTheme.headlineMedium
+                                            ?.copyWith(
+                                              color: colorScheme.primary,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        l10n.productDetailPerUnit,
+                                        style: textTheme.bodySmall?.copyWith(
+                                          color: colorScheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  if (formatSecondaryPrice(
                                         ref,
                                         _mode == _BuyMode.wholesale
                                             ? product.priceValue
                                             : product.samplePriceValue,
-                                      ),
-                                      style: textTheme.headlineMedium?.copyWith(
-                                        color: colorScheme.primary,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 6),
+                                      )
+                                      case final secondary?) ...[
+                                    const SizedBox(height: 2),
                                     Text(
-                                      l10n.productDetailPerUnit,
+                                      secondary,
                                       style: textTheme.bodySmall?.copyWith(
                                         color: colorScheme.onSurfaceVariant,
                                       ),
                                     ),
                                   ],
-                                ),
-                                if (formatSecondaryPrice(
-                                      ref,
-                                      _mode == _BuyMode.wholesale
-                                          ? product.priceValue
-                                          : product.samplePriceValue,
-                                    )
-                                    case final secondary?) ...[
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    secondary,
-                                    style: textTheme.bodySmall?.copyWith(
-                                      color: colorScheme.onSurfaceVariant,
-                                    ),
+                                  const SizedBox(height: 12),
+                                  Divider(
+                                    height: 1,
+                                    color: colorScheme.outline,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.inventory_2_outlined,
+                                        size: 16,
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        l10n.productDetailMoqLabel(
+                                          '${product.moqValue}',
+                                        ),
+                                        style: textTheme.bodySmall?.copyWith(
+                                          color: colorScheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
-                                const SizedBox(height: 12),
-                                Divider(height: 1, color: colorScheme.outline),
-                                const SizedBox(height: 12),
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.inventory_2_outlined,
-                                      size: 16,
-                                      color: colorScheme.onSurfaceVariant,
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      l10n.productDetailMoqLabel(
-                                        '${product.moqValue}',
-                                      ),
-                                      style: textTheme.bodySmall?.copyWith(
-                                        color: colorScheme.onSurfaceVariant,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                              ),
                             ),
-                          ),
-                          if (product.hasVariants) ...[
+                            if (product.hasVariants) ...[
+                              const SizedBox(height: 20),
+                              ProductVariantSelector(
+                                sizes: product.sizes,
+                                selectedSize: _selectedSize,
+                                onSizeSelected: (size) =>
+                                    setState(() => _selectedSize = size),
+                                colorOptions: product.colorOptions,
+                                selectedColor: _selectedColor,
+                                onColorSelected: (color) =>
+                                    setState(() => _selectedColor = color),
+                                colorScheme: colorScheme,
+                                textTheme: textTheme,
+                              ),
+                            ],
                             const SizedBox(height: 20),
-                            ProductVariantSelector(
-                              sizes: product.sizes,
+                            Text(
+                              l10n.productDetailSpecsTitle,
+                              style: textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            _SpecsCard(
+                              product: product,
+                              colorScheme: colorScheme,
+                              textTheme: textTheme,
+                            ),
+                            if (supportsSample) ...[
+                              const SizedBox(height: 20),
+                              _ModeToggle(
+                                mode: _mode,
+                                colorScheme: colorScheme,
+                                textTheme: textTheme,
+                                onChanged: (mode) =>
+                                    setState(() => _mode = mode),
+                              ),
+                            ],
+                            const SizedBox(height: 16),
+                            _BuyBox(
+                              product: product,
+                              productId: widget.productId,
+                              mode: supportsSample ? _mode : _BuyMode.wholesale,
+                              isOwner: isOwner,
                               selectedSize: _selectedSize,
-                              onSizeSelected: (size) =>
-                                  setState(() => _selectedSize = size),
-                              colorOptions: product.colorOptions,
                               selectedColor: _selectedColor,
-                              onColorSelected: (color) =>
-                                  setState(() => _selectedColor = color),
+                              wholesaleQty: _wholesaleQty,
+                              sampleQty: _sampleQty,
+                              onWholesaleQtyChanged: _changeWholesaleQty,
+                              onSampleQtyChanged: _changeSampleQty,
+                              sampleEligibility: sampleEligibility.value,
+                              isSampleGateLoading: sampleEligibility.isLoading,
+                              onAddSample: () => ref
+                                  .read(cartProvider.notifier)
+                                  .addSample(product),
+                              onAddToCart: () => ref
+                                  .read(cartProvider.notifier)
+                                  .addItems([(product, _wholesaleQty)]),
                               colorScheme: colorScheme,
                               textTheme: textTheme,
                             ),
                           ],
-                          const SizedBox(height: 20),
-                          Text(
-                            l10n.productDetailSpecsTitle,
-                            style: textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          _SpecsCard(
-                            product: product,
-                            colorScheme: colorScheme,
-                            textTheme: textTheme,
-                          ),
-                          if (supportsSample) ...[
-                            const SizedBox(height: 20),
-                            _ModeToggle(
-                              mode: _mode,
-                              colorScheme: colorScheme,
-                              textTheme: textTheme,
-                              onChanged: (mode) => setState(() => _mode = mode),
-                            ),
-                          ],
-                          const SizedBox(height: 16),
-                          _BuyBox(
-                            product: product,
-                            productId: widget.productId,
-                            mode: supportsSample ? _mode : _BuyMode.wholesale,
-                            isOwner: isOwner,
-                            selectedSize: _selectedSize,
-                            selectedColor: _selectedColor,
-                            wholesaleQty: _wholesaleQty,
-                            sampleQty: _sampleQty,
-                            onWholesaleQtyChanged: _changeWholesaleQty,
-                            onSampleQtyChanged: _changeSampleQty,
-                            sampleEligibility: sampleEligibility.value,
-                            isSampleGateLoading: sampleEligibility.isLoading,
-                            onAddSample: () => ref
-                                .read(cartProvider.notifier)
-                                .addSample(product),
-                            onAddToCart: () => ref
-                                .read(cartProvider.notifier)
-                                .addItems([(product, _wholesaleQty)]),
-                            colorScheme: colorScheme,
-                            textTheme: textTheme,
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
