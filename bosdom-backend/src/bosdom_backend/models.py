@@ -271,6 +271,14 @@ class Order(Base):
     # A single paid sample (quantity 1 at the listing's sample price), which
     # starts the buyer's 3-day sample cooldown once paid.
     is_sample: Mapped[bool] = mapped_column(Boolean, default=False)
+    # This order's share of the buyer's 2% escrow fee. Set when payment lands.
+    escrow_fee: Mapped[float] = mapped_column(Float, default=0.0)
+    # Set on refund: what goes back to the buyer (see `refund_order`), and
+    # when the admin actually sent it.
+    refund_amount: Mapped[float | None] = mapped_column(Float, nullable=True)
+    refund_sent_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     shipping_name: Mapped[str] = mapped_column(String, default="")
     shipping_address: Mapped[str] = mapped_column(String, default="")
     shipping_phone: Mapped[str] = mapped_column(String, default="")
@@ -540,6 +548,10 @@ class PaywayPayment(Base):
     amount: Mapped[float] = mapped_column(Float)
     # The shipping included in `amount`, split across the orders on settle.
     shipping_fee: Mapped[float] = mapped_column(Float, default=0.0)
+    # When the admin sent a `refund_due` payment back to the buyer.
+    refund_sent_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     currency: Mapped[str] = mapped_column(String, default="USD")
     payment_option: Mapped[str] = mapped_column(String, default="khqr")
     # pending -> paid | expired | failed | refund_due (paid, but the co-buy

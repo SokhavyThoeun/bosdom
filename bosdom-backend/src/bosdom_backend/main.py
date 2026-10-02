@@ -35,7 +35,8 @@ StoreAddress.__table__.create(bind=engine, checkfirst=True)
 
 # New columns on existing tables (mirrors supabase/migrations/
 # 20261002110000_order_shipping_and_co_buy_orders.sql and
-# 20261002120000_paid_sample_orders.sql); idempotent.
+# 20261002120000_paid_sample_orders.sql and
+# 20261002130000_buyer_refunds.sql); idempotent.
 if engine.dialect.name == "postgresql":
     with engine.begin() as conn:
         conn.execute(
@@ -44,7 +45,11 @@ if engine.dialect.name == "postgresql":
                 " add column if not exists shipping_fee double precision"
                 " not null default 0,"
                 " add column if not exists co_buy_participant_id text,"
-                " add column if not exists is_sample boolean not null default false"
+                " add column if not exists is_sample boolean not null default false,"
+                " add column if not exists escrow_fee double precision"
+                " not null default 0,"
+                " add column if not exists refund_amount double precision,"
+                " add column if not exists refund_sent_at timestamptz"
             )
         )
         conn.execute(
@@ -56,7 +61,8 @@ if engine.dialect.name == "postgresql":
         conn.execute(
             text(
                 "alter table payway_payments add column if not exists"
-                " shipping_fee double precision not null default 0"
+                " shipping_fee double precision not null default 0,"
+                " add column if not exists refund_sent_at timestamptz"
             )
         )
 storage.ensure_buckets()

@@ -13,13 +13,13 @@ from .notifications import NotificationTarget, push_notification
 from ..models import Dispute, DisputeEvidence, Order, SellerReport
 from .orders import (
     STATUS_DISPUTED,
-    STATUS_REFUNDED,
     STATUS_RELEASED,
     _aware,
     _get_participant_order,
     _transition,
     auto_release_due_orders,
     fee_rate_for,
+    refund_order,
     release_funds,
 )
 
@@ -61,9 +61,9 @@ def settle_dispute(
     if resolution == RESOLUTION_RELEASE:
         release_funds(db, order, now, fee_rate=fee_rate_for(db, order.seller_id))
     else:
-        _transition(order, STATUS_REFUNDED)
-        order.refunded_at = now
-        order.review_remaining_seconds = None
+        # The 2% escrow fee is kept only when the buyer is at fault (e.g.
+        # they changed their mind); otherwise everything goes back.
+        refund_order(db, order, now, buyer_fault=fault == "buyer")
     dispute.status = DISPUTE_STATUS_RESOLVED
     dispute.resolution = resolution
     dispute.fault = fault

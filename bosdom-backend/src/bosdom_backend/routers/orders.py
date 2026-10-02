@@ -50,6 +50,10 @@ _VALID_TRANSITIONS: dict[str, set[str]] = {
 # it runs out with nothing reported, the funds auto-release to the seller.
 REVIEW_WINDOW = timedelta(days=3)
 
+# The buyer's escrow fee, charged at checkout on items + shipping — same rate
+# as the checkout screen's `kEscrowFeeRate`.
+ESCROW_FEE_RATE = 0.02
+
 # The platform's cut, taken when funds are released to the seller — same
 # rate as the seller app's earnings screen (`kSellerPlatformFeeRate`).
 PLATFORM_FEE_RATE = 0.04
@@ -158,13 +162,37 @@ def release_funds(
 COURIER_REFUND_DELAY = timedelta(days=3)
 
 
-def refund_order(db: Session, order: Order, now: datetime) -> None:
+def escrow_fee_paid(order: Order) -> float:
+    """The 2% escrow fee the buyer paid on this order — recorded at payment,
+    or derived for orders paid before it was."""
+    if order.escrow_fee:
+        return order.escrow_fee
+    return round((order.total_amount + (order.shipping_fee or 0)) * ESCROW_FEE_RATE, 2)
+
+
+def refund_amount_for(order: Order, *, buyer_fault: bool) -> float:
+    """What goes back to the buyer. Not their fault (wrong/fake/damaged
+    goods, never shipped, lost by the courier, co-buy deal cancelled):
+    everything they paid. Their own choice (changed their mind): the goods,
+    plus shipping if it never shipped — but the 2% escrow fee is kept."""
+    shipping = order.shipping_fee or 0
+    if buyer_fault and order.shipped_at is not None:
+        shipping = 0
+    fee = 0 if buyer_fault else escrow_fee_paid(order)
+    return round(order.total_amount + shipping + fee, 2)
+
+
+def refund_order(
+    db: Session, order: Order, now: datetime, *, buyer_fault: bool = False
+) -> None:
     """Returns a held/disputed order's money to the buyer and closes any
-    dispute open on it."""
+    dispute open on it. Records the amount owed back for the admin's refund
+    queue — see `refund_amount_for` for what's kept when the buyer's at fault."""
     if order.status == STATUS_HELD:
         _transition(order, STATUS_DISPUTED)
     _transition(order, STATUS_REFUNDED)
     order.refunded_at = now
+    order.refund_amount = refund_amount_for(order, buyer_fault=buyer_fault)
     order.review_deadline_at = None
     order.review_remaining_seconds = None
     participant = _co_buy_participant(db, order)
@@ -199,6 +227,21 @@ def _co_buy_participant(db: Session, order: Order) -> CoBuyParticipant | None:
     if order.co_buy_participant_id is None:
         return None
     return db.get(CoBuyParticipant, order.co_buy_participant_id)
+
+
+def allocate_escrow_fee(orders: list[Order], total_fee: float) -> None:
+    """Splits one payment's 2% escrow fee across its orders by what each
+    paid (goods + shipping share), the last taking the rounding remainder."""
+    left = round(total_fee, 2)
+    for i, order in enumerate(orders):
+        if i == len(orders) - 1:
+            share = left
+        else:
+            share = round(
+                (order.total_amount + (order.shipping_fee or 0)) * ESCROW_FEE_RATE, 2
+            )
+        order.escrow_fee = share
+        left = round(left - share, 2)
 
 
 def allocate_shipping(orders: list[Order], shipping: float) -> None:
@@ -429,6 +472,9 @@ class OrderOut(BaseModel):
     is_sample: bool = False
     # Shipping the buyer paid for this order; added to the seller's payout.
     shipping_fee: float = 0.0
+    escrow_fee: float = 0.0
+    # Set once refunded: what's owed back to the buyer.
+    refund_amount: float | None = None
     seller_amount: float | None
     auto_released: bool
     # Not a column on `escrow_orders` — the listing's own first photo,

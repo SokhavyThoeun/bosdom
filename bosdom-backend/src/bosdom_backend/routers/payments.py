@@ -17,17 +17,15 @@ from .notifications import NotificationTarget, push_notification
 from .orders import (
     STATUS_PENDING_PAYMENT,
     _aware,
+    ESCROW_FEE_RATE,
     _check_sample_eligible as check_sample_eligible,
+    allocate_escrow_fee,
     allocate_shipping,
     cancel_unpaid_order,
     mark_order_paid,
 )
 
 router = APIRouter(prefix="/payments", tags=["payments"])
-
-# Same rate as the checkout screen's escrow fee (`_escrowFee`), charged on
-# items + shipping.
-ESCROW_FEE_RATE = 0.02
 
 # Matches the KHQR sheet's countdown. PayWay's minimum is 3 minutes.
 KHQR_LIFETIME = timedelta(minutes=5)
@@ -131,6 +129,10 @@ def _settle(db: Session, payment: PaywayPayment, apv: str, now: datetime) -> Non
         if order is not None and order.status == STATUS_PENDING_PAYMENT
     ]
     allocate_shipping(orders, payment.shipping_fee or 0)
+    goods = sum(o.total_amount for o in orders)
+    allocate_escrow_fee(
+        orders, max(0.0, payment.amount - goods - (payment.shipping_fee or 0))
+    )
 
     if payment.co_buy_participant_id is None:
         for order in orders:

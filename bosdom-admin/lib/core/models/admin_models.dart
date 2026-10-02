@@ -426,6 +426,60 @@ class AdminPayoutRequest {
   bool get isApproved => status == 'approved';
 }
 
+/// Money owed back to a buyer. The 2% escrow fee is kept only when the buyer
+/// was at fault (e.g. changed their mind); otherwise everything goes back.
+class AdminRefund {
+  const AdminRefund({
+    required this.kind,
+    required this.id,
+    required this.buyerName,
+    required this.productName,
+    required this.amount,
+    required this.escrowFeeKept,
+    required this.reason,
+    this.paymentMethod,
+    this.paymentReference,
+    this.refundedAt,
+    this.sentAt,
+  });
+
+  factory AdminRefund.fromJson(Map<String, dynamic> json) => AdminRefund(
+    kind: json['kind'] as String,
+    id: json['id'] as String,
+    buyerName: json['buyer_name'] as String,
+    productName: json['product_name'] as String,
+    amount: (json['amount'] as num).toDouble(),
+    escrowFeeKept: json['escrow_fee_kept'] as bool,
+    reason: json['reason'] as String,
+    paymentMethod: json['payment_method'] as String?,
+    paymentReference: json['payment_reference'] as String?,
+    refundedAt: json['refunded_at'] == null
+        ? null
+        : DateTime.parse(json['refunded_at'] as String),
+    sentAt: json['sent_at'] == null
+        ? null
+        : DateTime.parse(json['sent_at'] as String),
+  );
+
+  /// `order` (a refunded escrow order) or `payment` (a payment with nothing
+  /// left to hold it for, e.g. a co-buy deal already full).
+  final String kind;
+  final String id;
+  final String buyerName;
+  final String productName;
+  final double amount;
+  final bool escrowFeeKept;
+  final String reason;
+  final String? paymentMethod;
+
+  /// PayWay transaction id to refund against.
+  final String? paymentReference;
+  final DateTime? refundedAt;
+  final DateTime? sentAt;
+
+  bool get isSent => sentAt != null;
+}
+
 class AdminSupportConversation {
   const AdminSupportConversation({
     required this.id,

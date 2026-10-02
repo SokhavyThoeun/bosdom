@@ -19,6 +19,7 @@ from ..models import (
     Listing,
     Message,
     Order,
+    PaywayPayment,
     Profile,
     Shop,
 )
@@ -44,6 +45,7 @@ from .orders import (
     auto_release_due_orders,
     cancel_unpaid_order,
     freeze_order,
+    refund_amount_for,
     refund_order,
     seller_amount_for,
 )
@@ -1374,7 +1376,8 @@ def approve_co_buy_leave(
         Order.co_buy_participant_id == row.id,
         Order.status.in_(("held", "disputed")),
     ):
-        refund_order(db, order, now)
+        # Leaving is the buyer's own choice, so the 2% escrow fee is kept.
+        refund_order(db, order, now, buyer_fault=True)
     row.status = "refunded"
     row.refunded_at = now
     row.leave_resolved_at = now
@@ -1420,3 +1423,159 @@ def reject_co_buy_leave(
         NotificationTarget(route="coBuyDetail", params={"id": row.pool_id}),
     )
     return _co_buy_leaves_out(db, [row])[0]
+
+
+class AdminRefundOut(BaseModel):
+    # "order" (an escrow order that was refunded) or "payment" (money that
+    # came in with nothing left to hold it for, e.g. a co-buy deal already
+    # full) — they're marked sent through different endpoints.
+    kind: str
+    id: str
+    buyer_name: str
+    product_name: str
+    amount: float
+    # True when the buyer was at fault and the 2% escrow fee was kept.
+    escrow_fee_kept: bool
+    reason: str
+    payment_method: str | None
+    payment_reference: str | None
+    refunded_at: datetime | None
+    sent_at: datetime | None
+
+
+def _refund_reason(db: Session, order: Order) -> str:
+    dispute = db.query(Dispute).filter(Dispute.order_id == order.id).one_or_none()
+    if dispute is not None and dispute.resolution == "refund":
+        return f"Buyer report: {dispute.reason} (fault: {dispute.fault or 'none'})"
+    report = (
+        db.query(SellerReport)
+        .filter(SellerReport.order_id == order.id)
+        .order_by(SellerReport.created_at.desc())
+        .first()
+    )
+    if report is not None:
+        return f"Seller report: {report.reason}"
+    if order.co_buy_participant_id is not None:
+        participant = db.get(CoBuyParticipant, order.co_buy_participant_id)
+        if participant is not None and participant.leave_reason:
+            return "Buyer left the co-buy deal"
+        return "Co-buy deal cancelled"
+    return "Refunded"
+
+
+@router.get(
+    "/refunds", response_model=list[AdminRefundOut], dependencies=_admin_only
+)
+def list_refunds(db: Session = Depends(get_db)) -> list[AdminRefundOut]:
+    """Money owed back to buyers, newest first. Refunds aren't sent through
+    PayWay automatically — the admin sends each one and marks it sent."""
+    auto_release_due_orders(db)
+    orders = (
+        db.query(Order)
+        .filter(Order.status == "refunded")
+        .order_by(Order.refunded_at.desc())
+        .all()
+    )
+    payments = (
+        db.query(PaywayPayment)
+        .filter(PaywayPayment.status == "refund_due")
+        .order_by(PaywayPayment.created_at.desc())
+        .all()
+    )
+    buyer_ids = {o.buyer_id for o in orders} | {p.buyer_id for p in payments}
+    names = {
+        str(p.id): p.name
+        for p in db.query(Profile).filter(Profile.id.in_(buyer_ids)).all()
+    }
+    out = []
+    for o in orders:
+        full = refund_amount_for(o, buyer_fault=False)
+        amount = o.refund_amount if o.refund_amount is not None else full
+        out.append(
+            AdminRefundOut(
+                kind="order",
+                id=o.id,
+                buyer_name=names.get(o.buyer_id) or "Unknown",
+                product_name=o.product_name,
+                amount=amount,
+                escrow_fee_kept=amount < full,
+                reason=_refund_reason(db, o),
+                payment_method=o.payment_method,
+                payment_reference=o.payment_reference,
+                refunded_at=o.refunded_at,
+                sent_at=o.refund_sent_at,
+            )
+        )
+    for p in payments:
+        participant = (
+            db.get(CoBuyParticipant, p.co_buy_participant_id)
+            if p.co_buy_participant_id
+            else None
+        )
+        pool = db.get(CoBuyPool, participant.pool_id) if participant else None
+        out.append(
+            AdminRefundOut(
+                kind="payment",
+                id=p.tran_id,
+                buyer_name=names.get(p.buyer_id) or "Unknown",
+                product_name=pool.product_name if pool else "Co-buy payment",
+                amount=p.amount,
+                escrow_fee_kept=False,
+                reason="Paid, but there was nothing left to hold it for "
+                "(co-buy deal full or cancelled)",
+                payment_method=p.payment_option,
+                payment_reference=p.tran_id,
+                refunded_at=p.paid_at,
+                sent_at=p.refund_sent_at,
+            )
+        )
+    out.sort(
+        key=lambda r: (r.sent_at is not None, -(r.refunded_at or datetime.min.replace(tzinfo=timezone.utc)).timestamp())
+    )
+    return out
+
+
+@router.post("/refunds/orders/{order_id}/sent", dependencies=_admin_only)
+def mark_order_refund_sent(
+    order_id: str, db: Session = Depends(get_db)
+) -> dict[str, bool]:
+    order = db.get(Order, order_id)
+    if order is None or order.status != "refunded":
+        raise HTTPException(status_code=404, detail="Refund not found")
+    if order.refund_sent_at is not None:
+        raise HTTPException(status_code=409, detail="Refund already sent")
+    order.refund_sent_at = datetime.now(timezone.utc)
+    amount = order.refund_amount
+    if amount is None:
+        amount = refund_amount_for(order, buyer_fault=False)
+    db.commit()
+    push_notification(
+        db,
+        order.buyer_id,
+        "payment",
+        "Refund sent",
+        f"${amount:.2f} for {order.product_name} is on its way back to you.",
+        NotificationTarget(route="orderDetail", params={"id": order.id}),
+    )
+    return {"ok": True}
+
+
+@router.post("/refunds/payments/{tran_id}/sent", dependencies=_admin_only)
+def mark_payment_refund_sent(
+    tran_id: str, db: Session = Depends(get_db)
+) -> dict[str, bool]:
+    payment = db.get(PaywayPayment, tran_id)
+    if payment is None or payment.status != "refund_due":
+        raise HTTPException(status_code=404, detail="Refund not found")
+    if payment.refund_sent_at is not None:
+        raise HTTPException(status_code=409, detail="Refund already sent")
+    payment.refund_sent_at = datetime.now(timezone.utc)
+    db.commit()
+    push_notification(
+        db,
+        payment.buyer_id,
+        "payment",
+        "Refund sent",
+        f"${payment.amount:.2f} is on its way back to you.",
+    )
+    return {"ok": True}

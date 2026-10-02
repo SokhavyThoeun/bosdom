@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from ..auth import CurrentUser, get_current_user
 from ..db import get_db
-from ..models import CoBuyParticipant, CoBuyPool, Order, Profile, Shop
+from ..models import CoBuyParticipant, CoBuyPool, Order, PaywayPayment, Profile, Shop
 from ..utils.images import save_image_as_webp
 from .listings import ColorOptionOut, _parse_colors, _parse_sizes
 from .notifications import NotificationTarget, push_notification
@@ -309,10 +309,60 @@ def delete_pool(
     user: CurrentUser = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> None:
+    """Takes the deal down. Anyone who already paid in gets everything back
+    (the deal didn't go ahead — not their fault); refused once any share has
+    shipped or been paid out."""
+    from .orders import refund_order
+    from .payments import PAYMENT_PAID, PAYMENT_REFUND_DUE
+
     pool = _get_owned_pool(db, user, pool_id)
-    db.query(CoBuyParticipant).filter(CoBuyParticipant.pool_id == pool.id).delete()
+    participants = (
+        db.query(CoBuyParticipant).filter(CoBuyParticipant.pool_id == pool.id).all()
+    )
+    paid = [p for p in participants if p.status in _COUNTED_STATUSES]
+    orders = [
+        o
+        for p in paid
+        for o in _linked_orders(db, p, ("held", "disputed", "released"))
+    ]
+    if any(o.status == "released" or o.shipped_at is not None for o in orders):
+        raise HTTPException(
+            status_code=409,
+            detail="Some buyers' shares have already shipped — this deal can't be deleted",
+        )
+
+    now = datetime.now(timezone.utc)
+    for order in orders:
+        refund_order(db, order, now)
+    for participant in paid:
+        if not _linked_orders(db, participant, ("refunded",)):
+            # Paid before joins had an escrow order: queue its payment for a
+            # full refund instead.
+            for payment in db.query(PaywayPayment).filter(
+                PaywayPayment.co_buy_participant_id == participant.id,
+                PaywayPayment.status == PAYMENT_PAID,
+            ):
+                payment.status = PAYMENT_REFUND_DUE
+        participant.status = "refunded"
+        participant.refunded_at = now
+    for participant in participants:
+        if participant.status == "pending_payment":
+            for order in _linked_orders(db, participant, ("pending_payment",)):
+                order.status = "cancelled"
+                order.cancelled_at = now
+            db.delete(participant)
+    product_name = pool.product_name
     db.delete(pool)
     db.commit()
+    for buyer_id in {p.buyer_id for p in paid}:
+        push_notification(
+            db,
+            buyer_id,
+            "co_buy",
+            "Co-buy deal cancelled",
+            f"The seller cancelled {product_name}. You'll get a full refund, "
+            "including the escrow fee.",
+        )
 
 
 @router.get("/pools/{pool_id}", response_model=CoBuyPoolOut)

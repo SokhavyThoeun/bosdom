@@ -27,7 +27,7 @@ class _OrdersScreenState extends State<OrdersScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
+    _tabController = TabController(length: 6, vsync: this);
   }
 
   @override
@@ -74,6 +74,7 @@ class _OrdersScreenState extends State<OrdersScreen>
             tabs: const [
               Tab(height: 48, text: 'All Orders'),
               Tab(height: 48, text: 'Withdrawal Requests'),
+              Tab(height: 48, text: 'Buyer Refunds'),
               Tab(height: 48, text: 'Disputes'),
               Tab(height: 48, text: 'Seller Reports'),
               Tab(height: 48, text: 'Co-Buy Refunds'),
@@ -87,6 +88,7 @@ class _OrdersScreenState extends State<OrdersScreen>
             children: const [
               _OrdersTab(),
               _PayoutsTab(),
+              _RefundsTab(),
               _DisputesTab(),
               _SellerReportsTab(),
               _CoBuyLeavesTab(),
@@ -283,7 +285,7 @@ class _PayoutsTab extends StatelessWidget {
                                                 context,
                                                 title: 'Approve withdrawal?',
                                                 message:
-                                                    'Send ${currency.format(request.payoutAmount)} (${currency.format(request.totalAmount)} minus the platform fee) to ${request.sellerName}\'s bank: ${request.bankName ?? '-'} · ${request.accountHolder ?? '-'} · ${request.accountNumber ?? '-'}. It reaches them in 1 to 3 hours.',
+                                                    'Send ${currency.format(request.payoutAmount)} (${currency.format(request.totalAmount)} minus the platform fee, plus the shipping the buyer paid) to ${request.sellerName}\'s bank: ${request.bankName ?? '-'} · ${request.accountHolder ?? '-'} · ${request.accountNumber ?? '-'}. It reaches them in 1 to 3 hours.',
                                                 confirmLabel: 'Approve',
                                                 action: () =>
                                                     AdminApiClient.releasePayout(
@@ -293,6 +295,152 @@ class _PayoutsTab extends StatelessWidget {
                                               )
                                             : null,
                                         child: const Text('Approve'),
+                                      ),
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _RefundsTab extends StatelessWidget {
+  const _RefundsTab();
+
+  @override
+  Widget build(BuildContext context) {
+    final currency = NumberFormat.currency(symbol: r'$');
+    return AsyncLoader<List<AdminRefund>>(
+      loader: AdminApiClient.fetchRefunds,
+      refreshInterval: const Duration(seconds: 10),
+      builder: (context, refunds, reload) {
+        if (refunds.isEmpty) {
+          return const EmptyState(message: 'No refunds owed to buyers.');
+        }
+        return SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(28, 16, 28, 28),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return Card(
+                clipBehavior: Clip.antiAlias,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                    child: DataTable(
+                      columns: const [
+                        DataColumn(
+                          label: Text('PRODUCT'),
+                          columnWidth: FlexColumnWidth(),
+                        ),
+                        DataColumn(label: Text('BUYER')),
+                        DataColumn(label: Text('REASON')),
+                        DataColumn(label: Text('REFUND')),
+                        DataColumn(label: Text('PAYWAY REF')),
+                        DataColumn(label: Text('STATUS')),
+                        DataColumn(label: Text('ACTIONS')),
+                      ],
+                      rows: [
+                        for (final refund in refunds)
+                          DataRow(
+                            cells: [
+                              DataCell(
+                                ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: 220,
+                                  ),
+                                  child: Text(
+                                    refund.productName,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              DataCell(Text(refund.buyerName)),
+                              DataCell(
+                                ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: 260,
+                                  ),
+                                  child: Text(
+                                    refund.reason,
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 2,
+                                  ),
+                                ),
+                              ),
+                              DataCell(
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      currency.format(refund.amount),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    Text(
+                                      refund.escrowFeeKept
+                                          ? '2% fee kept (buyer\'s choice)'
+                                          : 'Full refund incl. 2% fee',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.warmTaupe,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              DataCell(Text(refund.paymentReference ?? '-')),
+                              DataCell(
+                                refund.isSent
+                                    ? const StatusPill(
+                                        label: 'Sent',
+                                        tone: PillTone.success,
+                                      )
+                                    : const StatusPill(
+                                        label: 'To send',
+                                        tone: PillTone.warning,
+                                      ),
+                              ),
+                              DataCell(
+                                refund.isSent
+                                    ? Text(
+                                        DateFormat.yMMMd().format(
+                                          refund.sentAt!.toLocal(),
+                                        ),
+                                        style: TextStyle(
+                                          color: AppColors.warmTaupe,
+                                        ),
+                                      )
+                                    : TextButton(
+                                        style: TextButton.styleFrom(
+                                          foregroundColor: AppColors.trustGreen,
+                                        ),
+                                        onPressed: () => confirmAndRun(
+                                          context,
+                                          title: 'Mark refund as sent?',
+                                          message:
+                                              'Confirm you sent ${currency.format(refund.amount)} back to ${refund.buyerName} through PayWay (ref ${refund.paymentReference ?? '-'}, ${refund.paymentMethod ?? '-'}). The buyer is notified.',
+                                          confirmLabel: 'Mark sent',
+                                          action: () =>
+                                              AdminApiClient.markRefundSent(
+                                                refund,
+                                              ),
+                                          onSuccess: reload,
+                                        ),
+                                        child: const Text('Mark sent'),
                                       ),
                               ),
                             ],

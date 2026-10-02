@@ -112,7 +112,10 @@ abstract final class AdminApiClient {
     T Function(Map<String, dynamic>) fromJson,
   ) async {
     final response = await _withRetry(
-      () => http.get(Uri.parse('${ApiConfig.baseUrl}$path'), headers: _authHeaders),
+      () => http.get(
+        Uri.parse('${ApiConfig.baseUrl}$path'),
+        headers: _authHeaders,
+      ),
     );
     if (response.statusCode < 200 || response.statusCode >= 300) {
       await _decodeOrThrow(response);
@@ -303,6 +306,15 @@ abstract final class AdminApiClient {
 
   static Future<void> releasePayout(String orderId) =>
       _post('/admin/payout-requests/$orderId/release');
+
+  static Future<List<AdminRefund>> fetchRefunds() =>
+      _getList('/admin/refunds', AdminRefund.fromJson);
+
+  static Future<void> markRefundSent(AdminRefund refund) => _post(
+    refund.kind == 'payment'
+        ? '/admin/refunds/payments/${refund.id}/sent'
+        : '/admin/refunds/orders/${refund.id}/sent',
+  );
 
   static Future<void> openDisputeCase(String id) =>
       _post('/admin/disputes/$id/open-case');
