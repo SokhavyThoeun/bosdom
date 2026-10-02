@@ -3729,6 +3729,18 @@ abstract class AppLocalizations {
   /// **'Total Amount'**
   String get orderDetailTotalAmountLabel;
 
+  /// No description provided for @orderDetailRefundPendingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund on its way'**
+  String get orderDetailRefundPendingLabel;
+
+  /// No description provided for @orderDetailRefundedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Refunded to you'**
+  String get orderDetailRefundedLabel;
+
   /// No description provided for @orderDetailTrackDeliveryButton.
   ///
   /// In en, this message translates to:

@@ -114,6 +114,9 @@ class Order {
     this.releasedAt,
     this.platformFee,
     this.shippingFee = 0,
+    this.escrowFee = 0,
+    this.refundAmount,
+    this.refundSentAt,
     this.releaseRequestedAt,
     this.cancelledAt,
     this.refundedAt,
@@ -158,6 +161,9 @@ class Order {
     releasedAt: _parseNullable(json['released_at']),
     platformFee: (json['platform_fee'] as num?)?.toDouble(),
     shippingFee: (json['shipping_fee'] as num?)?.toDouble() ?? 0,
+    escrowFee: (json['escrow_fee'] as num?)?.toDouble() ?? 0,
+    refundAmount: (json['refund_amount'] as num?)?.toDouble(),
+    refundSentAt: _parseNullable(json['refund_sent_at']),
     releaseRequestedAt: _parseNullable(json['release_requested_at']),
     cancelledAt: _parseNullable(json['cancelled_at']),
     refundedAt: _parseNullable(json['refunded_at']),
@@ -217,6 +223,17 @@ class Order {
   /// Shipping the buyer paid for this order — passed on to the seller with
   /// their payout ([totalAmount] is goods only).
   final double shippingFee;
+
+  /// This order's part of the buyer's 2% escrow fee.
+  final double escrowFee;
+
+  /// Set once refunded: what goes back to the buyer — less than they paid
+  /// when the refund was their fault. Sent by an admin at [refundSentAt].
+  final double? refundAmount;
+  final DateTime? refundSentAt;
+
+  /// Everything the buyer paid for this order.
+  double get totalPaid => totalAmount + shippingFee + escrowFee;
   final DateTime? releaseRequestedAt;
   final DateTime? cancelledAt;
   final DateTime? refundedAt;

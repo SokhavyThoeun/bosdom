@@ -475,6 +475,8 @@ class OrderOut(BaseModel):
     escrow_fee: float = 0.0
     # Set once refunded: what's owed back to the buyer.
     refund_amount: float | None = None
+    # When the admin actually sent that refund (null while it's queued).
+    refund_sent_at: datetime | None = None
     seller_amount: float | None
     auto_released: bool
     # Not a column on `escrow_orders` — the listing's own first photo,

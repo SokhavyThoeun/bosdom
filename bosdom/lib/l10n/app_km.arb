@@ -617,6 +617,8 @@
   "orderDetailQuantityLabel": "បរិមាណ",
   "orderDetailUnitPriceLabel": "តម្លៃឯកតា",
   "orderDetailTotalAmountLabel": "ចំនួនទឹកប្រាក់សរុប",
+  "orderDetailRefundPendingLabel": "ការសងប្រាក់វិញកំពុងដំណើរការ",
+  "orderDetailRefundedLabel": "បានសងប្រាក់ជូនអ្នកវិញ",
   "orderDetailTrackDeliveryButton": "តាមដានការដឹកជញ្ជូន",
   "deliveryScreenTitle": "តាមដានការដឹកជញ្ជូន",
   "deliveryCurrentStatusLabel": "ស្ថានភាពបច្ចុប្បន្ន",

@@ -2048,6 +2048,12 @@ class AppLocalizationsKm extends AppLocalizations {
   String get orderDetailTotalAmountLabel => 'ចំនួនទឹកប្រាក់សរុប';
 
   @override
+  String get orderDetailRefundPendingLabel => 'ការសងប្រាក់វិញកំពុងដំណើរការ';
+
+  @override
+  String get orderDetailRefundedLabel => 'បានសងប្រាក់ជូនអ្នកវិញ';
+
+  @override
   String get orderDetailTrackDeliveryButton => 'តាមដានការដឹកជញ្ជូន';
 
   @override

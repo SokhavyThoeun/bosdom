@@ -2025,6 +2025,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get orderDetailTotalAmountLabel => 'Total Amount';
 
   @override
+  String get orderDetailRefundPendingLabel => 'Refund on its way';
+
+  @override
+  String get orderDetailRefundedLabel => 'Refunded to you';
+
+  @override
   String get orderDetailTrackDeliveryButton => 'Track Delivery';
 
   @override

@@ -1081,6 +1081,8 @@
   "orderDetailQuantityLabel": "Quantity",
   "orderDetailUnitPriceLabel": "Unit Price",
   "orderDetailTotalAmountLabel": "Total Amount",
+  "orderDetailRefundPendingLabel": "Refund on its way",
+  "orderDetailRefundedLabel": "Refunded to you",
   "orderDetailTrackDeliveryButton": "Track Delivery",
   "deliveryScreenTitle": "Delivery Tracking",
   "deliveryCurrentStatusLabel": "Current status",

@@ -84,11 +84,19 @@ class CartScreen extends ConsumerWidget {
                   // cart total matches what the buyer is asked to pay.
                   final shipping = subtotal > 0
                       ? defaultChargedShipping(
-                          weightKg: paidLines.fold(
-                            0.0,
-                            (sum, line) =>
-                                sum + line.product.unitWeightKg * line.quantity,
-                          ),
+                          // One parcel per seller, like checkout.
+                          parcelWeightsKg: [
+                            for (final group in groups)
+                              group.lines
+                                  .where((line) => line.selected)
+                                  .fold(
+                                    0.0,
+                                    (sum, line) =>
+                                        sum +
+                                        line.product.unitWeightKg *
+                                            line.quantity,
+                                  ),
+                          ].where((kg) => kg > 0),
                           destinationProvince: checkoutDestinationProvince(
                             ref.watch(defaultAddressProvider),
                           ),

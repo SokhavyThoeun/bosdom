@@ -42,7 +42,8 @@ StoreAddress.__table__.create(bind=engine, checkfirst=True)
 # 20261002110000_order_shipping_and_co_buy_orders.sql and
 # 20261002120000_paid_sample_orders.sql and
 # 20261002130000_buyer_refunds.sql and
-# 20261002140000_co_buy_deadlines.sql); idempotent.
+# 20261002140000_co_buy_deadlines.sql and
+# 20261002150000_per_seller_shipping.sql); idempotent.
 if engine.dialect.name == "postgresql":
     with engine.begin() as conn:
         conn.execute(
@@ -75,7 +76,9 @@ if engine.dialect.name == "postgresql":
             text(
                 "alter table payway_payments add column if not exists"
                 " shipping_fee double precision not null default 0,"
-                " add column if not exists refund_sent_at timestamptz"
+                " add column if not exists refund_sent_at timestamptz,"
+                " add column if not exists shipping_shares json"
+                " not null default '{}'::json"
             )
         )
 storage.ensure_buckets()

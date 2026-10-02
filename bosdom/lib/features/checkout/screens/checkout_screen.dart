@@ -146,18 +146,46 @@ const kEscrowFeeRate = 0.02;
 double escrowFeeFor(double subtotal, double shipping) =>
     (subtotal + shipping) * kEscrowFeeRate;
 
+/// One carrier's quote for a whole checkout. Every seller ships their own
+/// parcel, so each parcel is quoted on its own weight and the fees add up —
+/// same as the backend's `_shipping_for` (routers/payments.py). `null` when
+/// the carrier can't take one of the parcels.
+ShippingQuote? _quoteParcels({
+  required String carrier,
+  required Iterable<double> parcelWeightsKg,
+  required String destinationProvince,
+}) {
+  ShippingQuote? total;
+  for (final weightKg in parcelWeightsKg) {
+    final quote = estimateShippingFee(
+      carrier: carrier,
+      weightKg: weightKg,
+      originProvince: _kOriginProvince,
+      destinationProvince: destinationProvince,
+    );
+    if (quote == null) return null;
+    total = total == null
+        ? quote
+        : ShippingQuote(
+            fee: total.fee + quote.fee,
+            etaLabel: total.etaLabel,
+            payOnDelivery: total.payOnDelivery,
+          );
+  }
+  return total;
+}
+
 /// What checkout will charge for shipping before the buyer picks a carrier:
-/// the first offered carrier that can serve this weight/route, `0` when that
-/// carrier is paid on delivery. Lets the cart preview the same total.
+/// the first offered carrier that can serve every seller's parcel, `0` when
+/// that carrier is paid on delivery. Lets the cart preview the same total.
 double defaultChargedShipping({
-  required double weightKg,
+  required Iterable<double> parcelWeightsKg,
   required String destinationProvince,
 }) {
   for (final option in _kShippingOptions) {
-    final quote = estimateShippingFee(
+    final quote = _quoteParcels(
       carrier: option.name,
-      weightKg: weightKg,
-      originProvince: _kOriginProvince,
+      parcelWeightsKg: parcelWeightsKg,
       destinationProvince: destinationProvince,
     );
     if (quote != null) return quote.payOnDelivery ? 0.0 : quote.fee;
@@ -206,22 +234,34 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   // Samples are paid at their full sample price like any other line.
   double get _subtotal => _items.fold(0, (sum, item) => sum + item.total);
 
-  double get _totalWeightKg =>
-      _items.fold(0, (sum, item) => sum + item.weightKg);
+  /// Weight of each seller's parcel — every seller ships separately.
+  Iterable<double> get _parcelWeightsKg {
+    final bySeller = <String, double>{};
+    for (final item in _items) {
+      bySeller.update(
+        item.seller,
+        (kg) => kg + item.weightKg,
+        ifAbsent: () => item.weightKg,
+      );
+    }
+    return bySeller.values;
+  }
 
-  /// Every offered carrier's live quote for this shipment's actual weight
-  /// and route, keyed by [_ShippingOption.id] — `null` where the carrier
-  /// can't serve this weight/route at all (e.g. Grab Express outside
-  /// Phnom Penh, or a shipment over a carrier's parcel weight cap).
-  Map<String, ShippingQuote?> _shippingQuotes(String destinationProvince) => {
-    for (final option in _kShippingOptions)
-      option.id: estimateShippingFee(
-        carrier: option.name,
-        weightKg: _totalWeightKg,
-        originProvince: _kOriginProvince,
-        destinationProvince: destinationProvince,
-      ),
-  };
+  /// Every offered carrier's live quote for this checkout's parcels and
+  /// route, keyed by [_ShippingOption.id] — `null` where the carrier can't
+  /// serve one of the parcels at all (e.g. Grab Express outside Phnom Penh,
+  /// or a parcel over a carrier's weight cap).
+  Map<String, ShippingQuote?> _shippingQuotes(String destinationProvince) {
+    final parcels = _parcelWeightsKg.toList();
+    return {
+      for (final option in _kShippingOptions)
+        option.id: _quoteParcels(
+          carrier: option.name,
+          parcelWeightsKg: parcels,
+          destinationProvince: destinationProvince,
+        ),
+    };
+  }
 
   /// Amount charged at checkout: pay-on-delivery carriers (Grab Express)
   /// collect their fee from the buyer on receipt, so it adds nothing here.

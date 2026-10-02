@@ -558,6 +558,10 @@ class PaywayPayment(Base):
     amount: Mapped[float] = mapped_column(Float)
     # The shipping included in `amount`, split across the orders on settle.
     shipping_fee: Mapped[float] = mapped_column(Float, default=0.0)
+    # Each order's part of `shipping_fee` (order id -> USD): every seller
+    # ships their own parcel, so each is priced on its own (see
+    # routers/payments.py `_shipping_for`). Empty on older payments.
+    shipping_shares: Mapped[dict[str, float]] = mapped_column(JSON, default=dict)
     # When the admin sent a `refund_due` payment back to the buyer.
     refund_sent_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True

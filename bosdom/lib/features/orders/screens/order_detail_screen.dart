@@ -362,6 +362,27 @@ class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
                           textTheme: textTheme,
                         ),
                         const Divider(height: 24),
+                        _SummaryRow(
+                          label: l10n.checkoutSubtotal,
+                          valueLabel: formatPrice(ref, order.totalAmount),
+                          colorScheme: colorScheme,
+                          textTheme: textTheme,
+                        ),
+                        const SizedBox(height: 8),
+                        _SummaryRow(
+                          label: l10n.checkoutShippingLabel,
+                          valueLabel: formatPrice(ref, order.shippingFee),
+                          colorScheme: colorScheme,
+                          textTheme: textTheme,
+                        ),
+                        const SizedBox(height: 8),
+                        _SummaryRow(
+                          label: l10n.checkoutEscrowFeeLabel,
+                          valueLabel: formatPrice(ref, order.escrowFee),
+                          colorScheme: colorScheme,
+                          textTheme: textTheme,
+                        ),
+                        const SizedBox(height: 12),
                         InkWell(
                           borderRadius: BorderRadius.circular(8),
                           onTap: () => context.pushNamed(
@@ -378,7 +399,7 @@ class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
                               ),
                               const Spacer(),
                               PriceDisplay(
-                                order.totalAmount,
+                                order.totalPaid,
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 style: textTheme.titleLarge?.copyWith(
                                   color: colorScheme.primary,
@@ -388,6 +409,17 @@ class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
                             ],
                           ),
                         ),
+                        if (order.refundAmount case final refund?) ...[
+                          const SizedBox(height: 12),
+                          _SummaryRow(
+                            label: order.refundSentAt == null
+                                ? l10n.orderDetailRefundPendingLabel
+                                : l10n.orderDetailRefundedLabel,
+                            valueLabel: formatPrice(ref, refund),
+                            colorScheme: colorScheme,
+                            textTheme: textTheme,
+                          ),
+                        ],
                       ],
                     ),
                   ),

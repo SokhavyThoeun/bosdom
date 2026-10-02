@@ -130,7 +130,13 @@ def _settle(db: Session, payment: PaywayPayment, apv: str, now: datetime) -> Non
         for order in (db.get(Order, order_id) for order_id in payment.order_ids)
         if order is not None and order.status == STATUS_PENDING_PAYMENT
     ]
-    allocate_shipping(orders, payment.shipping_fee or 0)
+    shares = payment.shipping_shares or {}
+    if orders and all(o.id in shares for o in orders):
+        for order in orders:
+            order.shipping_fee = shares[order.id]
+    else:
+        # Payments made before shipping was priced per seller.
+        allocate_shipping(orders, payment.shipping_fee or 0)
     goods = sum(o.total_amount for o in orders)
     allocate_escrow_fee(
         orders, max(0.0, payment.amount - goods - (payment.shipping_fee or 0))
@@ -248,9 +254,10 @@ def sync_payment(db: Session, payment: PaywayPayment) -> None:
 
 def _open_payment(
     payload: PaymentStartRequest, user: CurrentUser, db: Session
-) -> tuple[list[str], str | None, float, float]:
+) -> tuple[list[str], str | None, float, float, dict[str, float]]:
     """Checks what a new payment would cover and works out its amount.
-    Returns (order ids, co-buy participant id, amount in USD, shipping)."""
+    Returns (order ids, co-buy participant id, amount in USD, shipping,
+    each order's part of the shipping)."""
     if not payway.is_configured():
         raise HTTPException(status_code=503, detail="Online payments are unavailable")
     if bool(payload.order_ids) == bool(payload.co_buy_pool_id):
@@ -309,24 +316,26 @@ def _open_payment(
         order = _co_buy_order(db, pool, participant, payload)
         orders = [order]
 
-    shipping_fee = _shipping_for(db, orders, payload)
+    shipping_fee, shipping_shares = _shipping_for(db, orders, payload)
     amount = round((subtotal + shipping_fee) * (1 + ESCROW_FEE_RATE), 2)
-    return [o.id for o in orders], participant_id, amount, shipping_fee
+    return [o.id for o in orders], participant_id, amount, shipping_fee, shipping_shares
 
 
 def _shipping_for(
     db: Session, orders: list[Order], payload: PaymentStartRequest
-) -> float:
+) -> tuple[float, dict[str, float]]:
     """What this checkout is charged for shipping, priced from the real
     weight of what's being bought and the province it's being delivered to
-    — never taken from the app."""
-    weight = 0.0
+    — never taken from the app. Every seller ships their own parcel, so each
+    seller's orders are quoted on their own and the buyer pays the sum.
+    Returns (total, order id -> its part)."""
+    weights: dict[str, float] = {}
     for order in orders:
         item = db.get(Listing, order.listing_id) or db.get(CoBuyPool, order.listing_id)
         unit = shipping.unit_weight_kg(
             item.weight if item else None, item.product_name if item else order.product_name
         )
-        weight += unit * order.quantity
+        weights[order.id] = unit * order.quantity
     address = orders[0].shipping_address if orders else payload.shipping_address
     destination = shipping.province_in(address)
     if destination is None:
@@ -336,13 +345,28 @@ def _shipping_for(
         )
     if payload.carrier is not None and payload.carrier not in shipping.CARRIERS:
         raise HTTPException(status_code=422, detail="Unknown courier")
-    quote = shipping.quote(payload.carrier, weight, destination)
-    if quote is None:
-        raise HTTPException(
-            status_code=422,
-            detail="This courier can't deliver this order — pick another one",
-        )
-    return quote.charged
+    by_seller: dict[str, list[Order]] = {}
+    for order in orders:
+        by_seller.setdefault(order.seller_id, []).append(order)
+    shares: dict[str, float] = {}
+    for parcel in by_seller.values():
+        weight = sum(weights[o.id] for o in parcel)
+        quote = shipping.quote(payload.carrier, weight, destination)
+        if quote is None:
+            raise HTTPException(
+                status_code=422,
+                detail="This courier can't deliver this order — pick another one",
+            )
+        # One seller's orders share a parcel: split its fee by weight.
+        left = quote.charged
+        for i, order in enumerate(parcel):
+            if i == len(parcel) - 1:
+                share = round(left, 2)
+            else:
+                share = round(quote.charged * weights[order.id] / weight, 2)
+            shares[order.id] = share
+            left -= share
+    return round(sum(shares.values()), 2), shares
 
 
 def _co_buy_order(
@@ -395,8 +419,8 @@ def start_khqr(
     """Opens a PayWay KHQR transaction for one checkout's orders (or one
     co-buy join) and returns the QR to show. Nothing is marked paid here —
     that happens in `sync_payment` once PayWay approves it."""
-    order_ids, participant_id, amount, shipping_fee = _open_payment(
-        payload, user, db
+    order_ids, participant_id, amount, shipping_fee, shipping_shares = (
+        _open_payment(payload, user, db)
     )
     tran_id = _new_tran_id()
     try:
@@ -416,6 +440,7 @@ def start_khqr(
         co_buy_participant_id=participant_id,
         amount=amount,
         shipping_fee=shipping_fee,
+        shipping_shares=shipping_shares,
         currency="USD",
         payment_option="khqr",
         expires_at=datetime.now(timezone.utc) + KHQR_LIFETIME,
@@ -468,8 +493,8 @@ def start_card(
     """Opens a Visa/Mastercard/UnionPay/JCB payment. The app shows
     `checkout_url` in a WebView, which hands the buyer to PayWay's hosted
     card page; like KHQR, it's only marked paid once PayWay approves it."""
-    order_ids, participant_id, amount, shipping_fee = _open_payment(
-        payload, user, db
+    order_ids, participant_id, amount, shipping_fee, shipping_shares = (
+        _open_payment(payload, user, db)
     )
     payment = PaywayPayment(
         tran_id=_new_tran_id(),
@@ -478,6 +503,7 @@ def start_card(
         co_buy_participant_id=participant_id,
         amount=amount,
         shipping_fee=shipping_fee,
+        shipping_shares=shipping_shares,
         currency="USD",
         payment_option="card",
         expires_at=datetime.now(timezone.utc) + CARD_LIFETIME,
