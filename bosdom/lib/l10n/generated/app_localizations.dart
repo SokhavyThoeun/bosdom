@@ -3165,6 +3165,12 @@ abstract class AppLocalizations {
   /// **'Location'**
   String get storeProfileLabelLocation;
 
+  /// No description provided for @storeProfileLabelOperatingHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Operating Hours'**
+  String get storeProfileLabelOperatingHours;
+
   /// No description provided for @storeProfileContactTitle.
   ///
   /// In en, this message translates to:

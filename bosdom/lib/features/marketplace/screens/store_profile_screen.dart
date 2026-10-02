@@ -730,8 +730,19 @@ class _AboutTab extends ConsumerWidget {
                 value: location,
                 colorScheme: colorScheme,
                 textTheme: textTheme,
-                isLast: true,
+                isLast: shop == null,
               ),
+              if (shop != null)
+                _DetailRow(
+                  icon: Icons.schedule_outlined,
+                  label: l10n.storeProfileLabelOperatingHours,
+                  value: shop.operatingHours.isNotEmpty
+                      ? shop.operatingHours
+                      : '-',
+                  colorScheme: colorScheme,
+                  textTheme: textTheme,
+                  isLast: true,
+                ),
             ],
           ),
         ),

@@ -1709,6 +1709,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeProfileLabelLocation => 'Location';
 
   @override
+  String get storeProfileLabelOperatingHours => 'Operating Hours';
+
+  @override
   String get storeProfileContactTitle => 'Contact Information';
 
   @override

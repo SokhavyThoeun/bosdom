@@ -8,6 +8,7 @@ from ..auth import CurrentUser, get_current_user
 from ..db import get_db
 from ..models import Shop
 from .orders import is_best_seller, is_high_volume_seller
+from .store_addresses import default_store_address
 from ..utils.images import save_image_as_webp
 
 router = APIRouter(prefix="/shop", tags=["shop"])
@@ -27,6 +28,8 @@ class ShopOut(BaseModel):
     store_url: str
     logo_url: str = ""
     photo_urls: list[str] = []
+    # From the default store address (Profile > Store Addresses).
+    operating_hours: str = ""
     # "Power Seller" badge — see `is_high_volume_seller` in routers/orders.py.
     high_volume: bool = False
     # "Best Seller" badge — see `is_best_seller` in routers/orders.py.
@@ -62,6 +65,9 @@ def _with_badge(db: Session, shop: Shop) -> ShopOut:
     out = ShopOut.model_validate(shop)
     out.high_volume = is_high_volume_seller(db, shop.id, now)
     out.best_seller = is_best_seller(shop, now)
+    default_address = default_store_address(db, shop.id)
+    if default_address is not None:
+        out.operating_hours = default_address.operating_hours
     return out
 
 
@@ -77,7 +83,7 @@ def save_shop(
     payload: ShopIn,
     user: CurrentUser = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> Shop:
+) -> ShopOut:
     shop = _get_or_create(db, user)
     shop.shop_name = payload.shop_name.strip()
     shop.business_type = payload.business_type.strip()
@@ -90,7 +96,7 @@ def save_shop(
     shop.store_url = payload.store_url.strip()
     db.commit()
     db.refresh(shop)
-    return shop
+    return _with_badge(db, shop)
 
 
 @router.post("/me/logo", response_model=ShopOut)
@@ -98,14 +104,14 @@ def upload_logo(
     file: UploadFile = File(...),
     user: CurrentUser = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> Shop:
+) -> ShopOut:
     logo_url = save_image_as_webp(file, "shop_logos", user.id)
 
     shop = _get_or_create(db, user)
     shop.logo_url = logo_url
     db.commit()
     db.refresh(shop)
-    return shop
+    return _with_badge(db, shop)
 
 
 @router.post("/me/photos", response_model=ShopOut)
@@ -113,7 +119,7 @@ def upload_store_photos(
     photos: list[UploadFile] = File(...),
     user: CurrentUser = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> Shop:
+) -> ShopOut:
     uploaded = [p for p in photos if p.filename]
     if len(uploaded) > _MAX_STORE_PHOTOS:
         raise HTTPException(
@@ -126,7 +132,7 @@ def upload_store_photos(
     shop.photo_urls = urls
     db.commit()
     db.refresh(shop)
-    return shop
+    return _with_badge(db, shop)
 
 
 @router.get("/{seller_id}", response_model=ShopOut)

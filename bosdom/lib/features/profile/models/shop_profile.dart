@@ -11,6 +11,7 @@ class ShopProfile {
     this.storeUrl = '',
     this.logoUrl = '',
     this.photoUrls = const [],
+    this.operatingHours = '',
     this.highVolume = false,
     this.bestSeller = false,
   });
@@ -28,6 +29,7 @@ class ShopProfile {
     logoUrl: json['logo_url'] as String? ?? '',
     photoUrls:
         (json['photo_urls'] as List<dynamic>?)?.cast<String>() ?? const [],
+    operatingHours: json['operating_hours'] as String? ?? '',
     highVolume: json['high_volume'] as bool? ?? false,
     bestSeller: json['best_seller'] as bool? ?? false,
   );
@@ -43,6 +45,9 @@ class ShopProfile {
   final String storeUrl;
   final String logoUrl;
   final List<String> photoUrls;
+
+  /// From the seller's default store address — read-only here.
+  final String operatingHours;
 
   /// Earned the "Power Seller" badge (more than 40 confirmed orders in a
   /// month) — set by the backend, never edited by the seller.
@@ -88,6 +93,7 @@ class ShopProfile {
     storeUrl: storeUrl ?? this.storeUrl,
     logoUrl: logoUrl ?? this.logoUrl,
     photoUrls: photoUrls ?? this.photoUrls,
+    operatingHours: operatingHours,
     highVolume: highVolume,
     bestSeller: bestSeller,
   );

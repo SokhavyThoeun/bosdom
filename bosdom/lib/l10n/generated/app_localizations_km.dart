@@ -1729,6 +1729,9 @@ class AppLocalizationsKm extends AppLocalizations {
   String get storeProfileLabelLocation => 'ទីតាំង';
 
   @override
+  String get storeProfileLabelOperatingHours => 'ម៉ោងធ្វើការ';
+
+  @override
   String get storeProfileContactTitle => 'ព័ត៌មានទំនាក់ទំនង';
 
   @override

@@ -105,19 +105,37 @@ def _make_default(addresses: list[StoreAddress], address_id: str) -> None:
         a.is_default = a.id == address_id
 
 
+def default_store_address(db: Session, seller_id: str) -> StoreAddress | None:
+    return db.scalar(
+        select(StoreAddress).where(
+            StoreAddress.seller_id == seller_id,
+            StoreAddress.deleted.is_(False),
+            StoreAddress.is_default.is_(True),
+        )
+    )
+
+
 def _sync_shop_location(db: Session, seller_id: str) -> list[StoreAddress]:
-    """Mirrors the default store address into `shops.location`, which is what
-    the public storefront (View Shop header + About tab) shows. Returns the
-    live book so every endpoint can end with it."""
+    """Mirrors the default store address's location, phone and email into the
+    shop, which is what the public storefront (View Shop header + About tab)
+    shows. Returns the live book so every endpoint can end with it."""
     addresses = _live(db, seller_id)
     default = next((a for a in addresses if a.is_default), None)
-    if default is not None:
+    shop = db.get(Shop, seller_id)
+    if default is not None and shop is not None:
         location = ", ".join(
             p for p in (default.full_address, default.district, default.province) if p
         )
-        shop = db.get(Shop, seller_id)
-        if shop is not None and shop.location != location:
-            shop.location = location
+        changed = False
+        for field, value in (
+            ("location", location),
+            ("phone", default.phone),
+            ("email", default.email),
+        ):
+            if value and getattr(shop, field) != value:
+                setattr(shop, field, value)
+                changed = True
+        if changed:
             db.commit()
     return addresses
 
