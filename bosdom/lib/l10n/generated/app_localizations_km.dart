@@ -805,6 +805,13 @@ class AppLocalizationsKm extends AppLocalizations {
       'មិនទាន់មានអាសយដ្ឋានហាងទេ។ បន្ថែមមួយដើម្បីចាប់ផ្តើមដឹកជញ្ជូនពីទីតាំងថេរ។';
 
   @override
+  String get storeAddressLoadError => 'មិនអាចផ្ទុកអាសយដ្ឋានហាងរបស់អ្នកបានទេ';
+
+  @override
+  String get storeAddressSaveError =>
+      'មិនអាចរក្សាទុកអាសយដ្ឋានហាងបានទេ។ សូមព្យាយាមម្តងទៀត។';
+
+  @override
   String get chatScreenTitle => 'ជជែក';
 
   @override

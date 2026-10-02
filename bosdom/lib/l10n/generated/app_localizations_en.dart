@@ -797,6 +797,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'No store addresses yet. Add one to start shipping from a fixed location.';
 
   @override
+  String get storeAddressLoadError => 'Couldn\'t load your store addresses';
+
+  @override
+  String get storeAddressSaveError =>
+      'Couldn\'t save your store address. Please try again.';
+
+  @override
   String get chatScreenTitle => 'Chat';
 
   @override

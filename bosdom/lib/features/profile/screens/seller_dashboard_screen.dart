@@ -365,9 +365,7 @@ class _StoreSummaryCard extends ConsumerWidget {
                 Expanded(
                   child: _SummaryStat(
                     label: l10n.sellerDashboardProductsLabel,
-                    value: l10n.sellerDashboardProductsCountLabel(
-                      productCount,
-                    ),
+                    value: l10n.sellerDashboardProductsCountLabel(productCount),
                     colorScheme: colorScheme,
                     textTheme: textTheme,
                   ),

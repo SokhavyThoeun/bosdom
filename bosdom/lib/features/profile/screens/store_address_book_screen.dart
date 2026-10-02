@@ -32,8 +32,23 @@ class StoreAddressBookScreen extends ConsumerWidget {
         ],
       ),
     );
-    if (confirmed == true) {
-      ref.read(storeAddressBookProvider.notifier).deleteAddress(address.id);
+    if (confirmed == true && context.mounted) {
+      await _run(
+        context,
+        ref.read(storeAddressBookProvider.notifier).deleteAddress(address.id),
+      );
+    }
+  }
+
+  /// Awaits a book mutation, telling the seller if it didn't reach the
+  /// server (the provider has already reverted the list by then).
+  Future<void> _run(BuildContext context, Future<void> mutation) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final message = AppLocalizations.of(context).storeAddressSaveError;
+    try {
+      await mutation;
+    } catch (_) {
+      messenger.showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
@@ -42,7 +57,8 @@ class StoreAddressBookScreen extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
-    final addresses = ref.watch(storeAddressBookProvider);
+    final book = ref.watch(storeAddressBookProvider);
+    final addresses = book.value ?? const <StoreAddress>[];
 
     return Scaffold(
       body: Column(
@@ -52,47 +68,82 @@ class StoreAddressBookScreen extends ConsumerWidget {
             child: SafeArea(
               top: false,
               bottom: false,
-              child: ListView(
-                padding: EdgeInsets.fromLTRB(
-                  20,
-                  20,
-                  20,
-                  8 + MediaQuery.of(context).padding.bottom,
-                ),
-                children: [
-                  if (addresses.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 24),
-                      child: Text(
-                        l10n.storeAddressEmptyState,
-                        textAlign: TextAlign.center,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+              child: book.isLoading && !book.hasValue
+                  ? const Center(child: CircularProgressIndicator())
+                  : RefreshIndicator(
+                      onRefresh: () =>
+                          ref.refresh(storeAddressBookProvider.future),
+                      child: ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: EdgeInsets.fromLTRB(
+                          20,
+                          20,
+                          20,
+                          8 + MediaQuery.of(context).padding.bottom,
                         ),
+                        children: [
+                          if (book.hasError && !book.hasValue)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 24),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    l10n.storeAddressLoadError,
+                                    textAlign: TextAlign.center,
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => ref.invalidate(
+                                      storeAddressBookProvider,
+                                    ),
+                                    child: Text(l10n.commonRetry),
+                                  ),
+                                ],
+                              ),
+                            )
+                          else if (addresses.isEmpty)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 24),
+                              child: Text(
+                                l10n.storeAddressEmptyState,
+                                textAlign: TextAlign.center,
+                                style: textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                          for (final address in addresses) ...[
+                            _StoreAddressCard(
+                              address: address,
+                              colorScheme: colorScheme,
+                              textTheme: textTheme,
+                              onEdit: () => context.pushNamed(
+                                'addStoreAddress',
+                                extra: address,
+                              ),
+                              onDelete: () =>
+                                  _confirmDelete(context, ref, address),
+                              onSelect: () => _run(
+                                context,
+                                ref
+                                    .read(storeAddressBookProvider.notifier)
+                                    .setDefault(address.id),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                          ],
+                          const SizedBox(height: 8),
+                          OutlinedButton.icon(
+                            onPressed: () =>
+                                context.pushNamed('addStoreAddress'),
+                            icon: const Icon(Icons.add),
+                            label: Text(l10n.storeAddressAddNewButton),
+                          ),
+                        ],
                       ),
                     ),
-                  for (final address in addresses) ...[
-                    _StoreAddressCard(
-                      address: address,
-                      colorScheme: colorScheme,
-                      textTheme: textTheme,
-                      onEdit: () =>
-                          context.pushNamed('addStoreAddress', extra: address),
-                      onDelete: () => _confirmDelete(context, ref, address),
-                      onSelect: () => ref
-                          .read(storeAddressBookProvider.notifier)
-                          .setDefault(address.id),
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-                  const SizedBox(height: 8),
-                  OutlinedButton.icon(
-                    onPressed: () => context.pushNamed('addStoreAddress'),
-                    icon: const Icon(Icons.add),
-                    label: Text(l10n.storeAddressAddNewButton),
-                  ),
-                ],
-              ),
             ),
           ),
         ],

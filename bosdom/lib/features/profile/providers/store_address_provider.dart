@@ -4,92 +4,90 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/store_address.dart';
+import '../services/store_address_service.dart';
 
-const _kStoreAddressBookKey = 'store_address_book_v1';
+/// Where the address book lived before it moved to the backend.
+const _kLegacyStoreAddressBookKey = 'store_address_book_v1';
 
-class StoreAddressNotifier extends Notifier<List<StoreAddress>> {
+class StoreAddressNotifier extends AsyncNotifier<List<StoreAddress>> {
   @override
-  List<StoreAddress> build() {
-    _load();
-    return [];
+  Future<List<StoreAddress>> build() async {
+    final addresses = await StoreAddressService.fetch();
+    return _migrateLegacy(addresses);
   }
 
-  Future<void> _load() async {
+  /// One-time upload of addresses saved on-device by older app versions,
+  /// so they aren't lost now that the backend is the source of truth.
+  Future<List<StoreAddress>> _migrateLegacy(
+    List<StoreAddress> addresses,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_kStoreAddressBookKey);
-    if (raw == null) return;
+    final raw = prefs.getString(_kLegacyStoreAddressBookKey);
+    if (raw == null) return addresses;
+    var result = addresses;
     try {
-      state = [
-        for (final e in jsonDecode(raw) as List)
+      for (final e in jsonDecode(raw) as List) {
+        result = await StoreAddressService.add(
           StoreAddress.fromJson(e as Map<String, dynamic>),
-      ];
-    } on Object {
-      // Corrupt payload — start empty rather than crash on startup.
+        );
+      }
+    } on FormatException {
+      // Corrupt payload — nothing recoverable to migrate.
+    }
+    await prefs.remove(_kLegacyStoreAddressBookKey);
+    return result;
+  }
+
+  /// Applies [optimistic] immediately, then replaces it with the server's
+  /// book; reverts and rethrows if the request fails so callers can say so.
+  Future<void> _mutate(
+    List<StoreAddress> optimistic,
+    Future<List<StoreAddress>> Function() request,
+  ) async {
+    final previous = state.value ?? const [];
+    state = AsyncData(optimistic);
+    try {
+      state = AsyncData(await request());
+    } catch (_) {
+      state = AsyncData(previous);
+      rethrow;
     }
   }
 
-  void _persist() {
-    final encoded = jsonEncode([for (final a in state) a.toJson()]);
-    SharedPreferences.getInstance().then(
-      (prefs) => prefs.setString(_kStoreAddressBookKey, encoded),
-    );
-  }
+  List<StoreAddress> get _current => state.value ?? const [];
 
-  void addAddress(StoreAddress address) {
-    if (address.isDefault) {
-      state = [
-        for (final existing in state) existing.copyWith(isDefault: false),
-        address,
-      ];
-    } else {
-      state = [...state, address];
-    }
-    _persist();
-  }
+  Future<void> addAddress(StoreAddress address) => _mutate([
+    for (final existing in _current)
+      address.isDefault ? existing.copyWith(isDefault: false) : existing,
+    address,
+  ], () => StoreAddressService.add(address));
 
-  void updateAddress(StoreAddress address) {
-    state = [
-      for (final existing in state)
-        if (existing.id == address.id)
-          address
-        else
-          existing.copyWith(isDefault: address.isDefault ? false : null),
-    ];
-    _ensureDefault();
-    _persist();
-  }
+  Future<void> updateAddress(StoreAddress address) => _mutate([
+    for (final existing in _current)
+      if (existing.id == address.id)
+        address
+      else
+        existing.copyWith(isDefault: address.isDefault ? false : null),
+  ], () => StoreAddressService.update(address));
 
-  void deleteAddress(String id) {
-    state = [
-      for (final existing in state)
-        if (existing.id != id) existing,
-    ];
-    _ensureDefault();
-    _persist();
-  }
+  Future<void> deleteAddress(String id) => _mutate([
+    for (final existing in _current)
+      if (existing.id != id) existing,
+  ], () => StoreAddressService.delete(id));
 
-  /// Keeps one address flagged default whenever the book is non-empty.
-  void _ensureDefault() {
-    if (state.isEmpty || state.any((a) => a.isDefault)) return;
-    state = [state.first.copyWith(isDefault: true), ...state.skip(1)];
-  }
-
-  void setDefault(String id) {
-    state = [
-      for (final existing in state)
-        existing.copyWith(isDefault: existing.id == id),
-    ];
-    _persist();
-  }
+  Future<void> setDefault(String id) => _mutate([
+    for (final existing in _current)
+      existing.copyWith(isDefault: existing.id == id),
+  ], () => StoreAddressService.setDefault(id));
 }
 
 final storeAddressBookProvider =
-    NotifierProvider<StoreAddressNotifier, List<StoreAddress>>(
+    AsyncNotifierProvider<StoreAddressNotifier, List<StoreAddress>>(
       StoreAddressNotifier.new,
     );
 
 final defaultStoreAddressProvider = Provider<StoreAddress?>((ref) {
-  final addresses = ref.watch(storeAddressBookProvider);
+  final addresses = ref.watch(storeAddressBookProvider).value ?? const [];
   if (addresses.isEmpty) return null;
   return addresses.firstWhere(
     (a) => a.isDefault,

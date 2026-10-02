@@ -343,6 +343,8 @@
   "storeAddressSaveButton": "Save Store Address",
   "storeAddressDefaultBadge": "Default",
   "storeAddressEmptyState": "No store addresses yet. Add one to start shipping from a fixed location.",
+  "storeAddressLoadError": "Couldn't load your store addresses",
+  "storeAddressSaveError": "Couldn't save your store address. Please try again.",
   "chatScreenTitle": "Chat",
   "chatSellerScreenTitle": "Customer Messages",
   "chatSearchHint": "Search conversations...",

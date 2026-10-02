@@ -4,7 +4,7 @@ from fastapi.responses import RedirectResponse
 
 from . import storage
 from .db import engine
-from .models import PaywayPayment, UserNotification
+from .models import PaywayPayment, StoreAddress, UserNotification
 from .routers import (
     admin,
     ads_consent,
@@ -21,14 +21,16 @@ from .routers import (
     receipts,
     sample_orders,
     shop,
+    store_addresses,
     wishlist,
 )
 
-# The notifications/PayWay tables are new; create them if the SQL migrations
-# haven't been applied yet so they work instead of erroring (no-op once they
-# exist).
+# The notifications/PayWay/store-address tables are new; create them if the
+# SQL migrations haven't been applied yet so they work instead of erroring
+# (no-op once they exist).
 UserNotification.__table__.create(bind=engine, checkfirst=True)
 PaywayPayment.__table__.create(bind=engine, checkfirst=True)
+StoreAddress.__table__.create(bind=engine, checkfirst=True)
 storage.ensure_buckets()
 
 app = FastAPI(title="Bosdom Backend")
@@ -52,6 +54,7 @@ app.include_router(notifications.router)
 app.include_router(ads_consent.router)
 app.include_router(marketing_consent.router)
 app.include_router(profile.router)
+app.include_router(store_addresses.router)
 app.include_router(shop.router)
 app.include_router(listings.router)
 app.include_router(sample_orders.router)

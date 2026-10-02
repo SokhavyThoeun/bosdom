@@ -1580,6 +1580,18 @@ abstract class AppLocalizations {
   /// **'No store addresses yet. Add one to start shipping from a fixed location.'**
   String get storeAddressEmptyState;
 
+  /// No description provided for @storeAddressLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your store addresses'**
+  String get storeAddressLoadError;
+
+  /// No description provided for @storeAddressSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save your store address. Please try again.'**
+  String get storeAddressSaveError;
+
   /// No description provided for @chatScreenTitle.
   ///
   /// In en, this message translates to:

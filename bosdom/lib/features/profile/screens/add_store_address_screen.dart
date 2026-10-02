@@ -35,6 +35,7 @@ class _AddStoreAddressScreenState extends ConsumerState<AddStoreAddressScreen> {
   String? _district;
   String? _sangkat;
   bool _isDefault = true;
+  bool _isSaving = false;
 
   bool get _isEditing => widget.editing != null;
 
@@ -82,8 +83,8 @@ class _AddStoreAddressScreenState extends ConsumerState<AddStoreAddressScreen> {
       ? l10n.storeAddressFieldRequiredError
       : null;
 
-  void _save() {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
+  Future<void> _save() async {
+    if (_isSaving || !(_formKey.currentState?.validate() ?? false)) return;
 
     final notifier = ref.read(storeAddressBookProvider.notifier);
     final address = StoreAddress(
@@ -103,12 +104,21 @@ class _AddStoreAddressScreenState extends ConsumerState<AddStoreAddressScreen> {
       operatingHours: _hoursController.text.trim(),
       isDefault: _isDefault,
     );
-    if (_isEditing) {
-      notifier.updateAddress(address);
-    } else {
-      notifier.addAddress(address);
+    setState(() => _isSaving = true);
+    try {
+      await (_isEditing
+          ? notifier.updateAddress(address)
+          : notifier.addAddress(address));
+      if (mounted) context.pop();
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isSaving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context).storeAddressSaveError),
+        ),
+      );
     }
-    context.pop();
   }
 
   @override
@@ -254,7 +264,7 @@ class _AddStoreAddressScreenState extends ConsumerState<AddStoreAddressScreen> {
                     ),
                     const SizedBox(height: 28),
                     FilledButton(
-                      onPressed: _save,
+                      onPressed: _isSaving ? null : _save,
                       style: FilledButton.styleFrom(
                         minimumSize: const Size.fromHeight(52),
                       ),

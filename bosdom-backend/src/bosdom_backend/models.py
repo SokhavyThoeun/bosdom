@@ -81,6 +81,35 @@ class Shop(Base):
     )
 
 
+class StoreAddress(Base):
+    """One entry in a seller's store address book (Profile > Store Addresses).
+    The first one is seeded from the shop's registration location — see
+    routers/store_addresses.py."""
+
+    __tablename__ = "store_addresses"
+
+    id: Mapped[str] = mapped_column(
+        String, primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    seller_id: Mapped[str] = mapped_column(String, index=True)
+    label: Mapped[str] = mapped_column(String, default="")
+    store_name: Mapped[str] = mapped_column(String, default="")
+    business_type: Mapped[str] = mapped_column(String, default="")
+    full_address: Mapped[str] = mapped_column(String, default="")
+    district: Mapped[str] = mapped_column(String, default="")
+    province: Mapped[str] = mapped_column(String, default="")
+    phone: Mapped[str] = mapped_column(String, default="")
+    email: Mapped[str] = mapped_column(String, default="")
+    operating_hours: Mapped[str] = mapped_column(String, default="")
+    is_default: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Soft-deleted rows stay so the registration seed never re-appears after
+    # the seller deliberately removed it.
+    deleted: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+
+
 class Listing(Base):
     __tablename__ = "listings"
 

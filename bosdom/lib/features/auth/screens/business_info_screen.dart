@@ -10,6 +10,7 @@ import '../../../shared/utils/cambodia_locations.dart';
 import '../../profile/models/shop_profile.dart';
 import '../../profile/providers/profile_provider.dart';
 import '../../profile/providers/shop_profile_provider.dart';
+import '../../profile/providers/store_address_provider.dart';
 import '../../profile/services/profile_service.dart';
 import '../../profile/widgets/seller_approval_gate.dart';
 import '../models/merchant_role.dart';
@@ -163,6 +164,8 @@ class _BusinessInfoScreenState extends ConsumerState<BusinessInfoScreen> {
   Future<bool> _saveShopProfile() async {
     try {
       await ref.read(shopProfileProvider.notifier).save(_buildShopProfile());
+      // The backend seeds the first store address from this location.
+      ref.invalidate(storeAddressBookProvider);
       if (_logoFile != null) {
         await ref
             .read(shopProfileProvider.notifier)

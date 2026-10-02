@@ -247,6 +247,8 @@
   "storeAddressSaveButton": "រក្សាទុកអាសយដ្ឋានហាង",
   "storeAddressDefaultBadge": "លំនាំដើម",
   "storeAddressEmptyState": "មិនទាន់មានអាសយដ្ឋានហាងទេ។ បន្ថែមមួយដើម្បីចាប់ផ្តើមដឹកជញ្ជូនពីទីតាំងថេរ។",
+  "storeAddressLoadError": "មិនអាចផ្ទុកអាសយដ្ឋានហាងរបស់អ្នកបានទេ",
+  "storeAddressSaveError": "មិនអាចរក្សាទុកអាសយដ្ឋានហាងបានទេ។ សូមព្យាយាមម្តងទៀត។",
   "chatScreenTitle": "ជជែក",
   "chatSellerScreenTitle": "សារពីអតិថិជន",
   "chatSearchHint": "ស្វែងរកការសន្ទនា...",
