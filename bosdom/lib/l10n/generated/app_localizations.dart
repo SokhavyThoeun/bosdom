@@ -5865,6 +5865,12 @@ abstract class AppLocalizations {
   /// **'Please enter a valid sample price'**
   String get addListingSamplePriceInvalid;
 
+  /// No description provided for @addListingSamplePriceBelowWholesale.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample price can\'t be lower than the wholesale price'**
+  String get addListingSamplePriceBelowWholesale;
+
   /// No description provided for @addListingVariantsLabel.
   ///
   /// In en, this message translates to:

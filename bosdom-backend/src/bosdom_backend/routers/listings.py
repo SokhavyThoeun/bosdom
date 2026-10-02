@@ -150,6 +150,13 @@ def create_listing(
             status_code=400,
             detail="Sample price must be greater than 0 when sample testing is enabled",
         )
+    if sample_testing_enabled and sample_price is not None and sample_price < price:
+        # A sample is one unit bought to test quality, so it's sold at full
+        # price — never below the wholesale unit price.
+        raise HTTPException(
+            status_code=400,
+            detail="Sample price can't be lower than the wholesale price",
+        )
 
     photo_urls = _save_photos(user.id, [p for p in photos if p.filename])
 
@@ -238,6 +245,13 @@ def update_listing(
         raise HTTPException(
             status_code=400,
             detail="Sample price must be greater than 0 when sample testing is enabled",
+        )
+    if sample_testing_enabled and sample_price is not None and sample_price < price:
+        # A sample is one unit bought to test quality, so it's sold at full
+        # price — never below the wholesale unit price.
+        raise HTTPException(
+            status_code=400,
+            detail="Sample price can't be lower than the wholesale price",
         )
 
     uploaded = [p for p in photos if p.filename]

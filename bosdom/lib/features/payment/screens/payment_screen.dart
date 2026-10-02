@@ -16,6 +16,7 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/utils/mock_images.dart';
 import '../../../shared/widgets/checkout_progress_stepper.dart';
 import '../../cart/providers/cart_provider.dart';
+import '../../marketplace/providers/sample_gate_provider.dart';
 import '../../co_buying/providers/co_buy_provider.dart';
 import '../../orders/providers/orders_provider.dart';
 import '../../orders/services/order_service.dart';
@@ -36,6 +37,7 @@ class OrderLineSummary {
     this.sellerLogoOverride,
     this.listingId,
     this.quantity = 1,
+    this.isSample = false,
   });
 
   final IconData icon;
@@ -53,6 +55,9 @@ class OrderLineSummary {
   /// for demo/co-buy lines that have no backend counterpart to order.
   final String? listingId;
   final int quantity;
+
+  /// One unit bought at the listing's full sample price.
+  final bool isSample;
 
   /// The seller's real shop logo when available, else a generated mock logo.
   String get sellerLogoUrl => sellerLogoOverride ?? mockStoreLogoUrl(seller);
@@ -242,7 +247,8 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       if (listingId == null) continue;
       final order = await OrderService.createOrder(
         listingId: listingId,
-        quantity: line.quantity,
+        quantity: line.isSample ? 1 : line.quantity,
+        sample: line.isSample,
         shippingName: widget.shippingName,
         shippingAddress: widget.shippingAddress,
         shippingPhone: widget.shippingPhone,
@@ -278,10 +284,22 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
 
       final coBuyPoolId = widget.coBuyPoolId;
       final paidListingIds = <String>{};
+      final paidSampleIds = <String>{};
       if (coBuyPoolId != null) {
         ref.invalidate(coBuyProvider);
       } else {
-        paidListingIds.addAll(widget.items.map((l) => l.listingId).nonNulls);
+        paidListingIds.addAll(
+          widget.items
+              .where((l) => !l.isSample)
+              .map((l) => l.listingId)
+              .nonNulls,
+        );
+        paidSampleIds.addAll(
+          widget.items
+              .where((l) => l.isSample)
+              .map((l) => l.listingId)
+              .nonNulls,
+        );
       }
 
       await minDelay;
@@ -290,9 +308,16 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       setState(() => _orderConfirmed = true);
       rootNavigator.pop();
 
-      if (paidListingIds.isNotEmpty) {
+      if (paidListingIds.isNotEmpty || paidSampleIds.isNotEmpty) {
         ref.invalidate(ordersProvider);
         ref.read(cartProvider.notifier).removeByListingIds(paidListingIds);
+      }
+      if (paidSampleIds.isNotEmpty) {
+        // A paid sample starts the buyer's 3-day sample cooldown.
+        ref.invalidate(sampleGateProvider);
+        for (final id in paidSampleIds) {
+          ref.read(cartProvider.notifier).removeSampleLine('sample:$id');
+        }
       }
 
       final viewOrder = await showGeneralDialog<bool>(

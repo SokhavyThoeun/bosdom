@@ -3204,6 +3204,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Please enter a valid sample price';
 
   @override
+  String get addListingSamplePriceBelowWholesale =>
+      'Sample price can\'t be lower than the wholesale price';
+
+  @override
   String get addListingVariantsLabel => 'Sizes & Colors';
 
   @override

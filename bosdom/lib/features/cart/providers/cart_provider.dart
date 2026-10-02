@@ -149,7 +149,7 @@ class CartNotifier extends AsyncNotifier<List<CartLine>> {
     }
   }
 
-  /// Drops the sample line after its order has been placed at checkout.
+  /// Drops the sample line once its sample order has been paid.
   Future<void> removeSampleLine(String cartItemId) async {
     final previous = _lines;
     state = AsyncData(
@@ -158,7 +158,7 @@ class CartNotifier extends AsyncNotifier<List<CartLine>> {
     try {
       await CartService.removeItem(cartItemId);
     } catch (_) {
-      // Best-effort: the sample order already succeeded, so leaving the
+      // Best-effort: the sample was already paid for, so leaving the
       // line behind to be pruned on next sync is fine.
     }
   }

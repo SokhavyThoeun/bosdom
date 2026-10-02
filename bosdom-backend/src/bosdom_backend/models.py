@@ -268,6 +268,9 @@ class Order(Base):
     co_buy_participant_id: Mapped[str | None] = mapped_column(
         String, nullable=True, index=True
     )
+    # A single paid sample (quantity 1 at the listing's sample price), which
+    # starts the buyer's 3-day sample cooldown once paid.
+    is_sample: Mapped[bool] = mapped_column(Boolean, default=False)
     shipping_name: Mapped[str] = mapped_column(String, default="")
     shipping_address: Mapped[str] = mapped_column(String, default="")
     shipping_phone: Mapped[str] = mapped_column(String, default="")
@@ -534,6 +537,9 @@ class PaywayPayment(Base):
     co_buy_participant_id: Mapped[str | None] = mapped_column(
         String, nullable=True, index=True
     )
+    # A single paid sample (quantity 1 at the listing's sample price), which
+    # starts the buyer's 3-day sample cooldown once paid.
+    is_sample: Mapped[bool] = mapped_column(Boolean, default=False)
     amount: Mapped[float] = mapped_column(Float)
     # The shipping included in `amount`, split across the orders on settle.
     shipping_fee: Mapped[float] = mapped_column(Float, default=0.0)

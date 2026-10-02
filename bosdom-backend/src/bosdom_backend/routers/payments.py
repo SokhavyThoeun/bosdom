@@ -17,6 +17,7 @@ from .notifications import NotificationTarget, push_notification
 from .orders import (
     STATUS_PENDING_PAYMENT,
     _aware,
+    _check_sample_eligible as check_sample_eligible,
     allocate_shipping,
     cancel_unpaid_order,
     mark_order_paid,
@@ -256,6 +257,14 @@ def _open_payment(
             raise HTTPException(status_code=404, detail="Order not found")
         if any(o.status != STATUS_PENDING_PAYMENT for o in orders):
             raise HTTPException(status_code=409, detail="This order is already paid")
+        samples = [o for o in orders if o.is_sample]
+        if len(samples) > 1:
+            raise HTTPException(
+                status_code=422, detail="Only one sample can be bought at a time"
+            )
+        if samples:
+            # Another sample may have been paid since this one was created.
+            check_sample_eligible(db, user.id)
         subtotal = sum(o.total_amount for o in orders)
     else:
         pool = db.get(CoBuyPool, payload.co_buy_pool_id)

@@ -1687,6 +1687,7 @@
   "addListingSamplePriceLabel": "Sample Price USD",
   "addListingSamplePriceRequired": "Please enter a sample price",
   "addListingSamplePriceInvalid": "Please enter a valid sample price",
+  "addListingSamplePriceBelowWholesale": "Sample price can't be lower than the wholesale price",
   "addListingVariantsLabel": "Sizes & Colors",
   "addListingVariantsHelper": "Let buyers pick from the options you offer",
   "addListingAddSizeChip": "Add size",

@@ -180,6 +180,21 @@ def refund_order(db: Session, order: Order, now: datetime) -> None:
         dispute.resolved_at = now
 
 
+def _check_sample_eligible(db: Session, buyer_id: str) -> None:
+    """One sample per buyer every 3 days (see routers/sample_orders.py)."""
+    from .sample_orders import sample_eligibility
+
+    eligible, eligible_at = sample_eligibility(db, buyer_id)
+    if not eligible:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "message": "Only one sample order is allowed every 3 days",
+                "eligible_at": eligible_at.isoformat() if eligible_at else None,
+            },
+        )
+
+
 def _co_buy_participant(db: Session, order: Order) -> CoBuyParticipant | None:
     if order.co_buy_participant_id is None:
         return None
@@ -353,6 +368,8 @@ class OrderCreate(BaseModel):
     shipping_name: str = ""
     shipping_address: str = ""
     shipping_phone: str = ""
+    # One unit at the listing's sample price (full price, not wholesale).
+    sample: bool = False
 
 
 class OrderReviewOut(BaseModel):
@@ -409,6 +426,7 @@ class OrderOut(BaseModel):
     review_deadline_at: datetime | None
     review_remaining_seconds: int | None
     platform_fee: float | None
+    is_sample: bool = False
     # Shipping the buyer paid for this order; added to the seller's payout.
     shipping_fee: float = 0.0
     seller_amount: float | None
@@ -753,17 +771,30 @@ def create_order(
             status_code=400, detail="You can't buy your own listing"
         )
 
+    if payload.sample:
+        if not listing.sample_testing_enabled or listing.sample_price is None:
+            raise HTTPException(
+                status_code=400, detail="This listing does not offer sample testing"
+            )
+        _check_sample_eligible(db, user.id)
+        unit_price, quantity = listing.sample_price, 1
+        product_name = f"{listing.product_name} (Sample)"
+    else:
+        unit_price, quantity = listing.price, payload.quantity
+        product_name = listing.product_name
+
     order = Order(
         buyer_id=user.id,
         seller_id=listing.seller_id,
         listing_id=listing.id,
-        product_name=listing.product_name,
-        unit_price=listing.price,
-        quantity=payload.quantity,
-        total_amount=listing.price * payload.quantity,
+        product_name=product_name,
+        unit_price=unit_price,
+        quantity=quantity,
+        total_amount=round(unit_price * quantity, 2),
         shipping_name=payload.shipping_name,
         shipping_address=payload.shipping_address,
         shipping_phone=payload.shipping_phone,
+        is_sample=payload.sample,
     )
     db.add(order)
     db.commit()

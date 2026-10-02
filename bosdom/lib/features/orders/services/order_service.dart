@@ -83,6 +83,7 @@ abstract final class OrderService {
     String shippingName = '',
     String shippingAddress = '',
     String shippingPhone = '',
+    bool sample = false,
   }) async {
     final response = await http
         .post(
@@ -94,12 +95,13 @@ abstract final class OrderService {
             'shipping_name': shippingName,
             'shipping_address': shippingAddress,
             'shipping_phone': shippingPhone,
+            'sample': sample,
           }),
         )
         .timeout(_timeout);
 
     if (response.statusCode != 200) {
-      throw Exception('Failed to create order: ${response.body}');
+      throw OrderCreateException(_errorMessage(response));
     }
 
     return Order.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
@@ -262,4 +264,29 @@ abstract final class OrderService {
 
     return Order.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   }
+}
+
+/// Why `POST /orders` was refused (e.g. the 3-day sample limit), readable
+/// as-is in a snackbar.
+class OrderCreateException implements Exception {
+  const OrderCreateException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
+String _errorMessage(http.Response response) {
+  try {
+    final detail =
+        (jsonDecode(response.body) as Map<String, dynamic>)['detail'];
+    if (detail is String) return detail;
+    if (detail is Map && detail['message'] is String) {
+      return detail['message'] as String;
+    }
+  } on Object {
+    // Not a JSON error body — fall through to the generic message.
+  }
+  return 'Failed to create order';
 }

@@ -34,7 +34,8 @@ PaywayPayment.__table__.create(bind=engine, checkfirst=True)
 StoreAddress.__table__.create(bind=engine, checkfirst=True)
 
 # New columns on existing tables (mirrors supabase/migrations/
-# 20261002110000_order_shipping_and_co_buy_orders.sql); idempotent.
+# 20261002110000_order_shipping_and_co_buy_orders.sql and
+# 20261002120000_paid_sample_orders.sql); idempotent.
 if engine.dialect.name == "postgresql":
     with engine.begin() as conn:
         conn.execute(
@@ -42,7 +43,8 @@ if engine.dialect.name == "postgresql":
                 "alter table escrow_orders"
                 " add column if not exists shipping_fee double precision"
                 " not null default 0,"
-                " add column if not exists co_buy_participant_id text"
+                " add column if not exists co_buy_participant_id text,"
+                " add column if not exists is_sample boolean not null default false"
             )
         )
         conn.execute(

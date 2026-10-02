@@ -13,10 +13,6 @@ import '../../co_buying/providers/co_buy_provider.dart';
 import '../../co_buying/services/co_buy_pool_service.dart'
     show CoBuyJoinException;
 import '../../marketplace/models/product.dart';
-import '../../marketplace/models/sample_order.dart'
-    show SampleCooldownException, SampleOrderException;
-import '../../marketplace/providers/sample_gate_provider.dart';
-import '../../cart/providers/cart_provider.dart';
 import '../../payment/screens/payment_screen.dart' show OrderLineSummary;
 import '../../profile/providers/profile_provider.dart';
 import '../../../shared/utils/mock_images.dart';
@@ -66,12 +62,11 @@ class CheckoutLineItem {
   final double weightKg;
 
   /// True when this line is a product sample rather than a wholesale
-  /// order — samples skip escrow/payment and are placed directly via
-  /// `POST /sample-orders` when checkout continues.
+  /// order — one unit paid at the listing's full sample price, through the
+  /// same escrow payment as the rest of the checkout.
   final bool isSample;
 
-  /// The full product, needed only for sample lines so checkout can reuse
-  /// [SampleGateNotifier.requestSample]'s real-vs-demo listing handling.
+  /// The full product this line was added from, when known.
   final Product? product;
 
   /// The seller's real shop logo when available, else a generated mock logo.
@@ -208,15 +203,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   List<CheckoutLineItem> get _items => widget.items ?? _kCheckoutItems;
 
-  // Samples have no escrow/payment step, so they never contribute to the
-  // paid subtotal/shipping/escrow fee — only their own line card shows a
-  // price.
-  double get _subtotal =>
-      _items.where((i) => !i.isSample).fold(0, (sum, item) => sum + item.total);
+  // Samples are paid at their full sample price like any other line.
+  double get _subtotal => _items.fold(0, (sum, item) => sum + item.total);
 
-  double get _totalWeightKg => _items
-      .where((i) => !i.isSample)
-      .fold(0, (sum, item) => sum + item.weightKg);
+  double get _totalWeightKg =>
+      _items.fold(0, (sum, item) => sum + item.weightKg);
 
   /// Every offered carrier's live quote for this shipment's actual weight
   /// and route, keyed by [_ShippingOption.id] — `null` where the carrier
@@ -253,53 +244,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   double _escrowFee(double shipping) => escrowFeeFor(_subtotal, shipping);
 
   double _total(double shipping) => _subtotal + shipping + _escrowFee(shipping);
-
-  bool _isPlacingSamples = false;
-
-  /// Places any sample lines directly via `POST /sample-orders` (samples
-  /// have no escrow/payment step) before navigating to payment with just
-  /// the remaining wholesale items. Returns the wholesale items that
-  /// should be paid for, or `null` if the caller should not navigate to
-  /// payment at all (nothing left to pay for).
-  Future<List<CheckoutLineItem>?> _placeSamplesAndGetWholesaleItems() async {
-    final l10n = AppLocalizations.of(context);
-    final sampleItems = _items.where((item) => item.isSample).toList();
-    final wholesaleItems = _items.where((item) => !item.isSample).toList();
-
-    if (sampleItems.isEmpty) return wholesaleItems;
-
-    setState(() => _isPlacingSamples = true);
-    for (final item in sampleItems) {
-      final product = item.product;
-      if (product == null) continue;
-      try {
-        await ref.read(sampleGateProvider.notifier).requestSample(product);
-        if (!mounted) return null;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(l10n.cartSampleOrderPlaced)));
-        await ref
-            .read(cartProvider.notifier)
-            .removeSampleLine('sample:${product.id}');
-      } on SampleCooldownException catch (error) {
-        if (!mounted) return null;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.cartSampleOrderFailedCooldown(error.message)),
-          ),
-        );
-      } on SampleOrderException catch (error) {
-        if (!mounted) return null;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.cartSampleOrderFailedCooldown(error.message)),
-          ),
-        );
-      }
-    }
-    if (mounted) setState(() => _isPlacingSamples = false);
-    return wholesaleItems;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -425,61 +369,37 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     ),
                     const SizedBox(height: 20),
                     FilledButton(
-                      onPressed: _isPlacingSamples
-                          ? null
-                          : () async {
-                              final wholesaleItems =
-                                  await _placeSamplesAndGetWholesaleItems();
-                              if (wholesaleItems == null || !context.mounted) {
-                                return;
-                              }
-                              if (wholesaleItems.isEmpty) {
-                                Navigator.of(context).maybePop();
-                                return;
-                              }
-                              context.pushNamed(
-                                'payment',
-                                extra: {
-                                  'amount': _total(shipping),
-                                  'shippingFee': shipping,
-                                  'itemCount': wholesaleItems.length,
-                                  'coBuyPoolId': widget.coBuyPoolId,
-                                  'shippingName': profile?.name ?? '',
-                                  'shippingAddress': defaultAddress == null
-                                      ? ''
-                                      : '${defaultAddress.addressLine}, ${defaultAddress.cityLine}',
-                                  'shippingPhone':
-                                      defaultAddress?.phone ??
-                                      profile?.phone ??
-                                      '',
-                                  'items': [
-                                    for (final item in wholesaleItems)
-                                      OrderLineSummary(
-                                        icon: item.icon,
-                                        imageUrl: item.imageUrl,
-                                        name: item.name,
-                                        qtyLabel: item.qtyLabel,
-                                        total: item.total,
-                                        seller: item.seller,
-                                        sellerLogoOverride:
-                                            item.sellerLogoOverride,
-                                        listingId: item.listingId,
-                                        quantity: item.quantity,
-                                      ),
-                                  ],
-                                },
-                              );
-                            },
-                      child: _isPlacingSamples
-                          ? SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: colorScheme.onPrimary,
+                      onPressed: () => context.pushNamed(
+                        'payment',
+                        extra: {
+                          'amount': _total(shipping),
+                          'shippingFee': shipping,
+                          'itemCount': _items.length,
+                          'coBuyPoolId': widget.coBuyPoolId,
+                          'shippingName': profile?.name ?? '',
+                          'shippingAddress': defaultAddress == null
+                              ? ''
+                              : '${defaultAddress.addressLine}, ${defaultAddress.cityLine}',
+                          'shippingPhone':
+                              defaultAddress?.phone ?? profile?.phone ?? '',
+                          'items': [
+                            for (final item in _items)
+                              OrderLineSummary(
+                                icon: item.icon,
+                                imageUrl: item.imageUrl,
+                                name: item.name,
+                                qtyLabel: item.qtyLabel,
+                                total: item.total,
+                                seller: item.seller,
+                                sellerLogoOverride: item.sellerLogoOverride,
+                                listingId: item.listingId,
+                                quantity: item.quantity,
+                                isSample: item.isSample,
                               ),
-                            )
-                          : Text(l10n.checkoutContinueToPayment),
+                          ],
+                        },
+                      ),
+                      child: Text(l10n.checkoutContinueToPayment),
                     ),
                   ],
                 ),

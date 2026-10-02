@@ -70,12 +70,11 @@ class CartScreen extends ConsumerWidget {
                   final allSelected =
                       groups.isNotEmpty &&
                       groups.every((group) => group.allSelected);
-                  // Samples have no escrow/payment step, so they never
-                  // contribute to the paid subtotal/shipping/escrow fee —
-                  // only their own line card shows a price.
+                  // Samples are paid at their full sample price, so they
+                  // count toward the subtotal, shipping and escrow fee too.
                   final paidLines = groups
                       .expand((group) => group.lines)
-                      .where((line) => line.selected && !line.isSample)
+                      .where((line) => line.selected)
                       .toList();
                   final subtotal = paidLines.fold(
                     0.0,

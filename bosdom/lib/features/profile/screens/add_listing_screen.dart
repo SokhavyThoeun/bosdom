@@ -742,6 +742,12 @@ class _AddListingScreenState extends State<AddListingScreen> {
           ? l10n.addListingSamplePriceInvalid
           : l10n.addListingPriceInvalid;
     }
+    // A sample is one unit bought to test quality, sold at full price —
+    // never below the wholesale unit price (the backend enforces it too).
+    final wholesale = double.tryParse(_priceController.text.trim());
+    if (sample && wholesale != null && parsed < wholesale) {
+      return l10n.addListingSamplePriceBelowWholesale;
+    }
     return null;
   }
 }

@@ -33,35 +33,4 @@ abstract final class SampleOrderService {
       jsonDecode(response.body) as Map<String, dynamic>,
     );
   }
-
-  static Future<SampleOrder> requestSample(String listingId) async {
-    final response = await http
-        .post(
-          Uri.parse('${ApiConfig.baseUrl}/sample-orders'),
-          headers: {..._authHeaders, 'Content-Type': 'application/json'},
-          body: jsonEncode({'listing_id': listingId}),
-        )
-        .timeout(_timeout);
-
-    if (response.statusCode == 200) {
-      return SampleOrder.fromJson(
-        jsonDecode(response.body) as Map<String, dynamic>,
-      );
-    }
-
-    final detail =
-        (jsonDecode(response.body) as Map<String, dynamic>)['detail'];
-
-    if (response.statusCode == 409 && detail is Map<String, dynamic>) {
-      final eligibleAt = detail['eligible_at'] as String?;
-      throw SampleCooldownException(
-        detail['message'] as String? ?? 'Sample cooldown active',
-        eligibleAt != null ? DateTime.parse(eligibleAt) : null,
-      );
-    }
-
-    throw SampleOrderException(
-      detail is String ? detail : 'Failed to request sample',
-    );
-  }
 }

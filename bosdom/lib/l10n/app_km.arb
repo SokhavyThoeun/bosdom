@@ -1050,6 +1050,7 @@
   "addListingSamplePriceLabel": "តម្លៃគំរូគិតជាដុល្លារ",
   "addListingSamplePriceRequired": "សូមបញ្ចូលតម្លៃគំរូ",
   "addListingSamplePriceInvalid": "សូមបញ្ចូលតម្លៃគំរូដែលត្រឹមត្រូវ",
+  "addListingSamplePriceBelowWholesale": "តម្លៃគំរូមិនអាចទាបជាងតម្លៃលក់ដុំបានទេ",
   "addListingVariantsLabel": "ទំហំ និងពណ៌",
   "addListingVariantsHelper": "អនុញ្ញាតឱ្យអ្នកទិញជ្រើសរើសពីជម្រើសដែលអ្នកមាន",
   "addListingAddSizeChip": "បន្ថែមទំហំ",

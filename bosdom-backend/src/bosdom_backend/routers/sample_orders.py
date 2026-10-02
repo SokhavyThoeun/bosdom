@@ -1,21 +1,18 @@
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from ..auth import CurrentUser, get_current_user
 from ..db import get_db
-from ..models import Listing, SampleOrder
+from ..models import Order, SampleOrder
 
 router = APIRouter(prefix="/sample-orders", tags=["sample-orders"])
 
-# 1-per-account cap resets 3 days after the buyer's most recent sample order.
+# 1-per-account cap resets 3 days after the buyer's most recent sample. Samples
+# are now bought as paid escrow orders (`POST /orders` with `sample: true`).
 SAMPLE_ORDER_COOLDOWN = timedelta(days=3)
-
-
-class SampleOrderCreate(BaseModel):
-    listing_id: str
 
 
 class SampleOrderOut(BaseModel):
@@ -45,13 +42,32 @@ def _latest_sample_order(db: Session, buyer_id: str) -> SampleOrder | None:
     )
 
 
-def _eligibility(last_order: SampleOrder | None) -> tuple[bool, datetime | None]:
-    if last_order is None:
+def last_sample_at(db: Session, buyer_id: str) -> datetime | None:
+    """When the buyer last got a sample: their latest paid sample order, or
+    a sample requested before samples were paid for."""
+    times = [
+        o.paid_at
+        for o in db.query(Order)
+        .filter(
+            Order.buyer_id == buyer_id,
+            Order.is_sample.is_(True),
+            Order.paid_at.is_not(None),
+        )
+        .all()
+    ]
+    legacy = _latest_sample_order(db, buyer_id)
+    if legacy is not None:
+        times.append(legacy.created_at)
+    times = [t if t.tzinfo else t.replace(tzinfo=timezone.utc) for t in times if t]
+    return max(times, default=None)
+
+
+def sample_eligibility(db: Session, buyer_id: str) -> tuple[bool, datetime | None]:
+    """(eligible, eligible_at) under the one-sample-per-3-days rule."""
+    last = last_sample_at(db, buyer_id)
+    if last is None:
         return True, None
-    last_created_at = last_order.created_at
-    if last_created_at.tzinfo is None:
-        last_created_at = last_created_at.replace(tzinfo=timezone.utc)
-    eligible_at = last_created_at + SAMPLE_ORDER_COOLDOWN
+    eligible_at = last + SAMPLE_ORDER_COOLDOWN
     if datetime.now(timezone.utc) >= eligible_at:
         return True, None
     return False, eligible_at
@@ -62,7 +78,7 @@ def get_sample_eligibility(
     user: CurrentUser = Depends(get_current_user), db: Session = Depends(get_db)
 ) -> SampleEligibilityOut:
     last_order = _latest_sample_order(db, user.id)
-    eligible, eligible_at = _eligibility(last_order)
+    eligible, eligible_at = sample_eligibility(db, user.id)
     return SampleEligibilityOut(
         eligible=eligible, eligible_at=eligible_at, last_sample_order=last_order
     )
@@ -78,45 +94,3 @@ def list_my_sample_orders(
         .order_by(SampleOrder.created_at.desc())
         .all()
     )
-
-
-@router.post("", response_model=SampleOrderOut)
-def create_sample_order(
-    payload: SampleOrderCreate,
-    user: CurrentUser = Depends(get_current_user),
-    db: Session = Depends(get_db),
-) -> SampleOrder:
-    listing = db.get(Listing, payload.listing_id)
-    if listing is None:
-        raise HTTPException(status_code=404, detail="Listing not found")
-    if listing.seller_id == user.id:
-        raise HTTPException(
-            status_code=400, detail="You can't buy your own listing"
-        )
-    if not listing.sample_testing_enabled or listing.sample_price is None:
-        raise HTTPException(
-            status_code=400, detail="This listing does not offer sample testing"
-        )
-
-    last_order = _latest_sample_order(db, user.id)
-    eligible, eligible_at = _eligibility(last_order)
-    if not eligible:
-        raise HTTPException(
-            status_code=409,
-            detail={
-                "message": "Only one sample order is allowed every 3 days",
-                "eligible_at": eligible_at.isoformat() if eligible_at else None,
-            },
-        )
-
-    order = SampleOrder(
-        buyer_id=user.id,
-        listing_id=listing.id,
-        seller_id=listing.seller_id,
-        product_name=listing.product_name,
-        price=listing.sample_price,
-    )
-    db.add(order)
-    db.commit()
-    db.refresh(order)
-    return order

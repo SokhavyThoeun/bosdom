@@ -52,20 +52,3 @@ class SampleEligibility {
             : null,
       );
 }
-
-/// Thrown by [SampleOrderService.requestSample] when the buyer is still
-/// inside the backend's 3-day cooldown window (HTTP 409).
-class SampleCooldownException implements Exception {
-  const SampleCooldownException(this.message, this.eligibleAt);
-
-  final String message;
-  final DateTime? eligibleAt;
-}
-
-/// Thrown for any other failed sample-order request (listing not found,
-/// listing doesn't offer sampling, network/server error).
-class SampleOrderException implements Exception {
-  const SampleOrderException(this.message);
-
-  final String message;
-}

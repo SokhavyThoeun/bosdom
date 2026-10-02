@@ -3235,6 +3235,10 @@ class AppLocalizationsKm extends AppLocalizations {
   String get addListingSamplePriceInvalid => 'សូមបញ្ចូលតម្លៃគំរូដែលត្រឹមត្រូវ';
 
   @override
+  String get addListingSamplePriceBelowWholesale =>
+      'តម្លៃគំរូមិនអាចទាបជាងតម្លៃលក់ដុំបានទេ';
+
+  @override
   String get addListingVariantsLabel => 'ទំហំ និងពណ៌';
 
   @override
