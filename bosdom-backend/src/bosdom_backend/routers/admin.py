@@ -798,7 +798,7 @@ def _dispute_out(db: Session, dispute: Dispute) -> AdminDisputeOut:
             if order.platform_fee is not None
             else round(
                 order.total_amount
-                * fee_rate_for(db, order.seller_id, datetime.now(timezone.utc)),
+                * fee_rate_for(db, order.seller_id),
                 2,
             )
         )

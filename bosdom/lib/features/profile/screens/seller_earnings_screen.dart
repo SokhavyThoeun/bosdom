@@ -13,6 +13,8 @@ import '../../orders/models/order.dart';
 import '../../orders/providers/orders_provider.dart';
 import '../../orders/services/order_service.dart';
 import '../models/earnings.dart';
+import '../models/seller_order.dart';
+import '../providers/shop_profile_provider.dart';
 import 'success_dialog.dart';
 import 'withdraw_funds_sheet.dart';
 
@@ -134,8 +136,14 @@ class _SellerEarningsScreenState extends ConsumerState<SellerEarningsScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
+    final isTopSeller =
+        ref.watch(shopProfileProvider).value?.bestSeller ?? false;
+    final feeRate = isTopSeller
+        ? kTopSellerPlatformFeeRate
+        : kSellerPlatformFeeRate;
     final summary = EarningsSummary([
-      for (final order in orders) ?EarningsTransaction.fromOrder(order),
+      for (final order in orders)
+        ?EarningsTransaction.fromOrder(order, feeRate: feeRate),
     ]);
     final filtered = summary.transactions.where(_matchesFilter).toList();
     final filteredTotal = filtered.fold<double>(

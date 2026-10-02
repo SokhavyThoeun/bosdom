@@ -54,10 +54,12 @@ REVIEW_WINDOW = timedelta(days=3)
 # rate as the seller app's earnings screen (`kSellerPlatformFeeRate`).
 PLATFORM_FEE_RATE = 0.04
 
-# High-volume tier: a seller with more than `HIGH_VOLUME_ORDERS` confirmed
-# orders in a calendar month pays the reduced rate on every order released
-# for the rest of that month.
-REDUCED_FEE_RATE = 0.03
+# Reduced rate for shops an admin granted the "Top Seller" badge (see
+# `is_best_seller`), applied to every order released while they hold it.
+TOP_SELLER_FEE_RATE = 0.03
+
+# "Power Seller" badge: more than this many confirmed orders in a calendar
+# month. Badge only — it doesn't change the fee.
 HIGH_VOLUME_ORDERS = 40
 
 # "Best Seller" badge: awarded once a shop has stayed on the platform for
@@ -97,9 +99,12 @@ def confirmed_orders_in_month(db: Session, seller_id: str, month_of: datetime) -
     )
 
 
-def fee_rate_for(db: Session, seller_id: str, now: datetime) -> float:
-    if confirmed_orders_in_month(db, seller_id, now) > HIGH_VOLUME_ORDERS:
-        return REDUCED_FEE_RATE
+def fee_rate_for(db: Session, seller_id: str) -> float:
+    """The platform's cut for this seller right now: 3% with the admin-granted
+    "Top Seller" badge, otherwise the standard 4%."""
+    shop = db.get(Shop, seller_id)
+    if shop is not None and is_best_seller(shop, datetime.now(timezone.utc)):
+        return TOP_SELLER_FEE_RATE
     return PLATFORM_FEE_RATE
 
 
@@ -218,7 +223,7 @@ def auto_release_due_orders(db: Session) -> None:
         return
     for order in due:
         release_funds(
-            order, now, auto=True, fee_rate=fee_rate_for(db, order.seller_id, now)
+            order, now, auto=True, fee_rate=fee_rate_for(db, order.seller_id)
         )
     db.commit()
     for order in due:
@@ -930,7 +935,7 @@ def release_order(
         raise HTTPException(status_code=403, detail="Only the buyer can release this order")
 
     now = datetime.now(timezone.utc)
-    release_funds(order, now, fee_rate=fee_rate_for(db, order.seller_id, now))
+    release_funds(order, now, fee_rate=fee_rate_for(db, order.seller_id))
     db.commit()
     db.refresh(order)
     notify_order_released(db, order)

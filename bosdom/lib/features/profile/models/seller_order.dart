@@ -21,7 +21,9 @@ String sellerOrderStatusLabel(
   OrderStatus.cancelled => 'Cancelled',
 };
 
-/// Standard platform commission (4%; 3% for sellers with more than 40
-/// confirmed orders in a month — see `fee_rate_for` in the backend) taken out of every order's subtotal before it's paid
-/// out to the seller — shown on the seller earnings screen.
+/// Standard platform commission taken out of every order before it's paid
+/// out to the seller — shown on the seller earnings screen. Shops with the
+/// admin-granted "Top Seller" badge pay [kTopSellerPlatformFeeRate] instead
+/// (see `fee_rate_for` in the backend).
 const kSellerPlatformFeeRate = 0.04;
+const kTopSellerPlatformFeeRate = 0.03;

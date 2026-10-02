@@ -34,8 +34,12 @@ class EarningsTransaction {
   });
 
   /// `null` for orders that never reached escrow (unpaid or cancelled), which
-  /// have no money to show in an earnings ledger.
-  static EarningsTransaction? fromOrder(Order order) {
+  /// have no money to show in an earnings ledger. [feeRate] estimates the cut
+  /// on orders not yet released (released ones carry the fee actually taken).
+  static EarningsTransaction? fromOrder(
+    Order order, {
+    double feeRate = kSellerPlatformFeeRate,
+  }) {
     final status = switch (order.status) {
       OrderStatus.held =>
         order.releaseRequestedAt != null
@@ -60,7 +64,7 @@ class EarningsTransaction {
       payoutEtaAt: order.payoutEtaAt,
       platformFeeRate: order.platformFee != null && order.totalAmount > 0
           ? order.platformFee! / order.totalAmount
-          : kSellerPlatformFeeRate,
+          : feeRate,
     );
   }
 
