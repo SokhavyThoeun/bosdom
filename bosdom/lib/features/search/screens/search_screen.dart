@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
 import '../../marketplace/models/category.dart';
@@ -9,6 +10,16 @@ import '../../marketplace/providers/listings_provider.dart';
 import '../../marketplace/widgets/category_item.dart';
 import '../../marketplace/widgets/empty_products_notice.dart';
 import '../../marketplace/widgets/product_list_tile.dart';
+
+const _kRecentSearchesKey = 'recent_searches';
+const _kMaxRecentSearches = 6;
+const _kMockRecentSearches = [
+  'Wholesale T-Shirts',
+  'USB-C Charger',
+  'Coconut Oil',
+  'Kitchen Towel Rolls',
+  'Wireless Earbuds',
+];
 
 const _kTrendingSearches = [
   'Jasmine Rice',
@@ -29,13 +40,31 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   final _controller = TextEditingController();
   String _query = '';
   bool _recentExpanded = false;
-  final List<String> _recentSearches = [
-    'Wholesale T-Shirts',
-    'USB-C Charger',
-    'Coconut Oil',
-    'Kitchen Towel Rolls',
-    'Wireless Earbuds',
-  ];
+  final List<String> _recentSearches = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRecentSearches();
+  }
+
+  Future<void> _loadRecentSearches() async {
+    final prefs = await SharedPreferences.getInstance();
+    // null = first launch (seed mock data); an empty list = user cleared all.
+    final saved =
+        prefs.getStringList(_kRecentSearchesKey) ?? _kMockRecentSearches;
+    if (!mounted) return;
+    setState(() {
+      _recentSearches
+        ..clear()
+        ..addAll(saved);
+    });
+  }
+
+  Future<void> _saveRecentSearches() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_kRecentSearchesKey, _recentSearches);
+  }
 
   @override
   void dispose() {
@@ -60,10 +89,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       _query = term;
       _recentSearches.remove(term);
       _recentSearches.insert(0, term);
-      if (_recentSearches.length > 6) {
+      if (_recentSearches.length > _kMaxRecentSearches) {
         _recentSearches.removeLast();
       }
     });
+    _saveRecentSearches();
   }
 
   void _applySearch(String term) {
@@ -122,6 +152,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         onClearAll: () => setState(() {
                           _recentSearches.clear();
                           _recentExpanded = false;
+                          _saveRecentSearches();
                         }),
                         onTrendingTap: _applySearch,
                         onCategoryTap: (category) => context.pushNamed(
