@@ -43,7 +43,10 @@ class _FulfilmentSheet extends StatefulWidget {
 
 class _FulfilmentSheetState extends State<_FulfilmentSheet> {
   final _formKey = GlobalKey<FormState>();
-  final _courierController = TextEditingController();
+  // Prefilled with the courier the buyer picked at checkout.
+  late final _courierController = TextEditingController(
+    text: widget.order.courier,
+  );
   final _trackingController = TextEditingController();
   final _picker = ImagePicker();
   String? _photoPath;

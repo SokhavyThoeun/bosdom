@@ -172,13 +172,14 @@ def province_in(address: str) -> str | None:
 
 def quote(
     carrier: str | None, weight_kg: float, destination: str
-) -> ShippingQuote | None:
-    """The picked carrier's quote, or — when none was named (older app
+) -> tuple[str, ShippingQuote] | None:
+    """The picked carrier and its quote, or — when none was named (older app
     versions) — the first carrier that can serve it, like checkout's default."""
     if carrier:
-        return estimate(carrier, weight_kg, ORIGIN_PROVINCE, destination)
+        q = estimate(carrier, weight_kg, ORIGIN_PROVINCE, destination)
+        return (carrier, q) if q is not None else None
     for name in CARRIERS:
         q = estimate(name, weight_kg, ORIGIN_PROVINCE, destination)
         if q is not None:
-            return q
+            return name, q
     return None

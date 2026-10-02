@@ -351,12 +351,16 @@ def _shipping_for(
     shares: dict[str, float] = {}
     for parcel in by_seller.values():
         weight = sum(weights[o.id] for o in parcel)
-        quote = shipping.quote(payload.carrier, weight, destination)
-        if quote is None:
+        picked = shipping.quote(payload.carrier, weight, destination)
+        if picked is None:
             raise HTTPException(
                 status_code=422,
                 detail="This courier can't deliver this order — pick another one",
             )
+        carrier, quote = picked
+        # The seller sees which courier the buyer picked, and ships with it.
+        for order in parcel:
+            order.courier = carrier
         # One seller's orders share a parcel: split its fee by weight.
         left = quote.charged
         for i, order in enumerate(parcel):
