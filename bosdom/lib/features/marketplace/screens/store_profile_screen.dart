@@ -378,7 +378,8 @@ class _StoreHeader extends ConsumerWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          seller.location,
+                          _shortLocation(shopProfile?.location) ??
+                              seller.location,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: textTheme.bodySmall?.copyWith(
@@ -891,7 +892,8 @@ class _ReviewsTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final isBestSeller = sellerId != null &&
+    final isBestSeller =
+        sellerId != null &&
         (ref.watch(shopProfileByIdProvider(sellerId!)).value?.bestSeller ??
             false);
 
@@ -1278,8 +1280,11 @@ class _ReviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final avatar = _avatarPalette[
-        review.reviewerName.codeUnits.fold<int>(0, (a, b) => a + b) %
+    final avatar =
+        _avatarPalette[review.reviewerName.codeUnits.fold<int>(
+              0,
+              (a, b) => a + b,
+            ) %
             _avatarPalette.length];
     return _SectionCard(
       colorScheme: colorScheme,
@@ -1334,4 +1339,16 @@ class _ReviewCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// "Khan Chamkar Mon, Phnom Penh" out of the shop's full
+/// "street, Sangkat X, Khan Y, Province" location, so the header's single
+/// line shows the area instead of an ellipsised street. Null when unset.
+String? _shortLocation(String? location) {
+  final parts = [
+    for (final p in (location ?? '').split(','))
+      if (p.trim().isNotEmpty) p.trim(),
+  ];
+  if (parts.isEmpty) return null;
+  return parts.skip(parts.length < 2 ? 0 : parts.length - 2).join(', ');
 }

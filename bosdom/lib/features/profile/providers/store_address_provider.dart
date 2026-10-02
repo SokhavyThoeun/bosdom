@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/store_address.dart';
 import '../services/store_address_service.dart';
+import 'shop_profile_provider.dart';
 
 /// Where the address book lived before it moved to the backend.
 const _kLegacyStoreAddressBookKey = 'store_address_book_v1';
@@ -12,8 +13,16 @@ const _kLegacyStoreAddressBookKey = 'store_address_book_v1';
 class StoreAddressNotifier extends AsyncNotifier<List<StoreAddress>> {
   @override
   Future<List<StoreAddress>> build() async {
-    final addresses = await StoreAddressService.fetch();
-    return _migrateLegacy(addresses);
+    final addresses = await _migrateLegacy(await StoreAddressService.fetch());
+    _refreshShop();
+    return addresses;
+  }
+
+  /// The backend mirrors the default address into the shop's public
+  /// location, so drop cached shop info for View Shop / About to refetch.
+  void _refreshShop() {
+    ref.invalidate(shopProfileProvider);
+    ref.invalidate(shopProfileByIdProvider);
   }
 
   /// One-time upload of addresses saved on-device by older app versions,
@@ -48,6 +57,7 @@ class StoreAddressNotifier extends AsyncNotifier<List<StoreAddress>> {
     state = AsyncData(optimistic);
     try {
       state = AsyncData(await request());
+      _refreshShop();
     } catch (_) {
       state = AsyncData(previous);
       rethrow;

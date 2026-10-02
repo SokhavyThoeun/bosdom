@@ -105,6 +105,23 @@ def _make_default(addresses: list[StoreAddress], address_id: str) -> None:
         a.is_default = a.id == address_id
 
 
+def _sync_shop_location(db: Session, seller_id: str) -> list[StoreAddress]:
+    """Mirrors the default store address into `shops.location`, which is what
+    the public storefront (View Shop header + About tab) shows. Returns the
+    live book so every endpoint can end with it."""
+    addresses = _live(db, seller_id)
+    default = next((a for a in addresses if a.is_default), None)
+    if default is not None:
+        location = ", ".join(
+            p for p in (default.full_address, default.district, default.province) if p
+        )
+        shop = db.get(Shop, seller_id)
+        if shop is not None and shop.location != location:
+            shop.location = location
+            db.commit()
+    return addresses
+
+
 def _get_owned(db: Session, seller_id: str, address_id: str) -> StoreAddress:
     address = db.get(StoreAddress, address_id)
     if address is None or address.seller_id != seller_id or address.deleted:
@@ -129,7 +146,7 @@ def list_addresses(
     user: CurrentUser = Depends(get_current_user), db: Session = Depends(get_db)
 ) -> list[StoreAddress]:
     _seed_from_shop(db, user.id)
-    return _live(db, user.id)
+    return _sync_shop_location(db, user.id)
 
 
 @router.post("", response_model=list[StoreAddressOut])
@@ -147,7 +164,7 @@ def add_address(
         _make_default(addresses, address.id)
     _ensure_default(addresses)
     db.commit()
-    return _live(db, user.id)
+    return _sync_shop_location(db, user.id)
 
 
 @router.put("/{address_id}", response_model=list[StoreAddressOut])
@@ -166,7 +183,7 @@ def update_address(
         address.is_default = False
     _ensure_default(addresses)
     db.commit()
-    return _live(db, user.id)
+    return _sync_shop_location(db, user.id)
 
 
 @router.delete("/{address_id}", response_model=list[StoreAddressOut])
@@ -181,7 +198,7 @@ def delete_address(
     db.flush()
     _ensure_default(_live(db, user.id))
     db.commit()
-    return _live(db, user.id)
+    return _sync_shop_location(db, user.id)
 
 
 @router.post("/{address_id}/default", response_model=list[StoreAddressOut])
@@ -193,4 +210,4 @@ def set_default(
     _get_owned(db, user.id, address_id)
     _make_default(_live(db, user.id), address_id)
     db.commit()
-    return _live(db, user.id)
+    return _sync_shop_location(db, user.id)
