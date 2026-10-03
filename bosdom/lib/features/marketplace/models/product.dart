@@ -21,6 +21,7 @@ class Product {
     this.location = 'Phnom Penh, Cambodia',
     this.verified = true,
     this.inStock = true,
+    this.stockQty,
     this.weight = '-',
     this.origin = 'Cambodia',
     this.grade = 'Standard',
@@ -52,6 +53,10 @@ class Product {
   final String location;
   final bool verified;
   final bool inStock;
+
+  /// Units the seller has left, live from the backend (paying for an order
+  /// takes its units off). `null` for mock products, which show no count.
+  final int? stockQty;
   final String weight;
   final String origin;
   final String grade;

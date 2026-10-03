@@ -1419,6 +1419,11 @@ class AppLocalizationsKm extends AppLocalizations {
   String get coBuyDetailQuantityLabel => 'បរិមាណ';
 
   @override
+  String coBuyDetailStockLabel(int qty, String unitLabel) {
+    return 'ស្តុកនៅសល់៖ $qty $unitLabel';
+  }
+
+  @override
   String coBuyDetailMinOrderLabel(int minOrderQty, String unitLabel) {
     return 'បញ្ជាទិញអប្បបរមា៖ $minOrderQty $unitLabel';
   }
@@ -1634,6 +1639,11 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get productDetailOutOfStock => 'អស់ស្តុក';
+
+  @override
+  String productDetailStockLabel(String stock) {
+    return 'ស្តុកដែលមាន៖ $stock បាវ';
+  }
 
   @override
   String get productDetailWholesaleBuyTitle => 'ទិញលក់ដុំ';

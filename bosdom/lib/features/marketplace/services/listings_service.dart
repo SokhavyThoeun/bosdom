@@ -62,6 +62,7 @@ Product _productFromJson(Map<String, dynamic> json) {
         ? json['seller_location'] as String
         : 'Cambodia',
     inStock: (json['stock_qty'] as int) > 0,
+    stockQty: json['stock_qty'] as int,
     sizes: sizes,
     colorOptions: colors,
     weight: _specOrDash(json, 'weight'),

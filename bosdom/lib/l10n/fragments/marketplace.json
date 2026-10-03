@@ -19,6 +19,7 @@
   "productDetailVisitShop": {"en": "Visit Shop", "km": "ចូលមើលហាង"},
   "productDetailInStock": {"en": "In Stock", "km": "នៅមានស្តុក"},
   "productDetailOutOfStock": {"en": "Out of Stock", "km": "អស់ស្តុក"},
+  "productDetailStockLabel": {"en": "Available Stock: {stock} Bags", "km": "ស្តុកដែលមាន៖ {stock} បាវ", "placeholders": ["stock"]},
   "productDetailWholesaleBuyTitle": {"en": "Wholesale Buy", "km": "ទិញលក់ដុំ"},
   "productDetailSampleBuyTitle": {"en": "Sample Buy", "km": "ទិញគំរូ"},
   "productDetailUnitBag": {"en": "/ bag", "km": "/ បាវ"},

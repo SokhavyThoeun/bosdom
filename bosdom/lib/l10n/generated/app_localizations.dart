@@ -2637,6 +2637,12 @@ abstract class AppLocalizations {
   /// **'Quantity'**
   String get coBuyDetailQuantityLabel;
 
+  /// No description provided for @coBuyDetailStockLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock left: {qty} {unitLabel}'**
+  String coBuyDetailStockLabel(int qty, String unitLabel);
+
   /// No description provided for @coBuyDetailMinOrderLabel.
   ///
   /// In en, this message translates to:
@@ -2996,6 +3002,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Out of Stock'**
   String get productDetailOutOfStock;
+
+  /// No description provided for @productDetailStockLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Available Stock: {stock} Bags'**
+  String productDetailStockLabel(String stock);
 
   /// No description provided for @productDetailWholesaleBuyTitle.
   ///

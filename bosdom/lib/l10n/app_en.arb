@@ -679,6 +679,17 @@
   },
   "coBuyDetailYourOrderTitle": "Your Order",
   "coBuyDetailQuantityLabel": "Quantity",
+  "coBuyDetailStockLabel": "Stock left: {qty} {unitLabel}",
+  "@coBuyDetailStockLabel": {
+    "placeholders": {
+      "qty": {
+        "type": "int"
+      },
+      "unitLabel": {
+        "type": "String"
+      }
+    }
+  },
   "coBuyDetailMinOrderLabel": "Min order: {minOrderQty} {unitLabel}",
   "@coBuyDetailMinOrderLabel": {
     "placeholders": {
@@ -826,6 +837,14 @@
   "productDetailVisitShop": "Visit Shop",
   "productDetailInStock": "In Stock",
   "productDetailOutOfStock": "Out of Stock",
+  "productDetailStockLabel": "Available Stock: {stock} Bags",
+  "@productDetailStockLabel": {
+    "placeholders": {
+      "stock": {
+        "type": "String"
+      }
+    }
+  },
   "productDetailWholesaleBuyTitle": "Wholesale Buy",
   "productDetailSampleBuyTitle": "Sample Buy",
   "productDetailUnitBag": "/ bag",

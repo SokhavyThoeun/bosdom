@@ -1403,6 +1403,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get coBuyDetailQuantityLabel => 'Quantity';
 
   @override
+  String coBuyDetailStockLabel(int qty, String unitLabel) {
+    return 'Stock left: $qty $unitLabel';
+  }
+
+  @override
   String coBuyDetailMinOrderLabel(int minOrderQty, String unitLabel) {
     return 'Min order: $minOrderQty $unitLabel';
   }
@@ -1615,6 +1620,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get productDetailOutOfStock => 'Out of Stock';
+
+  @override
+  String productDetailStockLabel(String stock) {
+    return 'Available Stock: $stock Bags';
+  }
 
   @override
   String get productDetailWholesaleBuyTitle => 'Wholesale Buy';

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,6 +13,7 @@ import '../../../shared/models/variant_option.dart';
 import '../../../shared/widgets/app_snack_bar.dart';
 import '../../../shared/widgets/full_screen_image_viewer.dart';
 import '../../../shared/widgets/hourglass_icon.dart';
+import '../../../shared/widgets/live_stock_row.dart';
 import '../../../shared/widgets/variant_selector.dart';
 import '../../checkout/screens/checkout_screen.dart' show CheckoutLineItem;
 import '../../marketplace/widgets/empty_products_notice.dart';
@@ -30,6 +32,8 @@ class CoBuyDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final sessionsAsync = ref.watch(coBuyProvider);
     return sessionsAsync.when(
+      // A failed background poll keeps showing the last good data.
+      skipError: true,
       data: (sessions) {
         CoBuySession? session;
         for (final s in sessions) {
@@ -112,7 +116,12 @@ class _CoBuyDetailBodyState extends ConsumerState<_CoBuyDetailBody> {
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
     final session = widget.session;
-    final quantity = _quantity ??= session.minOrderQty;
+    // Never more than the deal has left — it shrinks live as others join.
+    final maxQuantity = math.max(session.minOrderQty, session.remainingQty);
+    final quantity = (_quantity ??= session.minOrderQty).clamp(
+      session.minOrderQty,
+      maxQuantity,
+    );
     final subtotal = quantity * session.price;
     if (!_variantsInitialized) {
       _variantsInitialized = true;
@@ -256,6 +265,21 @@ class _CoBuyDetailBodyState extends ConsumerState<_CoBuyDetailBody> {
                                           ),
                                         ),
                                       ],
+                                      const SizedBox(height: 12),
+                                      Divider(
+                                        height: 1,
+                                        color: colorScheme.outline,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      LiveStockRow(
+                                        stock: session.remainingQty,
+                                        label: l10n.coBuyDetailStockLabel(
+                                          math.max(0, session.remainingQty),
+                                          session.unitLabel,
+                                        ),
+                                        colorScheme: colorScheme,
+                                        textTheme: textTheme,
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -303,7 +327,7 @@ class _CoBuyDetailBodyState extends ConsumerState<_CoBuyDetailBody> {
                                   onQuantityChanged: (delta) => setState(() {
                                     _quantity = (quantity + delta).clamp(
                                       session.minOrderQty,
-                                      session.targetQty,
+                                      maxQuantity,
                                     );
                                   }),
                                   colorScheme: colorScheme,
@@ -1206,7 +1230,7 @@ class _OrderCard extends StatelessWidget {
               ),
               _StepperButton(
                 icon: Icons.add,
-                enabled: quantity < session.targetQty,
+                enabled: quantity < session.remainingQty,
                 onTap: () => onQuantityChanged(1),
                 colorScheme: colorScheme,
               ),

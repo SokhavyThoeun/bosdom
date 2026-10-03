@@ -22,7 +22,9 @@ from .orders import (
     allocate_escrow_fee,
     allocate_shipping,
     cancel_unpaid_order,
+    check_stock,
     mark_order_paid,
+    take_stock,
 )
 
 router = APIRouter(prefix="/payments", tags=["payments"])
@@ -143,8 +145,24 @@ def _settle(db: Session, payment: PaywayPayment, apv: str, now: datetime) -> Non
     )
 
     if payment.co_buy_participant_id is None:
+        if take_stock(db, orders):
+            for order in orders:
+                mark_order_paid(db, order, payment.payment_option, payment.tran_id)
+            return
+        # Another buyer's payment took the last units while this one was
+        # being made — the money came in but there's nothing left to sell.
         for order in orders:
-            mark_order_paid(db, order, payment.payment_option, payment.tran_id)
+            cancel_unpaid_order(order, now)
+        payment.status = PAYMENT_REFUND_DUE
+        db.commit()
+        push_notification(
+            db,
+            payment.buyer_id,
+            "payment",
+            "Item sold out",
+            f"We received your ${payment.amount:.2f} payment, but an item sold out before it went through. It will be refunded.",
+            None,
+        )
         return
 
     participant = db.get(CoBuyParticipant, payment.co_buy_participant_id)
@@ -292,6 +310,8 @@ def _open_payment(
         if samples:
             # Another sample may have been paid since this one was created.
             check_sample_eligible(db, user.id)
+        # Someone else may have bought the last units since the order was made.
+        check_stock(db, orders)
         subtotal = sum(o.total_amount for o in orders)
     else:
         pool = db.get(CoBuyPool, payload.co_buy_pool_id)

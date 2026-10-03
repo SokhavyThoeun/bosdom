@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +12,7 @@ import '../../../shared/models/variant_option.dart';
 import '../../../shared/utils/currency_format.dart';
 import '../../../shared/widgets/adaptive_network_image.dart';
 import '../../../shared/widgets/full_screen_image_viewer.dart';
+import '../../../shared/widgets/live_stock_row.dart';
 import '../../../shared/widgets/variant_selector.dart';
 import '../../../shared/widgets/verified_badge_icon.dart';
 import '../../cart/providers/cart_provider.dart';
@@ -36,6 +38,8 @@ class ProductDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final productAsync = ref.watch(listingByIdProvider(productId));
     return productAsync.when(
+      // A failed background poll keeps showing the last good data.
+      skipError: true,
       data: (product) =>
           _ProductDetailBody(product: product, productId: productId),
       loading: () =>
@@ -81,11 +85,44 @@ class _ProductDetailBodyState extends ConsumerState<_ProductDetailBody> {
       ? product.colorOptions.first
       : null;
 
+  Timer? _refreshTimer;
+
   Product get product => widget.product;
+
+  /// The most a buyer can order right now: what the seller has left.
+  int get _maxWholesaleQty =>
+      math.max(product.moqValue, product.stockQty ?? 9999);
+
+  @override
+  void initState() {
+    super.initState();
+    // Keep the stock count live as other buyers' payments take units off.
+    if (product.isRealListing) {
+      _refreshTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+        if (mounted) ref.invalidate(listingByIdProvider(widget.productId));
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant _ProductDetailBody oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Stock dropped below what the buyer picked: pull them back down to it.
+    if (_wholesaleQty > _maxWholesaleQty) _wholesaleQty = _maxWholesaleQty;
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
 
   void _changeWholesaleQty(int delta) {
     setState(() {
-      _wholesaleQty = (_wholesaleQty + delta).clamp(product.moqValue, 9999);
+      _wholesaleQty = (_wholesaleQty + delta).clamp(
+        product.moqValue,
+        _maxWholesaleQty,
+      );
     });
   }
 
@@ -257,6 +294,19 @@ class _ProductDetailBodyState extends ConsumerState<_ProductDetailBody> {
                                       ),
                                     ],
                                   ),
+                                  if (product.stockQty case final stock?) ...[
+                                    const SizedBox(height: 8),
+                                    LiveStockRow(
+                                      stock: stock,
+                                      label: l10n.productDetailStockLabel(
+                                        NumberFormat.decimalPattern().format(
+                                          stock,
+                                        ),
+                                      ),
+                                      colorScheme: colorScheme,
+                                      textTheme: textTheme,
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
@@ -1148,6 +1198,10 @@ class _BuyBoxState extends ConsumerState<_BuyBox> {
     final onCooldown = sampleEligibility != null && !sampleEligibility.eligible;
     final justRequestedThisProduct =
         onCooldown && sampleEligibility.lastSampleOrder?.listingId == productId;
+    // Not enough left to fill a minimum order (or a single sample).
+    final stock = product.stockQty;
+    final soldOut =
+        stock != null && stock < (isWholesale ? product.moqValue : 1);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1183,15 +1237,17 @@ class _BuyBoxState extends ConsumerState<_BuyBox> {
           _QuantityStepper(
             quantity: quantity,
             minQuantity: isWholesale ? product.moqValue : 1,
-            maxQuantity: isWholesale ? 9999 : 1,
+            maxQuantity: isWholesale
+                ? math.max(product.moqValue, stock ?? 9999)
+                : 1,
             onChanged: isWholesale ? onWholesaleQtyChanged : onSampleQtyChanged,
-            disabled: isOwner,
+            disabled: isOwner || soldOut,
             colorScheme: colorScheme,
             textTheme: textTheme,
           ),
           const SizedBox(height: 16),
           FilledButton(
-            onPressed: isOwner
+            onPressed: isOwner || soldOut
                 ? null
                 : isWholesale
                 ? (_isAddingToCart ? null : _handleAddToCart)
@@ -1210,6 +1266,8 @@ class _BuyBoxState extends ConsumerState<_BuyBox> {
                 : Text(
                     isOwner
                         ? l10n.coBuyDetailOwnListingLabel
+                        : soldOut
+                        ? l10n.productDetailOutOfStock
                         : isWholesale
                         ? l10n.productDetailAddToCartButton(
                             formatPrice(ref, total),

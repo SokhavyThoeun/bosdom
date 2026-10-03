@@ -281,6 +281,10 @@ class Order(Base):
     # A single paid sample (quantity 1 at the listing's sample price), which
     # starts the buyer's 3-day sample cooldown once paid.
     is_sample: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Whether paying for this order took its units off the listing's
+    # `stock_qty` (see routers/orders.py `take_stock`), so a refund before it
+    # ships knows to put them back. Never set on co-buy joins.
+    stock_taken: Mapped[bool] = mapped_column(Boolean, default=False)
     # This order's share of the buyer's 4% escrow fee. Set when payment lands.
     escrow_fee: Mapped[float] = mapped_column(Float, default=0.0)
     # Set on refund: what goes back to the buyer (see `refund_order`), and

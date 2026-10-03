@@ -167,6 +167,14 @@
     "en": "Quantity",
     "km": "បរិមាណ"
   },
+  "coBuyDetailStockLabel": {
+    "en": "Stock left: {qty} {unitLabel}",
+    "km": "ស្តុកនៅសល់៖ {qty} {unitLabel}",
+    "placeholders": {
+      "qty": { "type": "int" },
+      "unitLabel": { "type": "String" }
+    }
+  },
   "coBuyDetailMinOrderLabel": {
     "en": "Min order: {minOrderQty} {unitLabel}",
     "km": "បញ្ជាទិញអប្បបរមា៖ {minOrderQty} {unitLabel}",

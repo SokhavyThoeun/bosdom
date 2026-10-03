@@ -195,6 +195,12 @@ def refund_order(
     order.refund_amount = refund_amount_for(order, buyer_fault=buyer_fault)
     order.review_deadline_at = None
     order.review_remaining_seconds = None
+    if order.stock_taken and order.shipped_at is None:
+        # The goods never left the seller, so they're back on sale.
+        listing = db.get(Listing, order.listing_id)
+        if listing is not None:
+            listing.stock_qty += order.quantity
+        order.stock_taken = False
     participant = _co_buy_participant(db, order)
     if participant is not None and participant.status != "refunded":
         # Frees their quantity in the deal for other buyers.
@@ -267,6 +273,62 @@ def cancel_unpaid_order(order: Order, now: datetime) -> None:
     """Cancels an order the buyer never paid for — nothing to refund."""
     _transition(order, STATUS_CANCELLED)
     order.cancelled_at = now
+
+
+def _stock_needed(orders: list[Order]) -> dict[str, int]:
+    """Units each listing must have on hand for these orders. Co-buy joins
+    draw on their deal's target instead (see co_buy.py `remaining_qty`)."""
+    needed: dict[str, int] = {}
+    for order in orders:
+        if order.co_buy_participant_id is None:
+            needed[order.listing_id] = needed.get(order.listing_id, 0) + order.quantity
+    return needed
+
+
+def _out_of_stock_detail(listing: Listing) -> str:
+    if listing.stock_qty <= 0:
+        return f"{listing.product_name} is out of stock"
+    return f"Only {listing.stock_qty} of {listing.product_name} left in stock"
+
+
+def check_stock(db: Session, orders: list[Order]) -> None:
+    """Refuses a checkout asking for more than a listing has left."""
+    for listing_id, qty in _stock_needed(orders).items():
+        listing = db.get(Listing, listing_id)
+        if listing is not None and qty > listing.stock_qty:
+            raise HTTPException(status_code=409, detail=_out_of_stock_detail(listing))
+
+
+def take_stock(db: Session, orders: list[Order]) -> bool:
+    """Takes newly paid orders' units off their listings' stock. All or
+    nothing: returns False, changing nothing, when a listing no longer has
+    enough (another buyer's payment landed first). Locks the listing rows
+    until the caller commits."""
+    needed = _stock_needed(orders)
+    if not needed:
+        return True
+    listings = {
+        listing.id: listing
+        for listing in db.query(Listing)
+        .filter(Listing.id.in_(needed))
+        .order_by(Listing.id)
+        .with_for_update()
+        .populate_existing()
+        .all()
+    }
+    if any(
+        qty > listings[listing_id].stock_qty
+        for listing_id, qty in needed.items()
+        if listing_id in listings
+    ):
+        return False
+    for listing_id, qty in needed.items():
+        if listing_id in listings:
+            listings[listing_id].stock_qty -= qty
+    for order in orders:
+        if order.co_buy_participant_id is None:
+            order.stock_taken = True
+    return True
 
 
 def freeze_order(order: Order, now: datetime) -> None:
@@ -830,6 +892,8 @@ def create_order(
     else:
         unit_price, quantity = listing.price, payload.quantity
         product_name = listing.product_name
+    if quantity > listing.stock_qty:
+        raise HTTPException(status_code=409, detail=_out_of_stock_detail(listing))
 
     order = Order(
         buyer_id=user.id,
