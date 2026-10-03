@@ -35,6 +35,7 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
   String? _district;
   String? _sangkat;
   bool _isDefault = true;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -88,8 +89,8 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
     }
   }
 
-  void _saveAddress() {
-    if (!_formKey.currentState!.validate()) return;
+  Future<void> _saveAddress() async {
+    if (_isSaving || !_formKey.currentState!.validate()) return;
     final sangkatLine = [
       if (_sangkat != null) 'Sangkat $_sangkat',
       if (_district != null) 'Khan $_district',
@@ -110,11 +111,20 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
       isDefault: _isDefault,
     );
     final notifier = ref.read(addressBookProvider.notifier);
-    if (existing != null) {
-      notifier.updateAddress(address);
-    } else {
-      notifier.addAddress(address);
+    setState(() => _isSaving = true);
+    try {
+      await (existing != null
+          ? notifier.updateAddress(address)
+          : notifier.addAddress(address));
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isSaving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context).addressSaveError)),
+      );
+      return;
     }
+    if (!mounted) return;
     final popsToReturn = widget.selectionMode ? 2 : 1;
     for (var i = 0; i < popsToReturn && context.canPop(); i++) {
       context.pop();
@@ -210,7 +220,7 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
                       ),
                       const SizedBox(height: 28),
                       FilledButton(
-                        onPressed: _saveAddress,
+                        onPressed: _isSaving ? null : _saveAddress,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4),
                           child: Text(l10n.addressSaveButton),

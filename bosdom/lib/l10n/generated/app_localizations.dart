@@ -1340,6 +1340,12 @@ abstract class AppLocalizations {
   /// **'Delete'**
   String get addressDeleteAction;
 
+  /// No description provided for @addressSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save your address. Please try again.'**
+  String get addressSaveError;
+
   /// No description provided for @addressDeleteConfirmTitle.
   ///
   /// In en, this message translates to:

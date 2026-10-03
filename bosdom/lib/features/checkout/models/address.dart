@@ -43,29 +43,35 @@ class Address {
     isDefault: isDefault ?? this.isDefault,
   );
 
+  /// The backend's payload shape (server assigns the id on create).
   Map<String, dynamic> toJson() => {
-    'id': id,
     'label': label,
-    'houseNumber': houseNumber,
+    'house_number': houseNumber,
     'sangkat': sangkat,
     'province': province,
     'phone': phone,
     'landmark': landmark,
     'district': district,
-    'sangkatName': sangkatName,
-    'isDefault': isDefault,
+    'sangkat_name': sangkatName,
+    'is_default': isDefault,
   };
 
-  factory Address.fromJson(Map<String, dynamic> json) => Address(
-    id: json['id'] as String,
-    label: json['label'] as String,
-    houseNumber: json['houseNumber'] as String? ?? '',
-    sangkat: json['sangkat'] as String? ?? '',
-    province: json['province'] as String,
-    phone: json['phone'] as String? ?? '',
-    landmark: json['landmark'] as String?,
-    district: json['district'] as String?,
-    sangkatName: json['sangkatName'] as String?,
-    isDefault: json['isDefault'] as bool? ?? false,
-  );
+  /// Reads the backend's snake_case shape, falling back to the camelCase
+  /// keys the old device-only address book saved (migrated on first load).
+  factory Address.fromJson(Map<String, dynamic> json) {
+    T? pick<T>(String snake, String camel) =>
+        (json[snake] ?? json[camel]) as T?;
+    return Address(
+      id: json['id'] as String? ?? '',
+      label: pick<String>('label', 'label') ?? '',
+      houseNumber: pick<String>('house_number', 'houseNumber') ?? '',
+      sangkat: pick<String>('sangkat', 'sangkat') ?? '',
+      province: pick<String>('province', 'province') ?? '',
+      phone: pick<String>('phone', 'phone') ?? '',
+      landmark: pick<String>('landmark', 'landmark'),
+      district: pick<String>('district', 'district'),
+      sangkatName: pick<String>('sangkat_name', 'sangkatName'),
+      isDefault: pick<bool>('is_default', 'isDefault') ?? false,
+    );
+  }
 }

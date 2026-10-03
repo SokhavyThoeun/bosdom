@@ -207,6 +207,7 @@
   "addressEditScreenTitle": "កែសម្រួលអាសយដ្ឋាន",
   "addressEditAction": "កែ",
   "addressDeleteAction": "លុប",
+  "addressSaveError": "មិនអាចរក្សាទុកអាសយដ្ឋានបានទេ។ សូមព្យាយាមម្តងទៀត។",
   "addressDeleteConfirmTitle": "លុបអាសយដ្ឋាន?",
   "addressDeleteConfirmMessage": "អាសយដ្ឋាននេះនឹងត្រូវបានលុបចេញពីសៀវភៅអាសយដ្ឋានរបស់អ្នក។",
   "addressCancelButton": "បោះបង់",

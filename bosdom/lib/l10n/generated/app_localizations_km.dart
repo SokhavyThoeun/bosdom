@@ -679,6 +679,10 @@ class AppLocalizationsKm extends AppLocalizations {
   String get addressDeleteAction => 'លុប';
 
   @override
+  String get addressSaveError =>
+      'មិនអាចរក្សាទុកអាសយដ្ឋានបានទេ។ សូមព្យាយាមម្តងទៀត។';
+
+  @override
   String get addressDeleteConfirmTitle => 'លុបអាសយដ្ឋាន?';
 
   @override

@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../shared/utils/cambodia_locations.dart';
+import '../../checkout/models/address.dart';
+import '../../checkout/providers/address_provider.dart';
 import '../../profile/services/profile_service.dart';
 import '../models/merchant_role.dart';
 import '../services/signup_draft.dart';
 
-class DeliveryAddressScreen extends StatefulWidget {
+class DeliveryAddressScreen extends ConsumerStatefulWidget {
   const DeliveryAddressScreen({required this.role, super.key});
 
   final MerchantRole role;
 
   @override
-  State<DeliveryAddressScreen> createState() => _DeliveryAddressScreenState();
+  ConsumerState<DeliveryAddressScreen> createState() =>
+      _DeliveryAddressScreenState();
 }
 
-class _DeliveryAddressScreenState extends State<DeliveryAddressScreen> {
+class _DeliveryAddressScreenState extends ConsumerState<DeliveryAddressScreen> {
   final _houseController = TextEditingController();
   final _landmarkController = TextEditingController();
   String? _province;
@@ -24,8 +28,74 @@ class _DeliveryAddressScreenState extends State<DeliveryAddressScreen> {
   bool _agreed = false;
   bool _isSubmitting = false;
 
+  /// The address saved by an earlier pass through this step (e.g. the user
+  /// signed out mid-signup and came back), updated instead of duplicated.
+  Address? _saved;
+
   Map<String, List<String>>? get _districtsForProvince =>
       kCambodiaDistricts[_province];
+
+  @override
+  void initState() {
+    super.initState();
+    _prefillFromAddressBook();
+  }
+
+  Future<void> _prefillFromAddressBook() async {
+    final List<Address> addresses;
+    try {
+      addresses = await ref.read(addressBookProvider.future);
+    } catch (_) {
+      return;
+    }
+    if (!mounted || addresses.isEmpty) return;
+    final a = addresses.firstWhere(
+      (a) => a.isDefault,
+      orElse: () => addresses.first,
+    );
+    final districts = kCambodiaDistricts[a.province];
+    setState(() {
+      _saved = a;
+      _houseController.text = a.houseNumber;
+      _landmarkController.text = a.landmark ?? '';
+      if (!kCambodiaProvinces.contains(a.province)) return;
+      _province = a.province;
+      if (districts == null || !districts.containsKey(a.district)) return;
+      _district = a.district;
+      if (districts[a.district]!.contains(a.sangkatName)) {
+        _sangkat = a.sangkatName;
+      }
+    });
+  }
+
+  /// Puts what was entered here into the buyer's address book, so it's
+  /// there at checkout and survives logout, reinstalls and resets.
+  Future<void> _saveToAddressBook() async {
+    final province = _province;
+    if (province == null) return;
+    final landmark = _landmarkController.text.trim();
+    final address = Address(
+      id: _saved?.id ?? '',
+      label: _saved?.label ?? 'Home',
+      houseNumber: _houseController.text.trim(),
+      sangkat: [
+        if (_sangkat != null) 'Sangkat $_sangkat',
+        if (_district != null) 'Khan $_district',
+      ].join(', '),
+      province: province,
+      phone: SignupDraft.phone.trim().isNotEmpty
+          ? SignupDraft.phone.trim()
+          : _saved?.phone ?? '',
+      landmark: landmark.isEmpty ? null : landmark,
+      district: _district,
+      sangkatName: _sangkat,
+      isDefault: true,
+    );
+    final notifier = ref.read(addressBookProvider.notifier);
+    await (_saved != null
+        ? notifier.updateAddress(address)
+        : notifier.addAddress(address));
+  }
 
   @override
   void dispose() {
@@ -58,6 +128,7 @@ class _DeliveryAddressScreenState extends State<DeliveryAddressScreen> {
       // personal-details step) — this is the wizard's last step, so it's
       // what actually marks the account as onboarded rather than abandoned
       // mid-signup. See ProfileService.completeOnboarding.
+      await _saveToAddressBook();
       await ProfileService.completeOnboarding();
       SignupDraft.clear();
       if (mounted) context.goNamed('marketplace');

@@ -672,6 +672,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addressDeleteAction => 'Delete';
 
   @override
+  String get addressSaveError =>
+      'Couldn\'t save your address. Please try again.';
+
+  @override
   String get addressDeleteConfirmTitle => 'Delete address?';
 
   @override

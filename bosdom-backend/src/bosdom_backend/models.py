@@ -110,6 +110,31 @@ class StoreAddress(Base):
     )
 
 
+class BuyerAddress(Base):
+    """One entry in a buyer's delivery address book (checkout > Address
+    Book). The first one is usually the address entered at signup."""
+
+    __tablename__ = "buyer_addresses"
+
+    id: Mapped[str] = mapped_column(
+        String, primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    user_id: Mapped[str] = mapped_column(String, index=True)
+    label: Mapped[str] = mapped_column(String, default="")
+    house_number: Mapped[str] = mapped_column(String, default="")
+    sangkat: Mapped[str] = mapped_column(String, default="")
+    province: Mapped[str] = mapped_column(String, default="")
+    phone: Mapped[str] = mapped_column(String, default="")
+    landmark: Mapped[str | None] = mapped_column(String, nullable=True)
+    # Raw dropdown selections, kept so the edit form can prefill them.
+    district: Mapped[str | None] = mapped_column(String, nullable=True)
+    sangkat_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    is_default: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+
+
 class Listing(Base):
     __tablename__ = "listings"
 

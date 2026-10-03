@@ -303,6 +303,7 @@
   "addressEditScreenTitle": "Edit Address",
   "addressEditAction": "Edit",
   "addressDeleteAction": "Delete",
+  "addressSaveError": "Couldn't save your address. Please try again.",
   "addressDeleteConfirmTitle": "Delete address?",
   "addressDeleteConfirmMessage": "This address will be removed from your address book.",
   "addressCancelButton": "Cancel",

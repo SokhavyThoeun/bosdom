@@ -37,8 +37,29 @@ class AddressBookScreen extends ConsumerWidget {
         ],
       ),
     );
-    if (confirmed == true) {
-      ref.read(addressBookProvider.notifier).deleteAddress(address.id);
+    if (confirmed == true && context.mounted) {
+      await _run(
+        context,
+        ref.read(addressBookProvider.notifier).deleteAddress(address.id),
+      );
+    }
+  }
+
+  /// Awaits an address book change, telling the user if it didn't save
+  /// (the provider has already reverted the optimistic update).
+  Future<bool> _run(BuildContext context, Future<void> change) async {
+    try {
+      await change;
+      return true;
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context).addressSaveError),
+          ),
+        );
+      }
+      return false;
     }
   }
 
@@ -47,7 +68,7 @@ class AddressBookScreen extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
-    final addresses = ref.watch(addressBookProvider);
+    final addresses = ref.watch(addressBookProvider).value ?? const [];
 
     return Scaffold(
       body: Column(
@@ -73,11 +94,16 @@ class AddressBookScreen extends ConsumerWidget {
                       onEdit: () =>
                           context.pushNamed('addAddress', extra: address),
                       onDelete: () => _confirmDelete(context, ref, address),
-                      onSelect: () {
-                        ref
-                            .read(addressBookProvider.notifier)
-                            .setDefault(address.id);
-                        if (selectionMode) context.pop();
+                      onSelect: () async {
+                        final saved = await _run(
+                          context,
+                          ref
+                              .read(addressBookProvider.notifier)
+                              .setDefault(address.id),
+                        );
+                        if (saved && selectionMode && context.mounted) {
+                          context.pop();
+                        }
                       },
                     ),
                     const SizedBox(height: 12),

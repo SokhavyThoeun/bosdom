@@ -67,6 +67,60 @@ class _BusinessInfoScreenState extends ConsumerState<BusinessInfoScreen> {
       kCambodiaDistricts[_province];
 
   @override
+  void initState() {
+    super.initState();
+    _prefillFromShop();
+  }
+
+  /// Restores what was saved by an earlier pass through this form (e.g. the
+  /// user signed out mid-signup and came back), instead of starting blank.
+  Future<void> _prefillFromShop() async {
+    final ShopProfile shop;
+    try {
+      shop = await ref.read(shopProfileProvider.future);
+    } catch (_) {
+      return;
+    }
+    if (!mounted || shop.shopName.isEmpty) return;
+    setState(() {
+      _shopNameController.text = shop.shopName;
+      _businessTypeController.text = shop.businessType;
+      _yearEstablishedController.text = shop.yearEstablished;
+      _storeUrlController.text = shop.storeUrl;
+      _phoneController.text = shop.phone;
+      _emailController.text = shop.email;
+      _descriptionController.text = shop.description;
+      if (_kStoreTypes.contains(shop.storeType)) _storeType = shop.storeType;
+      _prefillLocation(shop.location);
+    });
+  }
+
+  /// Unpacks the `street, Sangkat X, Khan Y, Province` string built by
+  /// [_buildShopProfile]; anything unrecognised stays in the street field.
+  void _prefillLocation(String location) {
+    final parts = [
+      for (final p in location.split(','))
+        if (p.trim().isNotEmpty) p.trim(),
+    ];
+    if (parts.isNotEmpty && kCambodiaProvinces.contains(parts.last)) {
+      _province = parts.removeLast();
+    }
+    String? take(String prefix) {
+      final i = parts.indexWhere((p) => p.startsWith(prefix));
+      return i < 0 ? null : parts.removeAt(i).substring(prefix.length);
+    }
+
+    final sangkat = take('Sangkat ');
+    final district = take('Khan ');
+    final districts = kCambodiaDistricts[_province];
+    if (districts != null && districts.containsKey(district)) {
+      _district = district;
+      if (districts[district]!.contains(sangkat)) _sangkat = sangkat;
+    }
+    _streetController.text = parts.join(', ');
+  }
+
+  @override
   void dispose() {
     _shopNameController.dispose();
     _businessTypeController.dispose();
