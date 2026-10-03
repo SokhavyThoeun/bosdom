@@ -27,12 +27,24 @@ class SellerReview {
     required this.date,
     required this.rating,
     required this.comment,
+    this.photoUrls = const [],
   });
 
   final String reviewerName;
   final String date;
   final int rating;
   final String comment;
+
+  /// Buyer's photos of what they received.
+  final List<String> photoUrls;
+
+  SellerReview withPhotos(List<String> urls) => SellerReview(
+    reviewerName: reviewerName,
+    date: date,
+    rating: rating,
+    comment: comment,
+    photoUrls: urls,
+  );
 }
 
 class Seller {
@@ -265,7 +277,8 @@ Seller sellerFor(
             reviewerName: 'Chanthou M.',
             date: '1 month ago',
             rating: 5,
-            comment: 'Third order now. Always consistent, never short on count.',
+            comment:
+                'Third order now. Always consistent, never short on count.',
           ),
           SellerReview(
             reviewerName: 'Sokunthea K.',

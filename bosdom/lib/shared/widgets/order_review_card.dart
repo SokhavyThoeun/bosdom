@@ -98,21 +98,35 @@ class OrderReviewCard extends StatelessWidget {
           ],
           if (review.photoUrls.isNotEmpty) ...[
             const SizedBox(height: 12),
-            SizedBox(
-              height: 72,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: review.photoUrls.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 8),
-                itemBuilder: (context, index) => _ReviewPhotoThumbnail(
-                  photoUrls: review.photoUrls,
-                  index: index,
-                  colorScheme: colorScheme,
-                ),
-              ),
-            ),
+            ReviewPhotoStrip(photoUrls: review.photoUrls),
           ],
         ],
+      ),
+    );
+  }
+}
+
+/// Horizontal row of tappable review photo thumbnails that open a
+/// full-screen swipeable viewer. Shared by real and storefront reviews.
+class ReviewPhotoStrip extends StatelessWidget {
+  const ReviewPhotoStrip({super.key, required this.photoUrls});
+
+  final List<String> photoUrls;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return SizedBox(
+      height: 72,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: photoUrls.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        itemBuilder: (context, index) => _ReviewPhotoThumbnail(
+          photoUrls: photoUrls,
+          index: index,
+          colorScheme: colorScheme,
+        ),
       ),
     );
   }

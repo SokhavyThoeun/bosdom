@@ -175,6 +175,7 @@ class _StoreProfileBodyState extends ConsumerState<_StoreProfileBody>
                         ),
                         _ReviewsTab(
                           seller: seller,
+                          products: products,
                           sellerId: products.isEmpty
                               ? null
                               : products.first.sellerId,
@@ -888,6 +889,7 @@ class _DetailRow extends StatelessWidget {
 class _ReviewsTab extends ConsumerWidget {
   const _ReviewsTab({
     required this.seller,
+    required this.products,
     required this.sellerId,
     required this.colorScheme,
     required this.textTheme,
@@ -895,10 +897,32 @@ class _ReviewsTab extends ConsumerWidget {
 
   final Seller seller;
 
+  /// The shop's listings; their photos stand in for buyer photos on the
+  /// placeholder reviews so each one shows an item the shop actually sells.
+  final List<Product> products;
+
   /// Real backend id of the seller, or `null` for demo/mock stores.
   final String? sellerId;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
+
+  /// Every other placeholder review gets one or two of the shop's product
+  /// photos, so the list reads like a mix of photo and text-only reviews.
+  List<SellerReview> _withProductPhotos(List<SellerReview> reviews) {
+    final photos = [for (final p in products) p.imageUrl];
+    if (photos.isEmpty) return reviews;
+    return [
+      for (var i = 0; i < reviews.length; i++)
+        if (reviews[i].photoUrls.isNotEmpty || i.isOdd)
+          reviews[i]
+        else
+          reviews[i].withPhotos([
+            photos[(i ~/ 2) % photos.length],
+            if (i % 4 == 0 && photos.length > 1)
+              photos[(i ~/ 2 + 1) % photos.length],
+          ]),
+    ];
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1087,7 +1111,7 @@ class _ReviewsTab extends ConsumerWidget {
             ]
           else
             _MockReviewList(
-              reviews: seller.reviews,
+              reviews: _withProductPhotos(seller.reviews),
               colorScheme: colorScheme,
               textTheme: textTheme,
             ),
@@ -1346,6 +1370,10 @@ class _ReviewCard extends StatelessWidget {
             review.comment,
             style: textTheme.bodySmall?.copyWith(height: 1.4),
           ),
+          if (review.photoUrls.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            ReviewPhotoStrip(photoUrls: review.photoUrls),
+          ],
         ],
       ),
     );
