@@ -836,6 +836,7 @@
   "productDetailModeSample": "Sample",
   "productDetailVisitShop": "Visit Shop",
   "productDetailInStock": "In Stock",
+  "productDetailLowStock": "Low Stock",
   "productDetailOutOfStock": "Out of Stock",
   "productDetailStockLabel": "Available Stock: {stock} Bags",
   "@productDetailStockLabel": {

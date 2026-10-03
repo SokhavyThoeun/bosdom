@@ -14,6 +14,22 @@ router = APIRouter(prefix="/listings", tags=["listings"])
 
 _MAX_PHOTOS = 5
 
+# A listing reads "Low Stock" once fewer than this many minimum orders' worth
+# is left (and never above `_LOW_STOCK_FLOOR` units for tiny MOQs).
+_LOW_STOCK_MOQ_MULTIPLE = 3
+_LOW_STOCK_FLOOR = 10
+
+
+def stock_status(listing: Listing) -> str:
+    """in_stock | low_stock | out_of_stock. Out of stock as soon as what's
+    left can't fill one minimum order, since nobody can buy it then."""
+    if listing.stock_qty <= 0 or listing.stock_qty < listing.moq_qty:
+        return "out_of_stock"
+    low_below = max(listing.moq_qty * _LOW_STOCK_MOQ_MULTIPLE, _LOW_STOCK_FLOOR)
+    if listing.stock_qty < low_below:
+        return "low_stock"
+    return "in_stock"
+
 
 class ColorOptionOut(BaseModel):
     name: str
@@ -32,6 +48,8 @@ class ListingOut(BaseModel):
     price: float
     moq_qty: int
     stock_qty: int
+    # See `stock_status`; drops live as paid orders take stock.
+    stock_status: str
     description: str
     sample_testing_enabled: bool
     sample_price: float | None
@@ -67,6 +85,7 @@ def _serialize_listing(listing: Listing, db: Session) -> ListingOut:
         price=listing.price,
         moq_qty=listing.moq_qty,
         stock_qty=listing.stock_qty,
+        stock_status=stock_status(listing),
         description=listing.description,
         sample_testing_enabled=listing.sample_testing_enabled,
         sample_price=listing.sample_price,

@@ -488,6 +488,7 @@
   "productDetailModeSample": "គំរូ",
   "productDetailVisitShop": "ចូលមើលហាង",
   "productDetailInStock": "នៅមានស្តុក",
+  "productDetailLowStock": "ស្តុកជិតអស់",
   "productDetailOutOfStock": "អស់ស្តុក",
   "productDetailStockLabel": "ស្តុកដែលមាន៖ {stock} បាវ",
   "productDetailWholesaleBuyTitle": "ទិញលក់ដុំ",

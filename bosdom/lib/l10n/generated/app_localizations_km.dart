@@ -1638,6 +1638,9 @@ class AppLocalizationsKm extends AppLocalizations {
   String get productDetailInStock => 'នៅមានស្តុក';
 
   @override
+  String get productDetailLowStock => 'ស្តុកជិតអស់';
+
+  @override
   String get productDetailOutOfStock => 'អស់ស្តុក';
 
   @override

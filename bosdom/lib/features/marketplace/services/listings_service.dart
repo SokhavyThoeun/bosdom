@@ -61,7 +61,7 @@ Product _productFromJson(Map<String, dynamic> json) {
     location: (json['seller_location'] as String).isNotEmpty
         ? json['seller_location'] as String
         : 'Cambodia',
-    inStock: (json['stock_qty'] as int) > 0,
+    stockStatus: StockStatus.fromJson(json['stock_status'] as String?),
     stockQty: json['stock_qty'] as int,
     sizes: sizes,
     colorOptions: colors,

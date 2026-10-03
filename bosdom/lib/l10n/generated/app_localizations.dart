@@ -2997,6 +2997,12 @@ abstract class AppLocalizations {
   /// **'In Stock'**
   String get productDetailInStock;
 
+  /// No description provided for @productDetailLowStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Low Stock'**
+  String get productDetailLowStock;
+
   /// No description provided for @productDetailOutOfStock.
   ///
   /// In en, this message translates to:

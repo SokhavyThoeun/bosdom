@@ -5,6 +5,18 @@ import '../../../shared/services/shipping_fee_calculator.dart'
     show parseWeightKg;
 import '../../../shared/utils/mock_images.dart';
 
+enum StockStatus {
+  inStock,
+  lowStock,
+  outOfStock;
+
+  static StockStatus fromJson(String? value) => switch (value) {
+    'low_stock' => lowStock,
+    'out_of_stock' => outOfStock,
+    _ => inStock,
+  };
+}
+
 class Product {
   const Product({
     required this.id,
@@ -20,7 +32,7 @@ class Product {
     this.rating = 4.5,
     this.location = 'Phnom Penh, Cambodia',
     this.verified = true,
-    this.inStock = true,
+    this.stockStatus = StockStatus.inStock,
     this.stockQty,
     this.weight = '-',
     this.origin = 'Cambodia',
@@ -52,7 +64,9 @@ class Product {
   final double rating;
   final String location;
   final bool verified;
-  final bool inStock;
+  /// In stock / low / out, decided by the backend from the live stock and
+  /// MOQ (listings.py `stock_status`).
+  final StockStatus stockStatus;
 
   /// Units the seller has left, live from the backend (paying for an order
   /// takes its units off). `null` for mock products, which show no count.

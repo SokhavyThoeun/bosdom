@@ -221,7 +221,7 @@ class _ProductDetailBodyState extends ConsumerState<_ProductDetailBody> {
                                       ),
                                       const SizedBox(width: 12),
                                       _StockBadge(
-                                        inStock: product.inStock,
+                                        status: product.stockStatus,
                                         colorScheme: colorScheme,
                                         textTheme: textTheme,
                                       ),
@@ -911,19 +911,26 @@ class _SellerRow extends ConsumerWidget {
 
 class _StockBadge extends StatelessWidget {
   const _StockBadge({
-    required this.inStock,
+    required this.status,
     required this.colorScheme,
     required this.textTheme,
   });
 
-  final bool inStock;
+  final StockStatus status;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final color = inStock ? colorScheme.tertiary : colorScheme.error;
+    final (color, label) = switch (status) {
+      StockStatus.inStock => (colorScheme.tertiary, l10n.productDetailInStock),
+      StockStatus.lowStock => (colorScheme.error, l10n.productDetailLowStock),
+      StockStatus.outOfStock => (
+        colorScheme.primary,
+        l10n.productDetailOutOfStock,
+      ),
+    };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
@@ -932,7 +939,7 @@ class _StockBadge extends StatelessWidget {
       ),
       alignment: Alignment.center,
       child: Text(
-        inStock ? l10n.productDetailInStock : l10n.productDetailOutOfStock,
+        label,
         textAlign: TextAlign.center,
         style: textTheme.labelSmall?.copyWith(
           color: color,
