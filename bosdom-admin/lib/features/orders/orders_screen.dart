@@ -124,10 +124,7 @@ class _OrdersTab extends StatelessWidget {
                     constraints: BoxConstraints(minWidth: constraints.maxWidth),
                     child: DataTable(
                       columns: const [
-                        DataColumn(
-                          label: Text('PRODUCT'),
-                          columnWidth: FlexColumnWidth(),
-                        ),
+                        DataColumn(label: Text('PRODUCT')),
                         DataColumn(label: Text('BUYER')),
                         DataColumn(label: Text('SELLER')),
                         DataColumn(label: Text('TOTAL')),
@@ -207,10 +204,7 @@ class _PayoutsTab extends StatelessWidget {
                     constraints: BoxConstraints(minWidth: constraints.maxWidth),
                     child: DataTable(
                       columns: const [
-                        DataColumn(
-                          label: Text('PRODUCT'),
-                          columnWidth: FlexColumnWidth(),
-                        ),
+                        DataColumn(label: Text('PRODUCT')),
                         DataColumn(label: Text('SELLER')),
                         DataColumn(label: Text('BUYER')),
                         DataColumn(label: Text('AMOUNT')),
@@ -337,10 +331,7 @@ class _RefundsTab extends StatelessWidget {
                     constraints: BoxConstraints(minWidth: constraints.maxWidth),
                     child: DataTable(
                       columns: const [
-                        DataColumn(
-                          label: Text('PRODUCT'),
-                          columnWidth: FlexColumnWidth(),
-                        ),
+                        DataColumn(label: Text('PRODUCT')),
                         DataColumn(label: Text('BUYER')),
                         DataColumn(label: Text('REASON')),
                         DataColumn(label: Text('REFUND')),
@@ -1205,10 +1196,7 @@ class _CoBuyLeavesTab extends StatelessWidget {
                         DataColumn(label: Text('DEAL')),
                         DataColumn(label: Text('BUYER')),
                         DataColumn(label: Text('REFUND')),
-                        DataColumn(
-                          label: Text('REASON'),
-                          columnWidth: FlexColumnWidth(),
-                        ),
+                        DataColumn(label: Text('REASON')),
                         DataColumn(label: Text('REQUESTED')),
                         DataColumn(label: Text('STATUS')),
                         DataColumn(label: Text('ACTIONS')),
@@ -1252,11 +1240,11 @@ class _CoBuyLeavesTab extends StatelessWidget {
                                   '${currency.format(request.amount)} · ${request.quantity} qty',
                                 ),
                               ),
+                              // Fixed width: a flex column collapses to 0px
+                              // once the table outgrows the card.
                               DataCell(
-                                ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    maxWidth: 320,
-                                  ),
+                                SizedBox(
+                                  width: 260,
                                   child: Text(
                                     request.adminNote == null
                                         ? request.reason
@@ -1265,6 +1253,7 @@ class _CoBuyLeavesTab extends StatelessWidget {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
+                                onTap: () => _showLeaveReason(context, request),
                               ),
                               DataCell(
                                 Text(
@@ -1301,7 +1290,7 @@ class _CoBuyLeavesTab extends StatelessWidget {
                                               context,
                                               title: 'Approve leave request?',
                                               message:
-                                                  'Refund ${currency.format(request.amount)} to ${request.buyerName} and remove them from "${request.productName}".',
+                                                  'Refund ${currency.format(request.amount)} to ${request.buyerName} and remove them from "${request.productName}".\n\nBuyer\'s reason: ${request.reason}',
                                               confirmLabel: 'Approve',
                                               action: () =>
                                                   AdminApiClient.approveCoBuyLeave(
@@ -1347,6 +1336,29 @@ class _CoBuyLeavesTab extends StatelessWidget {
     );
   }
 
+  void _showLeaveReason(BuildContext context, AdminCoBuyLeave request) {
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('${request.buyerName}\'s reason'),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: SelectableText(
+            request.adminNote == null
+                ? request.reason
+                : '${request.reason}\n\nAdmin note: ${request.adminNote}',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _rejectWithNote(
     BuildContext context,
     AdminCoBuyLeave request,
@@ -1363,6 +1375,11 @@ class _CoBuyLeavesTab extends StatelessWidget {
           children: [
             Text(
               '${request.buyerName} stays in "${request.productName}" and their payment stays in escrow. The reason below is shown to them.',
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Buyer\'s reason: ${request.reason}',
+              style: TextStyle(color: AppColors.warmTaupe),
             ),
             const SizedBox(height: 12),
             TextField(

@@ -85,10 +85,7 @@ class _UsersScreenState extends State<UsersScreen> {
                           child: DataTable(
                             columns: const [
                               DataColumn(label: Text('NAME')),
-                              DataColumn(
-                                label: Text('CONTACT'),
-                                columnWidth: FlexColumnWidth(),
-                              ),
+                              DataColumn(label: Text('CONTACT')),
                               DataColumn(label: Text('ROLE')),
                               DataColumn(label: Text('ACCOUNT')),
                               DataColumn(label: Text('JOINED')),
