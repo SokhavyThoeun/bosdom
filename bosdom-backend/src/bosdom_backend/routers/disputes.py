@@ -61,7 +61,7 @@ def settle_dispute(
     if resolution == RESOLUTION_RELEASE:
         release_funds(db, order, now, fee_rate=fee_rate_for(db, order.seller_id))
     else:
-        # The 2% escrow fee is kept only when the buyer is at fault (e.g.
+        # The 4% escrow fee is kept only when the buyer is at fault (e.g.
         # they changed their mind); otherwise everything goes back.
         refund_order(db, order, now, buyer_fault=fault == "buyer")
     dispute.status = DISPUTE_STATUS_RESOLVED

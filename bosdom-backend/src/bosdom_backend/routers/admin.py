@@ -1376,7 +1376,7 @@ def approve_co_buy_leave(
         Order.co_buy_participant_id == row.id,
         Order.status.in_(("held", "disputed")),
     ):
-        # Leaving is the buyer's own choice, so the 2% escrow fee is kept.
+        # Leaving is the buyer's own choice, so the 4% escrow fee is kept.
         refund_order(db, order, now, buyer_fault=True)
     row.status = "refunded"
     row.refunded_at = now
@@ -1434,7 +1434,7 @@ class AdminRefundOut(BaseModel):
     buyer_name: str
     product_name: str
     amount: float
-    # True when the buyer was at fault and the 2% escrow fee was kept.
+    # True when the buyer was at fault and the 4% escrow fee was kept.
     escrow_fee_kept: bool
     reason: str
     payment_method: str | None

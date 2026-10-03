@@ -514,7 +514,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cartEstimatedShipping => 'Estimated Shipping';
 
   @override
-  String get cartEscrowFee => 'Escrow Fee (2%)';
+  String get cartEscrowFee => 'Escrow Fee (4%)';
 
   @override
   String get cartTotalAmount => 'Total Amount';
@@ -584,7 +584,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checkoutShippingLabel => 'Shipping';
 
   @override
-  String get checkoutEscrowFeeLabel => 'Escrow Fee (2%)';
+  String get checkoutEscrowFeeLabel => 'Escrow Fee (4%)';
 
   @override
   String get checkoutTotalAmount => 'Total Amount';

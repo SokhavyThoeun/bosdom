@@ -224,7 +224,7 @@ class Order {
   /// their payout ([totalAmount] is goods only).
   final double shippingFee;
 
-  /// This order's part of the buyer's 2% escrow fee.
+  /// This order's part of the buyer's 4% escrow fee.
   final double escrowFee;
 
   /// Set once refunded: what goes back to the buyer — less than they paid

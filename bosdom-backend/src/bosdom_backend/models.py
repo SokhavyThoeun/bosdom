@@ -281,7 +281,7 @@ class Order(Base):
     # A single paid sample (quantity 1 at the listing's sample price), which
     # starts the buyer's 3-day sample cooldown once paid.
     is_sample: Mapped[bool] = mapped_column(Boolean, default=False)
-    # This order's share of the buyer's 2% escrow fee. Set when payment lands.
+    # This order's share of the buyer's 4% escrow fee. Set when payment lands.
     escrow_fee: Mapped[float] = mapped_column(Float, default=0.0)
     # Set on refund: what goes back to the buyer (see `refund_order`), and
     # when the admin actually sent it.

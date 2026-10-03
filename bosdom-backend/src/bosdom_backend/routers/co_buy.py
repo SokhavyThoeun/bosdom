@@ -574,7 +574,7 @@ def _time_left_label(pool: CoBuyPool) -> str:
 
 def _refund_everyone(db: Session, pool: CoBuyPool) -> set[str]:
     """Refunds every paid join in full (the deal didn't go ahead — not the
-    buyers' fault, so the 2% escrow fee goes back too) and drops unpaid
+    buyers' fault, so the 4% escrow fee goes back too) and drops unpaid
     reservations. Refused once any share has shipped or been paid out.
     Doesn't commit; returns the refunded buyers' ids to notify."""
     from .orders import refund_order

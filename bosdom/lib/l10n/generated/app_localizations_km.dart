@@ -520,7 +520,7 @@ class AppLocalizationsKm extends AppLocalizations {
   String get cartEstimatedShipping => 'ការដឹកជញ្ជូនប៉ាន់ស្មាន';
 
   @override
-  String get cartEscrowFee => 'កម្រៃសេវាធានា (២%)';
+  String get cartEscrowFee => 'កម្រៃសេវាធានា (៤%)';
 
   @override
   String get cartTotalAmount => 'ចំនួនទឹកប្រាក់សរុប';
@@ -591,7 +591,7 @@ class AppLocalizationsKm extends AppLocalizations {
   String get checkoutShippingLabel => 'ការដឹកជញ្ជូន';
 
   @override
-  String get checkoutEscrowFeeLabel => 'កម្រៃសេវាធានា (២%)';
+  String get checkoutEscrowFeeLabel => 'កម្រៃសេវាធានា (៤%)';
 
   @override
   String get checkoutTotalAmount => 'ចំនួនទឹកប្រាក់សរុប';

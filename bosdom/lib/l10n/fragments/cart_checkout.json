@@ -39,8 +39,8 @@
     "km": "ការដឹកជញ្ជូនប៉ាន់ស្មាន"
   },
   "cartEscrowFee": {
-    "en": "Escrow Fee (2%)",
-    "km": "កម្រៃសេវាធានា (២%)"
+    "en": "Escrow Fee (4%)",
+    "km": "កម្រៃសេវាធានា (៤%)"
   },
   "cartTotalAmount": {
     "en": "Total Amount",
@@ -100,8 +100,8 @@
     "km": "ការដឹកជញ្ជូន"
   },
   "checkoutEscrowFeeLabel": {
-    "en": "Escrow Fee (2%)",
-    "km": "កម្រៃសេវាធានា (២%)"
+    "en": "Escrow Fee (4%)",
+    "km": "កម្រៃសេវាធានា (៤%)"
   },
   "checkoutTotalAmount": {
     "en": "Total Amount",

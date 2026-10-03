@@ -141,7 +141,7 @@ const _kShippingOptions = [
 
 /// Buyer's escrow fee, charged on items + shipping — must match the
 /// backend's `ESCROW_FEE_RATE` (routers/payments.py).
-const kEscrowFeeRate = 0.02;
+const kEscrowFeeRate = 0.04;
 
 double escrowFeeFor(double subtotal, double shipping) =>
     (subtotal + shipping) * kEscrowFeeRate;

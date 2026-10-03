@@ -426,7 +426,7 @@ class AdminPayoutRequest {
   bool get isApproved => status == 'approved';
 }
 
-/// Money owed back to a buyer. The 2% escrow fee is kept only when the buyer
+/// Money owed back to a buyer. The 4% escrow fee is kept only when the buyer
 /// was at fault (e.g. changed their mind); otherwise everything goes back.
 class AdminRefund {
   const AdminRefund({

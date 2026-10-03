@@ -52,7 +52,7 @@ REVIEW_WINDOW = timedelta(days=3)
 
 # The buyer's escrow fee, charged at checkout on items + shipping — same rate
 # as the checkout screen's `kEscrowFeeRate`.
-ESCROW_FEE_RATE = 0.02
+ESCROW_FEE_RATE = 0.04
 
 # The platform's cut, taken when funds are released to the seller — same
 # rate as the seller app's earnings screen (`kSellerPlatformFeeRate`).
@@ -163,7 +163,7 @@ COURIER_REFUND_DELAY = timedelta(days=3)
 
 
 def escrow_fee_paid(order: Order) -> float:
-    """The 2% escrow fee the buyer paid on this order — recorded at payment,
+    """The 4% escrow fee the buyer paid on this order — recorded at payment,
     or derived for orders paid before it was."""
     if order.escrow_fee:
         return order.escrow_fee
@@ -174,7 +174,7 @@ def refund_amount_for(order: Order, *, buyer_fault: bool) -> float:
     """What goes back to the buyer. Not their fault (wrong/fake/damaged
     goods, never shipped, lost by the courier, co-buy deal cancelled):
     everything they paid. Their own choice (changed their mind): the goods,
-    plus shipping if it never shipped — but the 2% escrow fee is kept."""
+    plus shipping if it never shipped — but the 4% escrow fee is kept."""
     shipping = order.shipping_fee or 0
     if buyer_fault and order.shipped_at is not None:
         shipping = 0
@@ -230,7 +230,7 @@ def _co_buy_participant(db: Session, order: Order) -> CoBuyParticipant | None:
 
 
 def allocate_escrow_fee(orders: list[Order], total_fee: float) -> None:
-    """Splits one payment's 2% escrow fee across its orders by what each
+    """Splits one payment's 4% escrow fee across its orders by what each
     paid (goods + shipping share), the last taking the rounding remainder."""
     left = round(total_fee, 2)
     for i, order in enumerate(orders):

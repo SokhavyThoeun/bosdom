@@ -1043,7 +1043,7 @@ abstract class AppLocalizations {
   /// No description provided for @cartEscrowFee.
   ///
   /// In en, this message translates to:
-  /// **'Escrow Fee (2%)'**
+  /// **'Escrow Fee (4%)'**
   String get cartEscrowFee;
 
   /// No description provided for @cartTotalAmount.
@@ -1169,7 +1169,7 @@ abstract class AppLocalizations {
   /// No description provided for @checkoutEscrowFeeLabel.
   ///
   /// In en, this message translates to:
-  /// **'Escrow Fee (2%)'**
+  /// **'Escrow Fee (4%)'**
   String get checkoutEscrowFeeLabel;
 
   /// No description provided for @checkoutTotalAmount.
