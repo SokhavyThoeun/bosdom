@@ -19,6 +19,7 @@ from .orders import (
     _transition,
     auto_release_due_orders,
     fee_rate_for,
+    freeze_order,
     refund_order,
     release_funds,
 )
@@ -344,8 +345,9 @@ def report_as_seller(
     db: Session = Depends(get_db),
 ) -> SellerReport:
     """The seller flags a delivery problem (delay, lost parcel, ...) so an
-    admin can look into it and update the buyer. Doesn't touch the order's
-    status or funds."""
+    admin can look into it and update the buyer. Freezes the order's review
+    timer (like a buyer's dispute) so the funds can't auto-release while the
+    admin looks into it; dismissing the report resumes it."""
     order = _get_participant_order(db, order_id, user.id)
     if user.id != order.seller_id:
         raise HTTPException(status_code=403, detail="Only the seller can report here")
@@ -357,6 +359,9 @@ def report_as_seller(
     photo_urls = [
         save_image_as_webp(photo, "seller_report_photos", user.id) for photo in photos
     ]
+    auto_release_due_orders(db)
+    db.refresh(order)
+    freeze_order(order, datetime.now(timezone.utc))
     report = SellerReport(
         order_id=order.id,
         seller_id=user.id,

@@ -48,6 +48,7 @@ from .orders import (
     refund_amount_for,
     refund_order,
     seller_amount_for,
+    unfreeze_order,
 )
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -1192,6 +1193,15 @@ def resolve_seller_report(
         )
     report.status = "resolved"
     report.resolution = "dismissed"
+    # Nothing wrong after all: resume the review timer the report froze —
+    # unless the buyer has their own dispute open on the order too.
+    order = db.get(Order, report.order_id)
+    has_dispute = (
+        db.query(Dispute).filter(Dispute.order_id == report.order_id).first()
+        is not None
+    )
+    if order is not None and not has_dispute:
+        unfreeze_order(order, datetime.now(timezone.utc))
     db.commit()
     return {"ok": True}
 

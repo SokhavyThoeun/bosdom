@@ -1,31 +1,34 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../models/order.dart';
+import '../providers/orders_provider.dart';
 
 /// The fund-release process for one order, shown to both buyer and seller:
 /// order placed (held in escrow) → seller prepares → shipped (photo + tracking)
 /// → review timer, which turns into an auto release to the seller once it runs
 /// out with no report. A reported problem freezes the timer and hands the
 /// order to an admin. Each reached step shows when it happened.
-class ReleaseFlowCard extends StatefulWidget {
+class ReleaseFlowCard extends ConsumerStatefulWidget {
   const ReleaseFlowCard({super.key, required this.order});
 
   final Order order;
 
   @override
-  State<ReleaseFlowCard> createState() => _ReleaseFlowCardState();
+  ConsumerState<ReleaseFlowCard> createState() => _ReleaseFlowCardState();
 }
 
-class _ReleaseFlowCardState extends State<ReleaseFlowCard>
+class _ReleaseFlowCardState extends ConsumerState<ReleaseFlowCard>
     with TickerProviderStateMixin {
   static const _stepCount = 4;
 
   Timer? _ticker;
+  DateTime? _lastRefresh;
   late final AnimationController _intro = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 1600),
@@ -38,10 +41,9 @@ class _ReleaseFlowCardState extends State<ReleaseFlowCard>
   @override
   void initState() {
     super.initState();
-    // Keeps the countdown fresh; minute precision is all the timer shows.
-    _ticker = Timer.periodic(const Duration(seconds: 30), (_) {
-      if (mounted) setState(() {});
-    });
+    // Keeps the (scaled) countdown fresh, and refetches the order once the
+    // mock courier has delivered it or the timer has run out.
+    _ticker = Timer.periodic(const Duration(milliseconds: 250), (_) => _tick());
   }
 
   @override
@@ -52,11 +54,18 @@ class _ReleaseFlowCardState extends State<ReleaseFlowCard>
     super.dispose();
   }
 
-  static String _formatLeft(Duration left) {
-    if (left.isNegative) return '0m';
-    if (left.inHours >= 24) return '${left.inDays}d ${left.inHours % 24}h';
-    if (left.inHours >= 1) return '${left.inHours}h ${left.inMinutes % 60}m';
-    return '${left.inMinutes}m';
+  void _tick() {
+    if (!mounted) return;
+    final order = widget.order;
+    if (order.status != OrderStatus.held || !order.isShipped) return;
+    final now = DateTime.now();
+    if (order.isDueForRefresh(now) &&
+        (_lastRefresh == null ||
+            now.difference(_lastRefresh!) >= kMockDeliveryStep)) {
+      _lastRefresh = now;
+      ref.invalidate(orderByIdProvider(order.id));
+    }
+    setState(() {});
   }
 
   @override
@@ -106,11 +115,15 @@ class _ReleaseFlowCardState extends State<ReleaseFlowCard>
             ? l10n.escrowStepReleaseDetail
             : timerRunning
             ? l10n.escrowTimerLeft(
-                _formatLeft(order.reviewDeadlineAt!.difference(DateTime.now())),
+                formatReviewTimeLeft(
+                  order.reviewDeadlineAt!.difference(DateTime.now()),
+                ),
               )
             : disputed && order.reviewRemainingSeconds != null
             ? l10n.escrowTimerFrozenLeft(
-                _formatLeft(Duration(seconds: order.reviewRemainingSeconds!)),
+                formatReviewTimeLeft(
+                  Duration(seconds: order.reviewRemainingSeconds!),
+                ),
               )
             : l10n.escrowStepTimerDetail,
         done: timerReached,

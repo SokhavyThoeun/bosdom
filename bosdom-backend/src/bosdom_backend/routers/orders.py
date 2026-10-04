@@ -48,7 +48,9 @@ _VALID_TRANSITIONS: dict[str, set[str]] = {
 
 # After proof of delivery the buyer has this long to report a problem; when
 # it runs out with nothing reported, the funds auto-release to the seller.
-REVIEW_WINDOW = timedelta(days=3)
+# Mocked down to 15s for demos — the app still shows it as a 3-day window,
+# scaled (see `kReviewWindow`/`kShownReviewWindow` in order.dart).
+REVIEW_WINDOW = timedelta(seconds=15)
 
 # Mock courier: there's no real courier webhook, so a shipped parcel walks
 # through 4 tracking steps (picked up → in transit → out for delivery →
@@ -350,6 +352,21 @@ def freeze_order(order: Order, now: datetime) -> None:
         remaining = _aware(order.review_deadline_at) - now
         order.review_remaining_seconds = max(0, int(remaining.total_seconds()))
         order.review_deadline_at = None
+
+
+def unfreeze_order(order: Order, now: datetime) -> None:
+    """Undoes `freeze_order` once the report behind it is dismissed: the
+    order goes back to `held` and its review timer picks up where it left
+    off. Bypasses `_transition` on purpose — `disputed` → `held` is only
+    valid here, never for a buyer's dispute."""
+    if order.status != STATUS_DISPUTED:
+        return
+    order.status = STATUS_HELD
+    if order.review_remaining_seconds is not None:
+        order.review_deadline_at = now + timedelta(
+            seconds=order.review_remaining_seconds
+        )
+        order.review_remaining_seconds = None
 
 
 def _refund_due_reports(db: Session, now: datetime) -> None:
@@ -658,7 +675,10 @@ def _attach_hold_info(db: Session, outs: list[OrderOut]) -> list[OrderOut]:
     reports = {
         r.order_id: r
         for r in db.query(SellerReport)
-        .filter(SellerReport.order_id.in_(ids), SellerReport.status == "refund_pending")
+        .filter(
+            SellerReport.order_id.in_(ids),
+            SellerReport.status.in_(("open", "refund_pending")),
+        )
         .all()
     }
     disputes = {

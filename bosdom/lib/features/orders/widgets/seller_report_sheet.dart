@@ -1,11 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/app_snack_bar.dart';
 import '../models/order.dart';
+import '../providers/orders_provider.dart';
 import '../services/dispute_service.dart';
 
 const _kMaxPhotos = 3;
@@ -43,16 +45,16 @@ Future<void> showSellerReportSheet(BuildContext context, Order order) {
   );
 }
 
-class _SellerReportSheet extends StatefulWidget {
+class _SellerReportSheet extends ConsumerStatefulWidget {
   const _SellerReportSheet({required this.order});
 
   final Order order;
 
   @override
-  State<_SellerReportSheet> createState() => _SellerReportSheetState();
+  ConsumerState<_SellerReportSheet> createState() => _SellerReportSheetState();
 }
 
-class _SellerReportSheetState extends State<_SellerReportSheet> {
+class _SellerReportSheetState extends ConsumerState<_SellerReportSheet> {
   _Reason _reason = _Reason.delayed;
   final _noteController = TextEditingController();
   final _picker = ImagePicker();
@@ -98,6 +100,9 @@ class _SellerReportSheetState extends State<_SellerReportSheet> {
         photoPaths: [for (final p in _photos) p.path],
       );
       if (!mounted) return;
+      // The report froze the order's review timer — show it.
+      ref.invalidate(orderByIdProvider(widget.order.id));
+      ref.invalidate(sellerOrdersProvider);
       Navigator.of(context).pop();
       showAppSnackBar(
         context,

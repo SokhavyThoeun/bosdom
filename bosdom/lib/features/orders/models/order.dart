@@ -93,6 +93,33 @@ class OrderReview {
 /// A buyer's real order, matching `OrderOut` (`routers/orders.py`) — one
 /// listing per order, snapshotted product/price at purchase time, tracked
 /// through an escrow status rather than a delivery-carrier timeline.
+/// Mock courier timing — one tracking step every 2s, delivered 8s after
+/// `shipped_at`. Mirrors `MOCK_DELIVERY_STEP` in the backend's `orders.py`,
+/// which is what actually marks the order delivered and starts the review
+/// timer; the app just animates the steps in between.
+const kMockDeliveryStep = Duration(seconds: 2);
+const kMockDeliverySteps = 4;
+const kMockDeliveryDuration = Duration(seconds: 8);
+
+/// The real review timer (backend `REVIEW_WINDOW`), mocked to 15s, and the
+/// 3-day window it's shown as — countdowns scale the real time left up so a
+/// fresh delivery reads "2d 23h" and hits zero 15s later.
+const kReviewWindow = Duration(seconds: 15);
+const kShownReviewWindow = Duration(days: 3);
+
+Duration shownReviewTimeLeft(Duration realLeft) =>
+    realLeft *
+    (kShownReviewWindow.inMilliseconds / kReviewWindow.inMilliseconds);
+
+/// "2d 23h" / "5h 12m" / "40m" for a (shown) review time left.
+String formatReviewTimeLeft(Duration realLeft) {
+  final left = shownReviewTimeLeft(realLeft);
+  if (left.isNegative) return '0m';
+  if (left.inHours >= 24) return '${left.inDays}d ${left.inHours % 24}h';
+  if (left.inHours >= 1) return '${left.inHours}h ${left.inMinutes % 60}m';
+  return '${left.inMinutes}m';
+}
+
 class Order {
   const Order({
     required this.id,
@@ -304,6 +331,19 @@ class Order {
 
   bool get isShipped => shippedAt != null;
   bool get isDelivered => deliveredAt != null;
+
+  /// Whether the backend has moved this order on by [now] without the app
+  /// hearing about it — the mock courier delivered it, or its review timer
+  /// ran out and the funds auto-released. Both happen lazily on the next
+  /// read, so screens showing a live order refetch when this turns true.
+  bool isDueForRefresh(DateTime now) {
+    if (status != OrderStatus.held || shippedAt == null) return false;
+    if (!isDelivered) {
+      return now.difference(shippedAt!) >= kMockDeliveryDuration;
+    }
+    final deadline = reviewDeadlineAt;
+    return deadline != null && !now.isBefore(deadline);
+  }
 
   /// Funds still held in escrow (not yet shipped, on its way, or delivered):
   /// the buyer can report an item/delivery problem for a refund or other

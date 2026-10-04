@@ -35,21 +35,6 @@ class _TrackingStep {
 String _formatTime(DateTime dateTime) =>
     DateFormat.yMMMd().add_jm().format(dateTime.toLocal());
 
-/// Mock courier timing — one tracking step every 2s, delivered 8s after
-/// `shipped_at`. Mirrors `MOCK_DELIVERY_STEP` in the backend's `orders.py`,
-/// which is what actually marks the order delivered and starts the review
-/// timer; this screen just animates the steps in between.
-const kMockDeliveryStep = Duration(seconds: 2);
-const kMockDeliverySteps = 4;
-final kMockDeliveryDuration = kMockDeliveryStep * kMockDeliverySteps;
-
-String _formatLeft(Duration left) {
-  if (left.isNegative) return '0m';
-  if (left.inHours >= 24) return '${left.inDays}d ${left.inHours % 24}h';
-  if (left.inHours >= 1) return '${left.inHours}h ${left.inMinutes % 60}m';
-  return '${left.inMinutes}m';
-}
-
 /// How many of the mock courier's steps (picked up, in transit, out for
 /// delivery, delivered) are done at [now]. The last one only counts once the
 /// backend has actually set `delivered_at` — a report filed mid-transit
@@ -243,7 +228,9 @@ List<_TrackingStep> _stepsFor(
         _TrackingStep(
           title: l10n.deliveryStepReleased,
           timeLabel: deadline != null
-              ? l10n.escrowTimerLeft(_formatLeft(deadline.difference(now)))
+              ? l10n.escrowTimerLeft(
+                  formatReviewTimeLeft(deadline.difference(now)),
+                )
               : null,
           state: deadline != null ? _StepState.current : _StepState.pending,
           icon: deadline != null
@@ -270,7 +257,7 @@ List<_TrackingStep> _stepsFor(
           title: l10n.deliveryStepDisputed,
           timeLabel: frozenLeft != null
               ? l10n.escrowTimerFrozenLeft(
-                  _formatLeft(Duration(seconds: frozenLeft)),
+                  formatReviewTimeLeft(Duration(seconds: frozenLeft)),
                 )
               : null,
           state: _StepState.current,
@@ -362,20 +349,19 @@ class _DeliveryTrackingBodyState extends ConsumerState<_DeliveryTrackingBody>
   @override
   void initState() {
     super.initState();
-    _ticker = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
+    _ticker = Timer.periodic(const Duration(milliseconds: 250), (_) => _tick());
   }
 
-  /// Steps the mock courier along while the parcel is in transit, then asks
-  /// the backend for the delivered order (which starts the review timer) —
-  /// again every couple of seconds in case its clock runs a little behind.
-  /// Also keeps the review countdown fresh once delivered.
+  /// Steps the mock courier along and runs the review countdown, then asks
+  /// the backend for the moved-on order once it's delivered or the timer has
+  /// run out — again every couple of seconds in case its clock is a little
+  /// behind.
   void _tick() {
     if (!mounted) return;
     final order = widget.order;
     if (order.status != OrderStatus.held || !order.isShipped) return;
     final now = DateTime.now();
-    if (!order.isDelivered &&
-        now.difference(order.shippedAt!) >= kMockDeliveryDuration &&
+    if (order.isDueForRefresh(now) &&
         (_lastRefresh == null ||
             now.difference(_lastRefresh!) >= kMockDeliveryStep)) {
       _lastRefresh = now;
