@@ -48,9 +48,9 @@ _VALID_TRANSITIONS: dict[str, set[str]] = {
 
 # After proof of delivery the buyer has this long to report a problem; when
 # it runs out with nothing reported, the funds auto-release to the seller.
-# Mocked down to 15s for demos — the app still shows it as a 3-day window,
+# Mocked down to 5s for demos — the app still shows it as a 3-day window,
 # scaled (see `kReviewWindow`/`kShownReviewWindow` in order.dart).
-REVIEW_WINDOW = timedelta(seconds=15)
+REVIEW_WINDOW = timedelta(seconds=5)
 
 # Mock courier: there's no real courier webhook, so a shipped parcel walks
 # through 4 tracking steps (picked up → in transit → out for delivery →

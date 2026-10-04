@@ -105,10 +105,10 @@ const kMockDeliveryDuration = Duration(seconds: 28);
 /// in case its clock runs a little behind the device's.
 const kLiveOrderRetry = Duration(seconds: 2);
 
-/// The real review timer (backend `REVIEW_WINDOW`), mocked to 15s, and the
+/// The real review timer (backend `REVIEW_WINDOW`), mocked to 5s, and the
 /// 3-day window it's shown as — countdowns scale the real time left up so a
-/// fresh delivery reads "2d 23h" and hits zero 15s later.
-const kReviewWindow = Duration(seconds: 15);
+/// fresh delivery reads "2d 23h" and hits zero 5s later.
+const kReviewWindow = Duration(seconds: 5);
 const kShownReviewWindow = Duration(days: 3);
 
 Duration shownReviewTimeLeft(Duration realLeft) =>
