@@ -3262,6 +3262,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addListingAddSizeConfirm => 'Add';
 
   @override
+  String get addListingVariantsLabelBeauty => 'Amounts & Colors';
+
+  @override
+  String get addListingAmountLabel => 'Amount';
+
+  @override
+  String get addListingAddAmountChip => 'Add amount';
+
+  @override
+  String get addListingAddAmountDialogTitle => 'Add an amount';
+
+  @override
+  String get addListingAddAmountDialogHint => 'e.g. 75 ml, 250 g, 10 pcs';
+
+  @override
   String get addListingAddColorDialogTitle => 'Choose a color';
 
   @override

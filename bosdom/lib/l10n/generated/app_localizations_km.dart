@@ -3293,6 +3293,21 @@ class AppLocalizationsKm extends AppLocalizations {
   String get addListingAddSizeConfirm => 'បន្ថែម';
 
   @override
+  String get addListingVariantsLabelBeauty => 'បរិមាណ និងពណ៌';
+
+  @override
+  String get addListingAmountLabel => 'បរិមាណ';
+
+  @override
+  String get addListingAddAmountChip => 'បន្ថែមបរិមាណ';
+
+  @override
+  String get addListingAddAmountDialogTitle => 'បន្ថែមបរិមាណ';
+
+  @override
+  String get addListingAddAmountDialogHint => 'ឧ. 75 ml, 250 g, 10 គ្រាប់';
+
+  @override
   String get addListingAddColorDialogTitle => 'ជ្រើសរើសពណ៌';
 
   @override

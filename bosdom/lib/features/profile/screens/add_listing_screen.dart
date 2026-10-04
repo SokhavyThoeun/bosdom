@@ -20,6 +20,16 @@ const _kVariantCategories = {'Clothing', 'Beauty'};
 
 const _kSizePresets = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
+/// Beauty/skin care sells by volume, not garment size.
+const _kAmountPresets = [
+  '15 ml',
+  '30 ml',
+  '50 ml',
+  '100 ml',
+  '200 ml',
+  '500 ml',
+];
+
 class _PaletteColor {
   const _PaletteColor(this.name, this.color, this.hex);
   final String name;
@@ -145,10 +155,15 @@ class _AddListingScreenState extends State<AddListingScreen> {
     }
   }
 
+  bool get _usesAmounts => _category == 'Beauty';
+
+  List<String> get _sizePresets =>
+      _usesAmounts ? _kAmountPresets : _kSizePresets;
+
   List<String> get _availableSizes => [
-    ..._kSizePresets,
+    ..._sizePresets,
     for (final size in _customSizes)
-      if (!_kSizePresets.contains(size)) size,
+      if (!_sizePresets.contains(size)) size,
   ];
 
   List<_PaletteColor> get _availableColors => [
@@ -158,7 +173,14 @@ class _AddListingScreenState extends State<AddListingScreen> {
 
   void _onCategoryChanged(String? value) {
     setState(() {
+      final wasAmounts = _usesAmounts;
       _category = value;
+      // Clothing sizes and Beauty amounts aren't interchangeable, so drop
+      // any picks when switching between them.
+      if (wasAmounts != _usesAmounts) {
+        _selectedSizes.clear();
+        _customSizes.clear();
+      }
       if (!_kVariantCategories.contains(value)) {
         _selectedSizes.clear();
         _customSizes.clear();
@@ -192,7 +214,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
     try {
       final added = await showDialog<String>(
         context: context,
-        builder: (dialogContext) => const _AddSizeDialog(),
+        builder: (dialogContext) => _AddSizeDialog(isAmount: _usesAmounts),
       );
       if (added == null || added.isEmpty) return;
       setState(() {
@@ -400,7 +422,9 @@ class _AddListingScreenState extends State<AddListingScreen> {
                     if (_showVariants) ...[
                       const SizedBox(height: 24),
                       Text(
-                        l10n.addListingVariantsLabel,
+                        _usesAmounts
+                            ? l10n.addListingVariantsLabelBeauty
+                            : l10n.addListingVariantsLabel,
                         style: textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: AppColors.warmBlack,
@@ -415,7 +439,9 @@ class _AddListingScreenState extends State<AddListingScreen> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        l10n.variantSizeLabel,
+                        _usesAmounts
+                            ? l10n.addListingAmountLabel
+                            : l10n.variantSizeLabel,
                         style: textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: AppColors.warmBlack,
@@ -433,7 +459,9 @@ class _AddListingScreenState extends State<AddListingScreen> {
                               onTap: () => _toggleSize(size),
                             ),
                           _AddSizeChip(
-                            label: l10n.addListingAddSizeChip,
+                            label: _usesAmounts
+                                ? l10n.addListingAddAmountChip
+                                : l10n.addListingAddSizeChip,
                             onTap: _showAddSizeDialog,
                           ),
                         ],
@@ -1303,7 +1331,9 @@ InputDecoration _fieldDecoration({
 }
 
 class _AddSizeDialog extends StatefulWidget {
-  const _AddSizeDialog();
+  const _AddSizeDialog({this.isAmount = false});
+
+  final bool isAmount;
 
   @override
   State<_AddSizeDialog> createState() => _AddSizeDialogState();
@@ -1322,12 +1352,20 @@ class _AddSizeDialogState extends State<_AddSizeDialog> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return AlertDialog(
-      title: Text(l10n.addListingAddSizeDialogTitle),
+      title: Text(
+        widget.isAmount
+            ? l10n.addListingAddAmountDialogTitle
+            : l10n.addListingAddSizeDialogTitle,
+      ),
       content: TextField(
         controller: _controller,
         autofocus: true,
         textCapitalization: TextCapitalization.words,
-        decoration: InputDecoration(hintText: l10n.addListingAddSizeDialogHint),
+        decoration: InputDecoration(
+          hintText: widget.isAmount
+              ? l10n.addListingAddAmountDialogHint
+              : l10n.addListingAddSizeDialogHint,
+        ),
       ),
       actions: [
         TextButton(

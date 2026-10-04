@@ -5967,6 +5967,36 @@ abstract class AppLocalizations {
   /// **'Add'**
   String get addListingAddSizeConfirm;
 
+  /// No description provided for @addListingVariantsLabelBeauty.
+  ///
+  /// In en, this message translates to:
+  /// **'Amounts & Colors'**
+  String get addListingVariantsLabelBeauty;
+
+  /// No description provided for @addListingAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get addListingAmountLabel;
+
+  /// No description provided for @addListingAddAmountChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add amount'**
+  String get addListingAddAmountChip;
+
+  /// No description provided for @addListingAddAmountDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an amount'**
+  String get addListingAddAmountDialogTitle;
+
+  /// No description provided for @addListingAddAmountDialogHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 75 ml, 250 g, 10 pcs'**
+  String get addListingAddAmountDialogHint;
+
   /// No description provided for @addListingAddColorDialogTitle.
   ///
   /// In en, this message translates to:
