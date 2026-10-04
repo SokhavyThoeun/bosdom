@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -176,6 +177,11 @@ class _WithdrawFundsSheetState extends State<_WithdrawFundsSheet> {
                       children: [
                         for (final bank in const ['ABA'])
                           ChoiceChip(
+                            avatar: SvgPicture.asset(
+                              'assets/payway/aba.svg',
+                              height: 18,
+                            ),
+                            showCheckmark: false,
                             label: Text(bank),
                             selected: _bank == bank,
                             onSelected: (_) => setState(() => _bank = bank),
