@@ -54,10 +54,10 @@ REVIEW_WINDOW = timedelta(seconds=15)
 
 # Mock courier: there's no real courier webhook, so a shipped parcel walks
 # through 4 tracking steps (picked up → in transit → out for delivery →
-# delivered), one every 10 seconds, and counts as delivered 40s after
+# delivered), one every 3 seconds, and counts as delivered 12s after
 # `shipped_at` — which starts the REVIEW_WINDOW timer. Mirrored by the
 # app's `kMockDeliveryStep` (orders/models/order.dart).
-MOCK_DELIVERY_STEP = timedelta(seconds=10)
+MOCK_DELIVERY_STEP = timedelta(seconds=3)
 MOCK_DELIVERY_STEPS = 4
 MOCK_DELIVERY_DURATION = MOCK_DELIVERY_STEP * MOCK_DELIVERY_STEPS
 

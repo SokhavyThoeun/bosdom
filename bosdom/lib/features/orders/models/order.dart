@@ -93,13 +93,13 @@ class OrderReview {
 /// A buyer's real order, matching `OrderOut` (`routers/orders.py`) — one
 /// listing per order, snapshotted product/price at purchase time, tracked
 /// through an escrow status rather than a delivery-carrier timeline.
-/// Mock courier timing — one tracking step every 10s, delivered 40s after
+/// Mock courier timing — one tracking step every 3s, delivered 12s after
 /// `shipped_at`. Mirrors `MOCK_DELIVERY_STEP` in the backend's `orders.py`,
 /// which is what actually marks the order delivered and starts the review
 /// timer; the app just animates the steps in between.
-const kMockDeliveryStep = Duration(seconds: 10);
+const kMockDeliveryStep = Duration(seconds: 3);
 const kMockDeliverySteps = 4;
-const kMockDeliveryDuration = Duration(seconds: 40);
+const kMockDeliveryDuration = Duration(seconds: 12);
 
 /// How often a live order screen re-asks the backend once [isDueForRefresh],
 /// in case its clock runs a little behind the device's.
