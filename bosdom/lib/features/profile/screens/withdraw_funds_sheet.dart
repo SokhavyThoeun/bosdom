@@ -215,11 +215,8 @@ class _WithdrawFundsSheetState extends State<_WithdrawFundsSheet> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.alertAmber.withValues(alpha: 0.1),
+                        color: AppColors.blushSurface,
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: AppColors.alertAmber.withValues(alpha: 0.3),
-                        ),
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -228,15 +225,15 @@ class _WithdrawFundsSheetState extends State<_WithdrawFundsSheet> {
                             width: 26,
                             height: 26,
                             decoration: BoxDecoration(
-                              color: AppColors.alertAmber.withValues(
-                                alpha: 0.15,
+                              color: AppColors.brandCrimson.withValues(
+                                alpha: 0.1,
                               ),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
                               Icons.verified_user_rounded,
                               size: 15,
-                              color: AppColors.alertAmber,
+                              color: AppColors.brandCrimson,
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -244,7 +241,7 @@ class _WithdrawFundsSheetState extends State<_WithdrawFundsSheet> {
                             child: Text(
                               l10n.sellerEarningsPayoutNoticeText,
                               style: textTheme.bodySmall?.copyWith(
-                                color: AppColors.alertAmber,
+                                color: AppColors.brandCrimson,
                                 height: 1.4,
                               ),
                             ),
