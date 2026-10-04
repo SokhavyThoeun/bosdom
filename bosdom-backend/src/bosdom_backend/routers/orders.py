@@ -50,6 +50,15 @@ _VALID_TRANSITIONS: dict[str, set[str]] = {
 # it runs out with nothing reported, the funds auto-release to the seller.
 REVIEW_WINDOW = timedelta(days=3)
 
+# Mock courier: there's no real courier webhook, so a shipped parcel walks
+# through 4 tracking steps (picked up → in transit → out for delivery →
+# delivered), one every 2 seconds, and counts as delivered 8s after
+# `shipped_at` — which starts the REVIEW_WINDOW timer. Mirrored by the
+# tracking screen's `kMockDeliveryStep` (delivery_tracking_screen.dart).
+MOCK_DELIVERY_STEP = timedelta(seconds=2)
+MOCK_DELIVERY_STEPS = 4
+MOCK_DELIVERY_DURATION = MOCK_DELIVERY_STEP * MOCK_DELIVERY_STEPS
+
 # The buyer's escrow fee, charged at checkout on items + shipping — same rate
 # as the checkout screen's `kEscrowFeeRate`.
 ESCROW_FEE_RATE = 0.04
@@ -363,11 +372,45 @@ def _refund_due_reports(db: Session, now: datetime) -> None:
         db.commit()
 
 
+def _deliver_due_shipments(db: Session, now: datetime) -> None:
+    """Marks shipped orders delivered once the mock courier's
+    MOCK_DELIVERY_DURATION has passed, starting their review timer from the
+    moment of delivery. Only `held` orders — one the buyer reported while it
+    was in transit is `disputed` and stays undelivered."""
+    shipped = (
+        db.query(Order)
+        .filter(
+            Order.status == STATUS_HELD,
+            Order.shipped_at.is_not(None),
+            Order.delivered_at.is_(None),
+            Order.shipped_at <= now - MOCK_DELIVERY_DURATION,
+        )
+        .all()
+    )
+    if not shipped:
+        return
+    for order in shipped:
+        delivered_at = _aware(order.shipped_at) + MOCK_DELIVERY_DURATION
+        order.delivered_at = delivered_at
+        order.review_deadline_at = delivered_at + REVIEW_WINDOW
+    db.commit()
+    for order in shipped:
+        _notify_buyer(
+            db,
+            order,
+            "Your order was delivered",
+            f"{order.product_name} arrived. Check it and confirm, or report a problem before the review window ends.",
+            route="deliveryTracking",
+        )
+
+
 def auto_release_due_orders(db: Session) -> None:
-    """Releases every held order whose review timer has run out, and refunds
-    orders whose admin-scheduled refund is due. There's no background
-    scheduler, so this runs lazily whenever orders are read."""
+    """Delivers mock shipments that have arrived, releases every held order
+    whose review timer has run out, and refunds orders whose admin-scheduled
+    refund is due. There's no background scheduler, so this runs lazily
+    whenever orders are read."""
     now = datetime.now(timezone.utc)
+    _deliver_due_shipments(db, now)
     _refund_due_reports(db, now)
     due = (
         db.query(Order)

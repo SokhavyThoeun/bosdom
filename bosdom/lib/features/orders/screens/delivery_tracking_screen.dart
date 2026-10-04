@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -33,6 +35,79 @@ class _TrackingStep {
 String _formatTime(DateTime dateTime) =>
     DateFormat.yMMMd().add_jm().format(dateTime.toLocal());
 
+/// Mock courier timing — one tracking step every 2s, delivered 8s after
+/// `shipped_at`. Mirrors `MOCK_DELIVERY_STEP` in the backend's `orders.py`,
+/// which is what actually marks the order delivered and starts the review
+/// timer; this screen just animates the steps in between.
+const kMockDeliveryStep = Duration(seconds: 2);
+const kMockDeliverySteps = 4;
+final kMockDeliveryDuration = kMockDeliveryStep * kMockDeliverySteps;
+
+String _formatLeft(Duration left) {
+  if (left.isNegative) return '0m';
+  if (left.inHours >= 24) return '${left.inDays}d ${left.inHours % 24}h';
+  if (left.inHours >= 1) return '${left.inHours}h ${left.inMinutes % 60}m';
+  return '${left.inMinutes}m';
+}
+
+/// How many of the mock courier's steps (picked up, in transit, out for
+/// delivery, delivered) are done at [now]. The last one only counts once the
+/// backend has actually set `delivered_at` — a report filed mid-transit
+/// freezes the order before that, so it never shows as delivered.
+int _courierStepsDone(Order order, DateTime now) {
+  if (order.isDelivered || order.status == OrderStatus.released) {
+    return kMockDeliverySteps;
+  }
+  final shippedAt = order.shippedAt;
+  if (shippedAt == null) return 0;
+  final elapsed = now.difference(shippedAt);
+  return (elapsed.inMilliseconds ~/ kMockDeliveryStep.inMilliseconds).clamp(
+    0,
+    kMockDeliverySteps - 1,
+  );
+}
+
+List<_TrackingStep> _courierSteps(
+  Order order,
+  AppLocalizations l10n,
+  DateTime now,
+) {
+  final shippedAt = order.shippedAt!;
+  final done = _courierStepsDone(order, now);
+  final frozen = order.status != OrderStatus.held;
+  const icons = [
+    Icons.inventory_2_outlined,
+    Icons.local_shipping_outlined,
+    Icons.delivery_dining_outlined,
+    Icons.home_outlined,
+  ];
+  final titles = [
+    l10n.deliveryStepPickedUp,
+    l10n.deliveryStepInTransit,
+    l10n.deliveryStepOutForDelivery,
+    l10n.deliveryStepDelivered,
+  ];
+  return [
+    for (var i = 0; i < kMockDeliverySteps; i++)
+      _TrackingStep(
+        title: titles[i],
+        timeLabel: i < done
+            ? _formatTime(
+                i == kMockDeliverySteps - 1 && order.deliveredAt != null
+                    ? order.deliveredAt!
+                    : shippedAt.add(kMockDeliveryStep * (i + 1)),
+              )
+            : null,
+        state: i < done
+            ? _StepState.done
+            : i == done && !frozen
+            ? _StepState.current
+            : _StepState.pending,
+        icon: icons[i],
+      ),
+  ];
+}
+
 /// Steps mirror the backend's real escrow state machine (`orders.py`), but
 /// are worded around order fulfillment (has the seller started working on
 /// it yet?) rather than the escrow ledger — that money-processing framing
@@ -40,8 +115,16 @@ String _formatTime(DateTime dateTime) =>
 /// There's no courier webhook data to show a packed/shipped/out-for-delivery
 /// timeline, so each step's timestamp comes straight off the order's own
 /// `paid_at`/`seller_confirmed_at`/`released_at`/`cancelled_at`/`refunded_at`
-/// columns.
-List<_TrackingStep> _stepsFor(Order order, AppLocalizations l10n) {
+/// columns. Once shipped, the delivery leg is the mock courier's 4 steps
+/// (see [kMockDeliveryStep]) — listed out when [expandCourier] (the vertical
+/// status card), or folded into one step titled after the current one (the
+/// banner, which hasn't room for them all).
+List<_TrackingStep> _stepsFor(
+  Order order,
+  AppLocalizations l10n,
+  DateTime now, {
+  bool expandCourier = true,
+}) {
   final placed = _TrackingStep(
     title: l10n.deliveryStepOrderPlaced,
     timeLabel: _formatTime(order.createdAt),
@@ -113,30 +196,59 @@ List<_TrackingStep> _stepsFor(Order order, AppLocalizations l10n) {
     ),
   );
 
-  final deliveryState = switch (order.status) {
-    OrderStatus.held =>
-      order.isSellerConfirmed ? _StepState.current : _StepState.pending,
-    OrderStatus.released || OrderStatus.disputed || OrderStatus.refunded =>
-      order.isSellerConfirmed ? _StepState.done : _StepState.pending,
-    _ => _StepState.pending,
-  };
-  steps.add(
-    _TrackingStep(
-      title: l10n.deliveryStepDelivery,
-      timeLabel: null,
-      state: deliveryState,
-      icon: Icons.local_shipping_outlined,
-    ),
-  );
+  if (order.isShipped) {
+    final courier = _courierSteps(order, l10n, now);
+    if (expandCourier) {
+      steps.addAll(courier);
+    } else {
+      final active = courier.firstWhere(
+        (s) => s.state != _StepState.done,
+        orElse: () => courier.last,
+      );
+      steps.add(
+        _TrackingStep(
+          title: active.title,
+          timeLabel: active.timeLabel,
+          state: courier.last.state == _StepState.done
+              ? _StepState.done
+              : active.state,
+          icon: Icons.local_shipping_outlined,
+        ),
+      );
+    }
+  } else {
+    final deliveryState = switch (order.status) {
+      OrderStatus.held =>
+        order.isSellerConfirmed ? _StepState.current : _StepState.pending,
+      OrderStatus.released || OrderStatus.refunded =>
+        order.isSellerConfirmed ? _StepState.done : _StepState.pending,
+      _ => _StepState.pending,
+    };
+    steps.add(
+      _TrackingStep(
+        title: l10n.deliveryStepDelivery,
+        timeLabel: null,
+        state: deliveryState,
+        icon: Icons.local_shipping_outlined,
+      ),
+    );
+  }
 
   switch (order.status) {
     case OrderStatus.held:
+      // Delivered: the buyer's review timer is running, and the money goes
+      // to the seller when it runs out.
+      final deadline = order.reviewDeadlineAt;
       steps.add(
         _TrackingStep(
           title: l10n.deliveryStepReleased,
-          timeLabel: null,
-          state: _StepState.pending,
-          icon: Icons.check_circle_outline,
+          timeLabel: deadline != null
+              ? l10n.escrowTimerLeft(_formatLeft(deadline.difference(now)))
+              : null,
+          state: deadline != null ? _StepState.current : _StepState.pending,
+          icon: deadline != null
+              ? Icons.hourglass_top_rounded
+              : Icons.check_circle_outline,
         ),
       );
     case OrderStatus.released:
@@ -151,10 +263,16 @@ List<_TrackingStep> _stepsFor(Order order, AppLocalizations l10n) {
         ),
       );
     case OrderStatus.disputed:
+      // A report froze the review timer; show what was left on it.
+      final frozenLeft = order.reviewRemainingSeconds;
       steps.add(
         _TrackingStep(
           title: l10n.deliveryStepDisputed,
-          timeLabel: null,
+          timeLabel: frozenLeft != null
+              ? l10n.escrowTimerFrozenLeft(
+                  _formatLeft(Duration(seconds: frozenLeft)),
+                )
+              : null,
           state: _StepState.current,
           icon: Icons.report_problem_outlined,
         ),
@@ -238,8 +356,37 @@ class _DeliveryTrackingBodyState extends ConsumerState<_DeliveryTrackingBody>
     duration: const Duration(milliseconds: 1400),
   )..repeat(reverse: true);
 
+  Timer? _ticker;
+  DateTime? _lastRefresh;
+
+  @override
+  void initState() {
+    super.initState();
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
+  }
+
+  /// Steps the mock courier along while the parcel is in transit, then asks
+  /// the backend for the delivered order (which starts the review timer) —
+  /// again every couple of seconds in case its clock runs a little behind.
+  /// Also keeps the review countdown fresh once delivered.
+  void _tick() {
+    if (!mounted) return;
+    final order = widget.order;
+    if (order.status != OrderStatus.held || !order.isShipped) return;
+    final now = DateTime.now();
+    if (!order.isDelivered &&
+        now.difference(order.shippedAt!) >= kMockDeliveryDuration &&
+        (_lastRefresh == null ||
+            now.difference(_lastRefresh!) >= kMockDeliveryStep)) {
+      _lastRefresh = now;
+      ref.invalidate(orderByIdProvider(order.id));
+    }
+    setState(() {});
+  }
+
   @override
   void dispose() {
+    _ticker?.cancel();
     _entrance.dispose();
     _pulse.dispose();
     super.dispose();
@@ -251,7 +398,9 @@ class _DeliveryTrackingBodyState extends ConsumerState<_DeliveryTrackingBody>
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
     final order = widget.order;
-    final steps = _stepsFor(order, l10n);
+    final now = DateTime.now();
+    final steps = _stepsFor(order, l10n, now);
+    final bannerSteps = _stepsFor(order, l10n, now, expandCourier: false);
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -286,7 +435,7 @@ class _DeliveryTrackingBodyState extends ConsumerState<_DeliveryTrackingBody>
                     start: 0.15,
                     end: 0.75,
                     child: _ProgressBanner(
-                      steps: steps,
+                      steps: bannerSteps,
                       pulse: _pulse,
                       colorScheme: colorScheme,
                       textTheme: textTheme,

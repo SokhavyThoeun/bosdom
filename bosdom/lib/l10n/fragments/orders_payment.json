@@ -214,6 +214,22 @@
     "en": "Refunded",
     "km": "ថវិកាត្រូវបានប្រគល់សងវិញ"
   },
+  "deliveryStepPickedUp": {
+    "en": "Picked up by courier",
+    "km": "អ្នកដឹកជញ្ជូនបានទទួលកញ្ចប់"
+  },
+  "deliveryStepInTransit": {
+    "en": "In transit",
+    "km": "កំពុងដឹកជញ្ជូន"
+  },
+  "deliveryStepOutForDelivery": {
+    "en": "Out for delivery",
+    "km": "កំពុងដឹកមកដល់អ្នក"
+  },
+  "deliveryStepDelivered": {
+    "en": "Delivered",
+    "km": "បានដឹកដល់"
+  },
   "reviewSheetTitle": {
     "en": "Rate & Review",
     "km": "វាយតម្លៃ និងផ្តល់មតិ"
@@ -486,6 +502,13 @@
   "escrowTimerFrozen": {
     "en": "Timer paused while an admin reviews the report",
     "km": "កម្មវិធីរាប់ថយក្រោយត្រូវបានផ្អាក អ្នកគ្រប់គ្រងកំពុងពិនិត្យ"
+  },
+  "escrowTimerFrozenLeft": {
+    "en": "Timer paused · {time} left",
+    "km": "បានផ្អាក · នៅសល់ {time}",
+    "placeholders": [
+      "time"
+    ]
   },
   "escrowTrackingLabel": {
     "en": "{courier} · {number}",

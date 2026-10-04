@@ -3861,6 +3861,30 @@ abstract class AppLocalizations {
   /// **'Refunded'**
   String get deliveryStepRefunded;
 
+  /// No description provided for @deliveryStepPickedUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Picked up by courier'**
+  String get deliveryStepPickedUp;
+
+  /// No description provided for @deliveryStepInTransit.
+  ///
+  /// In en, this message translates to:
+  /// **'In transit'**
+  String get deliveryStepInTransit;
+
+  /// No description provided for @deliveryStepOutForDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Out for delivery'**
+  String get deliveryStepOutForDelivery;
+
+  /// No description provided for @deliveryStepDelivered.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered'**
+  String get deliveryStepDelivered;
+
   /// No description provided for @reviewSheetTitle.
   ///
   /// In en, this message translates to:
@@ -7736,6 +7760,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Timer paused while an admin reviews the report'**
   String get escrowTimerFrozen;
+
+  /// No description provided for @escrowTimerFrozenLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Timer paused · {time} left'**
+  String escrowTimerFrozenLeft(String time);
 
   /// No description provided for @escrowTrackingLabel.
   ///

@@ -1127,6 +1127,10 @@
   "deliveryStepReleased": "Order completed",
   "deliveryStepDisputed": "Under dispute",
   "deliveryStepRefunded": "Refunded",
+  "deliveryStepPickedUp": "Picked up by courier",
+  "deliveryStepInTransit": "In transit",
+  "deliveryStepOutForDelivery": "Out for delivery",
+  "deliveryStepDelivered": "Delivered",
   "reviewSheetTitle": "Rate & Review",
   "reviewAddPhotosButton": "Add Photos",
   "reviewAddPhotosLabel": "ADD PHOTOS OF RECEIVED ITEMS",
@@ -2058,6 +2062,14 @@
     }
   },
   "escrowTimerFrozen": "Timer paused while an admin reviews the report",
+  "escrowTimerFrozenLeft": "Timer paused · {time} left",
+  "@escrowTimerFrozenLeft": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "escrowTrackingLabel": "{courier} · {number}",
   "@escrowTrackingLabel": {
     "placeholders": {

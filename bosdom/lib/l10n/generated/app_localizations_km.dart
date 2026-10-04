@@ -2124,6 +2124,18 @@ class AppLocalizationsKm extends AppLocalizations {
   String get deliveryStepRefunded => 'ថវិកាត្រូវបានប្រគល់សងវិញ';
 
   @override
+  String get deliveryStepPickedUp => 'អ្នកដឹកជញ្ជូនបានទទួលកញ្ចប់';
+
+  @override
+  String get deliveryStepInTransit => 'កំពុងដឹកជញ្ជូន';
+
+  @override
+  String get deliveryStepOutForDelivery => 'កំពុងដឹកមកដល់អ្នក';
+
+  @override
+  String get deliveryStepDelivered => 'បានដឹកដល់';
+
+  @override
   String get reviewSheetTitle => 'វាយតម្លៃ និងផ្តល់មតិ';
 
   @override
@@ -4338,6 +4350,11 @@ class AppLocalizationsKm extends AppLocalizations {
   @override
   String get escrowTimerFrozen =>
       'កម្មវិធីរាប់ថយក្រោយត្រូវបានផ្អាក អ្នកគ្រប់គ្រងកំពុងពិនិត្យ';
+
+  @override
+  String escrowTimerFrozenLeft(String time) {
+    return 'បានផ្អាក · នៅសល់ $time';
+  }
 
   @override
   String escrowTrackingLabel(String courier, String number) {

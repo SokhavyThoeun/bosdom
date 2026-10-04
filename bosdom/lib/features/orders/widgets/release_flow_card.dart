@@ -108,6 +108,10 @@ class _ReleaseFlowCardState extends State<ReleaseFlowCard>
             ? l10n.escrowTimerLeft(
                 _formatLeft(order.reviewDeadlineAt!.difference(DateTime.now())),
               )
+            : disputed && order.reviewRemainingSeconds != null
+            ? l10n.escrowTimerFrozenLeft(
+                _formatLeft(Duration(seconds: order.reviewRemainingSeconds!)),
+              )
             : l10n.escrowStepTimerDetail,
         done: timerReached,
         at: timerDone ? order.releasedAt : order.deliveredAt,

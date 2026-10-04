@@ -2100,6 +2100,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deliveryStepRefunded => 'Refunded';
 
   @override
+  String get deliveryStepPickedUp => 'Picked up by courier';
+
+  @override
+  String get deliveryStepInTransit => 'In transit';
+
+  @override
+  String get deliveryStepOutForDelivery => 'Out for delivery';
+
+  @override
+  String get deliveryStepDelivered => 'Delivered';
+
+  @override
   String get reviewSheetTitle => 'Rate & Review';
 
   @override
@@ -4308,6 +4320,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get escrowTimerFrozen =>
       'Timer paused while an admin reviews the report';
+
+  @override
+  String escrowTimerFrozenLeft(String time) {
+    return 'Timer paused · $time left';
+  }
 
   @override
   String escrowTrackingLabel(String courier, String number) {
