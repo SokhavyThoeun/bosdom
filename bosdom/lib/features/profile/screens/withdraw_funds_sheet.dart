@@ -42,7 +42,7 @@ class _WithdrawFundsSheet extends StatefulWidget {
 
 class _WithdrawFundsSheetState extends State<_WithdrawFundsSheet> {
   final _formKey = GlobalKey<FormState>();
-  // Withdrawals go to ABA or Wing only.
+  // Withdrawals go to ABA only.
   String _bank = 'ABA';
   final _nameController = TextEditingController();
   final _accountController = TextEditingController();
@@ -174,7 +174,7 @@ class _WithdrawFundsSheetState extends State<_WithdrawFundsSheet> {
                     Wrap(
                       spacing: 8,
                       children: [
-                        for (final bank in const ['ABA', 'Wing'])
+                        for (final bank in const ['ABA'])
                           ChoiceChip(
                             label: Text(bank),
                             selected: _bank == bank,

@@ -82,7 +82,7 @@ HIGH_VOLUME_ORDERS = 40
 BEST_SELLER_TENURE_DAYS = 365
 
 # Where sellers can withdraw released earnings.
-PAYOUT_BANKS = {"ABA", "Wing"}
+PAYOUT_BANKS = {"ABA"}
 
 
 def _aware(dt: datetime) -> datetime:
@@ -1171,7 +1171,7 @@ def request_payout(
     number = payload.account_number.strip()
     if bank_name not in PAYOUT_BANKS:
         raise HTTPException(
-            status_code=422, detail="Withdraw to ABA or Wing"
+            status_code=422, detail="Withdraw to ABA only"
         )
     if not holder or not number.isdigit():
         raise HTTPException(status_code=422, detail="Enter valid bank details")
