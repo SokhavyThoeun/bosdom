@@ -5997,6 +5997,36 @@ abstract class AppLocalizations {
   /// **'e.g. 75 ml, 250 g, 10 pcs'**
   String get addListingAddAmountDialogHint;
 
+  /// No description provided for @addListingVariantsLabelFood.
+  ///
+  /// In en, this message translates to:
+  /// **'Pack Sizes'**
+  String get addListingVariantsLabelFood;
+
+  /// No description provided for @addListingPackSizeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pack size'**
+  String get addListingPackSizeLabel;
+
+  /// No description provided for @addListingAddPackSizeChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add pack size'**
+  String get addListingAddPackSizeChip;
+
+  /// No description provided for @addListingAddPackSizeDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a pack size'**
+  String get addListingAddPackSizeDialogTitle;
+
+  /// No description provided for @addListingAddPackSizeDialogHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 2 kg, 1 L, 24 cans'**
+  String get addListingAddPackSizeDialogHint;
+
   /// No description provided for @addListingAddColorDialogTitle.
   ///
   /// In en, this message translates to:

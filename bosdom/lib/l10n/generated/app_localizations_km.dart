@@ -3308,6 +3308,21 @@ class AppLocalizationsKm extends AppLocalizations {
   String get addListingAddAmountDialogHint => 'ឧ. 75 ml, 250 g, 10 គ្រាប់';
 
   @override
+  String get addListingVariantsLabelFood => 'ទំហំកញ្ចប់';
+
+  @override
+  String get addListingPackSizeLabel => 'ទំហំកញ្ចប់';
+
+  @override
+  String get addListingAddPackSizeChip => 'បន្ថែមទំហំកញ្ចប់';
+
+  @override
+  String get addListingAddPackSizeDialogTitle => 'បន្ថែមទំហំកញ្ចប់';
+
+  @override
+  String get addListingAddPackSizeDialogHint => 'ឧ. 2 kg, 1 L, 24 កំប៉ុង';
+
+  @override
   String get addListingAddColorDialogTitle => 'ជ្រើសរើសពណ៌';
 
   @override

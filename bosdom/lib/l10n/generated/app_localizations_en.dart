@@ -3277,6 +3277,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addListingAddAmountDialogHint => 'e.g. 75 ml, 250 g, 10 pcs';
 
   @override
+  String get addListingVariantsLabelFood => 'Pack Sizes';
+
+  @override
+  String get addListingPackSizeLabel => 'Pack size';
+
+  @override
+  String get addListingAddPackSizeChip => 'Add pack size';
+
+  @override
+  String get addListingAddPackSizeDialogTitle => 'Add a pack size';
+
+  @override
+  String get addListingAddPackSizeDialogHint => 'e.g. 2 kg, 1 L, 24 cans';
+
+  @override
   String get addListingAddColorDialogTitle => 'Choose a color';
 
   @override

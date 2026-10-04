@@ -16,7 +16,7 @@ const _kMaxPhotos = 5;
 
 /// Categories where buyers commonly expect to pick a size and/or color,
 /// mirroring which mock products in the marketplace carry variants today.
-const _kVariantCategories = {'Clothing', 'Beauty'};
+const _kVariantCategories = {'Clothing', 'Beauty', 'Food & Bev'};
 
 const _kSizePresets = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
@@ -29,6 +29,9 @@ const _kAmountPresets = [
   '200 ml',
   '500 ml',
 ];
+
+/// Food & Bev sells by pack weight/volume, and has no color option.
+const _kPackSizePresets = ['250 g', '500 g', '1 kg', '5 kg', '25 kg', '50 kg'];
 
 class _PaletteColor {
   const _PaletteColor(this.name, this.color, this.hex);
@@ -156,9 +159,14 @@ class _AddListingScreenState extends State<AddListingScreen> {
   }
 
   bool get _usesAmounts => _category == 'Beauty';
+  bool get _usesPackSizes => _category == 'Food & Bev';
+  bool get _showColors => !_usesPackSizes;
 
-  List<String> get _sizePresets =>
-      _usesAmounts ? _kAmountPresets : _kSizePresets;
+  List<String> get _sizePresets => _usesPackSizes
+      ? _kPackSizePresets
+      : _usesAmounts
+      ? _kAmountPresets
+      : _kSizePresets;
 
   List<String> get _availableSizes => [
     ..._sizePresets,
@@ -173,13 +181,17 @@ class _AddListingScreenState extends State<AddListingScreen> {
 
   void _onCategoryChanged(String? value) {
     setState(() {
-      final wasAmounts = _usesAmounts;
+      final previousPresets = _sizePresets;
       _category = value;
-      // Clothing sizes and Beauty amounts aren't interchangeable, so drop
-      // any picks when switching between them.
-      if (wasAmounts != _usesAmounts) {
+      // Clothing sizes, Beauty amounts and Food pack sizes aren't
+      // interchangeable, so drop any picks when switching between them.
+      if (!identical(previousPresets, _sizePresets)) {
         _selectedSizes.clear();
         _customSizes.clear();
+      }
+      if (!_showColors) {
+        _selectedColorNames.clear();
+        _customColors.clear();
       }
       if (!_kVariantCategories.contains(value)) {
         _selectedSizes.clear();
@@ -214,7 +226,13 @@ class _AddListingScreenState extends State<AddListingScreen> {
     try {
       final added = await showDialog<String>(
         context: context,
-        builder: (dialogContext) => _AddSizeDialog(isAmount: _usesAmounts),
+        builder: (dialogContext) => _AddSizeDialog(
+          kind: _usesPackSizes
+              ? _SizeKind.packSize
+              : _usesAmounts
+              ? _SizeKind.amount
+              : _SizeKind.size,
+        ),
       );
       if (added == null || added.isEmpty) return;
       setState(() {
@@ -422,7 +440,9 @@ class _AddListingScreenState extends State<AddListingScreen> {
                     if (_showVariants) ...[
                       const SizedBox(height: 24),
                       Text(
-                        _usesAmounts
+                        _usesPackSizes
+                            ? l10n.addListingVariantsLabelFood
+                            : _usesAmounts
                             ? l10n.addListingVariantsLabelBeauty
                             : l10n.addListingVariantsLabel,
                         style: textTheme.bodyMedium?.copyWith(
@@ -439,7 +459,9 @@ class _AddListingScreenState extends State<AddListingScreen> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        _usesAmounts
+                        _usesPackSizes
+                            ? l10n.addListingPackSizeLabel
+                            : _usesAmounts
                             ? l10n.addListingAmountLabel
                             : l10n.variantSizeLabel,
                         style: textTheme.bodyMedium?.copyWith(
@@ -459,38 +481,42 @@ class _AddListingScreenState extends State<AddListingScreen> {
                               onTap: () => _toggleSize(size),
                             ),
                           _AddSizeChip(
-                            label: _usesAmounts
+                            label: _usesPackSizes
+                                ? l10n.addListingAddPackSizeChip
+                                : _usesAmounts
                                 ? l10n.addListingAddAmountChip
                                 : l10n.addListingAddSizeChip,
                             onTap: _showAddSizeDialog,
                           ),
                         ],
                       ),
-                      const SizedBox(height: 24),
-                      Text(
-                        l10n.variantColorLabel,
-                        style: textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.warmBlack,
+                      if (_showColors) ...[
+                        const SizedBox(height: 24),
+                        Text(
+                          l10n.variantColorLabel,
+                          style: textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.warmBlack,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: [
-                          for (final palette in _availableColors)
-                            _ColorToggleSwatch(
-                              name: palette.name,
-                              color: palette.color,
-                              selected: _selectedColorNames.contains(
-                                palette.name,
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          children: [
+                            for (final palette in _availableColors)
+                              _ColorToggleSwatch(
+                                name: palette.name,
+                                color: palette.color,
+                                selected: _selectedColorNames.contains(
+                                  palette.name,
+                                ),
+                                onTap: () => _toggleColor(palette.name),
                               ),
-                              onTap: () => _toggleColor(palette.name),
-                            ),
-                          _AddColorSwatch(onTap: _showAddColorDialog),
-                        ],
-                      ),
+                            _AddColorSwatch(onTap: _showAddColorDialog),
+                          ],
+                        ),
+                      ],
                     ],
                     const SizedBox(height: 24),
                     _AppTextField(
@@ -1330,10 +1356,12 @@ InputDecoration _fieldDecoration({
   );
 }
 
-class _AddSizeDialog extends StatefulWidget {
-  const _AddSizeDialog({this.isAmount = false});
+enum _SizeKind { size, amount, packSize }
 
-  final bool isAmount;
+class _AddSizeDialog extends StatefulWidget {
+  const _AddSizeDialog({this.kind = _SizeKind.size});
+
+  final _SizeKind kind;
 
   @override
   State<_AddSizeDialog> createState() => _AddSizeDialogState();
@@ -1352,19 +1380,21 @@ class _AddSizeDialogState extends State<_AddSizeDialog> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return AlertDialog(
-      title: Text(
-        widget.isAmount
-            ? l10n.addListingAddAmountDialogTitle
-            : l10n.addListingAddSizeDialogTitle,
-      ),
+      title: Text(switch (widget.kind) {
+        _SizeKind.size => l10n.addListingAddSizeDialogTitle,
+        _SizeKind.amount => l10n.addListingAddAmountDialogTitle,
+        _SizeKind.packSize => l10n.addListingAddPackSizeDialogTitle,
+      }),
       content: TextField(
         controller: _controller,
         autofocus: true,
         textCapitalization: TextCapitalization.words,
         decoration: InputDecoration(
-          hintText: widget.isAmount
-              ? l10n.addListingAddAmountDialogHint
-              : l10n.addListingAddSizeDialogHint,
+          hintText: switch (widget.kind) {
+            _SizeKind.size => l10n.addListingAddSizeDialogHint,
+            _SizeKind.amount => l10n.addListingAddAmountDialogHint,
+            _SizeKind.packSize => l10n.addListingAddPackSizeDialogHint,
+          },
         ),
       ),
       actions: [
