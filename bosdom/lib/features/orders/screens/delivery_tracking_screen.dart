@@ -363,7 +363,7 @@ class _DeliveryTrackingBodyState extends ConsumerState<_DeliveryTrackingBody>
     final now = DateTime.now();
     if (order.isDueForRefresh(now) &&
         (_lastRefresh == null ||
-            now.difference(_lastRefresh!) >= kMockDeliveryStep)) {
+            now.difference(_lastRefresh!) >= kLiveOrderRetry)) {
       _lastRefresh = now;
       ref.invalidate(orderByIdProvider(order.id));
     }
@@ -1022,7 +1022,10 @@ class _StepRow extends StatelessWidget {
     final isFlippingHourglass =
         isCurrent && step.icon == Icons.hourglass_top_rounded;
 
-    final iconCircle = Container(
+    // Animated so each step visibly ticks over to done as the courier moves
+    // on, rather than snapping.
+    final iconCircle = AnimatedContainer(
+      duration: const Duration(milliseconds: 400),
       width: 30,
       height: 30,
       decoration: BoxDecoration(
@@ -1034,13 +1037,25 @@ class _StepRow extends StatelessWidget {
             ? Border.all(color: colorScheme.primary, width: 1.5)
             : null,
       ),
-      child: isFlippingHourglass
-          ? HourglassIcon(size: 15, color: iconColor)
-          : Icon(
-              isDone ? Icons.check_rounded : step.icon,
-              size: 15,
-              color: iconColor,
-            ),
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 400),
+        transitionBuilder: (child, animation) => ScaleTransition(
+          scale: CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
+          child: child,
+        ),
+        child: isFlippingHourglass
+            ? HourglassIcon(
+                key: const ValueKey('hourglass'),
+                size: 15,
+                color: iconColor,
+              )
+            : Icon(
+                isDone ? Icons.check_rounded : step.icon,
+                key: ValueKey(isDone),
+                size: 15,
+                color: iconColor,
+              ),
+      ),
     );
 
     return IntrinsicHeight(
@@ -1088,7 +1103,8 @@ class _StepRow extends StatelessWidget {
                     : iconCircle,
                 if (!isLast)
                   Expanded(
-                    child: Container(
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 400),
                       width: 2,
                       margin: const EdgeInsets.symmetric(vertical: 4),
                       color: isDone

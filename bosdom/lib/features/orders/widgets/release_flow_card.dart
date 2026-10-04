@@ -61,7 +61,7 @@ class _ReleaseFlowCardState extends ConsumerState<ReleaseFlowCard>
     final now = DateTime.now();
     if (order.isDueForRefresh(now) &&
         (_lastRefresh == null ||
-            now.difference(_lastRefresh!) >= kMockDeliveryStep)) {
+            now.difference(_lastRefresh!) >= kLiveOrderRetry)) {
       _lastRefresh = now;
       ref.invalidate(orderByIdProvider(order.id));
     }
