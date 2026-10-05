@@ -791,11 +791,17 @@ class _ImageBanner extends StatefulWidget {
 }
 
 class _ImageBannerState extends State<_ImageBanner> {
-  static const _dotCount = 4;
   static const _autoScrollInterval = Duration(seconds: 3);
   static const _loopMultiplier = 5000;
 
-  late final int _initialRawPage = (_loopMultiplier ~/ 2) * _dotCount;
+  late final List<String> _imageUrls = widget.session.imageUrls;
+  int get _dotCount => _imageUrls.length;
+  // A single photo has nothing to swipe to, so it doesn't loop or scroll.
+  bool get _hasMany => _dotCount > 1;
+
+  late final int _initialRawPage = _hasMany
+      ? (_loopMultiplier ~/ 2) * _dotCount
+      : 0;
   late final PageController _pageController = PageController(
     initialPage: _initialRawPage,
   );
@@ -812,6 +818,7 @@ class _ImageBannerState extends State<_ImageBanner> {
 
   void _startAutoScroll() {
     _autoScrollTimer?.cancel();
+    if (!_hasMany) return;
     _autoScrollTimer = Timer.periodic(_autoScrollInterval, (_) {
       if (!_pageController.hasClients) return;
       _pageController.nextPage(
@@ -863,21 +870,19 @@ class _ImageBannerState extends State<_ImageBanner> {
               children: [
                 PageView.builder(
                   controller: _pageController,
-                  itemCount: _dotCount * _loopMultiplier,
+                  itemCount: _hasMany ? _dotCount * _loopMultiplier : 1,
                   onPageChanged: (index) => setState(() => _rawPage = index),
                   itemBuilder: (context, index) => GestureDetector(
                     onTap: () => showFullScreenImage(
                       context,
-                      imageUrls: List.filled(
-                        _dotCount,
-                        widget.session.imageUrl,
-                      ),
+                      imageUrls: _imageUrls,
                       initialIndex: _selected,
                       icon: widget.session.icon,
                     ),
                     child: SizedBox.expand(
                       child: CoBuyProductImage(
                         session: widget.session,
+                        url: _imageUrls[index % _dotCount],
                         iconSize: 96,
                       ),
                     ),
@@ -903,84 +908,88 @@ class _ImageBannerState extends State<_ImageBanner> {
                     ),
                   ),
                 ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 14,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(_dotCount, (index) {
-                      final selected = index == _selected;
-                      return GestureDetector(
-                        onTap: () => _goTo(index),
-                        behavior: HitTestBehavior.opaque,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 10,
-                          ),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 250),
-                            curve: Curves.easeOut,
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white.withValues(
-                                alpha: selected ? 1 : 0.45,
+                if (_hasMany)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 14,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(_dotCount, (index) {
+                        final selected = index == _selected;
+                        return GestureDetector(
+                          onTap: () => _goTo(index),
+                          behavior: HitTestBehavior.opaque,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 10,
+                            ),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 250),
+                              curve: Curves.easeOut,
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white.withValues(
+                                  alpha: selected ? 1 : 0.45,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      );
-                    }),
+                        );
+                      }),
+                    ),
                   ),
-                ),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 12),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: SizedBox(
-            height: 56,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: _dotCount,
-              separatorBuilder: (_, _) => const SizedBox(width: 8),
-              itemBuilder: (context, index) {
-                final selected = index == _selected;
-                final borderWidth = selected ? 2.0 : 1.0;
-                return InkWell(
-                  onTap: () => _goTo(index),
-                  borderRadius: BorderRadius.circular(10),
-                  child: Container(
-                    width: 56,
-                    padding: EdgeInsets.all(borderWidth),
-                    decoration: BoxDecoration(
-                      color: colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: selected
-                            ? colorScheme.primary
-                            : colorScheme.outline,
-                        width: borderWidth,
+        if (_hasMany) ...[
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: SizedBox(
+              height: 56,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: _dotCount,
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final selected = index == _selected;
+                  final borderWidth = selected ? 2.0 : 1.0;
+                  return InkWell(
+                    onTap: () => _goTo(index),
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      width: 56,
+                      padding: EdgeInsets.all(borderWidth),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: selected
+                              ? colorScheme.primary
+                              : colorScheme.outline,
+                          width: borderWidth,
+                        ),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10 - borderWidth),
+                        child: CoBuyProductImage(
+                          session: widget.session,
+                          url: _imageUrls[index],
+                          iconSize: 22,
+                        ),
                       ),
                     ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10 - borderWidth),
-                      child: CoBuyProductImage(
-                        session: widget.session,
-                        iconSize: 22,
-                      ),
-                    ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
-        ),
+        ],
       ],
     );
   }

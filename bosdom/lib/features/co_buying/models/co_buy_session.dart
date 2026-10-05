@@ -128,6 +128,9 @@ class CoBuySession {
   String get imageUrl =>
       photoUrls.isNotEmpty ? photoUrls.first : mockPhotoUrl(imageQuery, id);
 
+  /// All photos for the detail banner: the real ones, else just [imageUrl].
+  List<String> get imageUrls => photoUrls.isNotEmpty ? photoUrls : [imageUrl];
+
   /// Real shop logo when set, otherwise a clean mock logo for the seller.
   String get sellerLogoUrl =>
       sellerLogoOverride ?? mockStoreLogoUrl(sellerName);

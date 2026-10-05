@@ -13,9 +13,13 @@ class CoBuyProductImage extends StatelessWidget {
     required this.session,
     this.fit = BoxFit.cover,
     this.iconSize = 24,
+    this.url,
   });
 
   final CoBuySession session;
+
+  /// A specific photo of [session] to show instead of its cover.
+  final String? url;
   final BoxFit fit;
   final double iconSize;
 
@@ -29,7 +33,7 @@ class CoBuyProductImage extends StatelessWidget {
     );
 
     return Image.network(
-      session.imageUrl,
+      url ?? session.imageUrl,
       fit: fit,
       loadingBuilder: (context, child, progress) =>
           progress == null ? child : fallback(context),
