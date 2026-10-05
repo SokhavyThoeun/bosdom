@@ -50,3 +50,6 @@ bosdom-backend/.ruff_cache/
 # ===== Supabase =====
 supabase/.temp/
 supabase/.branches/
+
+# ===== Private test documents (real IDs, never commit) =====
+bosdom/assets/More pic /doc kyc/
