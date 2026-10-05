@@ -156,6 +156,12 @@ const kMockProducts = [
     category: 'Food & Bev',
     imageQuery: 'rice,sack',
     photoUrl: 'assets/mock_products/rice_bulk.jpeg',
+    photoUrls: [
+      'assets/mock_products/rice_bulk.jpeg',
+      'assets/mock_products/rice_bulk_2.jpg',
+      'assets/mock_products/rice_bulk_3.jpg',
+      'assets/mock_products/rice_bulk_4.jpg',
+    ],
     rating: 4.5,
     weight: '25kg per bag',
     origin: 'Cambodia',
@@ -174,6 +180,12 @@ const kMockProducts = [
     category: 'Home',
     imageQuery: 'paper,cup',
     photoUrl: 'assets/mock_products/paper_cup.png',
+    photoUrls: [
+      'assets/mock_products/paper_cup.png',
+      'assets/mock_products/paper_cup_2.jpg',
+      'assets/mock_products/paper_cup_3.jpg',
+      'assets/mock_products/paper_cup_4.jpg',
+    ],
     deliveryFee: 3.5,
   ),
   Product(
@@ -187,6 +199,12 @@ const kMockProducts = [
     category: 'Electronics',
     imageQuery: 'usb,charger',
     photoUrl: 'assets/mock_products/usb_charger.png',
+    photoUrls: [
+      'assets/mock_products/usb_charger.png',
+      'assets/mock_products/usb_charger_2.jpg',
+      'assets/mock_products/usb_charger_3.jpg',
+      'assets/mock_products/usb_charger_4.jpg',
+    ],
     deliveryFee: 8,
   ),
   Product(
@@ -200,6 +218,12 @@ const kMockProducts = [
     category: 'Food & Bev',
     imageQuery: 'coconut,oil',
     photoUrl: 'assets/mock_products/coconut_oil.jpeg',
+    photoUrls: [
+      'assets/mock_products/coconut_oil.jpeg',
+      'assets/mock_products/coconut_oil_2.jpg',
+      'assets/mock_products/coconut_oil_3.jpg',
+      'assets/mock_products/coconut_oil_4.jpg',
+    ],
   ),
   Product(
     id: '4',
@@ -212,6 +236,12 @@ const kMockProducts = [
     category: 'Clothing',
     imageQuery: 'tote,bag',
     photoUrl: 'assets/mock_products/tote_bag.png',
+    photoUrls: [
+      'assets/mock_products/tote_bag.png',
+      'assets/mock_products/tote_bag_2.jpg',
+      'assets/mock_products/tote_bag_3.jpg',
+      'assets/mock_products/tote_bag_4.jpg',
+    ],
     deliveryFee: 6,
     colorOptions: [
       ProductColorOption('Natural', Color(0xFFE8DCC8)),
@@ -231,6 +261,12 @@ const kMockProducts = [
     category: 'Home',
     imageQuery: 'cleaning,cloth',
     photoUrl: 'assets/mock_products/microfiber_cloth.png',
+    photoUrls: [
+      'assets/mock_products/microfiber_cloth.png',
+      'assets/mock_products/microfiber_cloth_2.jpg',
+      'assets/mock_products/microfiber_cloth_3.jpg',
+      'assets/mock_products/microfiber_cloth_4.jpg',
+    ],
     deliveryFee: 4,
   ),
   Product(
@@ -244,6 +280,12 @@ const kMockProducts = [
     category: 'Food & Bev',
     imageQuery: 'snack,mix',
     photoUrl: 'assets/mock_products/snack_mix.jpeg',
+    photoUrls: [
+      'assets/mock_products/snack_mix.jpeg',
+      'assets/mock_products/snack_mix_2.jpg',
+      'assets/mock_products/snack_mix_3.jpg',
+      'assets/mock_products/snack_mix_4.jpg',
+    ],
     deliveryFee: 2.5,
   ),
   Product(
@@ -257,6 +299,12 @@ const kMockProducts = [
     category: 'Beauty',
     imageQuery: 'face,mask',
     photoUrl: 'assets/mock_products/face_mask.png',
+    photoUrls: [
+      'assets/mock_products/face_mask.png',
+      'assets/mock_products/face_mask_2.jpg',
+      'assets/mock_products/face_mask_3.jpg',
+      'assets/mock_products/face_mask_4.jpg',
+    ],
     deliveryFee: 6,
     sizes: ['Kids', 'Adult'],
     colorOptions: [
@@ -276,6 +324,12 @@ const kMockProducts = [
     category: 'Home',
     imageQuery: 'water,bottle',
     photoUrl: 'assets/mock_products/water_bottle.png',
+    photoUrls: [
+      'assets/mock_products/water_bottle.png',
+      'assets/mock_products/water_bottle_2.jpg',
+      'assets/mock_products/water_bottle_3.jpg',
+      'assets/mock_products/water_bottle_4.jpg',
+    ],
     deliveryFee: 5,
   ),
   Product(
@@ -289,6 +343,12 @@ const kMockProducts = [
     category: 'Electronics',
     imageQuery: 'wireless,earbuds',
     photoUrl: 'assets/mock_products/earbuds.png',
+    photoUrls: [
+      'assets/mock_products/earbuds.png',
+      'assets/mock_products/earbuds_2.jpg',
+      'assets/mock_products/earbuds_3.jpg',
+      'assets/mock_products/earbuds_4.jpg',
+    ],
     deliveryFee: 8,
   ),
   Product(
@@ -302,6 +362,12 @@ const kMockProducts = [
     category: 'Clothing',
     imageQuery: 'tshirt,stack',
     photoUrl: 'assets/mock_products/tshirt.png',
+    photoUrls: [
+      'assets/mock_products/tshirt.png',
+      'assets/mock_products/tshirt_2.jpg',
+      'assets/mock_products/tshirt_3.jpg',
+      'assets/mock_products/tshirt_4.jpg',
+    ],
     deliveryFee: 7,
     sizes: ['S', 'M', 'L', 'XL', 'XXL'],
     colorOptions: [
@@ -323,6 +389,12 @@ const kMockProducts = [
     category: 'Home',
     imageQuery: 'paper,towel',
     photoUrl: 'assets/mock_products/kitchen_towel.png',
+    photoUrls: [
+      'assets/mock_products/kitchen_towel.png',
+      'assets/mock_products/kitchen_towel_2.jpg',
+      'assets/mock_products/kitchen_towel_3.jpg',
+      'assets/mock_products/kitchen_towel_4.jpg',
+    ],
     deliveryFee: 4.5,
   ),
   Product(
@@ -336,6 +408,12 @@ const kMockProducts = [
     category: 'Food & Bev',
     imageQuery: 'brown,sugar',
     photoUrl: 'assets/mock_products/brown_sugar.jpeg',
+    photoUrls: [
+      'assets/mock_products/brown_sugar.jpeg',
+      'assets/mock_products/brown_sugar_2.jpg',
+      'assets/mock_products/brown_sugar_3.jpg',
+      'assets/mock_products/brown_sugar_4.jpg',
+    ],
     deliveryFee: 5,
   ),
   Product(
@@ -349,6 +427,12 @@ const kMockProducts = [
     category: 'Food & Bev',
     imageQuery: 'fish,sauce',
     photoUrl: 'assets/mock_products/fish_sauce_1.jpeg',
+    photoUrls: [
+      'assets/mock_products/fish_sauce_1.jpeg',
+      'assets/mock_products/fish_sauce_3.jpg',
+      'assets/mock_products/fish_sauce_4.jpg',
+      'assets/mock_products/fish_sauce_2.jpeg',
+    ],
     deliveryFee: 3,
   ),
   Product(
@@ -362,6 +446,12 @@ const kMockProducts = [
     category: 'Food & Bev',
     imageQuery: 'green,tea',
     photoUrl: 'assets/mock_products/green_tea.jpeg',
+    photoUrls: [
+      'assets/mock_products/green_tea.jpeg',
+      'assets/mock_products/green_tea_2.jpg',
+      'assets/mock_products/green_tea_3.jpg',
+      'assets/mock_products/green_tea_4.jpg',
+    ],
   ),
   Product(
     id: '15',
@@ -374,6 +464,12 @@ const kMockProducts = [
     category: 'Food & Bev',
     imageQuery: 'dried,mango',
     photoUrl: 'assets/mock_products/mango_slices.jpeg',
+    photoUrls: [
+      'assets/mock_products/mango_slices.jpeg',
+      'assets/mock_products/mango_slices_2.jpg',
+      'assets/mock_products/mango_slices_3.jpg',
+      'assets/mock_products/mango_slices_4.jpg',
+    ],
     deliveryFee: 5,
   ),
   Product(
@@ -388,6 +484,12 @@ const kMockProducts = [
     category: 'Food & Bev',
     imageQuery: 'fish,sauce',
     photoUrl: 'assets/mock_products/fish_sauce_2.jpeg',
+    photoUrls: [
+      'assets/mock_products/fish_sauce_2.jpeg',
+      'assets/mock_products/fish_sauce_1.jpeg',
+      'assets/mock_products/fish_sauce_3.jpg',
+      'assets/mock_products/fish_sauce_4.jpg',
+    ],
     origin: 'China',
     deliveryFee: 5,
   ),
@@ -403,6 +505,12 @@ const kMockProducts = [
     category: 'Food & Bev',
     imageQuery: 'coconut,milk',
     photoUrl: 'assets/mock_products/coconut_milk.jpeg',
+    photoUrls: [
+      'assets/mock_products/coconut_milk.jpeg',
+      'assets/mock_products/coconut_milk_2.jpg',
+      'assets/mock_products/coconut_milk_3.jpg',
+      'assets/mock_products/coconut_milk_4.jpg',
+    ],
     deliveryFee: 5,
   ),
   Product(
@@ -417,6 +525,12 @@ const kMockProducts = [
     category: 'Food & Bev',
     imageQuery: 'chili,sauce',
     photoUrl: 'assets/mock_products/chili_sauce.jpeg',
+    photoUrls: [
+      'assets/mock_products/chili_sauce.jpeg',
+      'assets/mock_products/chili_sauce_2.jpg',
+      'assets/mock_products/chili_sauce_3.jpg',
+      'assets/mock_products/chili_sauce_4.jpg',
+    ],
     deliveryFee: 3,
   ),
 ];
