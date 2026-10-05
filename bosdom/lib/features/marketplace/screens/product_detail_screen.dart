@@ -994,6 +994,7 @@ class _SpecsCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     entry.key,
@@ -1001,11 +1002,15 @@ class _SpecsCard extends StatelessWidget {
                       color: colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  const Spacer(),
-                  Text(
-                    entry.value,
-                    style: textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
+                  const SizedBox(width: 16),
+                  // Long values (e.g. packaging) wrap instead of overflowing.
+                  Expanded(
+                    child: Text(
+                      entry.value,
+                      textAlign: TextAlign.end,
+                      style: textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
