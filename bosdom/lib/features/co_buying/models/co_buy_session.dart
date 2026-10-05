@@ -26,7 +26,7 @@ class CoBuySession {
     required this.originalPrice,
     required this.price,
     required this.joined,
-    this.sellerRating = 4.8,
+    this.sellerRating = 4.5,
     this.category = '',
     this.description = '',
     this.autoRenew = false,

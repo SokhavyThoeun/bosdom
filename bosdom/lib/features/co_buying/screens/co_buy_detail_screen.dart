@@ -17,6 +17,7 @@ import '../../../shared/widgets/live_stock_row.dart';
 import '../../../shared/widgets/variant_selector.dart';
 import '../../checkout/screens/checkout_screen.dart' show CheckoutLineItem;
 import '../../marketplace/widgets/empty_products_notice.dart';
+import '../../orders/providers/orders_provider.dart';
 import '../../wishlist/providers/wishlist_provider.dart';
 import '../models/co_buy_session.dart';
 import '../providers/co_buy_provider.dart';
@@ -662,7 +663,7 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _SellerRow extends StatelessWidget {
+class _SellerRow extends ConsumerWidget {
   const _SellerRow({
     required this.session,
     required this.colorScheme,
@@ -674,8 +675,11 @@ class _SellerRow extends StatelessWidget {
   final TextTheme textTheme;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final rating =
+        ref.watch(sellerRatingProvider(session.sellerId)) ??
+        session.sellerRating;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -733,7 +737,7 @@ class _SellerRow extends StatelessWidget {
                   Icon(Icons.star, size: 14, color: Colors.amber.shade700),
                   const SizedBox(width: 4),
                   Text(
-                    '${session.sellerRating}',
+                    '$rating',
                     style: textTheme.bodySmall?.copyWith(
                       color: colorScheme.onPrimary,
                       fontWeight: FontWeight.w600,

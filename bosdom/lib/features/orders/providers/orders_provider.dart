@@ -174,3 +174,17 @@ final sellerReviewsProvider = FutureProvider.autoDispose
     .family<List<OrderReview>, String>(
       (ref, sellerId) => OrderService.fetchSellerReviews(sellerId),
     );
+
+/// A seller's average star rating from real buyer reviews, rounded to one
+/// decimal like the storefront's About/Reviews tabs. Null until they have
+/// any reviews, so callers fall back to the placeholder rating.
+final sellerRatingProvider = Provider.autoDispose.family<double?, String>((
+  ref,
+  sellerId,
+) {
+  final reviews = ref.watch(sellerReviewsProvider(sellerId)).value;
+  if (reviews == null || reviews.isEmpty) return null;
+  final average =
+      reviews.fold<int>(0, (sum, r) => sum + r.rating) / reviews.length;
+  return double.parse(average.toStringAsFixed(1));
+});

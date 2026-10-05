@@ -16,6 +16,7 @@ import '../../../shared/widgets/live_stock_row.dart';
 import '../../../shared/widgets/variant_selector.dart';
 import '../../../shared/widgets/verified_badge_icon.dart';
 import '../../cart/providers/cart_provider.dart';
+import '../../orders/providers/orders_provider.dart';
 import '../../profile/providers/shop_profile_provider.dart';
 import '../../wishlist/providers/wishlist_provider.dart';
 import '../models/product.dart';
@@ -793,6 +794,9 @@ class _SellerRow extends ConsumerWidget {
         ? null
         : ref.watch(shopProfileByIdProvider(sellerId)).value;
     final powerSeller = shopProfile?.highVolume ?? false;
+    final rating =
+        (sellerId == null ? null : ref.watch(sellerRatingProvider(sellerId))) ??
+        product.rating;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -848,7 +852,7 @@ class _SellerRow extends ConsumerWidget {
                   Icon(Icons.star, size: 14, color: Colors.amber.shade700),
                   const SizedBox(width: 4),
                   Text(
-                    '${product.rating}',
+                    '$rating',
                     style: textTheme.bodySmall?.copyWith(
                       color: primaryTextColor,
                       fontWeight: FontWeight.w600,
