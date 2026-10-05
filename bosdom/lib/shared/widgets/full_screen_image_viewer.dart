@@ -3,14 +3,13 @@ import 'package:flutter/material.dart';
 import 'adaptive_network_image.dart';
 
 /// Opens a full-screen, swipeable, pinch-to-zoom gallery over a black
-/// backdrop, starting at [initialIndex] out of [imageCount] pages (all
-/// currently rendered from the single [imageUrl] mock photo). Shows a
+/// backdrop, one page per entry in [imageUrls], starting at
+/// [initialIndex]. Shows a
 /// "current/total" counter and a back button, matching a native photo
 /// viewer. Falls back to [icon] if an image fails to load.
 void showFullScreenImage(
   BuildContext context, {
-  required String imageUrl,
-  required int imageCount,
+  required List<String> imageUrls,
   int initialIndex = 0,
   IconData icon = Icons.image_not_supported,
 }) {
@@ -21,8 +20,7 @@ void showFullScreenImage(
       pageBuilder: (context, animation, secondaryAnimation) => FadeTransition(
         opacity: animation,
         child: _FullScreenImageViewer(
-          imageUrl: imageUrl,
-          imageCount: imageCount,
+          imageUrls: imageUrls,
           initialIndex: initialIndex,
           icon: icon,
         ),
@@ -33,14 +31,12 @@ void showFullScreenImage(
 
 class _FullScreenImageViewer extends StatefulWidget {
   const _FullScreenImageViewer({
-    required this.imageUrl,
-    required this.imageCount,
+    required this.imageUrls,
     required this.initialIndex,
     required this.icon,
   });
 
-  final String imageUrl;
-  final int imageCount;
+  final List<String> imageUrls;
   final int initialIndex;
   final IconData icon;
 
@@ -69,14 +65,14 @@ class _FullScreenImageViewerState extends State<_FullScreenImageViewer> {
           Positioned.fill(
             child: PageView.builder(
               controller: _pageController,
-              itemCount: widget.imageCount,
+              itemCount: widget.imageUrls.length,
               onPageChanged: (index) => setState(() => _currentIndex = index),
               itemBuilder: (context, index) => InteractiveViewer(
                 minScale: 1,
                 maxScale: 4,
                 child: Center(
                   child: AdaptiveNetworkImage(
-                    widget.imageUrl,
+                    widget.imageUrls[index],
                     fit: BoxFit.contain,
                     loadingBuilder: (context, child, progress) =>
                         progress == null
@@ -109,7 +105,7 @@ class _FullScreenImageViewerState extends State<_FullScreenImageViewer> {
               ),
             ),
           ),
-          if (widget.imageCount > 1)
+          if (widget.imageUrls.length > 1)
             Positioned(
               top: MediaQuery.of(context).padding.top + 8,
               right: 12,
@@ -123,7 +119,7 @@ class _FullScreenImageViewerState extends State<_FullScreenImageViewer> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  '${_currentIndex + 1}/${widget.imageCount}',
+                  '${_currentIndex + 1}/${widget.imageUrls.length}',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 13,

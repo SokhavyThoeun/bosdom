@@ -546,13 +546,19 @@ class _ImageGallery extends StatefulWidget {
 }
 
 class _ImageGalleryState extends State<_ImageGallery> {
-  static const _imageCount = 4;
   static const _autoScrollInterval = Duration(seconds: 3);
   // How many times the image list repeats to fake an infinite, one-way loop.
   // Large enough that auto-scrolling never visibly hits the end.
   static const _loopMultiplier = 5000;
 
-  late final int _initialRawPage = (_loopMultiplier ~/ 2) * _imageCount;
+  late final List<String> _imageUrls = widget.product.imageUrls;
+  int get _imageCount => _imageUrls.length;
+  // A single photo has nothing to swipe to, so it doesn't loop or scroll.
+  bool get _hasMany => _imageCount > 1;
+
+  late final int _initialRawPage = _hasMany
+      ? (_loopMultiplier ~/ 2) * _imageCount
+      : 0;
   late final PageController _pageController = PageController(
     initialPage: _initialRawPage,
   );
@@ -569,6 +575,7 @@ class _ImageGalleryState extends State<_ImageGallery> {
 
   void _startAutoScroll() {
     _autoScrollTimer?.cancel();
+    if (!_hasMany) return;
     _autoScrollTimer = Timer.periodic(_autoScrollInterval, (_) {
       if (!_pageController.hasClients) return;
       _pageController.nextPage(
@@ -617,20 +624,19 @@ class _ImageGalleryState extends State<_ImageGallery> {
               children: [
                 PageView.builder(
                   controller: _pageController,
-                  itemCount: _imageCount * _loopMultiplier,
+                  itemCount: _hasMany ? _imageCount * _loopMultiplier : 1,
                   onPageChanged: (index) => setState(() => _rawPage = index),
                   itemBuilder: (context, index) => GestureDetector(
                     onTap: () => showFullScreenImage(
                       context,
-                      imageUrl: widget.product.imageUrl,
-                      imageCount: _imageCount,
+                      imageUrls: _imageUrls,
                       initialIndex: _selected,
                       icon: widget.product.icon,
                     ),
                     child: Container(
                       color: colorScheme.primaryContainer,
                       child: AdaptiveNetworkImage(
-                        widget.product.imageUrl,
+                        _imageUrls[index % _imageCount],
                         fit: BoxFit.cover,
                         loadingBuilder: (context, child, progress) =>
                             progress == null
@@ -669,90 +675,93 @@ class _ImageGalleryState extends State<_ImageGallery> {
                     ),
                   ),
                 ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 14,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(_imageCount, (index) {
-                      final selected = index == _selected;
-                      return GestureDetector(
-                        onTap: () => _goTo(index),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 250),
-                          curve: Curves.easeOut,
-                          width: 8,
-                          height: 8,
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white.withValues(
-                              alpha: selected ? 1 : 0.45,
+                if (_hasMany)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 14,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(_imageCount, (index) {
+                        final selected = index == _selected;
+                        return GestureDetector(
+                          onTap: () => _goTo(index),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.easeOut,
+                            width: 8,
+                            height: 8,
+                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withValues(
+                                alpha: selected ? 1 : 0.45,
+                              ),
                             ),
                           ),
-                        ),
-                      );
-                    }),
+                        );
+                      }),
+                    ),
                   ),
-                ),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 12),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: SizedBox(
-            height: 56,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: _imageCount,
-              separatorBuilder: (_, _) => const SizedBox(width: 8),
-              itemBuilder: (context, index) {
-                final selected = index == _selected;
-                final borderWidth = selected ? 2.0 : 1.0;
-                return InkWell(
-                  onTap: () => _goTo(index),
-                  borderRadius: BorderRadius.circular(10),
-                  child: Container(
-                    width: 56,
-                    decoration: BoxDecoration(
-                      color: colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: selected
-                            ? colorScheme.primary
-                            : colorScheme.outline,
-                        width: borderWidth,
+        if (_hasMany) ...[
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: SizedBox(
+              height: 56,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: _imageCount,
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final selected = index == _selected;
+                  final borderWidth = selected ? 2.0 : 1.0;
+                  return InkWell(
+                    onTap: () => _goTo(index),
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      width: 56,
+                      decoration: BoxDecoration(
+                        color: colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: selected
+                              ? colorScheme.primary
+                              : colorScheme.outline,
+                          width: borderWidth,
+                        ),
                       ),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10 - borderWidth),
-                      child: AdaptiveNetworkImage(
-                        widget.product.imageUrl,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, progress) =>
-                            progress == null
-                            ? child
-                            : Icon(
-                                widget.product.icon,
-                                size: 22,
-                                color: colorScheme.primary,
-                              ),
-                        errorBuilder: (context, error, stackTrace) => Icon(
-                          widget.product.icon,
-                          size: 22,
-                          color: colorScheme.primary,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10 - borderWidth),
+                        child: AdaptiveNetworkImage(
+                          _imageUrls[index],
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, progress) =>
+                              progress == null
+                              ? child
+                              : Icon(
+                                  widget.product.icon,
+                                  size: 22,
+                                  color: colorScheme.primary,
+                                ),
+                          errorBuilder: (context, error, stackTrace) => Icon(
+                            widget.product.icon,
+                            size: 22,
+                            color: colorScheme.primary,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
-        ),
+        ],
       ],
     );
   }

@@ -868,8 +868,10 @@ class _ImageBannerState extends State<_ImageBanner> {
                   itemBuilder: (context, index) => GestureDetector(
                     onTap: () => showFullScreenImage(
                       context,
-                      imageUrl: widget.session.imageUrl,
-                      imageCount: _dotCount,
+                      imageUrls: List.filled(
+                        _dotCount,
+                        widget.session.imageUrl,
+                      ),
                       initialIndex: _selected,
                       icon: widget.session.icon,
                     ),

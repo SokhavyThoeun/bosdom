@@ -25,7 +25,11 @@ Product _productFromJson(Map<String, dynamic> json) {
   final category = json['category'] as String;
   final price = (json['price'] as num).toDouble();
   final samplePrice = (json['sample_price'] as num?)?.toDouble();
-  final photoUrls = (json['photo_urls'] as List).cast<String>();
+  final photoUrls = (json['photo_urls'] as List)
+      .cast<String>()
+      .map(ApiConfig.resolveAvatarUrl)
+      .nonNulls
+      .toList();
   final sizes = (json['sizes'] as List).cast<String>();
   final colors = (json['colors'] as List)
       .cast<Map<String, dynamic>>()
@@ -50,9 +54,8 @@ Product _productFromJson(Map<String, dynamic> json) {
     icon: _iconForCategory(category),
     category: category,
     imageQuery: category,
-    photoUrl: photoUrls.isNotEmpty
-        ? ApiConfig.resolveAvatarUrl(photoUrls.first)
-        : null,
+    photoUrl: photoUrls.firstOrNull,
+    photoUrls: photoUrls,
     sellerLogoOverride: ApiConfig.resolveAvatarUrl(
       json['seller_logo_url'] as String?,
     ),

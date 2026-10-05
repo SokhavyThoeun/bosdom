@@ -42,6 +42,7 @@ class Product {
     this.sizes = const [],
     this.colorOptions = const [],
     this.photoUrl,
+    this.photoUrls = const [],
     this.sellerLogoOverride,
     this.sellerId,
   });
@@ -64,6 +65,7 @@ class Product {
   final double rating;
   final String location;
   final bool verified;
+
   /// In stock / low / out, decided by the backend from the live stock and
   /// MOQ (listings.py `stock_status`).
   final StockStatus stockStatus;
@@ -91,6 +93,10 @@ class Product {
   /// for mock products, which fall back to [imageUrl]'s curated mock photo.
   final String? photoUrl;
 
+  /// Every seller-uploaded photo for a backend-sourced listing, cover first.
+  /// Empty for mock products.
+  final List<String> photoUrls;
+
   /// Real shop logo URL for a backend-sourced listing's seller. `null` for
   /// mock products, which fall back to [sellerLogoUrl]'s generated mock logo.
   final String? sellerLogoOverride;
@@ -116,6 +122,10 @@ class Product {
   /// The listing's real photo when available, else a category/topic-matched
   /// mock photo.
   String get imageUrl => photoUrl ?? mockPhotoUrl(imageQuery, name);
+
+  /// All photos for the detail gallery: the listing's real ones, else just
+  /// [imageUrl].
+  List<String> get imageUrls => photoUrls.isNotEmpty ? photoUrls : [imageUrl];
 
   /// The seller's real shop logo when available, else a generated mock logo.
   String get sellerLogoUrl => sellerLogoOverride ?? mockStoreLogoUrl(seller);
