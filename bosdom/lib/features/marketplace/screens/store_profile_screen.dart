@@ -278,27 +278,31 @@ class _StoreHeader extends ConsumerWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundColor: colorScheme.onPrimary,
-                    child: ClipOval(
-                      child: Image.network(
-                        logoUrl,
-                        width: 48,
-                        height: 48,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, progress) =>
-                            progress == null
-                            ? child
-                            : Icon(
-                                seller.icon,
-                                color: colorScheme.primary,
-                                size: 22,
-                              ),
-                        errorBuilder: (context, error, stackTrace) => Icon(
-                          seller.icon,
-                          color: colorScheme.primary,
-                          size: 22,
+                  // Same size and offset as the product page's seller logo.
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: CircleAvatar(
+                      radius: 28,
+                      backgroundColor: colorScheme.onPrimary,
+                      child: ClipOval(
+                        child: Image.network(
+                          logoUrl,
+                          width: 56,
+                          height: 56,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, progress) =>
+                              progress == null
+                              ? child
+                              : Icon(
+                                  seller.icon,
+                                  color: colorScheme.primary,
+                                  size: 26,
+                                ),
+                          errorBuilder: (context, error, stackTrace) => Icon(
+                            seller.icon,
+                            color: colorScheme.primary,
+                            size: 26,
+                          ),
                         ),
                       ),
                     ),
