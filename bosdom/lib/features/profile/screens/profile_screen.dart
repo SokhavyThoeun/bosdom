@@ -10,7 +10,10 @@ import '../../auth/services/auth_service.dart';
 import '../../notifications/widgets/notification_settings_popup.dart';
 import '../../orders/providers/orders_provider.dart';
 import '../../wishlist/providers/wishlist_provider.dart';
+import '../../../shared/utils/currency_format.dart';
 import '../../../shared/widgets/hourglass_icon.dart';
+import '../models/earnings.dart';
+import '../providers/my_inventory_provider.dart';
 import '../providers/profile_provider.dart';
 import '../widgets/data_privacy_popup.dart';
 import '../widgets/marketing_emails_popup.dart';
@@ -534,14 +537,22 @@ class _StatsRow extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
 
     if (isSeller) {
-      // No backend source for a seller's product count/active-sales
-      // count/revenue is wired up here — seller order/listing screens stay
-      // on their existing mock data for now (see the 16.6 checkpoint note).
+      final sellerOrders = ref.watch(sellerOrdersProvider).value ?? const [];
+      final productCount = ref.watch(myInventoryProvider).value?.length ?? 0;
+      final activeSales = sellerOrders.where((order) => order.isActive).length;
+      // Same released-escrow total the seller dashboard shows as Revenue.
+      final revenue = EarningsSummary(
+        sellerOrders
+            .map(EarningsTransaction.fromOrder)
+            .whereType<EarningsTransaction>()
+            .toList(),
+      ).releasedTotal;
+
       return Row(
         children: [
           Expanded(
             child: _StatCard(
-              value: '24',
+              value: '$productCount',
               label: l10n.profileStatTotalProducts,
               icon: Icons.inventory_2_rounded,
             ),
@@ -549,7 +560,7 @@ class _StatsRow extends ConsumerWidget {
           const SizedBox(width: 12),
           Expanded(
             child: _StatCard(
-              value: '8',
+              value: '$activeSales',
               label: l10n.profileStatActiveOrders,
               icon: Icons.local_shipping_rounded,
             ),
@@ -557,7 +568,7 @@ class _StatsRow extends ConsumerWidget {
           const SizedBox(width: 12),
           Expanded(
             child: _StatCard(
-              value: '\$12.4K',
+              value: formatPrice(ref, revenue),
               label: l10n.profileStatRevenue,
               icon: Icons.payments_rounded,
             ),
@@ -657,11 +668,17 @@ class _StatCard extends StatelessWidget {
                 child: Icon(icon, size: 19, color: colorScheme.primary),
               ),
               const SizedBox(height: 12),
-              Text(
-                value,
-                style: textTheme.titleLarge?.copyWith(
-                  color: colorScheme.primary,
-                  fontWeight: FontWeight.w800,
+              // Shrink to fit so full amounts like revenue never wrap.
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  value,
+                  maxLines: 1,
+                  softWrap: false,
+                  style: textTheme.titleLarge?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
               const SizedBox(height: 3),
