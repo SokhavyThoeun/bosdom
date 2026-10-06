@@ -7,7 +7,9 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../../shared/models/variant_option.dart';
 import '../../../shared/widgets/dotted_border_box.dart';
+import '../../../shared/widgets/variant_options_editor.dart';
 import '../../marketplace/models/category.dart';
 import '../models/co_buy_session.dart';
 import '../providers/co_buy_provider.dart';
@@ -115,6 +117,7 @@ class _CoBuyCreateFormState extends ConsumerState<_CoBuyCreateForm> {
   bool _isSaving = false;
   final List<XFile?> _photos = List.filled(_kMaxPhotos, null);
   String? _existingCoverUrl;
+  final _variants = VariantOptionsController();
 
   _CategorySpecCopy _specCopyFor(AppLocalizations l10n) {
     switch (_category) {
@@ -182,6 +185,11 @@ class _CoBuyCreateFormState extends ConsumerState<_CoBuyCreateForm> {
     if (session == null) return;
     _productNameController.text = session.productName;
     _category = session.category.isNotEmpty ? session.category : null;
+    _variants.load(
+      category: _category,
+      sizes: session.sizes,
+      colors: session.colorOptions,
+    );
     _descriptionController.text = session.description;
     _priceController.text = session.price.toStringAsFixed(2);
     _originalPriceController.text = session.originalPrice.toStringAsFixed(2);
@@ -218,6 +226,7 @@ class _CoBuyCreateFormState extends ConsumerState<_CoBuyCreateForm> {
     _originController.dispose();
     _gradeController.dispose();
     _packagingController.dispose();
+    _variants.dispose();
     super.dispose();
   }
 
@@ -263,6 +272,11 @@ class _CoBuyCreateFormState extends ConsumerState<_CoBuyCreateForm> {
     final origin = _originController.text.trim();
     final grade = _gradeController.text.trim();
     final packaging = _packagingController.text.trim();
+    final sizes = _variants.sizes;
+    final colorOptions = [
+      for (final color in _variants.colors)
+        ProductColorOption(color.name, color.color),
+    ];
 
     try {
       if (_isEditing) {
@@ -281,6 +295,8 @@ class _CoBuyCreateFormState extends ConsumerState<_CoBuyCreateForm> {
               price: price,
               description: description,
               autoRenew: _autoRenew,
+              sizes: sizes,
+              colorOptions: colorOptions,
               weight: weight,
               origin: origin,
               grade: grade,
@@ -308,6 +324,8 @@ class _CoBuyCreateFormState extends ConsumerState<_CoBuyCreateForm> {
               price: price,
               description: description,
               autoRenew: _autoRenew,
+              sizes: sizes,
+              colorOptions: colorOptions,
               weight: weight,
               origin: origin,
               grade: grade,
@@ -429,7 +447,14 @@ class _CoBuyCreateFormState extends ConsumerState<_CoBuyCreateForm> {
                         label: l10n.addListingCategoryLabel,
                         hintText: l10n.addListingCategoryHint,
                         errorText: l10n.addListingCategoryRequired,
-                        onChanged: (value) => setState(() => _category = value),
+                        onChanged: (value) {
+                          setState(() => _category = value);
+                          _variants.setCategory(value);
+                        },
+                      ),
+                      VariantOptionsEditor(
+                        controller: _variants,
+                        topSpacing: 20,
                       ),
                       const SizedBox(height: 20),
                       _AppTextField(
