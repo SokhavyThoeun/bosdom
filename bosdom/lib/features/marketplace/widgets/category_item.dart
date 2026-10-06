@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../l10n/generated/app_localizations.dart';
 import '../models/category.dart';
 
 class CategoryItem extends StatelessWidget {
@@ -27,16 +28,23 @@ class CategoryItem extends StatelessWidget {
               child: SvgPicture.asset(category.iconAsset),
             ),
             const SizedBox(height: 6),
-            Text(
-              category.label,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurface,
-                fontWeight: FontWeight.w600,
-                fontSize: 11,
-                height: 1.1,
+            // Shrink to fit so longer Khmer names never show "...".
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                categoryDisplayName(
+                  AppLocalizations.of(context),
+                  category.label,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                softWrap: false,
+                style: textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 11,
+                  height: 1.1,
+                ),
               ),
             ),
           ],

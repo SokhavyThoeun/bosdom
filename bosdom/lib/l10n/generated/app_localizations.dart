@@ -8066,6 +8066,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The delivery service reported an issue with your parcel, so the BosDom Support Team has cancelled this order. Your payment is fully protected, and your refund will be issued to you by {date}.'**
   String orderHoldDeliveryBody(String date);
+
+  /// No description provided for @categoryElectronics.
+  ///
+  /// In en, this message translates to:
+  /// **'Electronics'**
+  String get categoryElectronics;
+
+  /// No description provided for @categoryClothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Clothing'**
+  String get categoryClothing;
+
+  /// No description provided for @categoryFoodBev.
+  ///
+  /// In en, this message translates to:
+  /// **'Food & Bev'**
+  String get categoryFoodBev;
+
+  /// No description provided for @categoryBeauty.
+  ///
+  /// In en, this message translates to:
+  /// **'Beauty'**
+  String get categoryBeauty;
+
+  /// No description provided for @categoryHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get categoryHome;
 }
 
 class _AppLocalizationsDelegate

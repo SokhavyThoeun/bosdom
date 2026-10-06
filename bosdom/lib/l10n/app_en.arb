@@ -2150,5 +2150,10 @@
         "type": "String"
       }
     }
-  }
+  },
+  "categoryElectronics": "Electronics",
+  "categoryClothing": "Clothing",
+  "categoryFoodBev": "Food & Bev",
+  "categoryBeauty": "Beauty",
+  "categoryHome": "Home"
 }

@@ -4491,4 +4491,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String orderHoldDeliveryBody(String date) {
     return 'The delivery service reported an issue with your parcel, so the BosDom Support Team has cancelled this order. Your payment is fully protected, and your refund will be issued to you by $date.';
   }
+
+  @override
+  String get categoryElectronics => 'Electronics';
+
+  @override
+  String get categoryClothing => 'Clothing';
+
+  @override
+  String get categoryFoodBev => 'Food & Bev';
+
+  @override
+  String get categoryBeauty => 'Beauty';
+
+  @override
+  String get categoryHome => 'Home';
 }

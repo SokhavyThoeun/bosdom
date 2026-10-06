@@ -1243,7 +1243,12 @@ class _CategoryDropdown extends StatelessWidget {
       ),
       items: [
         for (final category in kCategories)
-          DropdownMenuItem(value: category.label, child: Text(category.label)),
+          DropdownMenuItem(
+            value: category.label,
+            child: Text(
+              categoryDisplayName(AppLocalizations.of(context), category.label),
+            ),
+          ),
       ],
       validator: (value) => value == null ? errorText : null,
       onChanged: onChanged,

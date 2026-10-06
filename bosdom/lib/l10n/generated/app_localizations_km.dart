@@ -4520,4 +4520,19 @@ class AppLocalizationsKm extends AppLocalizations {
   String orderHoldDeliveryBody(String date) {
     return 'សេវាដឹកជញ្ជូនបានរាយការណ៍បញ្ហាលើកញ្ចប់របស់អ្នក ដូច្នេះក្រុមគាំទ្រ BosDom បានលុបចោលការបញ្ជាទិញនេះ។ ប្រាក់របស់អ្នកត្រូវបានការពារពេញលេញ ហើយអ្នកនឹងទទួលបានប្រាក់សងវិញត្រឹមថ្ងៃទី $date។';
   }
+
+  @override
+  String get categoryElectronics => 'អេឡិចត្រូនិក';
+
+  @override
+  String get categoryClothing => 'សម្លៀកបំពាក់';
+
+  @override
+  String get categoryFoodBev => 'អាហារ និងភេសជ្ជៈ';
+
+  @override
+  String get categoryBeauty => 'សម្ផស្ស';
+
+  @override
+  String get categoryHome => 'គេហដ្ឋាន';
 }

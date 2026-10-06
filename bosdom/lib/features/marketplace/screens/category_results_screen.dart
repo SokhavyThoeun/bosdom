@@ -110,7 +110,7 @@ class _CategoryResultsScreenState extends ConsumerState<CategoryResultsScreen> {
                           const SizedBox(width: 10),
                           for (final label in _selectedCategories) ...[
                             _SelectedChip(
-                              label: label,
+                              label: categoryDisplayName(l10n, label),
                               colorScheme: colorScheme,
                               textTheme: textTheme,
                               onRemove: () => _removeCategory(label),
@@ -455,7 +455,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                   ),
                 ),
                 title: Text(
-                  category.label,
+                  categoryDisplayName(l10n, category.label),
                   style: textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
