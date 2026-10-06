@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../models/category.dart';
 import '../models/product.dart';
@@ -445,14 +445,11 @@ class _FilterSheetState extends State<_FilterSheet> {
                 contentPadding: EdgeInsets.zero,
                 controlAffinity: ListTileControlAffinity.leading,
                 activeColor: colorScheme.primary,
-                secondary: CircleAvatar(
-                  radius: 16,
-                  backgroundColor: AppColors.blushSurface,
-                  child: Icon(
-                    category.icon,
-                    color: AppColors.brandCrimson,
-                    size: 16,
-                  ),
+                // Same illustrated icons as the home page category row.
+                secondary: SizedBox(
+                  width: 36,
+                  height: 36,
+                  child: SvgPicture.asset(category.iconAsset),
                 ),
                 title: Text(
                   categoryDisplayName(l10n, category.label),
