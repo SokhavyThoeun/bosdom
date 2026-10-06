@@ -35,6 +35,7 @@ class _CoBuyCarouselState extends State<CoBuyCarousel> {
   }
 
   void _measure() {
+    if (!mounted) return;
     final size = _measureKey.currentContext?.size;
     if (size != null && size.height != _height) {
       setState(() => _height = size.height);
@@ -61,14 +62,26 @@ class _CoBuyCarouselState extends State<CoBuyCarousel> {
     final loop = widget.sessions.length > 1;
     return Stack(
       children: [
-        // Offstage clone used only to measure the natural card height.
+        // Offstage clones used only to measure the tallest natural card
+        // height. Re-measured whenever it changes (e.g. switching to Khmer,
+        // whose glyphs are taller) so the PageView never clips a card.
         Offstage(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: CoBuyCard(
-              key: _measureKey,
-              session: widget.sessions.first,
-              onTap: () {},
+          child: NotificationListener<SizeChangedLayoutNotification>(
+            onNotification: (_) {
+              WidgetsBinding.instance.addPostFrameCallback((_) => _measure());
+              return true;
+            },
+            child: SizeChangedLayoutNotifier(
+              child: Stack(
+                key: _measureKey,
+                children: [
+                  for (final session in widget.sessions)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: CoBuyCard(session: session, onTap: () {}),
+                    ),
+                ],
+              ),
             ),
           ),
         ),
